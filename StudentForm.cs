@@ -34,7 +34,7 @@ namespace TAO_Enhancer
                     IGraph g = new Graph();
                     FileLoader.Load(g, file);
                     IEnumerable<INode> nodes = g.AllNodes;
-                    int nodeLine = 1;//TODO: Velmi špatný kód - minimálně to tady chce udělat podmínky jako if(node == ns0:userFirstName), zatím ale vůbec nevím jak na to
+                    int nodeLine = 1;//TODO 1: Velmi špatný kód - minimálně to tady chce udělat podmínky jako if(node == ns0:userFirstName), zatím ale vůbec nevím jak na to
                     string login = "", name = "", surname = "";
                     foreach (INode node in nodes)
                     {
@@ -83,6 +83,12 @@ namespace TAO_Enhancer
             TestTakersGridView.Rows.Add();
             TestTakersGridView.Rows[0].Cells[0].Value = login;
             TestTakersGridView.Rows[0].Cells[1].Value = name + " " + surname;*/
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            new EntryForm().Show();
+            Hide();
         }
     }
 }

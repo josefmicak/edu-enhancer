@@ -22,5 +22,11 @@ namespace TAO_Enhancer
             new ItemsForm().Show();
             Hide();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            new EntryForm().Show();
+            Hide();
+        }
     }
 }
