@@ -37,6 +37,7 @@ namespace TAO_Enhancer
             this.button1 = new System.Windows.Forms.Button();
             this.QuestionImage = new System.Windows.Forms.PictureBox();
             this.PossibleAnswerLabel = new System.Windows.Forms.Label();
+            this.SubquestionLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.SuspendLayout();
             // 
@@ -79,7 +80,7 @@ namespace TAO_Enhancer
             // CorrectAnswerLabel
             // 
             this.CorrectAnswerLabel.AutoSize = true;
-            this.CorrectAnswerLabel.Location = new System.Drawing.Point(758, 296);
+            this.CorrectAnswerLabel.Location = new System.Drawing.Point(758, 304);
             this.CorrectAnswerLabel.Name = "CorrectAnswerLabel";
             this.CorrectAnswerLabel.Size = new System.Drawing.Size(113, 15);
             this.CorrectAnswerLabel.TabIndex = 4;
@@ -106,17 +107,28 @@ namespace TAO_Enhancer
             // PossibleAnswerLabel
             // 
             this.PossibleAnswerLabel.AutoSize = true;
-            this.PossibleAnswerLabel.Location = new System.Drawing.Point(476, 296);
+            this.PossibleAnswerLabel.Location = new System.Drawing.Point(476, 304);
             this.PossibleAnswerLabel.Name = "PossibleAnswerLabel";
             this.PossibleAnswerLabel.Size = new System.Drawing.Size(117, 15);
             this.PossibleAnswerLabel.TabIndex = 7;
             this.PossibleAnswerLabel.Text = "PossibleAnswerLabel";
+            // 
+            // SubquestionLabel
+            // 
+            this.SubquestionLabel.AutoSize = true;
+            this.SubquestionLabel.Location = new System.Drawing.Point(476, 274);
+            this.SubquestionLabel.Name = "SubquestionLabel";
+            this.SubquestionLabel.Size = new System.Drawing.Size(101, 15);
+            this.SubquestionLabel.TabIndex = 8;
+            this.SubquestionLabel.Text = "SubquestionLabel";
+            this.SubquestionLabel.Visible = false;
             // 
             // ItemForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1223, 742);
+            this.Controls.Add(this.SubquestionLabel);
             this.Controls.Add(this.PossibleAnswerLabel);
             this.Controls.Add(this.QuestionImage);
             this.Controls.Add(this.button1);
@@ -144,5 +156,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.PictureBox QuestionImage;
         private System.Windows.Forms.Label PossibleAnswerLabel;
+        private System.Windows.Forms.Label SubquestionLabel;
     }
 }
