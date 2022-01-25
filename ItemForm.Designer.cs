@@ -38,6 +38,7 @@ namespace TAO_Enhancer
             this.QuestionImage = new System.Windows.Forms.PictureBox();
             this.PossibleAnswerLabel = new System.Windows.Forms.Label();
             this.SubquestionLabel = new System.Windows.Forms.Label();
+            this.SubitemCB = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.SuspendLayout();
             // 
@@ -123,11 +124,23 @@ namespace TAO_Enhancer
             this.SubquestionLabel.Text = "SubquestionLabel";
             this.SubquestionLabel.Visible = false;
             // 
+            // SubitemCB
+            // 
+            this.SubitemCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.SubitemCB.Enabled = false;
+            this.SubitemCB.FormattingEnabled = true;
+            this.SubitemCB.Location = new System.Drawing.Point(29, 215);
+            this.SubitemCB.Name = "SubitemCB";
+            this.SubitemCB.Size = new System.Drawing.Size(121, 23);
+            this.SubitemCB.TabIndex = 9;
+            this.SubitemCB.SelectedIndexChanged += new System.EventHandler(this.SubitemCB_SelectedIndexChanged);
+            // 
             // ItemForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1223, 742);
+            this.Controls.Add(this.SubitemCB);
             this.Controls.Add(this.SubquestionLabel);
             this.Controls.Add(this.PossibleAnswerLabel);
             this.Controls.Add(this.QuestionImage);
@@ -157,5 +170,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.PictureBox QuestionImage;
         private System.Windows.Forms.Label PossibleAnswerLabel;
         private System.Windows.Forms.Label SubquestionLabel;
+        private System.Windows.Forms.ComboBox SubitemCB;
     }
 }

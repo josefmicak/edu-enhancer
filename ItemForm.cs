@@ -20,8 +20,11 @@ namespace TAO_Enhancer
         List<string> possibleAnswerArray = new List<string>();
         List<string> correctChoiceArray = new List<string>();
         List<string> correctAnswerArray = new List<string>();
+        List<(string, string)> choiceIdentifierValueTuple = new List<(string, string)>();
         int questionType = 0;
+        int subitemNumbers = -1;
         bool includesImage = false;
+        bool subitemsAdded = false;
 
         public ItemForm(string id)
         {
@@ -33,7 +36,31 @@ namespace TAO_Enhancer
         public void LoadItemInfo()
         {
             IdentifierLabel.Text = "Identifikátor: " + identifier;
+
+            resetLoadedItemInfo();
+
+            subitemNumbers = GetAmountOfSubitems();
+            if(subitemNumbers > 0)
+            {
+                SubitemCB.Enabled = true;
+                QuestionLabel.Text = "Vyberte podotázku z rozbalovacího menu";
+            }
+            if(SubitemCB.Enabled && SubitemCB.SelectedIndex == -1)
+            {
+                SubitemCB.SelectedIndex = 0;
+                subitemsAdded = true;
+            }
+
             questionType = GetQuestionType();
+            if (questionType == 0)
+            {
+                MessageBox.Show("Chyba: nepodporovaný nebo neznámý typ otázky.", "Nepodporovaná otázka", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            if(questionType == 4)//TODO: Bude nutné i u 3
+            {
+                GetChoiceIdentifierValues();
+            }
 
             FillPossibleAnswerLabel();
             FillCorrectAnswerLabel();
@@ -63,15 +90,48 @@ namespace TAO_Enhancer
                 }
                 else
                 {
-                    if (xmlReader.Name == "prompt")
+                    if(questionType == 7)
                     {
-                        QuestionLabel.Text = "Otázka: " + xmlReader.ReadElementContentAsString();
+                        if (xmlReader.Name == "p")
+                        {
+                            //TODO 9: Inline interactions nezprovozněno
+                            QuestionLabel.Text = "Otázka: " + xmlReader.ReadString();
+                        }
+                    }
+                    else
+                    {
+                        if(subitemNumbers > 0)
+                        {
+                            int selectedSubitemIndex = SubitemCB.SelectedIndex;
+                            string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                            if(responseIdentifier != null)
+                            {
+                                string[] responseIdentifierNumber = responseIdentifier.Split('_');
+                                try
+                                {
+                                    if(selectedSubitemIndex != int.Parse(responseIdentifierNumber[1]))
+                                    {
+                                        xmlReader.Skip();
+                                    }
+                                }
+                                catch//responseIdentifier="RESPONSE"
+                                {
+                                    if(selectedSubitemIndex != 0)
+                                    {
+                                        xmlReader.Skip();
+                                    }
+                                }
+                            }
+                            if (xmlReader.Name == "prompt")
+                            {
+                                QuestionLabel.Text = "Otázka: " + xmlReader.ReadElementContentAsString();
+                            }
+                        }
                     }
                 }
                 switch (questionType)//switch blok ve kterém čteme z XML, tzn jsme ve while cyklu
                 {
                     case 0:
-                        MessageBox.Show("Chyba: nepodporovaný nebo neznámý typ otázky.", "Nepodporovaná otázka", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         break;
 
                     case 1:
@@ -99,13 +159,64 @@ namespace TAO_Enhancer
             }
         }
 
-        public int GetQuestionType()
+        public void resetLoadedItemInfo()
+        {
+            subquestionArray.Clear();
+            possibleAnswerArray.Clear();
+            correctChoiceArray.Clear();
+            correctAnswerArray.Clear();
+            includesImage = false;
+            QuestionImage.Image = null;
+            CorrectAnswerLabel.Text = "";
+            CorrectAnswerLabel.Visible = true;  
+        }
+
+        public int GetAmountOfSubitems()
         {
             XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
             while (xmlReader.Read())
             {
+                if(xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement && !subitemsAdded)
+                {
+                    subitemNumbers++;
+                    SubitemCB.Items.Add(subitemNumbers);
+                }
+            }
+            return subitemNumbers;
+        }
+
+        public int GetQuestionType()
+        {
+            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
+            while (xmlReader.Read())
+            {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
+                    if(subitemNumbers > 0)
+                    {
+                        int selectedSubitemIndex = SubitemCB.SelectedIndex;
+                        string responseIdentifier = xmlReader.GetAttribute("identifier");
+                        if (responseIdentifier != null)
+                        {
+                            string[] responseIdentifierNumber = responseIdentifier.Split('_');
+                            try
+                            {
+                                if (selectedSubitemIndex != int.Parse(responseIdentifierNumber[1]))
+                                {
+                                    xmlReader.Skip();
+                                }
+                            }
+                            catch//responseIdentifier="RESPONSE"
+                            {
+                                if (selectedSubitemIndex != 0)
+                                {
+                                    xmlReader.Skip();
+                                }
+                            }
+                        }
+                    }
+
                     if (xmlReader.GetAttribute("cardinality") == "ordered" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
                         questionType = 1;//Typ otázky = seřazení pojmů
@@ -116,7 +227,7 @@ namespace TAO_Enhancer
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
                     {
-                        questionType = 3;//Typ otázky = spojování párů
+                        questionType = 3;//Typ otázky = spojování párů; TODO 10: Problém s tím, když je jedna možnost ve více párech
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
                     {
@@ -124,11 +235,43 @@ namespace TAO_Enhancer
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
                     {
-                        questionType = 5;//Typ otázky = volná odpověď
+                        questionType = 5;//Typ otázky = volná odpověď; TODO 11: Přidat typ otázky, kde je volná otázka ale daná odpověď
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
-                        questionType = 6;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
+                        singleCorrectAnswer = true;
+                    }
+                }
+
+                if(singleCorrectAnswer)
+                {
+                    if (xmlReader.Name == "simpleChoice")
+                    {
+                        questionType = 6;//Typ otázky = výběr z více možností (abc), jen jedna odpověď je správně
+                    }
+                }
+
+                if (subitemNumbers > 0)
+                {
+                    int selectedSubitemIndex = SubitemCB.SelectedIndex;
+                    string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                    if (responseIdentifier != null)
+                    {
+                        string[] responseIdentifierNumber = responseIdentifier.Split('_');
+                        try
+                        {
+                            if (selectedSubitemIndex != int.Parse(responseIdentifierNumber[1]))
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
+                        catch//responseIdentifier="RESPONSE"
+                        {
+                            if (selectedSubitemIndex != 0)
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
                     }
                 }
 
@@ -137,7 +280,26 @@ namespace TAO_Enhancer
                     includesImage = true;
                 }
             }
+
+            if(singleCorrectAnswer && questionType == 0)
+            {
+                questionType = 7;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
+            }
             return questionType;
+        }
+
+        public void GetChoiceIdentifierValues()
+        {
+            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            while (xmlReader.Read())
+            {
+                if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
+                {
+                    string choiceIdentifier = xmlReader.GetAttribute("identifier");
+                    string choiceValue = xmlReader.ReadElementContentAsString();
+                    choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                }
+            }
         }
 
         public void FillPossibleAnswerLabel()
@@ -149,6 +311,30 @@ namespace TAO_Enhancer
             XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
             while (xmlReader.Read())
             {
+                if(subitemNumbers > 0)
+                {
+                    int selectedSubitemIndex = SubitemCB.SelectedIndex;
+                    string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                    if (responseIdentifier != null)
+                    {
+                        string[] responseIdentifierNumber = responseIdentifier.Split('_');
+                        try
+                        {
+                            if (selectedSubitemIndex != int.Parse(responseIdentifierNumber[1]))
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
+                        catch//responseIdentifier="RESPONSE"
+                        {
+                            if (selectedSubitemIndex != 0)
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
+                    }
+                }
+
                 if(questionType == 4)
                 {
                     if (xmlReader.Name == "simpleMatchSet")
@@ -201,7 +387,7 @@ namespace TAO_Enhancer
                     }
                     subquestionArrayIterator++;
                 }
-                //TODO 5: Šlo by to řešit i přes jeden label, tzn. přidáme text do QuestionLabelu, ale myslím si že tohle řešení ničemu nevadí
+                //TODO 5: Šlo by to řešit i přes jeden label, tzn. přidáme text do QuestionLabelu, ale myslím si že tohle řešení ničemu nevadí, dáme fill na konec funkce
                 SubquestionLabel.Visible = true;
                 SubquestionLabel.Text = "(" + subquestions + ")";
             }
@@ -222,12 +408,34 @@ namespace TAO_Enhancer
         public void FillCorrectAnswerLabel()
         {
             string correctAnswer = "";
-            List<string> identifierToString = new List<string>();
-            identifierToString.Add(" ");
             XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
             while (xmlReader.Read())
             {
-                if(questionType == 3)
+                if (subitemNumbers > 0 && xmlReader.Name == "responseDeclaration")
+                {
+                    int selectedSubitemIndex = SubitemCB.SelectedIndex;
+                    string responseIdentifier = xmlReader.GetAttribute("identifier");
+                    if (responseIdentifier != null)
+                    {
+                        string[] responseIdentifierNumber = responseIdentifier.Split('_');
+                        try
+                        {
+                            if (selectedSubitemIndex != int.Parse(responseIdentifierNumber[1]))
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
+                        catch//identifier="RESPONSE"
+                        {
+                            if (selectedSubitemIndex != 0)
+                            {
+                                xmlReader.Skip();
+                            }
+                        }
+                    }
+                }
+
+                if (questionType == 3)
                 {
                     if (xmlReader.Name == "value")
                     {
@@ -266,13 +474,13 @@ namespace TAO_Enhancer
                             string[] orderedCorrectChoices = value.Split(' ');
                             correctChoiceArray.Add(orderedCorrectChoices[1]);
                             correctChoiceArray.Add(orderedCorrectChoices[0]);
+                            Debug.WriteLine("added: " + value);
                         }
                     }
 
                     if (xmlReader.Name == "simpleAssociableChoice")
                     {
                         string answerText = xmlReader.ReadElementContentAsString();
-                        identifierToString.Add(answerText);
                     }
                 }
                 else if(questionType == 5)
@@ -330,8 +538,7 @@ namespace TAO_Enhancer
             {
                 foreach(string answer in correctChoiceArray)
                 {
-                    string[] splitChoiceByUnderscore = answer.Split('_');
-                    correctAnswerArray.Add(identifierToString[int.Parse(splitChoiceByUnderscore[1])]);
+                    correctAnswerArray.Add(GetChoiceValue(answer));//TODO: Tohle také u questionType 3
                 }
                 int answerNumber = 0;
                 foreach (string answer in correctAnswerArray)
@@ -358,10 +565,30 @@ namespace TAO_Enhancer
             }
         }
 
+        public string GetChoiceValue(string choiceIdentifier)
+        {
+            for(int i = 0; i < choiceIdentifierValueTuple.Count; i++)
+            {
+                if(choiceIdentifier == choiceIdentifierValueTuple[i].Item1)
+                {
+                    return choiceIdentifierValueTuple[i].Item2;
+                }
+            }
+            return "Error";
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             new ItemsForm().Show();
             Hide();
+        }
+
+        private void SubitemCB_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if(subitemsAdded)
+            {
+                LoadItemInfo();
+            }
         }
     }
 }
