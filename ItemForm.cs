@@ -15,6 +15,8 @@ namespace TAO_Enhancer
     public partial class ItemForm : Form
     {
         string identifier = "";
+        string testNameIdentifier = "";
+        string testNumberIdentifier = "";
         List<string> subquestionArray = new List<string>();
         List<string> possibleAnswerArray = new List<string>();
         List<string> correctChoiceArray = new List<string>();
@@ -26,10 +28,12 @@ namespace TAO_Enhancer
         int amountOfSubitems = 0;
         bool subitemsAdded = false;
 
-        public ItemForm(string id)
+        public ItemForm(string testNameID, string itemNumberID, string testNumberID)
         {
             InitializeComponent();
-            identifier = id;
+            testNameIdentifier = testNameID;
+            identifier = itemNumberID;
+            testNumberIdentifier = testNumberID;
             LoadItemInfo();
         }
 
@@ -73,7 +77,7 @@ namespace TAO_Enhancer
                 GetChoiceIdentifierValues();
             }
 
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
@@ -129,24 +133,6 @@ namespace TAO_Enhancer
                 {
                     QuestionLabel.Text = "Otázka nebyla vyplněna.";
                 }
-
-                switch (questionType)//switch blok ve kterém čteme z XML, tzn jsme ve while cyklu
-                {
-                    case 0:
-                        break;
-
-                    case 1:
-                        break;
-
-                    case 2:
-                        break;
-
-                    case 3:
-                        break;
-
-                    case 4:
-                        break;
-                }
             }
 
             FillPossibleAnswerLabel();
@@ -170,16 +156,11 @@ namespace TAO_Enhancer
                 }
                 QuestionLabel.Text += "\n(" + subquestions + ")";
             }
+        }
 
-            switch (questionType)//další switch blok ve kterém již nečteme z XML, tzn nejsme ve while cyklu
-            {
-                case 3:
-                    break;
-
-                case 4:
-
-                    break;
-            }
+        public string GetItemPath()
+        {
+            return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + identifier + "\\qti.xml";
         }
 
         public void resetLoadedItemInfo()
@@ -197,7 +178,7 @@ namespace TAO_Enhancer
 
         public int GetAmountOfSubitems()
         {
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement && !subitemsAdded)
@@ -210,7 +191,7 @@ namespace TAO_Enhancer
 
         public void GetResponseIdentifiers()
         {
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -263,7 +244,7 @@ namespace TAO_Enhancer
         public bool IncludesImage()
         {
             bool includesImage = false;
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "img")
@@ -276,7 +257,7 @@ namespace TAO_Enhancer
 
         public int GetQuestionType()
         {
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
             while (xmlReader.Read())
             {
@@ -376,7 +357,7 @@ namespace TAO_Enhancer
 
         public void GetChoiceIdentifierValues()
         {
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
@@ -393,7 +374,7 @@ namespace TAO_Enhancer
             string possibleAnswers = "";
             int simpleMatchSetCounter = 0;
 
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (amountOfSubitems > 1)
@@ -461,7 +442,7 @@ namespace TAO_Enhancer
         public void FillCorrectAnswerLabel()
         {
             string correctAnswer = "";
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\items\\" + identifier + "\\qti.xml");
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if (amountOfSubitems > 1 && xmlReader.Name == "responseDeclaration")
@@ -565,7 +546,7 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new ItemsForm().Show();
+            new TestForm((testNameIdentifier, testNumberIdentifier)).Show();
             Hide();
         }
 

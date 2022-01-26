@@ -28,5 +28,11 @@ namespace TAO_Enhancer
             new EntryForm().Show();
             Hide();
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            new TestsForm().Show();
+            Hide();
+        }
     }
 }

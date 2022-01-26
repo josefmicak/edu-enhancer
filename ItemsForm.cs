@@ -61,7 +61,7 @@ namespace TAO_Enhancer
             }
             else
             {
-                new ItemForm(ItemsGridView.Rows[chosenItem].Cells[0].Value.ToString()).Show();
+              //  new ItemForm(ItemsGridView.Rows[chosenItem].Cells[0].Value.ToString()).Show();
                 Hide();
             }
         }
