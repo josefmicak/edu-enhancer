@@ -17,6 +17,8 @@ namespace TAO_Enhancer
 {
     public partial class StudentForm : Form
     {
+        List<string> studentIdentifier = new List<string>();
+        int selectedStudent = -1;
         public StudentForm()
         {
             InitializeComponent();
@@ -34,10 +36,15 @@ namespace TAO_Enhancer
                     IGraph g = new Graph();
                     FileLoader.Load(g, file);
                     IEnumerable<INode> nodes = g.AllNodes;
-                    int nodeLine = 1;//TODO 1: Velmi špatný kód - minimálně to tady chce udělat podmínky jako if(node == ns0:userFirstName), zatím ale vůbec nevím jak na to
+                    int nodeLine = 1;//TODO 1: Předělat; Udělat podmínky jako if(node == ns0:userFirstName)
                     string login = "", name = "", surname = "";
                     foreach (INode node in nodes)
                     {
+                        if(nodeLine == 1)
+                        {
+                            string[] splitByHashtag = node.ToString().Split("#");
+                            studentIdentifier.Add(splitByHashtag[1]);
+                        }
                         if (nodeLine == 3)
                         {
                             login = node.ToString();
@@ -58,37 +65,30 @@ namespace TAO_Enhancer
                     gridViewRow++;
                 }
             }
-/*
-            IGraph g = new Graph();
-            FileLoader.Load(g, "C:\\xampp\\exported\\testtakers\\john_1642833661.rdf");
-            IEnumerable<INode> nodes = g.AllNodes;
-            int nodeLine = 1;//Velmi špatný kód - minimálně to tady chce udělat podmínky jako if(node == ns0:userFirstName), zatím ale vůbec nevím jak na to
-            string login = "", name = "", surname = "";
-            foreach (INode node in nodes)
-            {
-                if(nodeLine == 3)
-                {
-                    login = node.ToString();
-                }
-                else if(nodeLine == 9)
-                {
-                    name = node.ToString();
-                }
-                else if(nodeLine == 11)
-                {
-                    surname = node.ToString();
-                }
-                nodeLine++;
-            }
-            TestTakersGridView.Rows.Add();
-            TestTakersGridView.Rows[0].Cells[0].Value = login;
-            TestTakersGridView.Rows[0].Cells[1].Value = name + " " + surname;*/
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             new EntryForm().Show();
             Hide();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (selectedStudent == -1)
+            {
+                MessageBox.Show("Chyba - nevybral jste žadného studenta. Prosím vyberte studenta kliknutím na příslušný řádek.", "Nebyl vybrán student", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                new ResultForm(studentIdentifier[selectedStudent]).Show();
+                Hide();
+            }
+        }
+
+        private void TestTakersGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            selectedStudent = TestTakersGridView.CurrentCell.RowIndex;
         }
     }
 }
