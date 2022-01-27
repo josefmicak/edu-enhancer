@@ -12,6 +12,10 @@ using System.Xml;
 
 namespace TAO_Enhancer
 {
+    /*
+     * TODO: Sekce (k jaké sekci otázka patří)
+     * Obrázky u podotázek
+     */
     public partial class ItemForm : Form
     {
         string identifier = "";
@@ -27,6 +31,7 @@ namespace TAO_Enhancer
         int questionType = 0;
         int amountOfSubitems = 0;
         bool subitemsAdded = false;
+        List<bool> includesImage = new List<bool>();
 
         public ItemForm(string testNameID, string itemNumberID, string testNumberID)
         {
@@ -42,9 +47,12 @@ namespace TAO_Enhancer
             IdentifierLabel.Text = "Identifikátor: " + identifier;
             bool includesQuestion = false;
 
-            resetLoadedItemInfo();
+            ResetLoadedItemInfo();
+
+            DoesSubitemIncludeImage();
 
             amountOfSubitems = GetAmountOfSubitems();
+            AmountOfSubquestionsLabel.Text = "Počet podotázek: " + amountOfSubitems;
             if (amountOfSubitems > 1)
             {
                 SubitemCB.Enabled = true;
@@ -77,6 +85,16 @@ namespace TAO_Enhancer
                 GetChoiceIdentifierValues();
             }
 
+            int currentSubitem = -1;
+            if (amountOfSubitems > 1)
+            {
+                currentSubitem = SubitemCB.SelectedIndex;
+            }
+            else
+            {
+                currentSubitem = 0;
+            }
+
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
@@ -89,7 +107,7 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if (IncludesImage())
+                if (includesImage[currentSubitem])
                 {
                     if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
                     {
@@ -97,7 +115,7 @@ namespace TAO_Enhancer
                     }
                     if (xmlReader.Name == "img")
                     {
-                        QuestionImage.ImageLocation = ("C:\\xampp\\exported\\items\\" + identifier + "\\" + xmlReader.GetAttribute("src"));
+                        QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + identifier + "\\" + xmlReader.GetAttribute("src"));
                     }
                 }
                 else
@@ -163,7 +181,7 @@ namespace TAO_Enhancer
             return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + identifier + "\\qti.xml";
         }
 
-        public void resetLoadedItemInfo()
+        public void ResetLoadedItemInfo()
         {
             subquestionArray.Clear();
             possibleAnswerArray.Clear();
@@ -202,7 +220,6 @@ namespace TAO_Enhancer
                 if (xmlReader.GetAttribute("responseIdentifier") != null)
                 {
                     string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
-                    Debug.WriteLine("a");
                     responseIdentifierArray.Add(responseIdentifier);
 
                     if(responseIdentifierArray.Count - 1 > responseValueArray.Count)
@@ -211,21 +228,23 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if(IncludesImage())
+                if(responseIdentifierArray.Count > 0)
                 {
-                    if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
+                    if (includesImage[responseIdentifierArray.Count - 1])
                     {
-                        string responseValue = xmlReader.ReadElementContentAsString();
-                        responseValueArray.Add(responseValue);
+                        if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
+                        {
+                            string responseValue = xmlReader.ReadElementContentAsString();
+                            responseValueArray.Add(responseValue);
+                        }
                     }
-                }
-                else
-                {
-                    if (xmlReader.Name == "prompt")
+                    else
                     {
-                        string responseValue = xmlReader.ReadElementContentAsString();
-                        Debug.WriteLine("b");
-                        responseValueArray.Add(responseValue);
+                        if (xmlReader.Name == "prompt")
+                        {
+                            string responseValue = xmlReader.ReadElementContentAsString();
+                            responseValueArray.Add(responseValue);
+                        }
                     }
                 }
             }
@@ -241,18 +260,28 @@ namespace TAO_Enhancer
             }
         }
 
-        public bool IncludesImage()
+        public void DoesSubitemIncludeImage()
         {
-            bool includesImage = false;
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
+            bool imageFound = false;
             while (xmlReader.Read())
             {
+                if(xmlReader.Name == "prompt" && xmlReader.NodeType == XmlNodeType.EndElement && !imageFound)
+                {
+                    includesImage.Add(false);
+                }
+
                 if (xmlReader.Name == "img")
                 {
-                    includesImage = true;
+                    imageFound = true;
+                    includesImage.Add(true);
+                }
+
+                if (xmlReader.Name == "prompt" && xmlReader.NodeType == XmlNodeType.EndElement && imageFound)
+                {
+                    imageFound = false;
                 }
             }
-            return includesImage;
         }
 
         public int GetQuestionType()

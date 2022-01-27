@@ -30,6 +30,7 @@ namespace TAO_Enhancer
         private void InitializeComponent()
         {
             this.TestGB = new System.Windows.Forms.GroupBox();
+            this.AmountOfQuestionsLabel = new System.Windows.Forms.Label();
             this.TestNumberIdentifierLabel = new System.Windows.Forms.Label();
             this.TestTitleLabel = new System.Windows.Forms.Label();
             this.TestNameIdentifierLabel = new System.Windows.Forms.Label();
@@ -38,6 +39,8 @@ namespace TAO_Enhancer
             this.ItemListGB = new System.Windows.Forms.GroupBox();
             this.button2 = new System.Windows.Forms.Button();
             this.ItemsGridView = new System.Windows.Forms.DataGridView();
+            this.TestPartColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TestSectionColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ItemNameIdentifierColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ItemNumberIdentifierColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ItemGB = new System.Windows.Forms.GroupBox();
@@ -53,16 +56,26 @@ namespace TAO_Enhancer
             // 
             // TestGB
             // 
+            this.TestGB.Controls.Add(this.AmountOfQuestionsLabel);
             this.TestGB.Controls.Add(this.TestNumberIdentifierLabel);
             this.TestGB.Controls.Add(this.TestTitleLabel);
             this.TestGB.Controls.Add(this.TestNameIdentifierLabel);
             this.TestGB.Controls.Add(this.TestFolderNameLabel);
             this.TestGB.Location = new System.Drawing.Point(13, 29);
             this.TestGB.Name = "TestGB";
-            this.TestGB.Size = new System.Drawing.Size(301, 174);
+            this.TestGB.Size = new System.Drawing.Size(301, 200);
             this.TestGB.TabIndex = 0;
             this.TestGB.TabStop = false;
             this.TestGB.Text = "Test";
+            // 
+            // AmountOfQuestionsLabel
+            // 
+            this.AmountOfQuestionsLabel.AutoSize = true;
+            this.AmountOfQuestionsLabel.Location = new System.Drawing.Point(7, 168);
+            this.AmountOfQuestionsLabel.Name = "AmountOfQuestionsLabel";
+            this.AmountOfQuestionsLabel.Size = new System.Drawing.Size(145, 15);
+            this.AmountOfQuestionsLabel.TabIndex = 4;
+            this.AmountOfQuestionsLabel.Text = "AmountOfQuestionsLabel";
             // 
             // TestNumberIdentifierLabel
             // 
@@ -102,7 +115,7 @@ namespace TAO_Enhancer
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(454, 605);
+            this.button1.Location = new System.Drawing.Point(454, 649);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 1;
@@ -114,9 +127,9 @@ namespace TAO_Enhancer
             // 
             this.ItemListGB.Controls.Add(this.button2);
             this.ItemListGB.Controls.Add(this.ItemsGridView);
-            this.ItemListGB.Location = new System.Drawing.Point(12, 228);
+            this.ItemListGB.Location = new System.Drawing.Point(12, 272);
             this.ItemListGB.Name = "ItemListGB";
-            this.ItemListGB.Size = new System.Drawing.Size(475, 351);
+            this.ItemListGB.Size = new System.Drawing.Size(690, 351);
             this.ItemListGB.TabIndex = 2;
             this.ItemListGB.TabStop = false;
             this.ItemListGB.Text = "Seznam otázek";
@@ -137,15 +150,31 @@ namespace TAO_Enhancer
             this.ItemsGridView.AllowUserToDeleteRows = false;
             this.ItemsGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.ItemsGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.TestPartColumn,
+            this.TestSectionColumn,
             this.ItemNameIdentifierColumn,
             this.ItemNumberIdentifierColumn});
             this.ItemsGridView.Location = new System.Drawing.Point(7, 23);
             this.ItemsGridView.Name = "ItemsGridView";
             this.ItemsGridView.ReadOnly = true;
             this.ItemsGridView.RowTemplate.Height = 25;
-            this.ItemsGridView.Size = new System.Drawing.Size(444, 267);
+            this.ItemsGridView.Size = new System.Drawing.Size(662, 267);
             this.ItemsGridView.TabIndex = 0;
             this.ItemsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ItemsGridView_CellClick);
+            // 
+            // TestPartColumn
+            // 
+            this.TestPartColumn.HeaderText = "Část testu";
+            this.TestPartColumn.Name = "TestPartColumn";
+            this.TestPartColumn.ReadOnly = true;
+            this.TestPartColumn.Width = 150;
+            // 
+            // TestSectionColumn
+            // 
+            this.TestSectionColumn.HeaderText = "Sekce testu";
+            this.TestSectionColumn.Name = "TestSectionColumn";
+            this.TestSectionColumn.ReadOnly = true;
+            this.TestSectionColumn.Width = 150;
             // 
             // ItemNameIdentifierColumn
             // 
@@ -167,7 +196,7 @@ namespace TAO_Enhancer
             this.ItemGB.Controls.Add(this.ItemTitleLabel);
             this.ItemGB.Controls.Add(this.ItemNumberIdentifierLabel);
             this.ItemGB.Controls.Add(this.ItemNameIdentifierLabel);
-            this.ItemGB.Location = new System.Drawing.Point(507, 237);
+            this.ItemGB.Location = new System.Drawing.Point(515, 17);
             this.ItemGB.Name = "ItemGB";
             this.ItemGB.Size = new System.Drawing.Size(416, 163);
             this.ItemGB.TabIndex = 3;
@@ -214,7 +243,7 @@ namespace TAO_Enhancer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(943, 650);
+            this.ClientSize = new System.Drawing.Size(943, 714);
             this.Controls.Add(this.ItemGB);
             this.Controls.Add(this.ItemListGB);
             this.Controls.Add(this.button1);
@@ -243,12 +272,15 @@ namespace TAO_Enhancer
         private System.Windows.Forms.DataGridView ItemsGridView;
         private System.Windows.Forms.Label TestNumberIdentifierLabel;
         private System.Windows.Forms.GroupBox ItemGB;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ItemNameIdentifierColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ItemNumberIdentifierColumn;
         private System.Windows.Forms.Label ItemNumberIdentifierLabel;
         private System.Windows.Forms.Label ItemNameIdentifierLabel;
         private System.Windows.Forms.Label ItemLabelLabel;
         private System.Windows.Forms.Label ItemTitleLabel;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TestPartColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TestSectionColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ItemNameIdentifierColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ItemNumberIdentifierColumn;
+        private System.Windows.Forms.Label AmountOfQuestionsLabel;
     }
 }

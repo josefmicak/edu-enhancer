@@ -41,8 +41,9 @@ namespace TAO_Enhancer
             this.ResponseIdentifierLabel = new System.Windows.Forms.Label();
             this.ItemGB = new System.Windows.Forms.GroupBox();
             this.SubitemGB = new System.Windows.Forms.GroupBox();
-            this.SubitemLabel = new System.Windows.Forms.Label();
             this.QuestionTypeLabel = new System.Windows.Forms.Label();
+            this.SubitemLabel = new System.Windows.Forms.Label();
+            this.AmountOfSubquestionsLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.SubitemGB.SuspendLayout();
@@ -144,6 +145,7 @@ namespace TAO_Enhancer
             // 
             // ItemGB
             // 
+            this.ItemGB.Controls.Add(this.AmountOfSubquestionsLabel);
             this.ItemGB.Controls.Add(this.IdentifierLabel);
             this.ItemGB.Controls.Add(this.TitleLabel);
             this.ItemGB.Controls.Add(this.LabelLabel);
@@ -171,6 +173,15 @@ namespace TAO_Enhancer
             this.SubitemGB.TabStop = false;
             this.SubitemGB.Text = "Podotázka";
             // 
+            // QuestionTypeLabel
+            // 
+            this.QuestionTypeLabel.AutoSize = true;
+            this.QuestionTypeLabel.Location = new System.Drawing.Point(15, 110);
+            this.QuestionTypeLabel.Name = "QuestionTypeLabel";
+            this.QuestionTypeLabel.Size = new System.Drawing.Size(107, 15);
+            this.QuestionTypeLabel.TabIndex = 12;
+            this.QuestionTypeLabel.Text = "QuestionTypeLabel";
+            // 
             // SubitemLabel
             // 
             this.SubitemLabel.AutoSize = true;
@@ -180,14 +191,14 @@ namespace TAO_Enhancer
             this.SubitemLabel.TabIndex = 11;
             this.SubitemLabel.Text = "SubitemLabel";
             // 
-            // QuestionTypeLabel
+            // AmountOfSubquestionsLabel
             // 
-            this.QuestionTypeLabel.AutoSize = true;
-            this.QuestionTypeLabel.Location = new System.Drawing.Point(15, 110);
-            this.QuestionTypeLabel.Name = "QuestionTypeLabel";
-            this.QuestionTypeLabel.Size = new System.Drawing.Size(107, 15);
-            this.QuestionTypeLabel.TabIndex = 12;
-            this.QuestionTypeLabel.Text = "QuestionTypeLabel";
+            this.AmountOfSubquestionsLabel.AutoSize = true;
+            this.AmountOfSubquestionsLabel.Location = new System.Drawing.Point(16, 145);
+            this.AmountOfSubquestionsLabel.Name = "AmountOfSubquestionsLabel";
+            this.AmountOfSubquestionsLabel.Size = new System.Drawing.Size(163, 15);
+            this.AmountOfSubquestionsLabel.TabIndex = 3;
+            this.AmountOfSubquestionsLabel.Text = "AmountOfSubquestionsLabel";
             // 
             // ItemForm
             // 
@@ -225,5 +236,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.GroupBox SubitemGB;
         private System.Windows.Forms.Label SubitemLabel;
         private System.Windows.Forms.Label QuestionTypeLabel;
+        private System.Windows.Forms.Label AmountOfSubquestionsLabel;
     }
 }

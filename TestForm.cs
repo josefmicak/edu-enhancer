@@ -31,8 +31,10 @@ namespace TAO_Enhancer
             TestFolderNameLabel.Text = "Jméno složky: " + testNameIdentifier;
             TestNumberIdentifierLabel.Text = "Číselný identifikátor testu: " + testNumberIdentifier;
 
-            string testitemIdentifier = "";
-            string itemIdentifier = "";
+            string testitemIdentifier;
+            string itemIdentifier;
+            string testPart = "";
+            string testSection = "";
             int amountOfItems = 0;
 
             XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier + "\\test.xml");
@@ -47,24 +49,37 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if(xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
+                if(xmlReader.Name == "testPart")
+                {
+                    testPart = xmlReader.GetAttribute("identifier");
+                }
+
+                if (xmlReader.Name == "assessmentSection")
+                {
+                    testSection = xmlReader.GetAttribute("identifier");
+                }
+
+                if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
                     testitemIdentifier = xmlReader.GetAttribute("identifier");
                     itemIdentifier = xmlReader.GetAttribute("href");
                     string[] itemIdentifierSplit = itemIdentifier.Split("/");
                     ItemsGridView.Rows.Add();
-                    ItemsGridView.Rows[amountOfItems].Cells[0].Value = testitemIdentifier;
-                    ItemsGridView.Rows[amountOfItems].Cells[1].Value = itemIdentifierSplit[3];
-                    amountOfItems++;
+                    ItemsGridView.Rows[amountOfItems].Cells[0].Value = testPart;
+                    ItemsGridView.Rows[amountOfItems].Cells[1].Value = testSection;
+                    ItemsGridView.Rows[amountOfItems].Cells[2].Value = testitemIdentifier;
+                    ItemsGridView.Rows[amountOfItems].Cells[3].Value = itemIdentifierSplit[3];
+                    amountOfItems++;//pocet otazek label
                 }
             }
+            AmountOfQuestionsLabel.Text = "Počet otázek: " + amountOfItems;
         }
 
         public void LoadItemInfo()
         {
-            ItemNameIdentifierLabel.Text = "Jmenný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[0].Value.ToString();
-            ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[1].Value.ToString();
-            itemNumberIdentifier = ItemsGridView.Rows[chosenItem].Cells[1].Value.ToString();
+            ItemNameIdentifierLabel.Text = "Jmenný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
+            ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
+            itemNumberIdentifier = ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
 
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
