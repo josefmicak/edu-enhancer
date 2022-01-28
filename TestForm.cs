@@ -16,13 +16,23 @@ namespace TAO_Enhancer
         string testNameIdentifier = "";
         string testNumberIdentifier = "";
         int chosenItem = -1;
+        string itemNameIdentifier = "";
         string itemNumberIdentifier = "";
+        bool isTeacher = true;
+        string deliveryExecutionIdentifier = "";
+        string studentIdentifier = "";
 
-        public TestForm((string, string) id)
+        public TestForm((string, string) id, bool requestOrigin, string attemptIdentifier, string studentID)
         {
             InitializeComponent();
             testNameIdentifier = id.Item1;
             testNumberIdentifier = id.Item2;
+            if(!requestOrigin)
+            {
+                isTeacher = false;
+                deliveryExecutionIdentifier = attemptIdentifier;
+                studentIdentifier = studentID;
+            }
             LoadTestInfo();
         }
 
@@ -79,6 +89,7 @@ namespace TAO_Enhancer
         {
             ItemNameIdentifierLabel.Text = "Jmenný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
             ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
+            itemNameIdentifier = ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
             itemNumberIdentifier = ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
 
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
@@ -102,8 +113,16 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new TestsForm().Show();
-            Hide();
+            if(isTeacher)
+            {
+                new TestsForm().Show();
+                Hide();
+            }
+            else
+            {
+                new ResultForm(studentIdentifier).Show();
+                Hide();
+            }
         }
 
         private void ItemsGridView_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -114,7 +133,7 @@ namespace TAO_Enhancer
 
         private void button2_Click(object sender, EventArgs e)
         {
-            new ItemForm(testNameIdentifier, itemNumberIdentifier, testNumberIdentifier).Show();
+            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacher, deliveryExecutionIdentifier, studentIdentifier).Show();
             Hide();
         }
     }

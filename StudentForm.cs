@@ -40,7 +40,8 @@ namespace TAO_Enhancer
                     string login = "", name = "", surname = "";
                     foreach (INode node in nodes)
                     {
-                        if(nodeLine == 1)
+                        Debug.WriteLine(nodeLine + ". " + node);
+                        if (nodeLine == 1)
                         {
                             string[] splitByHashtag = node.ToString().Split("#");
                             studentIdentifier.Add(splitByHashtag[1]);

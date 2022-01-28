@@ -17,12 +17,6 @@ namespace TAO_Enhancer
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            new ItemsForm().Show();
-            Hide();
-        }
-
         private void button2_Click(object sender, EventArgs e)
         {
             new EntryForm().Show();

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,9 +19,11 @@ namespace TAO_Enhancer
      */
     public partial class ItemForm : Form
     {
-        string identifier = "";
+        string itemNumberIdentifier = "";
+        string itemNameIdentifier = "";
         string testNameIdentifier = "";
         string testNumberIdentifier = "";
+        string subitemIdentifier = "";
         List<string> subquestionArray = new List<string>();
         List<string> possibleAnswerArray = new List<string>();
         List<string> correctChoiceArray = new List<string>();
@@ -33,18 +36,32 @@ namespace TAO_Enhancer
         bool subitemsAdded = false;
         List<bool> includesImage = new List<bool>();
 
-        public ItemForm(string testNameID, string itemNumberID, string testNumberID)
+        bool isTeacher = true;
+        string deliveryExecutionIdentifier = "";
+        string studentIdentifier = "";
+
+        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID)
         {
             InitializeComponent();
             testNameIdentifier = testNameID;
-            identifier = itemNumberID;
+            itemNameIdentifier = itemNameID;
+            itemNumberIdentifier = itemNumberID;
             testNumberIdentifier = testNumberID;
             LoadItemInfo();
+            if (!requestOrigin)//student
+            {
+                deliveryExecutionIdentifier = attemptIdentifier;
+                isTeacher = false;
+                studentIdentifier = studentID;
+                LoadDeliveryExecutionInfo();
+            }
         }
 
         public void LoadItemInfo()
         {
-            IdentifierLabel.Text = "Identifikátor: " + identifier;
+            NumberIdentifierLabel.Text = "Číselný identifikátor: " + itemNumberIdentifier;
+            NameIdentifierLabel.Text = "Jmenný identifikátor: " + itemNameIdentifier;
+
             bool includesQuestion = false;
 
             ResetLoadedItemInfo();
@@ -65,6 +82,7 @@ namespace TAO_Enhancer
             if (!subitemsAdded)
             {
                 GetResponseIdentifiers();
+                subitemIdentifier = responseIdentifierArray[0];
                 ResponseIdentifierLabel.Text = "Identifikátor podotázky: " + responseIdentifierArray[0];
             }
             if (SubitemCB.Enabled && SubitemCB.SelectedIndex == -1)
@@ -80,10 +98,13 @@ namespace TAO_Enhancer
                 MessageBox.Show("Chyba: nepodporovaný nebo neznámý typ otázky.", "Nepodporovaná otázka", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
+            /*
             if (questionType == 3 || questionType == 4)
             {
                 GetChoiceIdentifierValues();
             }
+            */
+            GetChoiceIdentifierValues();
 
             int currentSubitem = -1;
             if (amountOfSubitems > 1)
@@ -115,7 +136,7 @@ namespace TAO_Enhancer
                     }
                     if (xmlReader.Name == "img")
                     {
-                        QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + identifier + "\\" + xmlReader.GetAttribute("src"));
+                        QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\" + xmlReader.GetAttribute("src"));
                     }
                 }
                 else
@@ -147,9 +168,9 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if(!includesQuestion)
+                if(!includesQuestion && !includesImage[currentSubitem])
                 {
-                    QuestionLabel.Text = "Otázka nebyla vyplněna.";
+                    QuestionLabel.Text = "Otázka nebyla vyplněna.";//TODO: Pokud obsahuje obrázek a neobsahuje text, tohle se nevyvolá
                 }
             }
 
@@ -176,9 +197,132 @@ namespace TAO_Enhancer
             }
         }
 
+        public void LoadDeliveryExecutionInfo()
+        {
+            StudentsAnswerGB.Visible = true;
+            List<string> studentsAnswers = new List<string>();
+
+            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\results"))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                    if(attemptIdentifierSplitByUnderscore[2] == deliveryExecutionIdentifier)
+                    {
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if(xmlReader.Name == "itemResult")
+                            {
+                                if(xmlReader.GetAttribute("identifier") != itemNameIdentifier)
+                                {
+                                    xmlReader.Skip();
+                                }
+                            }
+
+                            if(xmlReader.Name == "responseVariable")
+                            {
+                                if(xmlReader.GetAttribute("identifier") != subitemIdentifier)
+                                {
+                                    xmlReader.Skip();
+                                }
+                            }
+
+                            if(xmlReader.Name == "outcomeVariable")
+                            {
+                                xmlReader.Skip();
+                            }
+
+                            if(xmlReader.Name == "value")
+                            {
+                                string studentsAnswer = xmlReader.ReadElementContentAsString();
+                                if(questionType == 3 || questionType == 4)
+                                {
+                                    string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                                    if (studentsAnswerSplitBySpace.Length == 2)
+                                    {
+                                        studentsAnswers.Add(studentsAnswerSplitBySpace[1]);
+                                        studentsAnswers.Add(studentsAnswerSplitBySpace[0]);
+                                    }
+                                    else if (studentsAnswerSplitBySpace.Length == 3)
+                                    {
+                                        studentsAnswers.Add(studentsAnswerSplitBySpace[2]);
+                                        studentsAnswers.Add(studentsAnswerSplitBySpace[1]);
+                                    }
+                                }
+                                else if(questionType == 5)
+                                {
+                                    studentsAnswers.Add(studentsAnswer);
+                                }
+                                else
+                                {
+                                    string[] studentsAnswerSplitByApostrophe = studentsAnswer.Split("'");
+                                    if(studentsAnswerSplitByApostrophe.Length > 1)
+                                    {
+                                        studentsAnswers.Add(studentsAnswerSplitByApostrophe[1]);
+                                    }
+                                    else
+                                    {
+                                        studentsAnswers.Add(studentsAnswer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            string studentsAnswerToLabel = "";
+            int answerNumber = 0;
+            bool studentAnsweredQustion = false;
+            for (int i = 0; i < studentsAnswers.Count; i++)
+            {
+                for(int j = 0; j < choiceIdentifierValueTuple.Count; j++)
+                {
+                    if(studentsAnswers[i] == choiceIdentifierValueTuple[j].Item1)
+                    {
+                        if (questionType == 3 || questionType == 4)
+                        {
+                            if (answerNumber % 2 == 1)
+                            {
+                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
+                            }
+                            else
+                            {
+                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + " -> ";
+                            }
+                            answerNumber++;
+                        }
+                        else
+                        {
+                            studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
+                        }
+                    }
+                }
+
+                if(studentsAnswers[i] != "")
+                {
+                    studentAnsweredQustion = true;
+                }
+            }
+
+            if(questionType == 5)
+            {
+                studentsAnswerToLabel = studentsAnswers[0];
+            }
+
+            if (!studentAnsweredQustion)
+            {
+                studentsAnswerToLabel = "Nevyplněno";
+            }
+
+            StudentsAnswerLabel.Text = "Vaše odpověď: \n" + studentsAnswerToLabel;
+
+        }
+
         public string GetItemPath()
         {
-            return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + identifier + "\\qti.xml";
+            return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\qti.xml";
         }
 
         public void ResetLoadedItemInfo()
@@ -575,7 +719,7 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new TestForm((testNameIdentifier, testNumberIdentifier)).Show();
+            new TestForm((testNameIdentifier, testNumberIdentifier), isTeacher, deliveryExecutionIdentifier, studentIdentifier).Show();
             Hide();
         }
 
@@ -587,7 +731,12 @@ namespace TAO_Enhancer
             }
             if (SubitemCB.SelectedIndex != -1)
             {
-                ResponseIdentifierLabel.Text = "Identifikátor pododpovědi: " + responseIdentifierArray[SubitemCB.SelectedIndex];
+                subitemIdentifier = responseIdentifierArray[SubitemCB.SelectedIndex];
+                ResponseIdentifierLabel.Text = "Identifikátor podotázky: " + responseIdentifierArray[SubitemCB.SelectedIndex];
+            }
+            if(subitemsAdded && !isTeacher)
+            {
+                LoadDeliveryExecutionInfo();
             }
         }
     }

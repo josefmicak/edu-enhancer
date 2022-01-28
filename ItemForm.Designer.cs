@@ -29,7 +29,7 @@ namespace TAO_Enhancer
         /// </summary>
         private void InitializeComponent()
         {
-            this.IdentifierLabel = new System.Windows.Forms.Label();
+            this.NumberIdentifierLabel = new System.Windows.Forms.Label();
             this.TitleLabel = new System.Windows.Forms.Label();
             this.LabelLabel = new System.Windows.Forms.Label();
             this.QuestionLabel = new System.Windows.Forms.Label();
@@ -40,28 +40,32 @@ namespace TAO_Enhancer
             this.SubitemCB = new System.Windows.Forms.ComboBox();
             this.ResponseIdentifierLabel = new System.Windows.Forms.Label();
             this.ItemGB = new System.Windows.Forms.GroupBox();
+            this.NameIdentifierLabel = new System.Windows.Forms.Label();
+            this.AmountOfSubquestionsLabel = new System.Windows.Forms.Label();
             this.SubitemGB = new System.Windows.Forms.GroupBox();
             this.QuestionTypeLabel = new System.Windows.Forms.Label();
             this.SubitemLabel = new System.Windows.Forms.Label();
-            this.AmountOfSubquestionsLabel = new System.Windows.Forms.Label();
+            this.StudentsAnswerGB = new System.Windows.Forms.GroupBox();
+            this.StudentsAnswerLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.SubitemGB.SuspendLayout();
+            this.StudentsAnswerGB.SuspendLayout();
             this.SuspendLayout();
             // 
-            // IdentifierLabel
+            // NumberIdentifierLabel
             // 
-            this.IdentifierLabel.AutoSize = true;
-            this.IdentifierLabel.Location = new System.Drawing.Point(16, 37);
-            this.IdentifierLabel.Name = "IdentifierLabel";
-            this.IdentifierLabel.Size = new System.Drawing.Size(82, 15);
-            this.IdentifierLabel.TabIndex = 0;
-            this.IdentifierLabel.Text = "IdentifierLabel";
+            this.NumberIdentifierLabel.AutoSize = true;
+            this.NumberIdentifierLabel.Location = new System.Drawing.Point(16, 37);
+            this.NumberIdentifierLabel.Name = "NumberIdentifierLabel";
+            this.NumberIdentifierLabel.Size = new System.Drawing.Size(126, 15);
+            this.NumberIdentifierLabel.TabIndex = 0;
+            this.NumberIdentifierLabel.Text = "NumberIdentifierLabel";
             // 
             // TitleLabel
             // 
             this.TitleLabel.AutoSize = true;
-            this.TitleLabel.Location = new System.Drawing.Point(16, 75);
+            this.TitleLabel.Location = new System.Drawing.Point(16, 98);
             this.TitleLabel.Name = "TitleLabel";
             this.TitleLabel.Size = new System.Drawing.Size(57, 15);
             this.TitleLabel.TabIndex = 1;
@@ -70,7 +74,7 @@ namespace TAO_Enhancer
             // LabelLabel
             // 
             this.LabelLabel.AutoSize = true;
-            this.LabelLabel.Location = new System.Drawing.Point(16, 110);
+            this.LabelLabel.Location = new System.Drawing.Point(16, 133);
             this.LabelLabel.Name = "LabelLabel";
             this.LabelLabel.Size = new System.Drawing.Size(63, 15);
             this.LabelLabel.TabIndex = 2;
@@ -145,8 +149,9 @@ namespace TAO_Enhancer
             // 
             // ItemGB
             // 
+            this.ItemGB.Controls.Add(this.NameIdentifierLabel);
             this.ItemGB.Controls.Add(this.AmountOfSubquestionsLabel);
-            this.ItemGB.Controls.Add(this.IdentifierLabel);
+            this.ItemGB.Controls.Add(this.NumberIdentifierLabel);
             this.ItemGB.Controls.Add(this.TitleLabel);
             this.ItemGB.Controls.Add(this.LabelLabel);
             this.ItemGB.Location = new System.Drawing.Point(12, 30);
@@ -155,6 +160,24 @@ namespace TAO_Enhancer
             this.ItemGB.TabIndex = 11;
             this.ItemGB.TabStop = false;
             this.ItemGB.Text = "Otázka";
+            // 
+            // NameIdentifierLabel
+            // 
+            this.NameIdentifierLabel.AutoSize = true;
+            this.NameIdentifierLabel.Location = new System.Drawing.Point(16, 67);
+            this.NameIdentifierLabel.Name = "NameIdentifierLabel";
+            this.NameIdentifierLabel.Size = new System.Drawing.Size(114, 15);
+            this.NameIdentifierLabel.TabIndex = 4;
+            this.NameIdentifierLabel.Text = "NameIdentifierLabel";
+            // 
+            // AmountOfSubquestionsLabel
+            // 
+            this.AmountOfSubquestionsLabel.AutoSize = true;
+            this.AmountOfSubquestionsLabel.Location = new System.Drawing.Point(16, 168);
+            this.AmountOfSubquestionsLabel.Name = "AmountOfSubquestionsLabel";
+            this.AmountOfSubquestionsLabel.Size = new System.Drawing.Size(163, 15);
+            this.AmountOfSubquestionsLabel.TabIndex = 3;
+            this.AmountOfSubquestionsLabel.Text = "AmountOfSubquestionsLabel";
             // 
             // SubitemGB
             // 
@@ -191,20 +214,32 @@ namespace TAO_Enhancer
             this.SubitemLabel.TabIndex = 11;
             this.SubitemLabel.Text = "SubitemLabel";
             // 
-            // AmountOfSubquestionsLabel
+            // StudentsAnswerGB
             // 
-            this.AmountOfSubquestionsLabel.AutoSize = true;
-            this.AmountOfSubquestionsLabel.Location = new System.Drawing.Point(16, 145);
-            this.AmountOfSubquestionsLabel.Name = "AmountOfSubquestionsLabel";
-            this.AmountOfSubquestionsLabel.Size = new System.Drawing.Size(163, 15);
-            this.AmountOfSubquestionsLabel.TabIndex = 3;
-            this.AmountOfSubquestionsLabel.Text = "AmountOfSubquestionsLabel";
+            this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerLabel);
+            this.StudentsAnswerGB.Location = new System.Drawing.Point(973, 30);
+            this.StudentsAnswerGB.Name = "StudentsAnswerGB";
+            this.StudentsAnswerGB.Size = new System.Drawing.Size(406, 181);
+            this.StudentsAnswerGB.TabIndex = 13;
+            this.StudentsAnswerGB.TabStop = false;
+            this.StudentsAnswerGB.Text = "Vaše odpověď";
+            this.StudentsAnswerGB.Visible = false;
+            // 
+            // StudentsAnswerLabel
+            // 
+            this.StudentsAnswerLabel.AutoSize = true;
+            this.StudentsAnswerLabel.Location = new System.Drawing.Point(7, 37);
+            this.StudentsAnswerLabel.Name = "StudentsAnswerLabel";
+            this.StudentsAnswerLabel.Size = new System.Drawing.Size(120, 15);
+            this.StudentsAnswerLabel.TabIndex = 0;
+            this.StudentsAnswerLabel.Text = "StudentsAnswerLabel";
             // 
             // ItemForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(988, 728);
+            this.ClientSize = new System.Drawing.Size(1413, 728);
+            this.Controls.Add(this.StudentsAnswerGB);
             this.Controls.Add(this.SubitemGB);
             this.Controls.Add(this.ItemGB);
             this.Controls.Add(this.button1);
@@ -216,13 +251,15 @@ namespace TAO_Enhancer
             this.ItemGB.PerformLayout();
             this.SubitemGB.ResumeLayout(false);
             this.SubitemGB.PerformLayout();
+            this.StudentsAnswerGB.ResumeLayout(false);
+            this.StudentsAnswerGB.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Label IdentifierLabel;
+        private System.Windows.Forms.Label NumberIdentifierLabel;
         private System.Windows.Forms.Label TitleLabel;
         private System.Windows.Forms.Label LabelLabel;
         private System.Windows.Forms.Label QuestionLabel;
@@ -237,5 +274,8 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label SubitemLabel;
         private System.Windows.Forms.Label QuestionTypeLabel;
         private System.Windows.Forms.Label AmountOfSubquestionsLabel;
+        private System.Windows.Forms.GroupBox StudentsAnswerGB;
+        private System.Windows.Forms.Label NameIdentifierLabel;
+        private System.Windows.Forms.Label StudentsAnswerLabel;
     }
 }
