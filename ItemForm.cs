@@ -54,6 +54,9 @@ namespace TAO_Enhancer
                 isTeacher = false;
                 studentIdentifier = studentID;
                 LoadDeliveryExecutionInfo();
+                EditSubquestionPointsLabel.Visible = false;
+                SubquestionPointsTB.Visible = false;
+                SaveSubquestionPointsButton.Visible = false;
             }
         }
 
@@ -195,6 +198,8 @@ namespace TAO_Enhancer
                 }
                 QuestionLabel.Text += "\n(" + subquestions + ")";
             }
+
+            LoadQuestionPoints();
         }
 
         public void LoadDeliveryExecutionInfo()
@@ -717,6 +722,104 @@ namespace TAO_Enhancer
             return "Chyba";
         }
 
+        public void LoadQuestionPoints()
+        {
+            if(amountOfSubitems > 1)
+            {
+                subitemIdentifier = responseIdentifierArray[SubitemCB.SelectedIndex];
+            }
+
+            bool fileExists = false;
+            bool itemRecordExists = false;
+            bool undecidedPointsInFile = false;
+            int questionPoints = 0;
+            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
+            foreach (var file in Directory.GetFiles(itemParentPath))
+            {
+                if(Path.GetFileName(file) == "Points.txt")
+                {
+                    fileExists = true;
+                }
+            }
+
+            if(!fileExists)
+            {
+                string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
+                File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
+                SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
+                SubquestionPointsTB.Text = "N/A";
+            }
+            else
+            {
+                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                for(int i = 0; i < importedFileLines.Length; i++)
+                {
+                    string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                    if(splitImportedFileLineBySemicolon[0] == subitemIdentifier)
+                    {
+                        itemRecordExists = true;
+                        SubquestionPointsTB.Text = splitImportedFileLineBySemicolon[1];
+                        SubquestionPointsLabel.Text = "Počet bodů za podotázku: " + splitImportedFileLineBySemicolon[1];
+                    }
+                    if (splitImportedFileLineBySemicolon[1] != "N/A")
+                    {
+                        questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
+                    }
+
+                    if (splitImportedFileLineBySemicolon[1] == "N/A")
+                    {
+                        undecidedPointsInFile = true;
+                    }
+                }
+
+                if(!itemRecordExists)
+                {
+                    SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
+                    SubquestionPointsTB.Text = "N/A";
+                    string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
+                    File.AppendAllText(itemParentPath + "\\Points.txt", itemPointsText);
+                }
+            }
+
+            if(!fileExists || !itemRecordExists || undecidedPointsInFile)
+            {
+                QuestionPointsLabel.Text = "Počet bodů za otázku: N/A";
+            }
+            else
+            {
+                QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
+            }
+        }
+
+        public void SaveQuestionPoints()
+        {
+            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
+
+            bool isNumber = int.TryParse(SubquestionPointsTB.Text, out _);
+            if(!isNumber)
+            {
+                MessageBox.Show("Chyba: je nutné zadat číslo.", "Chybný počet bodů", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                string fileLinesToExport = "";
+                for (int i = 0; i < importedFileLines.Length; i++)
+                {
+                    string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                    if (splitImportedFileLineBySemicolon[0] == subitemIdentifier)
+                    {
+                        importedFileLines[i] = subitemIdentifier + ";" + SubquestionPointsTB.Text;
+                    }
+                    fileLinesToExport += importedFileLines[i] + "\n";
+                }
+                File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+                MessageBox.Show("´Počet bodů u podotázky byl úspešně změněn.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            LoadQuestionPoints();
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             new TestForm((testNameIdentifier, testNumberIdentifier), isTeacher, deliveryExecutionIdentifier, studentIdentifier).Show();
@@ -738,6 +841,11 @@ namespace TAO_Enhancer
             {
                 LoadDeliveryExecutionInfo();
             }
+        }
+
+        private void SaveSubquestionPointsButton_Click(object sender, EventArgs e)
+        {
+            SaveQuestionPoints();
         }
     }
 }

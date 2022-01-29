@@ -40,9 +40,14 @@ namespace TAO_Enhancer
             this.SubitemCB = new System.Windows.Forms.ComboBox();
             this.ResponseIdentifierLabel = new System.Windows.Forms.Label();
             this.ItemGB = new System.Windows.Forms.GroupBox();
+            this.QuestionPointsLabel = new System.Windows.Forms.Label();
             this.NameIdentifierLabel = new System.Windows.Forms.Label();
             this.AmountOfSubquestionsLabel = new System.Windows.Forms.Label();
             this.SubitemGB = new System.Windows.Forms.GroupBox();
+            this.SaveSubquestionPointsButton = new System.Windows.Forms.Button();
+            this.SubquestionPointsTB = new System.Windows.Forms.TextBox();
+            this.EditSubquestionPointsLabel = new System.Windows.Forms.Label();
+            this.SubquestionPointsLabel = new System.Windows.Forms.Label();
             this.QuestionTypeLabel = new System.Windows.Forms.Label();
             this.SubitemLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerGB = new System.Windows.Forms.GroupBox();
@@ -83,7 +88,7 @@ namespace TAO_Enhancer
             // QuestionLabel
             // 
             this.QuestionLabel.AutoSize = true;
-            this.QuestionLabel.Location = new System.Drawing.Point(15, 402);
+            this.QuestionLabel.Location = new System.Drawing.Point(15, 462);
             this.QuestionLabel.Name = "QuestionLabel";
             this.QuestionLabel.Size = new System.Drawing.Size(83, 15);
             this.QuestionLabel.TabIndex = 3;
@@ -92,7 +97,7 @@ namespace TAO_Enhancer
             // CorrectAnswerLabel
             // 
             this.CorrectAnswerLabel.AutoSize = true;
-            this.CorrectAnswerLabel.Location = new System.Drawing.Point(297, 451);
+            this.CorrectAnswerLabel.Location = new System.Drawing.Point(297, 511);
             this.CorrectAnswerLabel.Name = "CorrectAnswerLabel";
             this.CorrectAnswerLabel.Size = new System.Drawing.Size(113, 15);
             this.CorrectAnswerLabel.TabIndex = 4;
@@ -100,7 +105,7 @@ namespace TAO_Enhancer
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(458, 631);
+            this.button1.Location = new System.Drawing.Point(507, 693);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 5;
@@ -111,7 +116,7 @@ namespace TAO_Enhancer
             // QuestionImage
             // 
             this.QuestionImage.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.QuestionImage.Location = new System.Drawing.Point(15, 176);
+            this.QuestionImage.Location = new System.Drawing.Point(15, 236);
             this.QuestionImage.Name = "QuestionImage";
             this.QuestionImage.Size = new System.Drawing.Size(395, 198);
             this.QuestionImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -121,7 +126,7 @@ namespace TAO_Enhancer
             // PossibleAnswerLabel
             // 
             this.PossibleAnswerLabel.AutoSize = true;
-            this.PossibleAnswerLabel.Location = new System.Drawing.Point(15, 451);
+            this.PossibleAnswerLabel.Location = new System.Drawing.Point(15, 511);
             this.PossibleAnswerLabel.Name = "PossibleAnswerLabel";
             this.PossibleAnswerLabel.Size = new System.Drawing.Size(117, 15);
             this.PossibleAnswerLabel.TabIndex = 7;
@@ -149,6 +154,7 @@ namespace TAO_Enhancer
             // 
             // ItemGB
             // 
+            this.ItemGB.Controls.Add(this.QuestionPointsLabel);
             this.ItemGB.Controls.Add(this.NameIdentifierLabel);
             this.ItemGB.Controls.Add(this.AmountOfSubquestionsLabel);
             this.ItemGB.Controls.Add(this.NumberIdentifierLabel);
@@ -160,6 +166,15 @@ namespace TAO_Enhancer
             this.ItemGB.TabIndex = 11;
             this.ItemGB.TabStop = false;
             this.ItemGB.Text = "Otázka";
+            // 
+            // QuestionPointsLabel
+            // 
+            this.QuestionPointsLabel.AutoSize = true;
+            this.QuestionPointsLabel.Location = new System.Drawing.Point(16, 208);
+            this.QuestionPointsLabel.Name = "QuestionPointsLabel";
+            this.QuestionPointsLabel.Size = new System.Drawing.Size(116, 15);
+            this.QuestionPointsLabel.TabIndex = 5;
+            this.QuestionPointsLabel.Text = "QuestionPointsLabel";
             // 
             // NameIdentifierLabel
             // 
@@ -181,6 +196,10 @@ namespace TAO_Enhancer
             // 
             // SubitemGB
             // 
+            this.SubitemGB.Controls.Add(this.SaveSubquestionPointsButton);
+            this.SubitemGB.Controls.Add(this.SubquestionPointsTB);
+            this.SubitemGB.Controls.Add(this.EditSubquestionPointsLabel);
+            this.SubitemGB.Controls.Add(this.SubquestionPointsLabel);
             this.SubitemGB.Controls.Add(this.QuestionTypeLabel);
             this.SubitemGB.Controls.Add(this.SubitemLabel);
             this.SubitemGB.Controls.Add(this.SubitemCB);
@@ -191,10 +210,45 @@ namespace TAO_Enhancer
             this.SubitemGB.Controls.Add(this.CorrectAnswerLabel);
             this.SubitemGB.Location = new System.Drawing.Point(322, 30);
             this.SubitemGB.Name = "SubitemGB";
-            this.SubitemGB.Size = new System.Drawing.Size(625, 562);
+            this.SubitemGB.Size = new System.Drawing.Size(625, 657);
             this.SubitemGB.TabIndex = 12;
             this.SubitemGB.TabStop = false;
             this.SubitemGB.Text = "Podotázka";
+            // 
+            // SaveSubquestionPointsButton
+            // 
+            this.SaveSubquestionPointsButton.Location = new System.Drawing.Point(335, 205);
+            this.SaveSubquestionPointsButton.Name = "SaveSubquestionPointsButton";
+            this.SaveSubquestionPointsButton.Size = new System.Drawing.Size(75, 23);
+            this.SaveSubquestionPointsButton.TabIndex = 16;
+            this.SaveSubquestionPointsButton.Text = "Uložit";
+            this.SaveSubquestionPointsButton.UseVisualStyleBackColor = true;
+            this.SaveSubquestionPointsButton.Click += new System.EventHandler(this.SaveSubquestionPointsButton_Click);
+            // 
+            // SubquestionPointsTB
+            // 
+            this.SubquestionPointsTB.Location = new System.Drawing.Point(219, 205);
+            this.SubquestionPointsTB.Name = "SubquestionPointsTB";
+            this.SubquestionPointsTB.Size = new System.Drawing.Size(100, 23);
+            this.SubquestionPointsTB.TabIndex = 15;
+            // 
+            // EditSubquestionPointsLabel
+            // 
+            this.EditSubquestionPointsLabel.AutoSize = true;
+            this.EditSubquestionPointsLabel.Location = new System.Drawing.Point(16, 208);
+            this.EditSubquestionPointsLabel.Name = "EditSubquestionPointsLabel";
+            this.EditSubquestionPointsLabel.Size = new System.Drawing.Size(147, 15);
+            this.EditSubquestionPointsLabel.TabIndex = 14;
+            this.EditSubquestionPointsLabel.Text = "Počet bodů za podotázku: ";
+            // 
+            // SubquestionPointsLabel
+            // 
+            this.SubquestionPointsLabel.AutoSize = true;
+            this.SubquestionPointsLabel.Location = new System.Drawing.Point(15, 172);
+            this.SubquestionPointsLabel.Name = "SubquestionPointsLabel";
+            this.SubquestionPointsLabel.Size = new System.Drawing.Size(134, 15);
+            this.SubquestionPointsLabel.TabIndex = 13;
+            this.SubquestionPointsLabel.Text = "SubquestionPointsLabel";
             // 
             // QuestionTypeLabel
             // 
@@ -277,5 +331,10 @@ namespace TAO_Enhancer
         private System.Windows.Forms.GroupBox StudentsAnswerGB;
         private System.Windows.Forms.Label NameIdentifierLabel;
         private System.Windows.Forms.Label StudentsAnswerLabel;
+        private System.Windows.Forms.Label QuestionPointsLabel;
+        private System.Windows.Forms.Button SaveSubquestionPointsButton;
+        private System.Windows.Forms.TextBox SubquestionPointsTB;
+        private System.Windows.Forms.Label EditSubquestionPointsLabel;
+        private System.Windows.Forms.Label SubquestionPointsLabel;
     }
 }
