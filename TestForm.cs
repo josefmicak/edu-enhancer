@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -79,10 +80,66 @@ namespace TAO_Enhancer
                     ItemsGridView.Rows[amountOfItems].Cells[1].Value = testSection;
                     ItemsGridView.Rows[amountOfItems].Cells[2].Value = testitemIdentifier;
                     ItemsGridView.Rows[amountOfItems].Cells[3].Value = itemIdentifierSplit[3];
-                    amountOfItems++;//pocet otazek label
+                    amountOfItems++;
                 }
             }
             AmountOfQuestionsLabel.Text = "Počet otázek: " + amountOfItems;
+
+            int testPoints = 0;
+            bool testPointsDetermined = true;
+
+            for(int i = 0; i < ItemsGridView.Rows.Count; i++)
+            {
+                bool questionPointsDetermined = false;
+                int questionPoints = 0;
+                string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + ItemsGridView.Rows[i].Cells[3].Value;
+             
+                foreach (var file in Directory.GetFiles(itemParentPath))
+                {
+                    if (Path.GetFileName(file) == "Points.txt")
+                    {
+                        questionPointsDetermined = true;
+                    }
+                }
+
+                if(questionPointsDetermined)
+                {
+                    string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                    for (int j = 0; j < importedFileLines.Length; j++)
+                    {
+                        string[] splitImportedFileLineBySemicolon = importedFileLines[j].Split(";");
+
+                        if (splitImportedFileLineBySemicolon[1] == "N/A")
+                        {
+                            questionPointsDetermined = false;
+                        }
+                        else
+                        {
+                            questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
+                        }
+                    }
+                }
+
+                if(!questionPointsDetermined)
+                {
+                    testPointsDetermined = false;
+                    ItemsGridView.Rows[i].Cells[4].Value = "N/A";
+                }
+                else
+                {
+                    testPoints += questionPoints;
+                    ItemsGridView.Rows[i].Cells[4].Value = questionPoints.ToString();
+                }
+            }
+
+            if(!testPointsDetermined)
+            {
+                TestPointsLabel.Text = "Počet bodů za test: N/A";
+            }
+            else
+            {
+                TestPointsLabel.Text = "Počet bodů za test: " + testPoints.ToString();
+            }
         }
 
         public void LoadItemInfo()
@@ -91,6 +148,7 @@ namespace TAO_Enhancer
             ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
             itemNameIdentifier = ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
             itemNumberIdentifier = ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
+            ItemPointsLabel.Text = "Počet bodů za otázku: " + ItemsGridView.Rows[chosenItem].Cells[4].Value.ToString();
 
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())

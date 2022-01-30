@@ -13,10 +13,6 @@ using System.Xml;
 
 namespace TAO_Enhancer
 {
-    /*
-     * TODO: Sekce (k jaké sekci otázka patří)
-     * Obrázky u podotázek
-     */
     public partial class ItemForm : Form
     {
         string itemNumberIdentifier = "";
@@ -35,6 +31,8 @@ namespace TAO_Enhancer
         int amountOfSubitems = 0;
         bool subitemsAdded = false;
         List<bool> includesImage = new List<bool>();
+        int subquestionPoints = 0;
+        int questionPoints = 0;
 
         bool isTeacher = true;
         string deliveryExecutionIdentifier = "";
@@ -48,15 +46,14 @@ namespace TAO_Enhancer
             itemNumberIdentifier = itemNumberID;
             testNumberIdentifier = testNumberID;
             LoadItemInfo();
+
             if (!requestOrigin)//student
             {
                 deliveryExecutionIdentifier = attemptIdentifier;
                 isTeacher = false;
                 studentIdentifier = studentID;
                 LoadDeliveryExecutionInfo();
-                EditSubquestionPointsLabel.Visible = false;
-                SubquestionPointsTB.Visible = false;
-                SaveSubquestionPointsButton.Visible = false;
+                ModifyQuestionGB.Visible = false;
             }
         }
 
@@ -323,6 +320,133 @@ namespace TAO_Enhancer
 
             StudentsAnswerLabel.Text = "Vaše odpověď: \n" + studentsAnswerToLabel;
 
+            double studentsReceivedPoints = 0;
+            StudentsAnswerCorrectness isAnswerCorrect = StudentsAnswerCorrectness.Correct;
+
+            switch (questionType)
+            {
+                case int n when (n == 1 || n == 6):
+                    bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
+                    if(!areStudentsAnswersCorrect)
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
+                    }
+                    else
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Correct;
+                        studentsReceivedPoints = subquestionPoints;
+                    }
+                    break;
+                case 2:
+                    int studentsCorrectAnswers = 0;
+
+                    for(int i = 0; i < studentsAnswers.Count; i++)
+                    {
+                        for(int j = 0; j < correctChoiceArray.Count; j++)
+                        {
+                            if(studentsAnswers[i] == correctChoiceArray[j])
+                            {
+                                studentsCorrectAnswers++;
+                                studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                            }
+                        }
+                    }
+
+                    if(studentsCorrectAnswers == 0)
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
+                    }
+                    else
+                    {
+                        if(studentsReceivedPoints != subquestionPoints || studentsAnswers.Count != correctChoiceArray.Count)
+                        {
+                            isAnswerCorrect = StudentsAnswerCorrectness.PartiallyCorrect;
+                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        }
+                        else
+                        {
+                            isAnswerCorrect = StudentsAnswerCorrectness.Correct;
+                        }
+                    }
+                    break;
+                case int n when (n == 3 || n == 4):
+                    studentsCorrectAnswers = 0;
+
+                    for (int i = 0; i < studentsAnswers.Count; i++)
+                    {
+                        for (int j = 0; j < correctChoiceArray.Count; j++)
+                        {
+                            if(i % 2 == 0 && j % 2 == 0)
+                            {//TODO: viz TODO 10, zde opět využívám sudosti
+                                if((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i+1] == correctChoiceArray[j+1]) ||
+                                    (studentsAnswers[i+1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
+                                {
+                                    studentsCorrectAnswers += 2;
+                                    studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count) * 2;
+                                }
+                            }
+                        }
+                    }
+
+                    if (studentsCorrectAnswers == 0)
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
+                    }
+                    else
+                    {
+                        if (studentsReceivedPoints != subquestionPoints || studentsAnswers.Count != correctChoiceArray.Count)
+                        {
+                            isAnswerCorrect = StudentsAnswerCorrectness.PartiallyCorrect;
+                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        }
+                        else
+                        {
+                            isAnswerCorrect = StudentsAnswerCorrectness.Correct;
+                        }
+                    }
+                    break;
+                case 5:
+                    isAnswerCorrect = StudentsAnswerCorrectness.Unknown;
+                    break;
+            }
+
+            switch (isAnswerCorrect)
+            {
+                case StudentsAnswerCorrectness.Correct:
+                    StudentsAnswerCorrectLabel.Text = "Správná odpověď.";
+                    break;
+                case StudentsAnswerCorrectness.PartiallyCorrect:
+                    StudentsAnswerCorrectLabel.Text = "Částečně správná odpověď.";
+                    break;
+                case StudentsAnswerCorrectness.Incorrect:
+                    StudentsAnswerCorrectLabel.Text = "Nesprávná odpověď.";
+                    break;
+                case StudentsAnswerCorrectness.Unknown:
+                    StudentsAnswerCorrectLabel.Text = "Otevřená odpověď, body budou přiděleny manuálně.";
+                    break;
+            }
+
+            if(studentsReceivedPoints < 0)//TODO: Záporné body
+            {
+                studentsReceivedPoints = 0;
+            }
+
+            if (subquestionPoints == -1)
+            {
+                StudentsAnswerPointstLabel.Text = "Počet bodů za odpověď: N/A";
+            }
+            else
+            {
+                StudentsAnswerPointstLabel.Text = "Počet bodů za odpověď: " + studentsReceivedPoints + "/" + subquestionPoints;
+            }
+        }
+
+        enum StudentsAnswerCorrectness
+        {
+            Correct,
+            Incorrect,
+            PartiallyCorrect,
+            Unknown
         }
 
         public string GetItemPath()
@@ -379,20 +503,28 @@ namespace TAO_Enhancer
 
                 if(responseIdentifierArray.Count > 0)
                 {
-                    if (includesImage[responseIdentifierArray.Count - 1])
-                    {
-                        if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
-                        {
-                            string responseValue = xmlReader.ReadElementContentAsString();
-                            responseValueArray.Add(responseValue);
-                        }
+                    if(includesImage.Count == 0)
+                    {//TODO: Ošetřit includesImage tak, aby ověřil přítomnost obrázku i bez promptu
+                        MessageBox.Show("Chyba: otázka nemá pravděpodobně zadaný žádný text. Otázku nelze načíst.", "Chyba", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Environment.Exit(0);
                     }
                     else
                     {
-                        if (xmlReader.Name == "prompt")
+                        if (includesImage[responseIdentifierArray.Count - 1])
                         {
-                            string responseValue = xmlReader.ReadElementContentAsString();
-                            responseValueArray.Add(responseValue);
+                            if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
+                            {
+                                string responseValue = xmlReader.ReadElementContentAsString();
+                                responseValueArray.Add(responseValue);
+                            }
+                        }
+                        else
+                        {
+                            if (xmlReader.Name == "prompt")
+                            {
+                                string responseValue = xmlReader.ReadElementContentAsString();
+                                responseValueArray.Add(responseValue);
+                            }
                         }
                     }
                 }
@@ -459,16 +591,16 @@ namespace TAO_Enhancer
                         questionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
-                    {
-                        questionType = 3;//Typ otázky = spojování párů; TODO 10: Problém s tím, když je jedna možnost ve více párech
+                    {//TODO 10: Problém s tím, když je jedna možnost ve více párech
+                        questionType = 3;//Typ otázky = spojování párů
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
-                    {
-                        questionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně TODO: co když je jen jedno správně?
+                    {//TODO: co když je jen jedno správně?
+                        questionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
-                    {
-                        questionType = 5;//Typ otázky = volná odpověď; TODO 11: Přidat typ otázky, kde je volná otázka ale daná odpověď
+                    {//TODO 11: Přidat typ otázky, kde je volná otázka ale daná odpověď
+                        questionType = 5;//Typ otázky = volná odpověď;
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
@@ -732,7 +864,7 @@ namespace TAO_Enhancer
             bool fileExists = false;
             bool itemRecordExists = false;
             bool undecidedPointsInFile = false;
-            int questionPoints = 0;
+    //        int questionPoints = 0;
             string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
             foreach (var file in Directory.GetFiles(itemParentPath))
             {
@@ -764,11 +896,13 @@ namespace TAO_Enhancer
                     if (splitImportedFileLineBySemicolon[1] != "N/A")
                     {
                         questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
+                        subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
                     }
 
                     if (splitImportedFileLineBySemicolon[1] == "N/A")
                     {
                         undecidedPointsInFile = true;
+                        subquestionPoints = -1;
                     }
                 }
 
@@ -787,6 +921,7 @@ namespace TAO_Enhancer
             }
             else
             {
+          //      questionPoints = 
                 QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
             }
         }
@@ -814,7 +949,7 @@ namespace TAO_Enhancer
                     fileLinesToExport += importedFileLines[i] + "\n";
                 }
                 File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
-                MessageBox.Show("´Počet bodů u podotázky byl úspešně změněn.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Počet bodů u podotázky byl úspešně změněn.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             LoadQuestionPoints();
