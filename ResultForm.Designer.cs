@@ -37,10 +37,10 @@ namespace TAO_Enhancer
             this.button2 = new System.Windows.Forms.Button();
             this.ResultListGB = new System.Windows.Forms.GroupBox();
             this.StudentGB = new System.Windows.Forms.GroupBox();
+            this.AmountOfTestsLabel = new System.Windows.Forms.Label();
             this.StudentEmailLabel = new System.Windows.Forms.Label();
             this.StudentLoginLabel = new System.Windows.Forms.Label();
             this.StudentNameLabel = new System.Windows.Forms.Label();
-            this.AmountOfTestsLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.ResultsGridView)).BeginInit();
             this.ResultListGB.SuspendLayout();
             this.StudentGB.SuspendLayout();
@@ -86,7 +86,7 @@ namespace TAO_Enhancer
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(547, 366);
+            this.button1.Location = new System.Drawing.Point(478, 379);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 1;
@@ -96,7 +96,7 @@ namespace TAO_Enhancer
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(6, 201);
+            this.button2.Location = new System.Drawing.Point(203, 198);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(90, 23);
             this.button2.TabIndex = 3;
@@ -108,7 +108,7 @@ namespace TAO_Enhancer
             // 
             this.ResultListGB.Controls.Add(this.ResultsGridView);
             this.ResultListGB.Controls.Add(this.button2);
-            this.ResultListGB.Location = new System.Drawing.Point(617, 44);
+            this.ResultListGB.Location = new System.Drawing.Point(397, 44);
             this.ResultListGB.Name = "ResultListGB";
             this.ResultListGB.Size = new System.Drawing.Size(610, 250);
             this.ResultListGB.TabIndex = 4;
@@ -127,6 +127,15 @@ namespace TAO_Enhancer
             this.StudentGB.TabIndex = 5;
             this.StudentGB.TabStop = false;
             this.StudentGB.Text = "Student";
+            // 
+            // AmountOfTestsLabel
+            // 
+            this.AmountOfTestsLabel.AutoSize = true;
+            this.AmountOfTestsLabel.Location = new System.Drawing.Point(7, 145);
+            this.AmountOfTestsLabel.Name = "AmountOfTestsLabel";
+            this.AmountOfTestsLabel.Size = new System.Drawing.Size(117, 15);
+            this.AmountOfTestsLabel.TabIndex = 3;
+            this.AmountOfTestsLabel.Text = "AmountOfTestsLabel";
             // 
             // StudentEmailLabel
             // 
@@ -155,20 +164,11 @@ namespace TAO_Enhancer
             this.StudentNameLabel.TabIndex = 0;
             this.StudentNameLabel.Text = "StudentNameLabel";
             // 
-            // AmountOfTestsLabel
-            // 
-            this.AmountOfTestsLabel.AutoSize = true;
-            this.AmountOfTestsLabel.Location = new System.Drawing.Point(7, 145);
-            this.AmountOfTestsLabel.Name = "AmountOfTestsLabel";
-            this.AmountOfTestsLabel.Size = new System.Drawing.Size(117, 15);
-            this.AmountOfTestsLabel.TabIndex = 3;
-            this.AmountOfTestsLabel.Text = "AmountOfTestsLabel";
-            // 
             // ResultForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1425, 414);
+            this.ClientSize = new System.Drawing.Size(1047, 414);
             this.Controls.Add(this.StudentGB);
             this.Controls.Add(this.ResultListGB);
             this.Controls.Add(this.button1);

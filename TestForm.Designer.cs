@@ -51,10 +51,17 @@ namespace TAO_Enhancer
             this.ItemTitleLabel = new System.Windows.Forms.Label();
             this.ItemNumberIdentifierLabel = new System.Windows.Forms.Label();
             this.ItemNameIdentifierLabel = new System.Windows.Forms.Label();
+            this.resultGB = new System.Windows.Forms.GroupBox();
+            this.StudentIdentifierLabel = new System.Windows.Forms.Label();
+            this.StudentLoginLabel = new System.Windows.Forms.Label();
+            this.StudentNameLabel = new System.Windows.Forms.Label();
+            this.ResultIdentifierLabel = new System.Windows.Forms.Label();
+            this.ResultTimestampLabel = new System.Windows.Forms.Label();
             this.TestGB.SuspendLayout();
             this.ItemListGB.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ItemsGridView)).BeginInit();
             this.ItemGB.SuspendLayout();
+            this.resultGB.SuspendLayout();
             this.SuspendLayout();
             // 
             // TestGB
@@ -217,7 +224,7 @@ namespace TAO_Enhancer
             this.ItemGB.Controls.Add(this.ItemTitleLabel);
             this.ItemGB.Controls.Add(this.ItemNumberIdentifierLabel);
             this.ItemGB.Controls.Add(this.ItemNameIdentifierLabel);
-            this.ItemGB.Location = new System.Drawing.Point(515, 17);
+            this.ItemGB.Location = new System.Drawing.Point(344, 29);
             this.ItemGB.Name = "ItemGB";
             this.ItemGB.Size = new System.Drawing.Size(416, 203);
             this.ItemGB.TabIndex = 3;
@@ -269,11 +276,71 @@ namespace TAO_Enhancer
             this.ItemNameIdentifierLabel.TabIndex = 0;
             this.ItemNameIdentifierLabel.Text = "ItemNameIdentifierLabel";
             // 
+            // resultGB
+            // 
+            this.resultGB.Controls.Add(this.StudentIdentifierLabel);
+            this.resultGB.Controls.Add(this.StudentLoginLabel);
+            this.resultGB.Controls.Add(this.StudentNameLabel);
+            this.resultGB.Controls.Add(this.ResultIdentifierLabel);
+            this.resultGB.Controls.Add(this.ResultTimestampLabel);
+            this.resultGB.Location = new System.Drawing.Point(783, 29);
+            this.resultGB.Name = "resultGB";
+            this.resultGB.Size = new System.Drawing.Size(283, 203);
+            this.resultGB.TabIndex = 4;
+            this.resultGB.TabStop = false;
+            this.resultGB.Text = "Výsledek";
+            // 
+            // StudentIdentifierLabel
+            // 
+            this.StudentIdentifierLabel.AutoSize = true;
+            this.StudentIdentifierLabel.Location = new System.Drawing.Point(15, 167);
+            this.StudentIdentifierLabel.Name = "StudentIdentifierLabel";
+            this.StudentIdentifierLabel.Size = new System.Drawing.Size(123, 15);
+            this.StudentIdentifierLabel.TabIndex = 4;
+            this.StudentIdentifierLabel.Text = "StudentIdentifierLabel";
+            // 
+            // StudentLoginLabel
+            // 
+            this.StudentLoginLabel.AutoSize = true;
+            this.StudentLoginLabel.Location = new System.Drawing.Point(15, 136);
+            this.StudentLoginLabel.Name = "StudentLoginLabel";
+            this.StudentLoginLabel.Size = new System.Drawing.Size(106, 15);
+            this.StudentLoginLabel.TabIndex = 3;
+            this.StudentLoginLabel.Text = "StudentLoginLabel";
+            // 
+            // StudentNameLabel
+            // 
+            this.StudentNameLabel.AutoSize = true;
+            this.StudentNameLabel.Location = new System.Drawing.Point(15, 103);
+            this.StudentNameLabel.Name = "StudentNameLabel";
+            this.StudentNameLabel.Size = new System.Drawing.Size(108, 15);
+            this.StudentNameLabel.TabIndex = 2;
+            this.StudentNameLabel.Text = "StudentNameLabel";
+            // 
+            // ResultIdentifierLabel
+            // 
+            this.ResultIdentifierLabel.AutoSize = true;
+            this.ResultIdentifierLabel.Location = new System.Drawing.Point(15, 33);
+            this.ResultIdentifierLabel.Name = "ResultIdentifierLabel";
+            this.ResultIdentifierLabel.Size = new System.Drawing.Size(114, 15);
+            this.ResultIdentifierLabel.TabIndex = 1;
+            this.ResultIdentifierLabel.Text = "ResultIdentifierLabel";
+            // 
+            // ResultTimestampLabel
+            // 
+            this.ResultTimestampLabel.AutoSize = true;
+            this.ResultTimestampLabel.Location = new System.Drawing.Point(15, 68);
+            this.ResultTimestampLabel.Name = "ResultTimestampLabel";
+            this.ResultTimestampLabel.Size = new System.Drawing.Size(126, 15);
+            this.ResultTimestampLabel.TabIndex = 0;
+            this.ResultTimestampLabel.Text = "ResultTimestampLabel";
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(943, 714);
+            this.ClientSize = new System.Drawing.Size(1236, 714);
+            this.Controls.Add(this.resultGB);
             this.Controls.Add(this.ItemGB);
             this.Controls.Add(this.ItemListGB);
             this.Controls.Add(this.button1);
@@ -287,6 +354,8 @@ namespace TAO_Enhancer
             ((System.ComponentModel.ISupportInitialize)(this.ItemsGridView)).EndInit();
             this.ItemGB.ResumeLayout(false);
             this.ItemGB.PerformLayout();
+            this.resultGB.ResumeLayout(false);
+            this.resultGB.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -315,5 +384,11 @@ namespace TAO_Enhancer
         private System.Windows.Forms.DataGridViewTextBoxColumn QuestionPointsColumn;
         private System.Windows.Forms.Label TestPointsLabel;
         private System.Windows.Forms.Label ItemPointsLabel;
+        private System.Windows.Forms.GroupBox resultGB;
+        private System.Windows.Forms.Label ResultTimestampLabel;
+        private System.Windows.Forms.Label ResultIdentifierLabel;
+        private System.Windows.Forms.Label StudentIdentifierLabel;
+        private System.Windows.Forms.Label StudentLoginLabel;
+        private System.Windows.Forms.Label StudentNameLabel;
     }
 }

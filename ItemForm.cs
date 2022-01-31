@@ -37,14 +37,18 @@ namespace TAO_Enhancer
         bool isTeacher = true;
         string deliveryExecutionIdentifier = "";
         string studentIdentifier = "";
+        List<double> studentsReceivedPointsArray = new List<double>();
+        bool deliveryExecutionFileCreated;
+        List<double> importedReceivedPointsArray = new List<double>();
 
-        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID)
+        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated)
         {
             InitializeComponent();
             testNameIdentifier = testNameID;
             itemNameIdentifier = itemNameID;
             itemNumberIdentifier = itemNumberID;
             testNumberIdentifier = testNumberID;
+            deliveryExecutionFileCreated = attemptFileCreated;
             LoadItemInfo();
 
             if (!requestOrigin)//student
@@ -323,11 +327,94 @@ namespace TAO_Enhancer
             double studentsReceivedPoints = 0;
             StudentsAnswerCorrectness isAnswerCorrect = StudentsAnswerCorrectness.Correct;
 
+            if(deliveryExecutionFileCreated)
+            {
+                if(importedReceivedPointsArray.Count == 0)
+                {
+                    double totalReceivedPoints = 0;
+                    string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                    for (int i = 0; i < resultsFileLines.Length; i++)
+                    {
+                        string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
+                        if (splitResultsFileLineBySemicolon[0] == itemNameIdentifier)
+                        {
+                            for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
+                            {
+                                importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
+                                totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
+                            }
+                        }
+                    }
+
+                    QuestionPointsLabel.Text = "Počet bodů za otázku: " + totalReceivedPoints + "/" + questionPoints.ToString();
+                }
+
+                if (amountOfSubitems > 1)
+                {
+                    studentsReceivedPoints = importedReceivedPointsArray[SubitemCB.SelectedIndex];
+                }
+                else
+                {
+                    studentsReceivedPoints = importedReceivedPointsArray[0];
+                }
+            }
+            else
+            {
+                switch (questionType)
+                {
+                    case int n when (n == 1 || n == 6):
+                        bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
+                        if (areStudentsAnswersCorrect)
+                        {
+                            studentsReceivedPoints = subquestionPoints;
+                        }
+                        break;
+                    case 2:
+                        int studentsCorrectAnswers = 0;
+
+                        for (int i = 0; i < studentsAnswers.Count; i++)
+                        {
+                            for (int j = 0; j < correctChoiceArray.Count; j++)
+                            {
+                                if (studentsAnswers[i] == correctChoiceArray[j])
+                                {
+                                    studentsCorrectAnswers++;
+                                    studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                                }
+                            }
+                        }
+
+                        studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        break;
+                    case int n when (n == 3 || n == 4):
+                        studentsCorrectAnswers = 0;
+
+                        for (int i = 0; i < studentsAnswers.Count; i++)
+                        {
+                            for (int j = 0; j < correctChoiceArray.Count; j++)
+                            {
+                                if (i % 2 == 0 && j % 2 == 0)
+                                {//TODO: viz TODO 10, zde opět využívám sudosti
+                                    if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
+                                        (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
+                                    {
+                                        studentsCorrectAnswers += 2;
+                                        studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count) * 2;
+                                    }
+                                }
+                            }
+                        }
+
+                        studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        break;
+                }
+            }
+
             switch (questionType)
             {
                 case int n when (n == 1 || n == 6):
                     bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
-                    if(!areStudentsAnswersCorrect)
+                    if (!areStudentsAnswersCorrect)
                     {
                         isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
                     }
@@ -340,28 +427,26 @@ namespace TAO_Enhancer
                 case 2:
                     int studentsCorrectAnswers = 0;
 
-                    for(int i = 0; i < studentsAnswers.Count; i++)
+                    for (int i = 0; i < studentsAnswers.Count; i++)
                     {
-                        for(int j = 0; j < correctChoiceArray.Count; j++)
+                        for (int j = 0; j < correctChoiceArray.Count; j++)
                         {
-                            if(studentsAnswers[i] == correctChoiceArray[j])
+                            if (studentsAnswers[i] == correctChoiceArray[j])
                             {
                                 studentsCorrectAnswers++;
-                                studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count);
                             }
                         }
                     }
 
-                    if(studentsCorrectAnswers == 0)
+                    if (studentsCorrectAnswers == 0)
                     {
                         isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
                     }
                     else
                     {
-                        if(studentsReceivedPoints != subquestionPoints || studentsAnswers.Count != correctChoiceArray.Count)
+                        if (studentsReceivedPoints != subquestionPoints || studentsAnswers.Count != correctChoiceArray.Count)
                         {
                             isAnswerCorrect = StudentsAnswerCorrectness.PartiallyCorrect;
-                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
                         }
                         else
                         {
@@ -376,13 +461,12 @@ namespace TAO_Enhancer
                     {
                         for (int j = 0; j < correctChoiceArray.Count; j++)
                         {
-                            if(i % 2 == 0 && j % 2 == 0)
+                            if (i % 2 == 0 && j % 2 == 0)
                             {//TODO: viz TODO 10, zde opět využívám sudosti
-                                if((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i+1] == correctChoiceArray[j+1]) ||
-                                    (studentsAnswers[i+1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
+                                if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
+                                    (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
                                 {
                                     studentsCorrectAnswers += 2;
-                                    studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count) * 2;
                                 }
                             }
                         }
@@ -397,7 +481,6 @@ namespace TAO_Enhancer
                         if (studentsReceivedPoints != subquestionPoints || studentsAnswers.Count != correctChoiceArray.Count)
                         {
                             isAnswerCorrect = StudentsAnswerCorrectness.PartiallyCorrect;
-                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
                         }
                         else
                         {
@@ -426,7 +509,7 @@ namespace TAO_Enhancer
                     break;
             }
 
-            if(studentsReceivedPoints < 0)//TODO: Záporné body
+            if (studentsReceivedPoints < 0)//TODO: Záporné body
             {
                 studentsReceivedPoints = 0;
             }
@@ -439,6 +522,7 @@ namespace TAO_Enhancer
             {
                 StudentsAnswerPointstLabel.Text = "Počet bodů za odpověď: " + studentsReceivedPoints + "/" + subquestionPoints;
             }
+            studentsReceivedPointsArray.Add(Math.Round(studentsReceivedPoints, 2));
         }
 
         enum StudentsAnswerCorrectness
@@ -447,6 +531,18 @@ namespace TAO_Enhancer
             Incorrect,
             PartiallyCorrect,
             Unknown
+        }
+
+        public List<double> GetResultsFilePoints()
+        {
+            if(amountOfSubitems > 1)
+            {
+                for(int i = 1; i < SubitemCB.Items.Count; i++)
+                {
+                    SubitemCB.SelectedIndex = i;
+                }
+            }
+            return studentsReceivedPointsArray;
         }
 
         public string GetItemPath()
@@ -543,8 +639,8 @@ namespace TAO_Enhancer
 
         public void DoesSubitemIncludeImage()
         {
-            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             bool imageFound = false;
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
                 if(xmlReader.Name == "prompt" && xmlReader.NodeType == XmlNodeType.EndElement && !imageFound)
@@ -864,7 +960,7 @@ namespace TAO_Enhancer
             bool fileExists = false;
             bool itemRecordExists = false;
             bool undecidedPointsInFile = false;
-    //        int questionPoints = 0;
+            questionPoints = 0;//
             string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
             foreach (var file in Directory.GetFiles(itemParentPath))
             {
@@ -892,17 +988,22 @@ namespace TAO_Enhancer
                         itemRecordExists = true;
                         SubquestionPointsTB.Text = splitImportedFileLineBySemicolon[1];
                         SubquestionPointsLabel.Text = "Počet bodů za podotázku: " + splitImportedFileLineBySemicolon[1];
+
+                        if (splitImportedFileLineBySemicolon[1] != "N/A")
+                        {
+                            subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
+                        }
+
+                        if (splitImportedFileLineBySemicolon[1] == "N/A")
+                        {
+                            undecidedPointsInFile = true;
+                            subquestionPoints = -1;
+                        }
                     }
+
                     if (splitImportedFileLineBySemicolon[1] != "N/A")
                     {
                         questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
-                        subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
-                    }
-
-                    if (splitImportedFileLineBySemicolon[1] == "N/A")
-                    {
-                        undecidedPointsInFile = true;
-                        subquestionPoints = -1;
                     }
                 }
 
@@ -921,8 +1022,7 @@ namespace TAO_Enhancer
             }
             else
             {
-          //      questionPoints = 
-                QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
+             //   QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
             }
         }
 

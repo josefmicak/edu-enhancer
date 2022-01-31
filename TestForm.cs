@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using VDS.RDF;
+using VDS.RDF.Parsing;
 
 namespace TAO_Enhancer
 {
@@ -22,6 +25,8 @@ namespace TAO_Enhancer
         bool isTeacher = true;
         string deliveryExecutionIdentifier = "";
         string studentIdentifier = "";
+        int testPoints = 0;
+        bool testPointsDetermined = true;
 
         public TestForm((string, string) id, bool requestOrigin, string attemptIdentifier, string studentID)
         {
@@ -34,7 +39,15 @@ namespace TAO_Enhancer
                 deliveryExecutionIdentifier = attemptIdentifier;
                 studentIdentifier = studentID;
             }
+            else
+            {
+                resultGB.Visible = false;
+            }
             LoadTestInfo();
+            if(!requestOrigin)
+            {
+                LoadResultInfo();
+            }
         }
 
         public void LoadTestInfo()
@@ -85,9 +98,6 @@ namespace TAO_Enhancer
             }
             AmountOfQuestionsLabel.Text = "Počet otázek: " + amountOfItems;
 
-            int testPoints = 0;
-            bool testPointsDetermined = true;
-
             for(int i = 0; i < ItemsGridView.Rows.Count; i++)
             {
                 bool questionPointsDetermined = false;
@@ -131,15 +141,6 @@ namespace TAO_Enhancer
                     ItemsGridView.Rows[i].Cells[4].Value = questionPoints.ToString();
                 }
             }
-
-            if(!testPointsDetermined)
-            {
-                TestPointsLabel.Text = "Počet bodů za test: N/A";
-            }
-            else
-            {
-                TestPointsLabel.Text = "Počet bodů za test: " + testPoints.ToString();
-            }
         }
 
         public void LoadItemInfo()
@@ -161,6 +162,114 @@ namespace TAO_Enhancer
                         ItemLabelLabel.Text = "Označení otázky: " + xmlReader.GetAttribute("label");
                     }
                 }
+            }
+        }
+
+        public void LoadResultInfo()
+        {
+            ResultIdentifierLabel.Text = "Identifikátor pokusu: " + deliveryExecutionIdentifier;
+            string resultTimestamp = "";
+            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + ".xml");
+            while (xmlReader.Read())
+            {
+                if(xmlReader.Name == "testResult" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    resultTimestamp = xmlReader.GetAttribute("datestamp");
+                }
+            }
+            ResultTimestampLabel.Text = "Časová známka: " + resultTimestamp;
+
+            foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\testtakers"))
+            {
+                string extension = Path.GetExtension(file);
+                if (extension == ".rdf")
+                {
+                    IGraph g = new Graph();
+                    FileLoader.Load(g, file);
+                    IEnumerable<INode> nodes = g.AllNodes;
+                    int nodeLine = 1;//TODO 1: Předělat; Udělat podmínky jako if(node == ns0:userFirstName)
+                    string login = "", name = "", surname = "";
+                    foreach (INode node in nodes)
+                    {
+                        if (nodeLine == 1)
+                        {
+                            string[] splitByHashtag = node.ToString().Split("#");
+                            if(splitByHashtag[1] != studentIdentifier)
+                            {
+                                break;
+                            }
+                        }
+                        if (nodeLine == 3)
+                        {
+                            login = node.ToString();
+                        }
+                        else if (nodeLine == 9)
+                        {
+                            name = node.ToString();
+                        }
+                        else if (nodeLine == 11)
+                        {
+                            surname = node.ToString();
+                        }
+                        nodeLine++;
+                        StudentNameLabel.Text = "Jméno studenta: " + name + " " + surname;
+                        StudentLoginLabel.Text = "Login studenta: " + login;
+                    }
+                }
+            }
+            StudentIdentifierLabel.Text = "Identifikátor studenta: " + studentIdentifier;
+
+            string resultsFilePath = "C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt";
+            bool resultsFileExists = false;
+
+            foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\results\\" + testNameIdentifier))
+            {
+                if (Path.GetFileName(file) == resultsFilePath)
+                {
+                    resultsFileExists = true;
+                }
+            }
+
+            if(!resultsFileExists)
+            {
+                string resultPointsToText = "";
+                for (int i = 0; i < ItemsGridView.Rows.Count; i++)
+                {
+                    string itemNameIdentifier = ItemsGridView.Rows[i].Cells[2].Value.ToString();
+                    string itemNumberIdentifier = ItemsGridView.Rows[i].Cells[3].Value.ToString();
+                    ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false);
+                    List<double> itemPoints = itemForm.GetResultsFilePoints();
+                    resultPointsToText += ItemsGridView.Rows[i].Cells[2].Value.ToString();
+                    for(int j = 0; j < itemPoints.Count; j++)
+                    {
+                        resultPointsToText += ";" + Math.Round(itemPoints[j], 2);
+                    }
+                    resultPointsToText += "\n";
+                }
+                File.WriteAllText(resultsFilePath, resultPointsToText);
+            }
+
+            string[] resultsFileLines = File.ReadAllLines(resultsFilePath);
+            double studentsPoints = 0;
+            for (int i = 0; i < resultsFileLines.Length; i++)
+            {
+                double studentsItemPoints = 0;
+                string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
+                for(int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
+                {
+                    studentsPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
+                    studentsItemPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
+                }
+                ItemsGridView.Rows[i].Cells[4].Value = studentsItemPoints + "/" + ItemsGridView.Rows[i].Cells[4].Value;
+            }
+
+            if (!testPointsDetermined)
+            {
+                TestPointsLabel.Text = "Počet bodů za test: N/A";
+            }
+            else
+            {
+                TestPointsLabel.Text = "Počet bodů za test: " + studentsPoints + "/" + testPoints;
             }
         }
 
@@ -191,7 +300,7 @@ namespace TAO_Enhancer
 
         private void button2_Click(object sender, EventArgs e)
         {
-            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacher, deliveryExecutionIdentifier, studentIdentifier).Show();
+            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacher, deliveryExecutionIdentifier, studentIdentifier, true).Show();
             Hide();
         }
     }
