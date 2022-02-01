@@ -81,7 +81,7 @@ namespace TAO_Enhancer
             }
             else
             {
-                new ResultForm(studentIdentifier[selectedStudent]).Show();
+                new ResultForm(studentIdentifier[selectedStudent], false).Show();
                 Hide();
             }
         }

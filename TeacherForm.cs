@@ -28,5 +28,11 @@ namespace TAO_Enhancer
             new TestsForm().Show();
             Hide();
         }
+
+        private void ManageTestResults_Click(object sender, EventArgs e)
+        {
+            new ResultForm("", true).Show();
+            Hide();
+        }
     }
 }

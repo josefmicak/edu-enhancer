@@ -22,20 +22,22 @@ namespace TAO_Enhancer
         int chosenItem = -1;
         string itemNameIdentifier = "";
         string itemNumberIdentifier = "";
-        bool isTeacher = true;
+        bool isTeacherEditingQuestion = true;
         string deliveryExecutionIdentifier = "";
         string studentIdentifier = "";
         int testPoints = 0;
         bool testPointsDetermined = true;
+        bool isTeacherReviewingDeliveryResult = false;
 
-        public TestForm((string, string) id, bool requestOrigin, string attemptIdentifier, string studentID)
+        public TestForm((string, string) id, bool requestOrigin, string attemptIdentifier, string studentID, bool isTeacherEditingDeliveryResult)
         {
             InitializeComponent();
             testNameIdentifier = id.Item1;
             testNumberIdentifier = id.Item2;
-            if(!requestOrigin)
+            isTeacherReviewingDeliveryResult = isTeacherEditingDeliveryResult;
+            if (!requestOrigin)
             {
-                isTeacher = false;
+                isTeacherEditingQuestion = false;
                 deliveryExecutionIdentifier = attemptIdentifier;
                 studentIdentifier = studentID;
             }
@@ -224,7 +226,7 @@ namespace TAO_Enhancer
 
             foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\results\\" + testNameIdentifier))
             {
-                if (Path.GetFileName(file) == resultsFilePath)
+                if (file == resultsFilePath)
                 {
                     resultsFileExists = true;
                 }
@@ -237,7 +239,7 @@ namespace TAO_Enhancer
                 {
                     string itemNameIdentifier = ItemsGridView.Rows[i].Cells[2].Value.ToString();
                     string itemNumberIdentifier = ItemsGridView.Rows[i].Cells[3].Value.ToString();
-                    ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false);
+                    ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false, isTeacherReviewingDeliveryResult);
                     List<double> itemPoints = itemForm.GetResultsFilePoints();
                     resultPointsToText += ItemsGridView.Rows[i].Cells[2].Value.ToString();
                     for(int j = 0; j < itemPoints.Count; j++)
@@ -280,14 +282,14 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if(isTeacher)
+            if(isTeacherEditingQuestion)
             {
                 new TestsForm().Show();
                 Hide();
             }
             else
             {
-                new ResultForm(studentIdentifier).Show();
+                new ResultForm(studentIdentifier, isTeacherReviewingDeliveryResult).Show();
                 Hide();
             }
         }
@@ -300,7 +302,7 @@ namespace TAO_Enhancer
 
         private void button2_Click(object sender, EventArgs e)
         {
-            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacher, deliveryExecutionIdentifier, studentIdentifier, true).Show();
+            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, true, isTeacherReviewingDeliveryResult).Show();
             Hide();
         }
     }

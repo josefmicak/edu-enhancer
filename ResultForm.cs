@@ -19,17 +19,34 @@ namespace TAO_Enhancer
     {
         string studentIdentifier = "";
         int selectedAttempt = -1;
+        bool isTeacherReviewingDeliveryResult = false;
         List<string> attemptIdentifier = new List<string>();
 
-        public ResultForm(string studentID)
+        public ResultForm(string studentID, bool isTeacherReviewingAttempt)
         {
             InitializeComponent();
             studentIdentifier = studentID;
-            LoadStudent();
+            isTeacherReviewingDeliveryResult = isTeacherReviewingAttempt;
+
+            if (!isTeacherReviewingAttempt)
+            {
+                LoadStudent("");
+            }
+                
             LoadResults();
+
+            if(!isTeacherReviewingAttempt)
+            {
+                this.ResultsGridView.Columns[3].Visible = false;
+                AmountOfTestsLabel.Location = new Point(StudentGB.Location.X + StudentEmailLabel.Location.X, StudentGB.Location.Y + StudentEmailLabel.Location.Y + 39);
+            }
+            else
+            {
+                AmountOfTestsLabel.Location = new Point(ResultListGB.Location.X + ResultsGridView.Location.X, ResultListGB.Location.Y + ResultsGridView.Location.Y - 30);
+            }
         }
 
-        public void LoadStudent()
+        public void LoadStudent(string studentLogin)
         {
             string login = "", name = "", surname = "", email = "";
 
@@ -42,15 +59,26 @@ namespace TAO_Enhancer
                     FileLoader.Load(g, file);
                     IEnumerable<INode> nodes = g.AllNodes;
                     int nodeLine = 1;//TODO: viz TODO 1
+                    string tempStudentIdentifier = "";
                     foreach (INode node in nodes)
                     {
                         if (nodeLine == 1)
                         {
                             string[] splitByHashtag = node.ToString().Split("#");
+                            tempStudentIdentifier = splitByHashtag[1];
+                            if (splitByHashtag[1] != studentIdentifier && !isTeacherReviewingDeliveryResult)
+                            {
+                                break;
+                            }
                         }
                         if (nodeLine == 3)
                         {
+                            if(isTeacherReviewingDeliveryResult && node.ToString() != studentLogin)
+                            {
+                                break;
+                            }
                             login = node.ToString();
+                            studentIdentifier = tempStudentIdentifier;
                         }
                         else if (nodeLine == 9)
                         {
@@ -95,7 +123,7 @@ namespace TAO_Enhancer
                             if (xmlReader.Name == "context")
                             {
                                 testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
-                                if (testStudentIdentifier == studentIdentifier)
+                                if (testStudentIdentifier == studentIdentifier || isTeacherReviewingDeliveryResult)
                                 {
                                     addTest = true;
                                 }
@@ -108,6 +136,38 @@ namespace TAO_Enhancer
                         }
 
                         string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                        string login = "";
+
+                        if (isTeacherReviewingDeliveryResult)
+                        {
+                            foreach (var studentFile in Directory.GetFiles("C:\\xampp\\exported\\testtakers"))
+                            {
+                                string studentFileExtension = Path.GetExtension(studentFile);
+                                if (studentFileExtension == ".rdf")
+                                {
+                                    IGraph g = new Graph();
+                                    FileLoader.Load(g, studentFile);
+                                    IEnumerable<INode> nodes = g.AllNodes;
+                                    int nodeLine = 1;//TODO: viz TODO 1
+                                    foreach (INode node in nodes)
+                                    {
+                                        if (nodeLine == 1)
+                                        {
+                                            string[] splitByHashtag = node.ToString().Split("#");
+                                            if(splitByHashtag[1] != testStudentIdentifier)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        if (nodeLine == 3)
+                                        {
+                                            login = node.ToString();
+                                        }
+                                        nodeLine++;
+                                    }
+                                }
+                            }
+                        }
 
                         if(addTest)
                         {
@@ -116,6 +176,7 @@ namespace TAO_Enhancer
                             ResultsGridView.Rows[amountOfTests].Cells[1].Value = timeStamp;
                             ResultsGridView.Rows[amountOfTests].Cells[2].Value = attemptIdentifierSplitByUnderscore[2];
                             attemptIdentifier.Add(attemptIdentifierSplitByUnderscore[2]);
+                            ResultsGridView.Rows[amountOfTests].Cells[3].Value = login;
                             amountOfTests++;
                         }
                     }
@@ -138,8 +199,16 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new StudentForm().Show();
-            Hide();
+            if(isTeacherReviewingDeliveryResult)
+            {
+                new TeacherForm().Show();
+                Hide();
+            }
+            else
+            {
+                new StudentForm().Show();
+                Hide();
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -150,7 +219,7 @@ namespace TAO_Enhancer
             }
             else
             {
-                new TestForm(GetTestIdentifiers(), false, attemptIdentifier[selectedAttempt], studentIdentifier).Show();
+                new TestForm(GetTestIdentifiers(), false, attemptIdentifier[selectedAttempt], studentIdentifier, isTeacherReviewingDeliveryResult).Show();
                 Hide();
             }
             
@@ -159,6 +228,10 @@ namespace TAO_Enhancer
         private void ResultsGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             selectedAttempt = ResultsGridView.CurrentCell.RowIndex;
+            if(isTeacherReviewingDeliveryResult)
+            {
+                LoadStudent(ResultsGridView.Rows[selectedAttempt].Cells[3].Value.ToString());
+            }
         }
     }
 }

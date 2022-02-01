@@ -34,14 +34,16 @@ namespace TAO_Enhancer
         int subquestionPoints = 0;
         int questionPoints = 0;
 
-        bool isTeacher = true;
+        bool isTeacherEditingQuestion = true;
         string deliveryExecutionIdentifier = "";
         string studentIdentifier = "";
         List<double> studentsReceivedPointsArray = new List<double>();
         bool deliveryExecutionFileCreated;
         List<double> importedReceivedPointsArray = new List<double>();
+        bool isTeacherReviewingDeliveryResult = false;
+        double studentsReceivedPoints = 0;
 
-        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated)
+        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated, bool isTeacherEditingDeliveryResult)
         {
             InitializeComponent();
             testNameIdentifier = testNameID;
@@ -54,10 +56,17 @@ namespace TAO_Enhancer
             if (!requestOrigin)//student
             {
                 deliveryExecutionIdentifier = attemptIdentifier;
-                isTeacher = false;
+                isTeacherEditingQuestion = false;
                 studentIdentifier = studentID;
                 LoadDeliveryExecutionInfo();
                 ModifyQuestionGB.Visible = false;
+            }
+
+            if(isTeacherEditingDeliveryResult)
+            {
+                isTeacherReviewingDeliveryResult = isTeacherEditingDeliveryResult;
+                ModifyStudentsPointsGB.Visible = true;
+                LoadDeliveryExecutionInfoToEdit();
             }
         }
 
@@ -213,7 +222,7 @@ namespace TAO_Enhancer
                 foreach (var file in Directory.GetFiles(directory))
                 {
                     string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
-                    if(attemptIdentifierSplitByUnderscore[2] == deliveryExecutionIdentifier)
+                    if(attemptIdentifierSplitByUnderscore.Length > 2 && attemptIdentifierSplitByUnderscore[2] == deliveryExecutionIdentifier)
                     {
                         XmlReader xmlReader = XmlReader.Create(file);
                         while (xmlReader.Read())
@@ -324,7 +333,7 @@ namespace TAO_Enhancer
 
             StudentsAnswerLabel.Text = "Vaše odpověď: \n" + studentsAnswerToLabel;
 
-            double studentsReceivedPoints = 0;
+            studentsReceivedPoints = 0;
             StudentsAnswerCorrectness isAnswerCorrect = StudentsAnswerCorrectness.Correct;
 
             if(deliveryExecutionFileCreated)
@@ -531,6 +540,11 @@ namespace TAO_Enhancer
             Incorrect,
             PartiallyCorrect,
             Unknown
+        }
+
+        public void LoadDeliveryExecutionInfoToEdit()
+        {
+            StudentsPointsTB.Text = studentsReceivedPoints.ToString();
         }
 
         public List<double> GetResultsFilePoints()
@@ -1057,7 +1071,7 @@ namespace TAO_Enhancer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            new TestForm((testNameIdentifier, testNumberIdentifier), isTeacher, deliveryExecutionIdentifier, studentIdentifier).Show();
+            new TestForm((testNameIdentifier, testNumberIdentifier), isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, isTeacherReviewingDeliveryResult).Show();
             Hide();
         }
 
@@ -1072,15 +1086,74 @@ namespace TAO_Enhancer
                 subitemIdentifier = responseIdentifierArray[SubitemCB.SelectedIndex];
                 ResponseIdentifierLabel.Text = "Identifikátor podotázky: " + responseIdentifierArray[SubitemCB.SelectedIndex];
             }
-            if(subitemsAdded && !isTeacher)
+            if(subitemsAdded && !isTeacherEditingQuestion)
             {
                 LoadDeliveryExecutionInfo();
+            }
+            if(subitemsAdded && isTeacherReviewingDeliveryResult)
+            {
+                LoadDeliveryExecutionInfoToEdit();
             }
         }
 
         private void SaveSubquestionPointsButton_Click(object sender, EventArgs e)
         {
             SaveQuestionPoints();
+        }
+
+        private void SaveStudentsPointsButton_Click(object sender, EventArgs e)
+        {
+            bool isDecimal = double.TryParse(StudentsPointsTB.Text, out _);
+            if(!isDecimal)
+            {
+                MessageBox.Show("Chyba: je nutné zadat číslo.", "Chybný počet bodů", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                string resultsToFile = "";
+
+                for (int i = 0; i < resultsFileLines.Length; i++)
+                {
+                    string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
+                    if (splitResultsFileLineBySemicolon[0] != itemNameIdentifier)
+                    {
+                        resultsToFile += resultsFileLines[i] + "\n";
+                    }
+                    else
+                    {
+                        if (amountOfSubitems > 1)
+                        {
+                            resultsToFile += itemNameIdentifier;
+
+                            for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
+                            {
+                                resultsToFile += ";";
+                                if(j-1 != SubitemCB.SelectedIndex)
+                                {
+                                    resultsToFile += splitResultsFileLineBySemicolon[j];
+                                }
+                                else
+                                {
+                                    resultsToFile += StudentsPointsTB.Text;
+                                }
+                            }
+
+                            resultsToFile += "\n";
+                        }
+                        else
+                        {
+                            resultsToFile += itemNameIdentifier + ";" + StudentsPointsTB.Text + "\n";
+                        }
+                    }
+                }
+
+                File.WriteAllText("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt", resultsToFile);
+                MessageBox.Show("Počet získaných bodů byl u studenta úspěšně upraven.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                importedReceivedPointsArray.Clear();
+                LoadDeliveryExecutionInfo();
+                LoadDeliveryExecutionInfoToEdit();
+            }
         }
     }
 }

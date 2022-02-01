@@ -70,7 +70,7 @@ namespace TAO_Enhancer
             }
             else
             {
-                new TestForm(itemIdentifiers[chosenTest], true, "", "").Show();
+                new TestForm(itemIdentifiers[chosenTest], true, "", "", false).Show();
                 Hide();
             }
         }

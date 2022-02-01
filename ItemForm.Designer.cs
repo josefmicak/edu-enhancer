@@ -55,11 +55,16 @@ namespace TAO_Enhancer
             this.StudentsAnswerCorrectLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerLabel = new System.Windows.Forms.Label();
             this.ModifyQuestionGB = new System.Windows.Forms.GroupBox();
+            this.ModifyStudentsPointsGB = new System.Windows.Forms.GroupBox();
+            this.SaveStudentsPointsButton = new System.Windows.Forms.Button();
+            this.StudentsPointsTB = new System.Windows.Forms.TextBox();
+            this.EditStudentsPointsLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.SubitemGB.SuspendLayout();
             this.StudentsAnswerGB.SuspendLayout();
             this.ModifyQuestionGB.SuspendLayout();
+            this.ModifyStudentsPointsGB.SuspendLayout();
             this.SuspendLayout();
             // 
             // NumberIdentifierLabel
@@ -321,11 +326,51 @@ namespace TAO_Enhancer
             this.ModifyQuestionGB.TabStop = false;
             this.ModifyQuestionGB.Text = "Upravit otázku";
             // 
+            // ModifyStudentsPointsGB
+            // 
+            this.ModifyStudentsPointsGB.Controls.Add(this.SaveStudentsPointsButton);
+            this.ModifyStudentsPointsGB.Controls.Add(this.StudentsPointsTB);
+            this.ModifyStudentsPointsGB.Controls.Add(this.EditStudentsPointsLabel);
+            this.ModifyStudentsPointsGB.Location = new System.Drawing.Point(1027, 353);
+            this.ModifyStudentsPointsGB.Name = "ModifyStudentsPointsGB";
+            this.ModifyStudentsPointsGB.Size = new System.Drawing.Size(406, 140);
+            this.ModifyStudentsPointsGB.TabIndex = 15;
+            this.ModifyStudentsPointsGB.TabStop = false;
+            this.ModifyStudentsPointsGB.Text = "Upravit body";
+            this.ModifyStudentsPointsGB.Visible = false;
+            // 
+            // SaveStudentsPointsButton
+            // 
+            this.SaveStudentsPointsButton.Location = new System.Drawing.Point(164, 94);
+            this.SaveStudentsPointsButton.Name = "SaveStudentsPointsButton";
+            this.SaveStudentsPointsButton.Size = new System.Drawing.Size(75, 23);
+            this.SaveStudentsPointsButton.TabIndex = 2;
+            this.SaveStudentsPointsButton.Text = "Uložit";
+            this.SaveStudentsPointsButton.UseVisualStyleBackColor = true;
+            this.SaveStudentsPointsButton.Click += new System.EventHandler(this.SaveStudentsPointsButton_Click);
+            // 
+            // StudentsPointsTB
+            // 
+            this.StudentsPointsTB.Location = new System.Drawing.Point(198, 35);
+            this.StudentsPointsTB.Name = "StudentsPointsTB";
+            this.StudentsPointsTB.Size = new System.Drawing.Size(100, 23);
+            this.StudentsPointsTB.TabIndex = 1;
+            // 
+            // EditStudentsPointsLabel
+            // 
+            this.EditStudentsPointsLabel.AutoSize = true;
+            this.EditStudentsPointsLabel.Location = new System.Drawing.Point(7, 38);
+            this.EditStudentsPointsLabel.Name = "EditStudentsPointsLabel";
+            this.EditStudentsPointsLabel.Size = new System.Drawing.Size(185, 15);
+            this.EditStudentsPointsLabel.TabIndex = 0;
+            this.EditStudentsPointsLabel.Text = "Počet bodů získaných studentem:";
+            // 
             // ItemForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1549, 728);
+            this.Controls.Add(this.ModifyStudentsPointsGB);
             this.Controls.Add(this.ModifyQuestionGB);
             this.Controls.Add(this.StudentsAnswerGB);
             this.Controls.Add(this.SubitemGB);
@@ -343,6 +388,8 @@ namespace TAO_Enhancer
             this.StudentsAnswerGB.PerformLayout();
             this.ModifyQuestionGB.ResumeLayout(false);
             this.ModifyQuestionGB.PerformLayout();
+            this.ModifyStudentsPointsGB.ResumeLayout(false);
+            this.ModifyStudentsPointsGB.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -375,5 +422,9 @@ namespace TAO_Enhancer
         private System.Windows.Forms.GroupBox ModifyQuestionGB;
         private System.Windows.Forms.Label StudentsAnswerPointstLabel;
         private System.Windows.Forms.Label StudentsAnswerCorrectLabel;
+        private System.Windows.Forms.GroupBox ModifyStudentsPointsGB;
+        private System.Windows.Forms.Button SaveStudentsPointsButton;
+        private System.Windows.Forms.TextBox StudentsPointsTB;
+        private System.Windows.Forms.Label EditStudentsPointsLabel;
     }
 }
