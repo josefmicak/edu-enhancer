@@ -28,6 +28,7 @@ namespace TAO_Enhancer
         int testPoints = 0;
         bool testPointsDetermined = true;
         bool isTeacherReviewingDeliveryResult = false;
+        bool negativePoints = false;
 
         public TestForm((string, string) id, bool requestOrigin, string attemptIdentifier, string studentID, bool isTeacherEditingDeliveryResult)
         {
@@ -49,6 +50,10 @@ namespace TAO_Enhancer
             if(!requestOrigin)
             {
                 LoadResultInfo();
+            }
+            if(requestOrigin && !isTeacherEditingDeliveryResult)
+            {
+                NegativePointsGB.Visible = true;
             }
         }
 
@@ -142,6 +147,40 @@ namespace TAO_Enhancer
                     testPoints += questionPoints;
                     ItemsGridView.Rows[i].Cells[4].Value = questionPoints.ToString();
                 }
+            }
+
+            if(!isTeacherReviewingDeliveryResult && isTeacherEditingQuestion)
+            {
+                TestPointsLabel.Text = "Počet bodů za test: " + testPoints.ToString();
+            }
+
+            bool fileExists = false;
+
+            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
+            foreach (var file in Directory.GetFiles(testPath))
+            {
+                if (Path.GetFileName(file) == "NegativePoints.txt")
+                {
+                    fileExists = true;
+                    string[] negativePointsFileLines = File.ReadAllLines(file);
+                    for (int i = 0; i < negativePointsFileLines.Length; i++)
+                    {
+                        if (negativePointsFileLines[0] == "1")
+                        {
+                            negativePoints = true;
+                        }
+                    }
+                }
+            }
+
+            if(negativePoints)
+            {
+                TestNegativePointsRB.Checked = true;
+            }
+
+            if (!fileExists)
+            {
+                File.WriteAllText(testPath + "\\NegativePoints.txt", "0");
             }
         }
 
@@ -239,7 +278,7 @@ namespace TAO_Enhancer
                 {
                     string itemNameIdentifier = ItemsGridView.Rows[i].Cells[2].Value.ToString();
                     string itemNumberIdentifier = ItemsGridView.Rows[i].Cells[3].Value.ToString();
-                    ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false, isTeacherReviewingDeliveryResult);
+                    ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false, isTeacherReviewingDeliveryResult, negativePoints);
                     List<double> itemPoints = itemForm.GetResultsFilePoints();
                     resultPointsToText += ItemsGridView.Rows[i].Cells[2].Value.ToString();
                     for(int j = 0; j < itemPoints.Count; j++)
@@ -271,7 +310,7 @@ namespace TAO_Enhancer
             }
             else
             {
-                TestPointsLabel.Text = "Počet bodů za test: " + studentsPoints + "/" + testPoints;
+                TestPointsLabel.Text = "Počet bodů za test: " + Math.Round(studentsPoints, 2) + "/" + testPoints;
             }
         }
 
@@ -302,8 +341,27 @@ namespace TAO_Enhancer
 
         private void button2_Click(object sender, EventArgs e)
         {
-            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, true, isTeacherReviewingDeliveryResult).Show();
+            new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, true, isTeacherReviewingDeliveryResult, negativePoints).Show();
             Hide();
+        }
+
+        private void SaveNegativePointsButton_Click(object sender, EventArgs e)
+        {
+            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
+            string textToWrite;
+
+            if (QuestionNegativePointsRB.Checked)
+            {
+                textToWrite = "0";
+                negativePoints = false;
+            }
+            else
+            {
+                textToWrite = "1";
+                negativePoints = true;
+            }
+            File.WriteAllText(testPath + "\\NegativePoints.txt", textToWrite);
+            MessageBox.Show("Možnost zisku záporných bodů u testu byla úspěšně změněna.", "Údaj upraven", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

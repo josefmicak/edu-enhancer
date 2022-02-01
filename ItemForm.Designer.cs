@@ -47,7 +47,6 @@ namespace TAO_Enhancer
             this.SubquestionPointsLabel = new System.Windows.Forms.Label();
             this.QuestionTypeLabel = new System.Windows.Forms.Label();
             this.SubitemLabel = new System.Windows.Forms.Label();
-            this.SaveSubquestionPointsButton = new System.Windows.Forms.Button();
             this.SubquestionPointsTB = new System.Windows.Forms.TextBox();
             this.EditSubquestionPointsLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerGB = new System.Windows.Forms.GroupBox();
@@ -59,6 +58,7 @@ namespace TAO_Enhancer
             this.SaveStudentsPointsButton = new System.Windows.Forms.Button();
             this.StudentsPointsTB = new System.Windows.Forms.TextBox();
             this.EditStudentsPointsLabel = new System.Windows.Forms.Label();
+            this.SaveSubquestionPointsButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.SubitemGB.SuspendLayout();
@@ -248,16 +248,6 @@ namespace TAO_Enhancer
             this.SubitemLabel.TabIndex = 11;
             this.SubitemLabel.Text = "SubitemLabel";
             // 
-            // SaveSubquestionPointsButton
-            // 
-            this.SaveSubquestionPointsButton.Location = new System.Drawing.Point(78, 113);
-            this.SaveSubquestionPointsButton.Name = "SaveSubquestionPointsButton";
-            this.SaveSubquestionPointsButton.Size = new System.Drawing.Size(75, 23);
-            this.SaveSubquestionPointsButton.TabIndex = 16;
-            this.SaveSubquestionPointsButton.Text = "Uložit";
-            this.SaveSubquestionPointsButton.UseVisualStyleBackColor = true;
-            this.SaveSubquestionPointsButton.Click += new System.EventHandler(this.SaveSubquestionPointsButton_Click);
-            // 
             // SubquestionPointsTB
             // 
             this.SubquestionPointsTB.Location = new System.Drawing.Point(159, 27);
@@ -321,7 +311,7 @@ namespace TAO_Enhancer
             this.ModifyQuestionGB.Controls.Add(this.SubquestionPointsTB);
             this.ModifyQuestionGB.Location = new System.Drawing.Point(13, 317);
             this.ModifyQuestionGB.Name = "ModifyQuestionGB";
-            this.ModifyQuestionGB.Size = new System.Drawing.Size(369, 176);
+            this.ModifyQuestionGB.Size = new System.Drawing.Size(369, 119);
             this.ModifyQuestionGB.TabIndex = 14;
             this.ModifyQuestionGB.TabStop = false;
             this.ModifyQuestionGB.Text = "Upravit otázku";
@@ -364,6 +354,16 @@ namespace TAO_Enhancer
             this.EditStudentsPointsLabel.Size = new System.Drawing.Size(185, 15);
             this.EditStudentsPointsLabel.TabIndex = 0;
             this.EditStudentsPointsLabel.Text = "Počet bodů získaných studentem:";
+            // 
+            // SaveSubquestionPointsButton
+            // 
+            this.SaveSubquestionPointsButton.Location = new System.Drawing.Point(142, 74);
+            this.SaveSubquestionPointsButton.Name = "SaveSubquestionPointsButton";
+            this.SaveSubquestionPointsButton.Size = new System.Drawing.Size(75, 23);
+            this.SaveSubquestionPointsButton.TabIndex = 16;
+            this.SaveSubquestionPointsButton.Text = "Uložit";
+            this.SaveSubquestionPointsButton.UseVisualStyleBackColor = true;
+            this.SaveSubquestionPointsButton.Click += new System.EventHandler(this.SaveSubquestionPointsButton_Click);
             // 
             // ItemForm
             // 
@@ -415,7 +415,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label NameIdentifierLabel;
         private System.Windows.Forms.Label StudentsAnswerLabel;
         private System.Windows.Forms.Label QuestionPointsLabel;
-        private System.Windows.Forms.Button SaveSubquestionPointsButton;
         private System.Windows.Forms.TextBox SubquestionPointsTB;
         private System.Windows.Forms.Label EditSubquestionPointsLabel;
         private System.Windows.Forms.Label SubquestionPointsLabel;
@@ -426,5 +425,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Button SaveStudentsPointsButton;
         private System.Windows.Forms.TextBox StudentsPointsTB;
         private System.Windows.Forms.Label EditStudentsPointsLabel;
+        private System.Windows.Forms.Button SaveSubquestionPointsButton;
     }
 }

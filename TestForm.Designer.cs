@@ -57,11 +57,16 @@ namespace TAO_Enhancer
             this.StudentNameLabel = new System.Windows.Forms.Label();
             this.ResultIdentifierLabel = new System.Windows.Forms.Label();
             this.ResultTimestampLabel = new System.Windows.Forms.Label();
+            this.NegativePointsGB = new System.Windows.Forms.GroupBox();
+            this.TestNegativePointsRB = new System.Windows.Forms.RadioButton();
+            this.QuestionNegativePointsRB = new System.Windows.Forms.RadioButton();
+            this.SaveNegativePointsButton = new System.Windows.Forms.Button();
             this.TestGB.SuspendLayout();
             this.ItemListGB.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ItemsGridView)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.resultGB.SuspendLayout();
+            this.NegativePointsGB.SuspendLayout();
             this.SuspendLayout();
             // 
             // TestGB
@@ -135,7 +140,7 @@ namespace TAO_Enhancer
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(458, 662);
+            this.button1.Location = new System.Drawing.Point(595, 790);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 1;
@@ -147,7 +152,7 @@ namespace TAO_Enhancer
             // 
             this.ItemListGB.Controls.Add(this.button2);
             this.ItemListGB.Controls.Add(this.ItemsGridView);
-            this.ItemListGB.Location = new System.Drawing.Point(13, 285);
+            this.ItemListGB.Location = new System.Drawing.Point(213, 433);
             this.ItemListGB.Name = "ItemListGB";
             this.ItemListGB.Size = new System.Drawing.Size(843, 351);
             this.ItemListGB.TabIndex = 2;
@@ -335,11 +340,57 @@ namespace TAO_Enhancer
             this.ResultTimestampLabel.TabIndex = 0;
             this.ResultTimestampLabel.Text = "ResultTimestampLabel";
             // 
+            // NegativePointsGB
+            // 
+            this.NegativePointsGB.Controls.Add(this.TestNegativePointsRB);
+            this.NegativePointsGB.Controls.Add(this.QuestionNegativePointsRB);
+            this.NegativePointsGB.Controls.Add(this.SaveNegativePointsButton);
+            this.NegativePointsGB.Location = new System.Drawing.Point(19, 287);
+            this.NegativePointsGB.Name = "NegativePointsGB";
+            this.NegativePointsGB.Size = new System.Drawing.Size(287, 119);
+            this.NegativePointsGB.TabIndex = 5;
+            this.NegativePointsGB.TabStop = false;
+            this.NegativePointsGB.Text = "Záporné body";
+            this.NegativePointsGB.Visible = false;
+            // 
+            // TestNegativePointsRB
+            // 
+            this.TestNegativePointsRB.AutoSize = true;
+            this.TestNegativePointsRB.Location = new System.Drawing.Point(19, 47);
+            this.TestNegativePointsRB.Name = "TestNegativePointsRB";
+            this.TestNegativePointsRB.Size = new System.Drawing.Size(176, 19);
+            this.TestNegativePointsRB.TabIndex = 21;
+            this.TestNegativePointsRB.Text = "Záporné body i v rámci testu";
+            this.TestNegativePointsRB.UseVisualStyleBackColor = true;
+            // 
+            // QuestionNegativePointsRB
+            // 
+            this.QuestionNegativePointsRB.AutoSize = true;
+            this.QuestionNegativePointsRB.Checked = true;
+            this.QuestionNegativePointsRB.Location = new System.Drawing.Point(19, 22);
+            this.QuestionNegativePointsRB.Name = "QuestionNegativePointsRB";
+            this.QuestionNegativePointsRB.Size = new System.Drawing.Size(213, 19);
+            this.QuestionNegativePointsRB.TabIndex = 20;
+            this.QuestionNegativePointsRB.TabStop = true;
+            this.QuestionNegativePointsRB.Text = "Záporné body pouze v rámci otázky";
+            this.QuestionNegativePointsRB.UseVisualStyleBackColor = true;
+            // 
+            // SaveNegativePointsButton
+            // 
+            this.SaveNegativePointsButton.Location = new System.Drawing.Point(97, 90);
+            this.SaveNegativePointsButton.Name = "SaveNegativePointsButton";
+            this.SaveNegativePointsButton.Size = new System.Drawing.Size(75, 23);
+            this.SaveNegativePointsButton.TabIndex = 19;
+            this.SaveNegativePointsButton.Text = "Uložit";
+            this.SaveNegativePointsButton.UseVisualStyleBackColor = true;
+            this.SaveNegativePointsButton.Click += new System.EventHandler(this.SaveNegativePointsButton_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1236, 714);
+            this.ClientSize = new System.Drawing.Size(1236, 825);
+            this.Controls.Add(this.NegativePointsGB);
             this.Controls.Add(this.resultGB);
             this.Controls.Add(this.ItemGB);
             this.Controls.Add(this.ItemListGB);
@@ -356,6 +407,8 @@ namespace TAO_Enhancer
             this.ItemGB.PerformLayout();
             this.resultGB.ResumeLayout(false);
             this.resultGB.PerformLayout();
+            this.NegativePointsGB.ResumeLayout(false);
+            this.NegativePointsGB.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -390,5 +443,9 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label StudentIdentifierLabel;
         private System.Windows.Forms.Label StudentLoginLabel;
         private System.Windows.Forms.Label StudentNameLabel;
+        private System.Windows.Forms.GroupBox NegativePointsGB;
+        private System.Windows.Forms.RadioButton TestNegativePointsRB;
+        private System.Windows.Forms.RadioButton QuestionNegativePointsRB;
+        private System.Windows.Forms.Button SaveNegativePointsButton;
     }
 }

@@ -42,8 +42,10 @@ namespace TAO_Enhancer
         List<double> importedReceivedPointsArray = new List<double>();
         bool isTeacherReviewingDeliveryResult = false;
         double studentsReceivedPoints = 0;
+        bool undecidedPointsInFile = false;
+        bool negativePoints = false;
 
-        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated, bool isTeacherEditingDeliveryResult)
+        public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated, bool isTeacherEditingDeliveryResult, bool negativePointsInTest)
         {
             InitializeComponent();
             testNameIdentifier = testNameID;
@@ -51,6 +53,7 @@ namespace TAO_Enhancer
             itemNumberIdentifier = itemNumberID;
             testNumberIdentifier = testNumberID;
             deliveryExecutionFileCreated = attemptFileCreated;
+            negativePoints = negativePointsInTest;
             LoadItemInfo();
 
             if (!requestOrigin)//student
@@ -287,6 +290,15 @@ namespace TAO_Enhancer
                 }
             }
 
+            for(int i = 0; i < studentsAnswers.Count; i++)
+            {
+                if(studentsAnswers[i] == "<>")
+                {
+                    string answer = studentsAnswers[i];
+                    studentsAnswers.Remove(answer);
+                }
+            }
+
             string studentsAnswerToLabel = "";
             int answerNumber = 0;
             bool studentAnsweredQustion = false;
@@ -377,6 +389,13 @@ namespace TAO_Enhancer
                         {
                             studentsReceivedPoints = subquestionPoints;
                         }
+                        else
+                        {
+                            if(studentsAnswers.Count == 0 || (studentsAnswers.Count > 0 && studentsAnswers[0] != ""))
+                            {
+                                studentsReceivedPoints -= subquestionPoints;
+                            }
+                        }
                         break;
                     case 2:
                         int studentsCorrectAnswers = 0;
@@ -430,7 +449,6 @@ namespace TAO_Enhancer
                     else
                     {
                         isAnswerCorrect = StudentsAnswerCorrectness.Correct;
-                        studentsReceivedPoints = subquestionPoints;
                     }
                     break;
                 case 2:
@@ -518,12 +536,12 @@ namespace TAO_Enhancer
                     break;
             }
 
-            if (studentsReceivedPoints < 0)//TODO: Záporné body
+            if ((studentsReceivedPoints < 0 && !negativePoints) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))//TODO: Záporné body
             {
                 studentsReceivedPoints = 0;
             }
 
-            if (subquestionPoints == -1)
+            if (undecidedPointsInFile)
             {
                 StudentsAnswerPointstLabel.Text = "Počet bodů za odpověď: N/A";
             }
@@ -973,8 +991,8 @@ namespace TAO_Enhancer
 
             bool fileExists = false;
             bool itemRecordExists = false;
-            bool undecidedPointsInFile = false;
-            questionPoints = 0;//
+            undecidedPointsInFile = false;
+            questionPoints = 0;
             string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
             foreach (var file in Directory.GetFiles(itemParentPath))
             {
@@ -1011,7 +1029,7 @@ namespace TAO_Enhancer
                         if (splitImportedFileLineBySemicolon[1] == "N/A")
                         {
                             undecidedPointsInFile = true;
-                            subquestionPoints = -1;
+                         //   subquestionPoints = -1;
                         }
                     }
 
@@ -1036,7 +1054,10 @@ namespace TAO_Enhancer
             }
             else
             {
-             //   QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
+                if(!isTeacherReviewingDeliveryResult && isTeacherEditingQuestion)
+                {
+                    QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
+                }
             }
         }
 
