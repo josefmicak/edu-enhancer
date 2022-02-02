@@ -151,7 +151,14 @@ namespace TAO_Enhancer
 
             if(!isTeacherReviewingDeliveryResult && isTeacherEditingQuestion)
             {
-                TestPointsLabel.Text = "Počet bodů za test: " + testPoints.ToString();
+                if(testPointsDetermined)
+                {
+                    TestPointsLabel.Text = "Počet bodů za test: " + testPoints.ToString();
+                }
+                else
+                {
+                    TestPointsLabel.Text = "Počet bodů za test: N/A";
+                }
             }
 
             bool fileExists = false;

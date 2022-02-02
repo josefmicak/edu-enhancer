@@ -54,11 +54,18 @@ namespace TAO_Enhancer
             this.StudentsAnswerCorrectLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerLabel = new System.Windows.Forms.Label();
             this.ModifyQuestionGB = new System.Windows.Forms.GroupBox();
+            this.RecommendedWrongChoicePointsTB = new System.Windows.Forms.TextBox();
+            this.SelectedWrongChoicePointsTB = new System.Windows.Forms.TextBox();
+            this.SelectedWrongChoicePointsRB = new System.Windows.Forms.RadioButton();
+            this.RecommendedWrongChoicePointsRB = new System.Windows.Forms.RadioButton();
+            this.WrongChoicePointsLabel = new System.Windows.Forms.Label();
+            this.CorrectChoicePointsTB = new System.Windows.Forms.TextBox();
+            this.CorrectChoicePointsLabel = new System.Windows.Forms.Label();
+            this.SaveSubquestionPointsButton = new System.Windows.Forms.Button();
             this.ModifyStudentsPointsGB = new System.Windows.Forms.GroupBox();
             this.SaveStudentsPointsButton = new System.Windows.Forms.Button();
             this.StudentsPointsTB = new System.Windows.Forms.TextBox();
             this.EditStudentsPointsLabel = new System.Windows.Forms.Label();
-            this.SaveSubquestionPointsButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.QuestionImage)).BeginInit();
             this.ItemGB.SuspendLayout();
             this.SubitemGB.SuspendLayout();
@@ -250,7 +257,7 @@ namespace TAO_Enhancer
             // 
             // SubquestionPointsTB
             // 
-            this.SubquestionPointsTB.Location = new System.Drawing.Point(159, 27);
+            this.SubquestionPointsTB.Location = new System.Drawing.Point(208, 27);
             this.SubquestionPointsTB.Name = "SubquestionPointsTB";
             this.SubquestionPointsTB.Size = new System.Drawing.Size(100, 23);
             this.SubquestionPointsTB.TabIndex = 15;
@@ -306,15 +313,97 @@ namespace TAO_Enhancer
             // 
             // ModifyQuestionGB
             // 
+            this.ModifyQuestionGB.Controls.Add(this.RecommendedWrongChoicePointsTB);
+            this.ModifyQuestionGB.Controls.Add(this.SelectedWrongChoicePointsTB);
+            this.ModifyQuestionGB.Controls.Add(this.SelectedWrongChoicePointsRB);
+            this.ModifyQuestionGB.Controls.Add(this.RecommendedWrongChoicePointsRB);
+            this.ModifyQuestionGB.Controls.Add(this.WrongChoicePointsLabel);
+            this.ModifyQuestionGB.Controls.Add(this.CorrectChoicePointsTB);
+            this.ModifyQuestionGB.Controls.Add(this.CorrectChoicePointsLabel);
             this.ModifyQuestionGB.Controls.Add(this.SaveSubquestionPointsButton);
             this.ModifyQuestionGB.Controls.Add(this.EditSubquestionPointsLabel);
             this.ModifyQuestionGB.Controls.Add(this.SubquestionPointsTB);
             this.ModifyQuestionGB.Location = new System.Drawing.Point(13, 317);
             this.ModifyQuestionGB.Name = "ModifyQuestionGB";
-            this.ModifyQuestionGB.Size = new System.Drawing.Size(369, 119);
+            this.ModifyQuestionGB.Size = new System.Drawing.Size(369, 252);
             this.ModifyQuestionGB.TabIndex = 14;
             this.ModifyQuestionGB.TabStop = false;
             this.ModifyQuestionGB.Text = "Upravit otázku";
+            // 
+            // RecommendedWrongChoicePointsTB
+            // 
+            this.RecommendedWrongChoicePointsTB.Location = new System.Drawing.Point(122, 135);
+            this.RecommendedWrongChoicePointsTB.Name = "RecommendedWrongChoicePointsTB";
+            this.RecommendedWrongChoicePointsTB.ReadOnly = true;
+            this.RecommendedWrongChoicePointsTB.Size = new System.Drawing.Size(100, 23);
+            this.RecommendedWrongChoicePointsTB.TabIndex = 23;
+            // 
+            // SelectedWrongChoicePointsTB
+            // 
+            this.SelectedWrongChoicePointsTB.Location = new System.Drawing.Point(122, 168);
+            this.SelectedWrongChoicePointsTB.Name = "SelectedWrongChoicePointsTB";
+            this.SelectedWrongChoicePointsTB.ReadOnly = true;
+            this.SelectedWrongChoicePointsTB.Size = new System.Drawing.Size(100, 23);
+            this.SelectedWrongChoicePointsTB.TabIndex = 22;
+            // 
+            // SelectedWrongChoicePointsRB
+            // 
+            this.SelectedWrongChoicePointsRB.AutoSize = true;
+            this.SelectedWrongChoicePointsRB.Location = new System.Drawing.Point(7, 168);
+            this.SelectedWrongChoicePointsRB.Name = "SelectedWrongChoicePointsRB";
+            this.SelectedWrongChoicePointsRB.Size = new System.Drawing.Size(60, 19);
+            this.SelectedWrongChoicePointsRB.TabIndex = 21;
+            this.SelectedWrongChoicePointsRB.Text = "Vlastní";
+            this.SelectedWrongChoicePointsRB.UseVisualStyleBackColor = true;
+            this.SelectedWrongChoicePointsRB.CheckedChanged += new System.EventHandler(this.SelectedWrongChoicePointsRB_CheckedChanged);
+            // 
+            // RecommendedWrongChoicePointsRB
+            // 
+            this.RecommendedWrongChoicePointsRB.AutoSize = true;
+            this.RecommendedWrongChoicePointsRB.Checked = true;
+            this.RecommendedWrongChoicePointsRB.Location = new System.Drawing.Point(6, 134);
+            this.RecommendedWrongChoicePointsRB.Name = "RecommendedWrongChoicePointsRB";
+            this.RecommendedWrongChoicePointsRB.Size = new System.Drawing.Size(90, 19);
+            this.RecommendedWrongChoicePointsRB.TabIndex = 20;
+            this.RecommendedWrongChoicePointsRB.TabStop = true;
+            this.RecommendedWrongChoicePointsRB.Text = "Doporučený";
+            this.RecommendedWrongChoicePointsRB.UseVisualStyleBackColor = true;
+            // 
+            // WrongChoicePointsLabel
+            // 
+            this.WrongChoicePointsLabel.AutoSize = true;
+            this.WrongChoicePointsLabel.Location = new System.Drawing.Point(6, 103);
+            this.WrongChoicePointsLabel.Name = "WrongChoicePointsLabel";
+            this.WrongChoicePointsLabel.Size = new System.Drawing.Size(164, 15);
+            this.WrongChoicePointsLabel.TabIndex = 19;
+            this.WrongChoicePointsLabel.Text = "Počet bodů za špatnou volbu:";
+            // 
+            // CorrectChoicePointsTB
+            // 
+            this.CorrectChoicePointsTB.Location = new System.Drawing.Point(208, 63);
+            this.CorrectChoicePointsTB.Name = "CorrectChoicePointsTB";
+            this.CorrectChoicePointsTB.ReadOnly = true;
+            this.CorrectChoicePointsTB.Size = new System.Drawing.Size(100, 23);
+            this.CorrectChoicePointsTB.TabIndex = 18;
+            // 
+            // CorrectChoicePointsLabel
+            // 
+            this.CorrectChoicePointsLabel.AutoSize = true;
+            this.CorrectChoicePointsLabel.Location = new System.Drawing.Point(7, 71);
+            this.CorrectChoicePointsLabel.Name = "CorrectChoicePointsLabel";
+            this.CorrectChoicePointsLabel.Size = new System.Drawing.Size(170, 15);
+            this.CorrectChoicePointsLabel.TabIndex = 17;
+            this.CorrectChoicePointsLabel.Text = "Počet bodů za správnou volbu:";
+            // 
+            // SaveSubquestionPointsButton
+            // 
+            this.SaveSubquestionPointsButton.Location = new System.Drawing.Point(147, 209);
+            this.SaveSubquestionPointsButton.Name = "SaveSubquestionPointsButton";
+            this.SaveSubquestionPointsButton.Size = new System.Drawing.Size(75, 23);
+            this.SaveSubquestionPointsButton.TabIndex = 16;
+            this.SaveSubquestionPointsButton.Text = "Uložit";
+            this.SaveSubquestionPointsButton.UseVisualStyleBackColor = true;
+            this.SaveSubquestionPointsButton.Click += new System.EventHandler(this.SaveSubquestionPointsButton_Click);
             // 
             // ModifyStudentsPointsGB
             // 
@@ -354,16 +443,6 @@ namespace TAO_Enhancer
             this.EditStudentsPointsLabel.Size = new System.Drawing.Size(185, 15);
             this.EditStudentsPointsLabel.TabIndex = 0;
             this.EditStudentsPointsLabel.Text = "Počet bodů získaných studentem:";
-            // 
-            // SaveSubquestionPointsButton
-            // 
-            this.SaveSubquestionPointsButton.Location = new System.Drawing.Point(142, 74);
-            this.SaveSubquestionPointsButton.Name = "SaveSubquestionPointsButton";
-            this.SaveSubquestionPointsButton.Size = new System.Drawing.Size(75, 23);
-            this.SaveSubquestionPointsButton.TabIndex = 16;
-            this.SaveSubquestionPointsButton.Text = "Uložit";
-            this.SaveSubquestionPointsButton.UseVisualStyleBackColor = true;
-            this.SaveSubquestionPointsButton.Click += new System.EventHandler(this.SaveSubquestionPointsButton_Click);
             // 
             // ItemForm
             // 
@@ -426,5 +505,12 @@ namespace TAO_Enhancer
         private System.Windows.Forms.TextBox StudentsPointsTB;
         private System.Windows.Forms.Label EditStudentsPointsLabel;
         private System.Windows.Forms.Button SaveSubquestionPointsButton;
+        private System.Windows.Forms.TextBox CorrectChoicePointsTB;
+        private System.Windows.Forms.Label CorrectChoicePointsLabel;
+        private System.Windows.Forms.TextBox RecommendedWrongChoicePointsTB;
+        private System.Windows.Forms.TextBox SelectedWrongChoicePointsTB;
+        private System.Windows.Forms.RadioButton SelectedWrongChoicePointsRB;
+        private System.Windows.Forms.RadioButton RecommendedWrongChoicePointsRB;
+        private System.Windows.Forms.Label WrongChoicePointsLabel;
     }
 }

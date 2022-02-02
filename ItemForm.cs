@@ -44,6 +44,8 @@ namespace TAO_Enhancer
         double studentsReceivedPoints = 0;
         bool undecidedPointsInFile = false;
         bool negativePoints = false;
+        bool recommendedWrongChoicePoints = true;
+        double selectedWrongChoicePoints = 0;
 
         public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated, bool isTeacherEditingDeliveryResult, bool negativePointsInTest)
         {
@@ -393,7 +395,14 @@ namespace TAO_Enhancer
                         {
                             if(studentsAnswers.Count == 0 || (studentsAnswers.Count > 0 && studentsAnswers[0] != ""))
                             {
-                                studentsReceivedPoints -= subquestionPoints;
+                                if(recommendedWrongChoicePoints)
+                                {
+                                    studentsReceivedPoints -= subquestionPoints;
+                                }
+                                else
+                                {
+                                    studentsReceivedPoints -= Math.Abs(selectedWrongChoicePoints);
+                                }
                             }
                         }
                         break;
@@ -412,7 +421,14 @@ namespace TAO_Enhancer
                             }
                         }
 
-                        studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        if (recommendedWrongChoicePoints)
+                        {
+                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        }
+                        else
+                        {
+                            studentsReceivedPoints -= Math.Abs(Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * (selectedWrongChoicePoints));
+                        }
                         break;
                     case int n when (n == 3 || n == 4):
                         studentsCorrectAnswers = 0;
@@ -433,7 +449,14 @@ namespace TAO_Enhancer
                             }
                         }
 
-                        studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        if (recommendedWrongChoicePoints)
+                        {
+                            studentsReceivedPoints -= Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctChoiceArray.Count);
+                        }
+                        else
+                        {
+                            studentsReceivedPoints -= Math.Abs(Math.Abs((studentsAnswers.Count - studentsCorrectAnswers) / 2) * (selectedWrongChoicePoints));
+                        }
                         break;
                 }
             }
@@ -606,6 +629,27 @@ namespace TAO_Enhancer
                 }
             }
             return amountOfSubitems;
+        }
+
+        public double GetCorrectChoicePoints()
+        {
+            double correctChoicePoints = 0;
+            switch (questionType)
+            {
+                case int n when (n == 1 || n == 6):
+                    correctChoicePoints = subquestionPoints;
+                    break;
+                case 2:
+                    correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Count;
+                    break;
+                case int n when (n == 3 || n == 4):
+                    correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
+                    break;
+                case 5:
+                    correctChoicePoints = subquestionPoints;
+                    break;
+            }
+            return Math.Round(correctChoicePoints, 2);
         }
 
         public void GetResponseIdentifiers()
@@ -1002,9 +1046,15 @@ namespace TAO_Enhancer
                 }
             }
 
-            if(!fileExists)
+            if (!fileExists)
             {
-                string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
+              /*  double incorrectChoicePoints = 0;
+                if(questionType != 5)
+                {
+                    incorrectChoicePoints = GetCorrectChoicePoints() * (-1);
+                }
+                string itemPointsText = subitemIdentifier + ";N/A;" + incorrectChoicePoints + Environment.NewLine;*/
+                string itemPointsText = subitemIdentifier + ";N/A;N/A" + Environment.NewLine;
                 File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
                 SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
                 SubquestionPointsTB.Text = "N/A";
@@ -1031,6 +1081,49 @@ namespace TAO_Enhancer
                             undecidedPointsInFile = true;
                          //   subquestionPoints = -1;
                         }
+
+                        if(splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
+                        {
+                            RecommendedWrongChoicePointsRB.Enabled = true;
+                            SelectedWrongChoicePointsRB.Enabled = true;
+                            if(SelectedWrongChoicePointsRB.Checked)
+                            {
+                                SelectedWrongChoicePointsTB.ReadOnly = false;
+                            }
+                            if (double.Parse(splitImportedFileLineBySemicolon[2]) == GetCorrectChoicePoints() * (-1))
+                            {
+                                RecommendedWrongChoicePointsTB.Text = splitImportedFileLineBySemicolon[2];
+                                RecommendedWrongChoicePointsRB.Checked = true;
+                                recommendedWrongChoicePoints = true;
+                            }
+                            else
+                            {
+                                RecommendedWrongChoicePointsTB.Text = (GetCorrectChoicePoints() * (-1)).ToString();
+                                SelectedWrongChoicePointsTB.Text = splitImportedFileLineBySemicolon[2];
+                                SelectedWrongChoicePointsRB.Checked = true;
+                                recommendedWrongChoicePoints = false;
+                                selectedWrongChoicePoints = double.Parse(splitImportedFileLineBySemicolon[2]);
+                            }
+                        }
+                        else
+                        {
+                            RecommendedWrongChoicePointsTB.Text = "";
+                            SelectedWrongChoicePointsTB.Text = "";
+                            SelectedWrongChoicePointsRB.Enabled = false;
+                            RecommendedWrongChoicePointsRB.Enabled = false;
+                            RecommendedWrongChoicePointsRB.Checked = true;
+                            SelectedWrongChoicePointsTB.ReadOnly = true;
+                        }
+
+                        if(questionType == 5)
+                        {
+                            RecommendedWrongChoicePointsTB.Text = "";
+                            SelectedWrongChoicePointsTB.Text = "";
+                            SelectedWrongChoicePointsRB.Enabled = false;
+                            RecommendedWrongChoicePointsRB.Enabled = false;
+                            RecommendedWrongChoicePointsRB.Checked = true;
+                            SelectedWrongChoicePointsTB.ReadOnly = true;
+                        }
                     }
 
                     if (splitImportedFileLineBySemicolon[1] != "N/A")
@@ -1051,12 +1144,14 @@ namespace TAO_Enhancer
             if(!fileExists || !itemRecordExists || undecidedPointsInFile)
             {
                 QuestionPointsLabel.Text = "Počet bodů za otázku: N/A";
+                CorrectChoicePointsTB.Text = "N/A";
             }
             else
             {
                 if(!isTeacherReviewingDeliveryResult && isTeacherEditingQuestion)
                 {
                     QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
+                    CorrectChoicePointsTB.Text = GetCorrectChoicePoints().ToString();
                 }
             }
         }
@@ -1066,28 +1161,79 @@ namespace TAO_Enhancer
             string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
 
             bool isNumber = int.TryParse(SubquestionPointsTB.Text, out _);
-            if(!isNumber)
+            bool isWrongChoicePointsNumber = double.TryParse(SelectedWrongChoicePointsTB.Text, out _);
+            if (!isNumber || (!isWrongChoicePointsNumber && SelectedWrongChoicePointsRB.Checked))
             {
                 MessageBox.Show("Chyba: je nutné zadat číslo.", "Chybný počet bodů", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
-                string fileLinesToExport = "";
-                for (int i = 0; i < importedFileLines.Length; i++)
+                bool performSave = true;
+                string warningText = "";
+                string warningTitle = "";
+                if(Math.Abs(double.Parse(SelectedWrongChoicePointsTB.Text)) > subquestionPoints)
                 {
-                    string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
-                    if (splitImportedFileLineBySemicolon[0] == subitemIdentifier)
+                    warningText = "Varování: za špatný výběr bude studentovi odečteno více bodů, než kolik může dostat za otázku. Chcete pokračovat?";
+                    warningTitle = "Varování - počet bodů";
+                    DialogResult result = MessageBox.Show(warningText, warningTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (result == DialogResult.No)
                     {
-                        importedFileLines[i] = subitemIdentifier + ";" + SubquestionPointsTB.Text;
+                        performSave = false;
                     }
-                    fileLinesToExport += importedFileLines[i] + "\n";
                 }
-                File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
-                MessageBox.Show("Počet bodů u podotázky byl úspešně změněn.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
 
-            LoadQuestionPoints();
+                if(double.Parse(SelectedWrongChoicePointsTB.Text) > 0)
+                {
+                    performSave = false;
+                    warningText = "Chyba: za špatnou volbu nemůže být udělen kladný počet bodů.";
+                    warningTitle = "Chyba - kladný počet bodů";
+                    MessageBox.Show(warningText, warningTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                if (double.Parse(SubquestionPointsTB.Text) < 0)
+                {
+                    performSave = false;
+                    warningText = "Chyba: za správnou odpověď nemůže být udělen záporný počet bodů";
+                    warningTitle = "Chyba - záporný počet bodů";
+                    MessageBox.Show(warningText, warningTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                if (performSave)
+                {
+                    subquestionPoints = int.Parse(SubquestionPointsTB.Text);
+                    double wrongChoicePoints;
+                    if (RecommendedWrongChoicePointsRB.Checked || !RecommendedWrongChoicePointsRB.Enabled)
+                    {
+                        wrongChoicePoints = GetCorrectChoicePoints() * (-1);
+                        SelectedWrongChoicePointsTB.ReadOnly = true;
+                        SelectedWrongChoicePointsTB.Text = "";
+                    }
+                    else
+                    {
+                        wrongChoicePoints = double.Parse(SelectedWrongChoicePointsTB.Text);
+                    }
+
+                    if (questionType == 5)
+                    {
+                        wrongChoicePoints = 0;
+                    }
+
+                    string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                    string fileLinesToExport = "";
+                    for (int i = 0; i < importedFileLines.Length; i++)
+                    {
+                        string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                        if (splitImportedFileLineBySemicolon[0] == subitemIdentifier)
+                        {
+                            importedFileLines[i] = subitemIdentifier + ";" + SubquestionPointsTB.Text + ";" + Math.Round(wrongChoicePoints, 2);
+                        }
+                        fileLinesToExport += importedFileLines[i] + "\n";
+                    }
+                    File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+                    MessageBox.Show("Počet bodů u podotázky byl úspešně změněn.", "Počet bodů změněn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadQuestionPoints();
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -1174,6 +1320,15 @@ namespace TAO_Enhancer
                 importedReceivedPointsArray.Clear();
                 LoadDeliveryExecutionInfo();
                 LoadDeliveryExecutionInfoToEdit();
+            }
+        }
+
+        private void SelectedWrongChoicePointsRB_CheckedChanged(object sender, EventArgs e)
+        {
+            SelectedWrongChoicePointsTB.ReadOnly = !SelectedWrongChoicePointsRB.Checked;
+            if(!SelectedWrongChoicePointsRB.Checked)
+            {
+                SelectedWrongChoicePointsTB.Text = "";
             }
         }
     }
