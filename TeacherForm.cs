@@ -15,15 +15,16 @@ namespace TAO_Enhancer
         public TeacherForm()
         {
             InitializeComponent();
+            this.Text = "TAO Enhancer - Menu pro učitele";
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             new EntryForm().Show();
             Hide();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void ManageTestTemplates_Click(object sender, EventArgs e)
         {
             new TestsForm().Show();
             Hide();

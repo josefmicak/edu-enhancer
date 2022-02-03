@@ -34,14 +34,14 @@ namespace TAO_Enhancer
             this.TimestampColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.AttemptIdentifier = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.StudentLoginGB = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.ReturnButton = new System.Windows.Forms.Button();
+            this.ShowTestButton = new System.Windows.Forms.Button();
             this.ResultListGB = new System.Windows.Forms.GroupBox();
             this.StudentGB = new System.Windows.Forms.GroupBox();
-            this.AmountOfTestsLabel = new System.Windows.Forms.Label();
             this.StudentEmailLabel = new System.Windows.Forms.Label();
             this.StudentLoginLabel = new System.Windows.Forms.Label();
             this.StudentNameLabel = new System.Windows.Forms.Label();
+            this.AmountOfTestsLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.ResultsGridView)).BeginInit();
             this.ResultListGB.SuspendLayout();
             this.StudentGB.SuspendLayout();
@@ -64,6 +64,7 @@ namespace TAO_Enhancer
             this.ResultsGridView.Size = new System.Drawing.Size(613, 282);
             this.ResultsGridView.TabIndex = 0;
             this.ResultsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ResultsGridView_CellClick);
+            this.ResultsGridView.SelectionChanged += new System.EventHandler(this.ResultsGridView_SelectionChanged);
             // 
             // TestNameIdentifierColumn
             // 
@@ -92,30 +93,30 @@ namespace TAO_Enhancer
             this.StudentLoginGB.Name = "StudentLoginGB";
             this.StudentLoginGB.ReadOnly = true;
             // 
-            // button1
+            // ReturnButton
             // 
-            this.button1.Location = new System.Drawing.Point(539, 506);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Zpět";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.ReturnButton.Location = new System.Drawing.Point(539, 506);
+            this.ReturnButton.Name = "ReturnButton";
+            this.ReturnButton.Size = new System.Drawing.Size(75, 23);
+            this.ReturnButton.TabIndex = 1;
+            this.ReturnButton.Text = "Zpět";
+            this.ReturnButton.UseVisualStyleBackColor = true;
+            this.ReturnButton.Click += new System.EventHandler(this.ReturnButton_Click);
             // 
-            // button2
+            // ShowTestButton
             // 
-            this.button2.Location = new System.Drawing.Point(328, 365);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(90, 23);
-            this.button2.TabIndex = 3;
-            this.button2.Text = "Zobrazit test";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.ShowTestButton.Location = new System.Drawing.Point(328, 365);
+            this.ShowTestButton.Name = "ShowTestButton";
+            this.ShowTestButton.Size = new System.Drawing.Size(90, 23);
+            this.ShowTestButton.TabIndex = 3;
+            this.ShowTestButton.Text = "Zobrazit test";
+            this.ShowTestButton.UseVisualStyleBackColor = true;
+            this.ShowTestButton.Click += new System.EventHandler(this.ShowTestButton_Click);
             // 
             // ResultListGB
             // 
             this.ResultListGB.Controls.Add(this.ResultsGridView);
-            this.ResultListGB.Controls.Add(this.button2);
+            this.ResultListGB.Controls.Add(this.ShowTestButton);
             this.ResultListGB.Location = new System.Drawing.Point(397, 44);
             this.ResultListGB.Name = "ResultListGB";
             this.ResultListGB.Size = new System.Drawing.Size(740, 404);
@@ -134,15 +135,6 @@ namespace TAO_Enhancer
             this.StudentGB.TabIndex = 5;
             this.StudentGB.TabStop = false;
             this.StudentGB.Text = "Student";
-            // 
-            // AmountOfTestsLabel
-            // 
-            this.AmountOfTestsLabel.AutoSize = true;
-            this.AmountOfTestsLabel.Location = new System.Drawing.Point(13, 322);
-            this.AmountOfTestsLabel.Name = "AmountOfTestsLabel";
-            this.AmountOfTestsLabel.Size = new System.Drawing.Size(117, 15);
-            this.AmountOfTestsLabel.TabIndex = 3;
-            this.AmountOfTestsLabel.Text = "AmountOfTestsLabel";
             // 
             // StudentEmailLabel
             // 
@@ -171,6 +163,15 @@ namespace TAO_Enhancer
             this.StudentNameLabel.TabIndex = 0;
             this.StudentNameLabel.Text = "StudentNameLabel";
             // 
+            // AmountOfTestsLabel
+            // 
+            this.AmountOfTestsLabel.AutoSize = true;
+            this.AmountOfTestsLabel.Location = new System.Drawing.Point(13, 322);
+            this.AmountOfTestsLabel.Name = "AmountOfTestsLabel";
+            this.AmountOfTestsLabel.Size = new System.Drawing.Size(117, 15);
+            this.AmountOfTestsLabel.TabIndex = 3;
+            this.AmountOfTestsLabel.Text = "AmountOfTestsLabel";
+            // 
             // ResultForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -179,7 +180,9 @@ namespace TAO_Enhancer
             this.Controls.Add(this.AmountOfTestsLabel);
             this.Controls.Add(this.StudentGB);
             this.Controls.Add(this.ResultListGB);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ReturnButton);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "ResultForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ResultForm";
@@ -195,8 +198,8 @@ namespace TAO_Enhancer
         #endregion
 
         private System.Windows.Forms.DataGridView ResultsGridView;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button ReturnButton;
+        private System.Windows.Forms.Button ShowTestButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn TestNameIdentifierColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn TimestampColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn AttemptIdentifier;

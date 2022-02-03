@@ -31,11 +31,11 @@ namespace TAO_Enhancer
         {
             this.label1 = new System.Windows.Forms.Label();
             this.TestsGridView = new System.Windows.Forms.DataGridView();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.NameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IdentifierColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TitleColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ManageTestButton = new System.Windows.Forms.Button();
+            this.ReturnButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.TestsGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -65,26 +65,7 @@ namespace TAO_Enhancer
             this.TestsGridView.Size = new System.Drawing.Size(506, 150);
             this.TestsGridView.TabIndex = 0;
             this.TestsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.TestsGridView_CellClick);
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(36, 263);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(98, 23);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Správa testu";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(231, 380);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 5;
-            this.button2.Text = "Zpět";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.TestsGridView.SelectionChanged += new System.EventHandler(this.TestsGridView_SelectionChanged);
             // 
             // NameColumn
             // 
@@ -107,15 +88,37 @@ namespace TAO_Enhancer
             this.TitleColumn.ReadOnly = true;
             this.TitleColumn.Width = 150;
             // 
+            // ManageTestButton
+            // 
+            this.ManageTestButton.Location = new System.Drawing.Point(36, 263);
+            this.ManageTestButton.Name = "ManageTestButton";
+            this.ManageTestButton.Size = new System.Drawing.Size(98, 23);
+            this.ManageTestButton.TabIndex = 4;
+            this.ManageTestButton.Text = "Správa testu";
+            this.ManageTestButton.UseVisualStyleBackColor = true;
+            this.ManageTestButton.Click += new System.EventHandler(this.ManageTestButton_Click);
+            // 
+            // ReturnButton
+            // 
+            this.ReturnButton.Location = new System.Drawing.Point(231, 380);
+            this.ReturnButton.Name = "ReturnButton";
+            this.ReturnButton.Size = new System.Drawing.Size(75, 23);
+            this.ReturnButton.TabIndex = 5;
+            this.ReturnButton.Text = "Zpět";
+            this.ReturnButton.UseVisualStyleBackColor = true;
+            this.ReturnButton.Click += new System.EventHandler(this.ReturnButton_Click);
+            // 
             // TestsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(564, 450);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ReturnButton);
+            this.Controls.Add(this.ManageTestButton);
             this.Controls.Add(this.TestsGridView);
             this.Controls.Add(this.label1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "TestsForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TestsForm";
@@ -129,8 +132,8 @@ namespace TAO_Enhancer
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridView TestsGridView;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button ManageTestButton;
+        private System.Windows.Forms.Button ReturnButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn NameColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn IdentifierColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn TitleColumn;

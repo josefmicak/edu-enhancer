@@ -23,6 +23,14 @@ namespace TAO_Enhancer
         {
             InitializeComponent();
             LoadTestTakers();
+
+            if (TestTakersGridView.Rows.Count > 0)
+            {
+                TestTakersGridView.Rows[0].Selected = true;
+            }
+            TestTakersGridView.SelectionChanged -= TestTakersGridView_SelectionChanged;
+
+            this.Text = "TAO Enhancer - Seznam studentů";
         }
 
         public void LoadTestTakers()
@@ -67,13 +75,13 @@ namespace TAO_Enhancer
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             new EntryForm().Show();
             Hide();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ShowTestsButton_Click(object sender, EventArgs e)
         {
             if (selectedStudent == -1)
             {
@@ -89,6 +97,11 @@ namespace TAO_Enhancer
         private void TestTakersGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             selectedStudent = TestTakersGridView.CurrentCell.RowIndex;
+        }
+
+        private void TestTakersGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedStudent = TestTakersGridView.SelectedRows[0].Index;
         }
     }
 }

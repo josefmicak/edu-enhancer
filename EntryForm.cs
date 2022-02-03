@@ -15,18 +15,24 @@ namespace TAO_Enhancer
         public EntryForm()
         {
             InitializeComponent();
+            this.Text = "TAO Enhancer - Hlavní menu";
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void StudentButton_Click(object sender, EventArgs e)
         {
             new StudentForm().Show();
             Hide();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void TeacherButton_Click(object sender, EventArgs e)
         {
             new TeacherForm().Show();
             Hide();
+        }
+
+        private void CloseButton_Click(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
         }
     }
 }

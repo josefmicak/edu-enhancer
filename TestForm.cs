@@ -19,7 +19,7 @@ namespace TAO_Enhancer
     {
         string testNameIdentifier = "";
         string testNumberIdentifier = "";
-        int chosenItem = -1;
+        int selectedItem = -1;
         string itemNameIdentifier = "";
         string itemNumberIdentifier = "";
         bool isTeacherEditingQuestion = true;
@@ -50,11 +50,25 @@ namespace TAO_Enhancer
             if(!requestOrigin)
             {
                 LoadResultInfo();
+                QuestionInfoButton.Text = "Zobrazit otázku";
             }
             if(requestOrigin && !isTeacherEditingDeliveryResult)
             {
                 NegativePointsGB.Visible = true;
             }
+
+            if (ItemsGridView.Rows.Count > 0)
+            {
+                ItemsGridView.Rows[0].Selected = true;
+            }
+            ItemsGridView.SelectionChanged -= ItemsGridView_SelectionChanged;
+
+            string titleText = "TAO Enhancer - Test " + testNameIdentifier;
+            if(!requestOrigin || isTeacherEditingDeliveryResult)
+            {
+                titleText += " - Výsledek testu";
+            }
+            this.Text = titleText;
         }
 
         public void LoadTestInfo()
@@ -193,11 +207,11 @@ namespace TAO_Enhancer
 
         public void LoadItemInfo()
         {
-            ItemNameIdentifierLabel.Text = "Jmenný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
-            ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
-            itemNameIdentifier = ItemsGridView.Rows[chosenItem].Cells[2].Value.ToString();
-            itemNumberIdentifier = ItemsGridView.Rows[chosenItem].Cells[3].Value.ToString();
-            ItemPointsLabel.Text = "Počet bodů za otázku: " + ItemsGridView.Rows[chosenItem].Cells[4].Value.ToString();
+            ItemNameIdentifierLabel.Text = "Jmenný identifikátor otázky: " + ItemsGridView.Rows[selectedItem].Cells[2].Value.ToString();
+            ItemNumberIdentifierLabel.Text = "Číselný identifikátor otázky: " + ItemsGridView.Rows[selectedItem].Cells[3].Value.ToString();
+            itemNameIdentifier = ItemsGridView.Rows[selectedItem].Cells[2].Value.ToString();
+            itemNumberIdentifier = ItemsGridView.Rows[selectedItem].Cells[3].Value.ToString();
+            ItemPointsLabel.Text = "Počet bodů za otázku: " + ItemsGridView.Rows[selectedItem].Cells[4].Value.ToString();
 
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
@@ -326,7 +340,7 @@ namespace TAO_Enhancer
             return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\qti.xml";
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             if(isTeacherEditingQuestion)
             {
@@ -342,11 +356,11 @@ namespace TAO_Enhancer
 
         private void ItemsGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            chosenItem = ItemsGridView.CurrentCell.RowIndex;
+            selectedItem = ItemsGridView.CurrentCell.RowIndex;
             LoadItemInfo();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void QuestionInfoButton_Click(object sender, EventArgs e)
         {
             new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, true, isTeacherReviewingDeliveryResult, negativePoints).Show();
             Hide();
@@ -369,6 +383,12 @@ namespace TAO_Enhancer
             }
             File.WriteAllText(testPath + "\\NegativePoints.txt", textToWrite);
             MessageBox.Show("Možnost zisku záporných bodů u testu byla úspěšně změněna.", "Údaj upraven", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ItemsGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedItem = ItemsGridView.SelectedRows[0].Index;
+            LoadItemInfo();
         }
     }
 }

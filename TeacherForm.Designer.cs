@@ -29,20 +29,20 @@ namespace TAO_Enhancer
         /// </summary>
         private void InitializeComponent()
         {
-            this.button2 = new System.Windows.Forms.Button();
+            this.ReturnButton = new System.Windows.Forms.Button();
             this.ManageTestTemplates = new System.Windows.Forms.Button();
             this.ManageTestResults = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button2
+            // ReturnButton
             // 
-            this.button2.Location = new System.Drawing.Point(362, 408);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Zpět";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.ReturnButton.Location = new System.Drawing.Point(362, 408);
+            this.ReturnButton.Name = "ReturnButton";
+            this.ReturnButton.Size = new System.Drawing.Size(75, 23);
+            this.ReturnButton.TabIndex = 1;
+            this.ReturnButton.Text = "Zpět";
+            this.ReturnButton.UseVisualStyleBackColor = true;
+            this.ReturnButton.Click += new System.EventHandler(this.ReturnButton_Click);
             // 
             // ManageTestTemplates
             // 
@@ -52,7 +52,7 @@ namespace TAO_Enhancer
             this.ManageTestTemplates.TabIndex = 2;
             this.ManageTestTemplates.Text = "Správa zadání testů";
             this.ManageTestTemplates.UseVisualStyleBackColor = true;
-            this.ManageTestTemplates.Click += new System.EventHandler(this.button3_Click);
+            this.ManageTestTemplates.Click += new System.EventHandler(this.ManageTestTemplates_Click);
             // 
             // ManageTestResults
             // 
@@ -71,7 +71,9 @@ namespace TAO_Enhancer
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.ManageTestResults);
             this.Controls.Add(this.ManageTestTemplates);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.ReturnButton);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "TeacherForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TeacherForm";
@@ -80,7 +82,7 @@ namespace TAO_Enhancer
         }
 
         #endregion
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button ReturnButton;
         private System.Windows.Forms.Button ManageTestTemplates;
         private System.Windows.Forms.Button ManageTestResults;
     }

@@ -34,7 +34,7 @@ namespace TAO_Enhancer
             this.LabelLabel = new System.Windows.Forms.Label();
             this.QuestionLabel = new System.Windows.Forms.Label();
             this.CorrectAnswerLabel = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.ReturnButton = new System.Windows.Forms.Button();
             this.QuestionImage = new System.Windows.Forms.PictureBox();
             this.PossibleAnswerLabel = new System.Windows.Forms.Label();
             this.SubitemCB = new System.Windows.Forms.ComboBox();
@@ -119,15 +119,15 @@ namespace TAO_Enhancer
             this.CorrectAnswerLabel.TabIndex = 4;
             this.CorrectAnswerLabel.Text = "CorrectAnswerLabel";
             // 
-            // button1
+            // ReturnButton
             // 
-            this.button1.Location = new System.Drawing.Point(733, 693);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Zpět";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.ReturnButton.Location = new System.Drawing.Point(733, 693);
+            this.ReturnButton.Name = "ReturnButton";
+            this.ReturnButton.Size = new System.Drawing.Size(75, 23);
+            this.ReturnButton.TabIndex = 5;
+            this.ReturnButton.Text = "Zpět";
+            this.ReturnButton.UseVisualStyleBackColor = true;
+            this.ReturnButton.Click += new System.EventHandler(this.ReturnButton_Click);
             // 
             // QuestionImage
             // 
@@ -454,7 +454,9 @@ namespace TAO_Enhancer
             this.Controls.Add(this.StudentsAnswerGB);
             this.Controls.Add(this.SubitemGB);
             this.Controls.Add(this.ItemGB);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ReturnButton);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "ItemForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ItemForm";
@@ -480,7 +482,7 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label LabelLabel;
         private System.Windows.Forms.Label QuestionLabel;
         private System.Windows.Forms.Label CorrectAnswerLabel;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button ReturnButton;
         private System.Windows.Forms.PictureBox QuestionImage;
         private System.Windows.Forms.Label PossibleAnswerLabel;
         private System.Windows.Forms.ComboBox SubitemCB;

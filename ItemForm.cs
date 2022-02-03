@@ -10,9 +10,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace TAO_Enhancer
 {
+    /*
+     *Ošetřit import obrázků - lepší čtení + oznámit správci, že je dovolen max jeden obrázek
+     *Text - při kliknutí na text zobrazit textbox s textem, ochrana toho že je špatné řádkování
+     *nezobrazovat studentům identifikátory, zmenšit ItemForm pro studenty
+     *ResultForm - filtrování podle studenta?
+     *možná toolstrip?
+     */
     public partial class ItemForm : Form
     {
         string itemNumberIdentifier = "";
@@ -73,6 +81,13 @@ namespace TAO_Enhancer
                 ModifyStudentsPointsGB.Visible = true;
                 LoadDeliveryExecutionInfoToEdit();
             }
+
+            string titleText = "TAO Enhancer - Prohlídka otázky " + itemNameIdentifier;
+            if(isTeacherEditingDeliveryResult || !requestOrigin)
+            {
+                titleText += " - Výsledek";
+            }
+            this.Text = titleText;
         }
 
         public void LoadItemInfo()
@@ -160,13 +175,21 @@ namespace TAO_Enhancer
                 else
                 {
                     if (questionType == 7)
-                    {
-                        if (xmlReader.Name == "p")
+                    {//TODO 9: Inline interactions nezprovozněno
+                      //  Debug.WriteLine(xmlReader.Name);
+                        if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
                         {
-                            //TODO 9: Inline interactions nezprovozněno
-                            QuestionLabel.Text = "Otázka: " + xmlReader.ReadString();
+                            string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
+                            int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
+                            int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
+                            string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
+                            QuestionLabel.Text = questionText;
                             includesQuestion = true;
                         }
+                   /*     if (xmlReader.Name == "inlineChoice" || xmlReader.Name == "inlineChoiceInteraction")
+                        {
+                            Debug.WriteLine(xmlReader.ReadElementContentAsString()); 
+                        }*/
                     }
                     else
                     {
@@ -385,7 +408,7 @@ namespace TAO_Enhancer
             {
                 switch (questionType)
                 {
-                    case int n when (n == 1 || n == 6):
+                    case int n when (n == 1 || n == 6 || n == 7):
                         bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
                         if (areStudentsAnswersCorrect)
                         {
@@ -463,7 +486,7 @@ namespace TAO_Enhancer
 
             switch (questionType)
             {
-                case int n when (n == 1 || n == 6):
+                case int n when (n == 1 || n == 6 || n == 7):
                     bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
                     if (!areStudentsAnswersCorrect)
                     {
@@ -559,7 +582,7 @@ namespace TAO_Enhancer
                     break;
             }
 
-            if ((studentsReceivedPoints < 0 && !negativePoints) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))//TODO: Záporné body
+            if ((studentsReceivedPoints < 0 && !negativePoints) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))
             {
                 studentsReceivedPoints = 0;
             }
@@ -636,7 +659,7 @@ namespace TAO_Enhancer
             double correctChoicePoints = 0;
             switch (questionType)
             {
-                case int n when (n == 1 || n == 6):
+                case int n when (n == 1 || n == 5 || n == 6 || n == 7):
                     correctChoicePoints = subquestionPoints;
                     break;
                 case 2:
@@ -644,9 +667,6 @@ namespace TAO_Enhancer
                     break;
                 case int n when (n == 3 || n == 4):
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
-                    break;
-                case 5:
-                    correctChoicePoints = subquestionPoints;
                     break;
             }
             return Math.Round(correctChoicePoints, 2);
@@ -675,7 +695,9 @@ namespace TAO_Enhancer
 
                 if(responseIdentifierArray.Count > 0)
                 {
-                    if(includesImage.Count == 0)
+                    //TODO 03.02 - Dočasně změněno
+                    includesImage.Add(false);
+                    if (includesImage.Count == 0)
                     {//TODO: Ošetřit includesImage tak, aby ověřil přítomnost obrázku i bez promptu
                         MessageBox.Show("Chyba: otázka nemá pravděpodobně zadaný žádný text. Otázku nelze načíst.", "Chyba", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(0);
@@ -839,14 +861,46 @@ namespace TAO_Enhancer
 
         public void GetChoiceIdentifierValues()
         {
-            XmlReader xmlReader = XmlReader.Create(GetItemPath());
-            while (xmlReader.Read())
+            if(questionType == 7)
             {
-                if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+                while (xmlReaderInlineChoice.Read())
                 {
-                    string choiceIdentifier = xmlReader.GetAttribute("identifier");
-                    string choiceValue = xmlReader.ReadElementContentAsString();
-                    choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                    if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                    {
+                        var name = xmlReaderInlineChoice.Name;
+                        if (name == "p")
+                        {
+                            using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                            {
+                                while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                                {
+                                    using (var innerReaderNext = innerReader.ReadSubtree())
+                                    {
+                                        while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                        {
+                                            string choiceIdentifier = innerReaderNext.GetAttribute("identifier");
+                                            string choiceValue = innerReaderNext.ReadString();
+                                            choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                XmlReader xmlReader = XmlReader.Create(GetItemPath());
+                while (xmlReader.Read())
+                {
+                    if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
+                    {
+                        string choiceIdentifier = xmlReader.GetAttribute("identifier");
+                        string choiceValue = xmlReader.ReadElementContentAsString();
+                        choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                    }
                 }
             }
         }
@@ -919,6 +973,40 @@ namespace TAO_Enhancer
                 }
                 PossibleAnswerLabel.Text = "Možné odpovědi:\n" + possibleAnswers;
             }
+
+            if(questionType == 7)
+            {
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+                while (xmlReaderInlineChoice.Read())
+                {
+                    if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                    {
+                        var name = xmlReaderInlineChoice.Name;
+                        if (name == "p")
+                        {
+                            using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                            {
+                                while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                                {
+                                    using (var innerReaderNext = innerReader.ReadSubtree())
+                                    {
+                                        while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                        {
+                                              possibleAnswerArray.Add(innerReaderNext.ReadString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                foreach (string answer in possibleAnswerArray)
+                {
+                    possibleAnswers += answer + "\n";
+                }
+                PossibleAnswerLabel.Text = "Možné odpovědi:\n" + possibleAnswers;
+            }
         }
 
         public void FillCorrectAnswerLabel()
@@ -976,6 +1064,42 @@ namespace TAO_Enhancer
                                 correctAnswerArray[i] = answerText;
                             }
                             i++;
+                        }
+                    }
+                }
+            }
+
+            if(questionType == 7)
+            {
+                correctAnswerArray.Clear();
+
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+                while (xmlReaderInlineChoice.Read())
+                {
+                    if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                    {
+                        var name = xmlReaderInlineChoice.Name;
+                        if (name == "p")
+                        {
+                            using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                            {
+                                while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                                {
+                                    using (var innerReaderNext = innerReader.ReadSubtree())
+                                    {
+                                        while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                        {
+                                            for(int i = 0; i < correctChoiceArray.Count; i++)
+                                            {
+                                                if(innerReaderNext.GetAttribute("identifier") == correctChoiceArray[i])
+                                                {
+                                                    correctAnswerArray.Add(innerReaderNext.ReadString());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1171,7 +1295,7 @@ namespace TAO_Enhancer
                 bool performSave = true;
                 string warningText = "";
                 string warningTitle = "";
-                if(Math.Abs(double.Parse(SelectedWrongChoicePointsTB.Text)) > subquestionPoints)
+                if(SelectedWrongChoicePointsTB.Text != "" && Math.Abs(double.Parse(SelectedWrongChoicePointsTB.Text)) > subquestionPoints)
                 {
                     warningText = "Varování: za špatný výběr bude studentovi odečteno více bodů, než kolik může dostat za otázku. Chcete pokračovat?";
                     warningTitle = "Varování - počet bodů";
@@ -1182,7 +1306,7 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if(double.Parse(SelectedWrongChoicePointsTB.Text) > 0)
+                if(SelectedWrongChoicePointsTB.Text != "" && double.Parse(SelectedWrongChoicePointsTB.Text) > 0)
                 {
                     performSave = false;
                     warningText = "Chyba: za špatnou volbu nemůže být udělen kladný počet bodů.";
@@ -1190,7 +1314,7 @@ namespace TAO_Enhancer
                     MessageBox.Show(warningText, warningTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
-                if (double.Parse(SubquestionPointsTB.Text) < 0)
+                if (SubquestionPointsTB.Text != "" && double.Parse(SubquestionPointsTB.Text) < 0)
                 {
                     performSave = false;
                     warningText = "Chyba: za správnou odpověď nemůže být udělen záporný počet bodů";
@@ -1236,7 +1360,7 @@ namespace TAO_Enhancer
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             new TestForm((testNameIdentifier, testNumberIdentifier), isTeacherEditingQuestion, deliveryExecutionIdentifier, studentIdentifier, isTeacherReviewingDeliveryResult).Show();
             Hide();

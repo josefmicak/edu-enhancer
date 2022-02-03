@@ -36,9 +36,9 @@ namespace TAO_Enhancer
             this.TestTitleLabel = new System.Windows.Forms.Label();
             this.TestNameIdentifierLabel = new System.Windows.Forms.Label();
             this.TestFolderNameLabel = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.ReturnButton = new System.Windows.Forms.Button();
             this.ItemListGB = new System.Windows.Forms.GroupBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.QuestionInfoButton = new System.Windows.Forms.Button();
             this.ItemsGridView = new System.Windows.Forms.DataGridView();
             this.TestPartColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TestSectionColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -138,19 +138,19 @@ namespace TAO_Enhancer
             this.TestFolderNameLabel.TabIndex = 0;
             this.TestFolderNameLabel.Text = "TestFolderNameLabel";
             // 
-            // button1
+            // ReturnButton
             // 
-            this.button1.Location = new System.Drawing.Point(595, 790);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Zpět";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.ReturnButton.Location = new System.Drawing.Point(595, 790);
+            this.ReturnButton.Name = "ReturnButton";
+            this.ReturnButton.Size = new System.Drawing.Size(75, 23);
+            this.ReturnButton.TabIndex = 1;
+            this.ReturnButton.Text = "Zpět";
+            this.ReturnButton.UseVisualStyleBackColor = true;
+            this.ReturnButton.Click += new System.EventHandler(this.ReturnButton_Click);
             // 
             // ItemListGB
             // 
-            this.ItemListGB.Controls.Add(this.button2);
+            this.ItemListGB.Controls.Add(this.QuestionInfoButton);
             this.ItemListGB.Controls.Add(this.ItemsGridView);
             this.ItemListGB.Location = new System.Drawing.Point(213, 433);
             this.ItemListGB.Name = "ItemListGB";
@@ -159,15 +159,15 @@ namespace TAO_Enhancer
             this.ItemListGB.TabStop = false;
             this.ItemListGB.Text = "Seznam otázek";
             // 
-            // button2
+            // QuestionInfoButton
             // 
-            this.button2.Location = new System.Drawing.Point(331, 308);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(119, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Správa otázky";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.QuestionInfoButton.Location = new System.Drawing.Point(350, 308);
+            this.QuestionInfoButton.Name = "QuestionInfoButton";
+            this.QuestionInfoButton.Size = new System.Drawing.Size(126, 23);
+            this.QuestionInfoButton.TabIndex = 1;
+            this.QuestionInfoButton.Text = "Správa otázky";
+            this.QuestionInfoButton.UseVisualStyleBackColor = true;
+            this.QuestionInfoButton.Click += new System.EventHandler(this.QuestionInfoButton_Click);
             // 
             // ItemsGridView
             // 
@@ -187,6 +187,7 @@ namespace TAO_Enhancer
             this.ItemsGridView.Size = new System.Drawing.Size(783, 267);
             this.ItemsGridView.TabIndex = 0;
             this.ItemsGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ItemsGridView_CellClick);
+            this.ItemsGridView.SelectionChanged += new System.EventHandler(this.ItemsGridView_SelectionChanged);
             // 
             // TestPartColumn
             // 
@@ -394,8 +395,10 @@ namespace TAO_Enhancer
             this.Controls.Add(this.resultGB);
             this.Controls.Add(this.ItemGB);
             this.Controls.Add(this.ItemListGB);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ReturnButton);
             this.Controls.Add(this.TestGB);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "TestForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TestForm";
@@ -419,7 +422,7 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label TestTitleLabel;
         private System.Windows.Forms.Label TestNameIdentifierLabel;
         private System.Windows.Forms.Label TestFolderNameLabel;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button ReturnButton;
         private System.Windows.Forms.GroupBox ItemListGB;
         private System.Windows.Forms.DataGridView ItemsGridView;
         private System.Windows.Forms.Label TestNumberIdentifierLabel;
@@ -428,7 +431,7 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label ItemNameIdentifierLabel;
         private System.Windows.Forms.Label ItemLabelLabel;
         private System.Windows.Forms.Label ItemTitleLabel;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button QuestionInfoButton;
         private System.Windows.Forms.Label AmountOfQuestionsLabel;
         private System.Windows.Forms.DataGridViewTextBoxColumn TestPartColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn TestSectionColumn;

@@ -29,37 +29,51 @@ namespace TAO_Enhancer
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.TeacherButton = new System.Windows.Forms.Button();
+            this.StudentButton = new System.Windows.Forms.Button();
+            this.CloseButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button1
+            // TeacherButton
             // 
-            this.button1.Location = new System.Drawing.Point(151, 167);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(94, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Jsem učitel";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.TeacherButton.Location = new System.Drawing.Point(151, 167);
+            this.TeacherButton.Name = "TeacherButton";
+            this.TeacherButton.Size = new System.Drawing.Size(94, 23);
+            this.TeacherButton.TabIndex = 0;
+            this.TeacherButton.Text = "Jsem učitel";
+            this.TeacherButton.UseVisualStyleBackColor = true;
+            this.TeacherButton.Click += new System.EventHandler(this.TeacherButton_Click);
             // 
-            // button2
+            // StudentButton
             // 
-            this.button2.Location = new System.Drawing.Point(434, 167);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(102, 23);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Jsem student";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.StudentButton.Location = new System.Drawing.Point(509, 167);
+            this.StudentButton.Name = "StudentButton";
+            this.StudentButton.Size = new System.Drawing.Size(102, 23);
+            this.StudentButton.TabIndex = 1;
+            this.StudentButton.Text = "Jsem student";
+            this.StudentButton.UseVisualStyleBackColor = true;
+            this.StudentButton.Click += new System.EventHandler(this.StudentButton_Click);
+            // 
+            // CloseButton
+            // 
+            this.CloseButton.Location = new System.Drawing.Point(360, 384);
+            this.CloseButton.Name = "CloseButton";
+            this.CloseButton.Size = new System.Drawing.Size(75, 23);
+            this.CloseButton.TabIndex = 2;
+            this.CloseButton.Text = "Zavřít";
+            this.CloseButton.UseVisualStyleBackColor = true;
+            this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
             // 
             // EntryForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.CloseButton);
+            this.Controls.Add(this.StudentButton);
+            this.Controls.Add(this.TeacherButton);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "EntryForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "EntryForm";
@@ -69,7 +83,8 @@ namespace TAO_Enhancer
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button TeacherButton;
+        private System.Windows.Forms.Button StudentButton;
+        private System.Windows.Forms.Button CloseButton;
     }
 }

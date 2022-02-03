@@ -14,13 +14,21 @@ namespace TAO_Enhancer
 {
     public partial class TestsForm : Form
     {
-        int chosenTest = -1;
+        int selectedTest = -1;
         List<(string, string)> itemIdentifiers = new List<(string, string)>();
 
         public TestsForm()
         {
             InitializeComponent();
             LoadTests();
+
+            if (TestsGridView.Rows.Count > 0)
+            {
+                TestsGridView.Rows[0].Selected = true;
+            }
+            TestsGridView.SelectionChanged -= TestsGridView_SelectionChanged;
+
+            this.Text = "TAO Enhancer - Seznam testů";
         }
 
         public void LoadTests()
@@ -62,20 +70,20 @@ namespace TAO_Enhancer
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ManageTestButton_Click(object sender, EventArgs e)
         {
-            if (chosenTest == -1)
+            if (selectedTest == -1)
             {
                 MessageBox.Show("Chyba - nevybral jste žadnou otázku. Prosím vyberte otázku kliknutím na příslušný řádek.", "Nebyla vybrána otázka", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                new TestForm(itemIdentifiers[chosenTest], true, "", "", false).Show();
+                new TestForm(itemIdentifiers[selectedTest], true, "", "", false).Show();
                 Hide();
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             new TeacherForm().Show();
             Hide();
@@ -83,7 +91,12 @@ namespace TAO_Enhancer
 
         private void TestsGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            chosenTest = TestsGridView.CurrentCell.RowIndex;
+            selectedTest = TestsGridView.CurrentCell.RowIndex;
+        }
+
+        private void TestsGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedTest = TestsGridView.SelectedRows[0].Index;
         }
     }
 }

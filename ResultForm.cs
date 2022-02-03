@@ -20,6 +20,7 @@ namespace TAO_Enhancer
         string studentIdentifier = "";
         int selectedAttempt = -1;
         bool isTeacherReviewingDeliveryResult = false;
+        string titleStudentLogin = "";
         List<string> attemptIdentifier = new List<string>();
 
         public ResultForm(string studentID, bool isTeacherReviewingAttempt)
@@ -44,6 +45,19 @@ namespace TAO_Enhancer
             {
                 AmountOfTestsLabel.Location = new Point(ResultListGB.Location.X + ResultsGridView.Location.X, ResultListGB.Location.Y + ResultsGridView.Location.Y - 30);
             }
+
+            if(ResultsGridView.Rows.Count > 0)
+            {
+                ResultsGridView.Rows[0].Selected = true;
+            }
+            ResultsGridView.SelectionChanged -= ResultsGridView_SelectionChanged;
+
+            string titleText = "TAO Enhancer - ";
+            if (!isTeacherReviewingAttempt && ResultsGridView.Rows.Count > 0)
+            {
+                titleText += "Student " + titleStudentLogin + " - ";
+            }
+            this.Text = titleText + "Seznam testů";
         }
 
         public void LoadStudent(string studentLogin)
@@ -100,6 +114,7 @@ namespace TAO_Enhancer
             StudentNameLabel.Text = "Jméno: " + name + " " + surname;
             StudentLoginLabel.Text = "Login: " + login;
             StudentEmailLabel.Text = "Email: " + email;
+            titleStudentLogin = login;
         }
 
         public void LoadResults()
@@ -197,7 +212,7 @@ namespace TAO_Enhancer
             return (testNameIdentifier, testNumberIdentifier);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ReturnButton_Click(object sender, EventArgs e)
         {
             if(isTeacherReviewingDeliveryResult)
             {
@@ -211,7 +226,7 @@ namespace TAO_Enhancer
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ShowTestButton_Click(object sender, EventArgs e)
         {
             if (selectedAttempt == -1)
             {
@@ -229,6 +244,15 @@ namespace TAO_Enhancer
         {
             selectedAttempt = ResultsGridView.CurrentCell.RowIndex;
             if(isTeacherReviewingDeliveryResult)
+            {
+                LoadStudent(ResultsGridView.Rows[selectedAttempt].Cells[3].Value.ToString());
+            }
+        }
+
+        private void ResultsGridView_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedAttempt = ResultsGridView.SelectedRows[0].Index;
+            if (isTeacherReviewingDeliveryResult)
             {
                 LoadStudent(ResultsGridView.Rows[selectedAttempt].Cells[3].Value.ToString());
             }
