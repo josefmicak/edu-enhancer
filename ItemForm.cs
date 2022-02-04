@@ -34,11 +34,11 @@ namespace TAO_Enhancer
         List<string> correctAnswerArray = new List<string>();
         List<(string, string)> choiceIdentifierValueTuple = new List<(string, string)>();
         List<string> responseIdentifierArray = new List<string>();
-        List<string> responseValueArray = new List<string>();//TODO 5: Tohle by asi mohl být Tuple s responseIdentifierArray
+        List<string> responseValueArray = new List<string>();
         int questionType = 0;
         int amountOfSubitems = 0;
         bool subitemsAdded = false;
-        List<bool> includesImage = new List<bool>();
+        List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
         int subquestionPoints = 0;
         int questionPoints = 0;
 
@@ -99,8 +99,6 @@ namespace TAO_Enhancer
 
             ResetLoadedItemInfo();
 
-            DoesSubitemIncludeImage();
-
             amountOfSubitems = GetAmountOfSubitems();
             AmountOfSubquestionsLabel.Text = "Počet podotázek: " + amountOfSubitems;
             if (amountOfSubitems > 1)
@@ -131,12 +129,6 @@ namespace TAO_Enhancer
                 MessageBox.Show("Chyba: nepodporovaný nebo neznámý typ otázky.", "Nepodporovaná otázka", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            /*
-            if (questionType == 3 || questionType == 4)
-            {
-                GetChoiceIdentifierValues();
-            }
-            */
             GetChoiceIdentifierValues();
 
             int currentSubitem = -1;
@@ -161,22 +153,23 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if (includesImage[currentSubitem])
+                if (includesImage[currentSubitem].Item1)
                 {
-                    if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
+                    QuestionLabel.Text = "Otázka: " + includesImage[currentSubitem].Item2;
+                    QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\" + includesImage[currentSubitem].Item3);
+                    /*if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
                     {
                         QuestionLabel.Text = "Otázka: " + xmlReader.ReadElementContentAsString();
                     }
                     if (xmlReader.Name == "img")
                     {
                         QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\" + xmlReader.GetAttribute("src"));
-                    }
+                    }*/
                 }
                 else
                 {
-                    if (questionType == 7)
-                    {//TODO 9: Inline interactions nezprovozněno
-                      //  Debug.WriteLine(xmlReader.Name);
+                    if (questionType == 7 || questionType == 8)
+                    {
                         if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
                         {
                             string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
@@ -186,10 +179,6 @@ namespace TAO_Enhancer
                             QuestionLabel.Text = questionText;
                             includesQuestion = true;
                         }
-                   /*     if (xmlReader.Name == "inlineChoice" || xmlReader.Name == "inlineChoiceInteraction")
-                        {
-                            Debug.WriteLine(xmlReader.ReadElementContentAsString()); 
-                        }*/
                     }
                     else
                     {
@@ -209,9 +198,9 @@ namespace TAO_Enhancer
                     }
                 }
 
-                if(!includesQuestion && !includesImage[currentSubitem])
+                if(!includesQuestion && !includesImage[currentSubitem].Item1)
                 {
-                    QuestionLabel.Text = "Otázka nebyla vyplněna.";//TODO: Pokud obsahuje obrázek a neobsahuje text, tohle se nevyvolá
+                    QuestionLabel.Text = "Otázka nebyla vyplněna.";
                 }
             }
 
@@ -293,7 +282,7 @@ namespace TAO_Enhancer
                                         studentsAnswers.Add(studentsAnswerSplitBySpace[1]);
                                     }
                                 }
-                                else if(questionType == 5)
+                                else if(questionType == 5 || questionType == 8)
                                 {
                                     studentsAnswers.Add(studentsAnswer);
                                 }
@@ -358,7 +347,7 @@ namespace TAO_Enhancer
                 }
             }
 
-            if(questionType == 5)
+            if(questionType == 5 || questionType == 8)
             {
                 studentsAnswerToLabel = studentsAnswers[0];
             }
@@ -481,6 +470,26 @@ namespace TAO_Enhancer
                             studentsReceivedPoints -= Math.Abs(Math.Abs((studentsAnswers.Count - studentsCorrectAnswers) / 2) * (selectedWrongChoicePoints));
                         }
                         break;
+                    case 8:
+                        if(correctAnswerArray[0] == studentsAnswers[0])
+                        {
+                            studentsReceivedPoints = subquestionPoints;
+                        }
+                        else
+                        {
+                            if(studentsAnswers.Count > 0 && studentsAnswers[0] != "")
+                            {
+                                if (recommendedWrongChoicePoints)
+                                {
+                                    studentsReceivedPoints -= subquestionPoints;
+                                }
+                                else
+                                {
+                                    studentsReceivedPoints -= Math.Abs(selectedWrongChoicePoints);
+                                }
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -563,6 +572,16 @@ namespace TAO_Enhancer
                     break;
                 case 5:
                     isAnswerCorrect = StudentsAnswerCorrectness.Unknown;
+                    break;
+                case 8:
+                    if (correctAnswerArray[0] == studentsAnswers[0])
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Correct;
+                    }
+                    else
+                    {
+                        isAnswerCorrect = StudentsAnswerCorrectness.Incorrect;
+                    }
                     break;
             }
 
@@ -659,7 +678,7 @@ namespace TAO_Enhancer
             double correctChoicePoints = 0;
             switch (questionType)
             {
-                case int n when (n == 1 || n == 5 || n == 6 || n == 7):
+                case int n when (n == 1 || n == 5 || n == 6 || n == 7 || n == 8):
                     correctChoicePoints = subquestionPoints;
                     break;
                 case 2:
@@ -686,8 +705,9 @@ namespace TAO_Enhancer
                 {
                     string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
                     responseIdentifierArray.Add(responseIdentifier);
+                    (int amountOfImages, string questionText, _) = AmountOfSubitemImages(responseIdentifier);
 
-                    if(responseIdentifierArray.Count - 1 > responseValueArray.Count)
+                    if (responseIdentifierArray.Count - 1 > responseValueArray.Count)
                     {
                         responseValueArray.Add("Otázka nebyla vyplněna.");
                     }
@@ -695,20 +715,27 @@ namespace TAO_Enhancer
 
                 if(responseIdentifierArray.Count > 0)
                 {
-                    //TODO 03.02 - Dočasně změněno
-                    includesImage.Add(false);
                     if (includesImage.Count == 0)
-                    {//TODO: Ošetřit includesImage tak, aby ověřil přítomnost obrázku i bez promptu
-                        MessageBox.Show("Chyba: otázka nemá pravděpodobně zadaný žádný text. Otázku nelze načíst.", "Chyba", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    {
+                        string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text.\nIdentifikátory otázky: " + itemNameIdentifier + ", " + itemNumberIdentifier + "\nAplikace bude nyní ukončena.";
+                        MessageBox.Show(errorMessage, "Příliš vysoký počet obrázků", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(0);
                     }
                     else
                     {
-                        if (includesImage[responseIdentifierArray.Count - 1])
+                        if (includesImage[responseIdentifierArray.Count - 1].Item1)
                         {
-                            if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
+                            try
                             {
-                                string responseValue = xmlReader.ReadElementContentAsString();
+                                if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)
+                                {
+                                    string responseValue = xmlReader.ReadElementContentAsString();
+                                    responseValueArray.Add(responseValue);
+                                }
+                            }
+                            catch
+                            {
+                                string responseValue = includesImage[responseIdentifierArray.Count - 1].Item2;
                                 responseValueArray.Add(responseValue);
                             }
                         }
@@ -724,6 +751,14 @@ namespace TAO_Enhancer
                 }
             }
 
+            for(int i = 0; i < includesImage.Count; i++)
+            {
+                if(includesImage[i].Item1 && includesImage[i].Item2 == "")
+                {
+                    includesImage[i] = (includesImage[i].Item1, responseValueArray[i], includesImage[i].Item3);
+                }
+            }
+
             if (SubitemCB.Enabled)
             {
                 int i = 1;
@@ -735,28 +770,82 @@ namespace TAO_Enhancer
             }
         }
 
-        public void DoesSubitemIncludeImage()
+        public (int, string, string) AmountOfSubitemImages(string responseIdentifier)
         {
-            bool imageFound = false;
+            int amountOfImages = 0;
+            string questionText = "";
+            string imageSource = "";
+            string testt = "";
+
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
             {
-                if(xmlReader.Name == "prompt" && xmlReader.NodeType == XmlNodeType.EndElement && !imageFound)
+                if (xmlReader.NodeType == XmlNodeType.Element)
                 {
-                    includesImage.Add(false);
-                }
-
-                if (xmlReader.Name == "img")
-                {
-                    imageFound = true;
-                    includesImage.Add(true);
-                }
-
-                if (xmlReader.Name == "prompt" && xmlReader.NodeType == XmlNodeType.EndElement && imageFound)
-                {
-                    imageFound = false;
+                    var name = xmlReader.Name;
+                    if (name == "choiceInteraction")
+                    {
+                        if(xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
+                        {
+                            xmlReader.Skip();
+                        }
+                        else
+                        {
+                            using (var innerReader = xmlReader.ReadSubtree())
+                            {
+                                while (innerReader.ReadToFollowing("prompt"))
+                                {
+                                    using (var innerReaderNext = innerReader.ReadSubtree())
+                                    {
+                                        while(innerReaderNext.Read())
+                                        {
+                                            if(innerReaderNext.Name == "img")
+                                            {
+                                                imageSource = innerReaderNext.GetAttribute("src");
+                                                amountOfImages++;
+                                            }
+                                            if (innerReaderNext.Name == "div")
+                                            {
+                                                using (var innerReaderNextNext = innerReader.ReadSubtree())
+                                                {
+                                                    while (innerReaderNextNext.Read())
+                                                    {
+                                                        if (innerReaderNext.Name == "img")
+                                                        {
+                                                            imageSource = innerReaderNext.GetAttribute("src");
+                                                            amountOfImages++;
+                                                        }
+                                                    }
+                                                }
+                                                questionText = innerReaderNext.ReadString();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            Debug.WriteLine(testt);
+
+            if(amountOfImages > 1)
+            {
+                string errorMessage = "Chyba: podotázka může obsahovat nanejvýš jeden obrázek.\nIdentifikátory otázky: " + itemNameIdentifier + ", " + itemNumberIdentifier + "\nPočet obrázků: " + amountOfImages + "\nAplikace bude nyní ukončena.";
+                MessageBox.Show(errorMessage, "Příliš vysoký počet obrázků", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(0);
+            }
+            else if (amountOfImages == 1)
+            {
+                includesImage.Add((true, questionText, imageSource));
+            }
+            else
+            {
+                includesImage.Add((false, questionText, imageSource));
+            }
+
+            return (amountOfImages, questionText, imageSource);
         }
 
         public int GetQuestionType()
@@ -793,8 +882,8 @@ namespace TAO_Enhancer
                         questionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
-                    {//TODO 11: Přidat typ otázky, kde je volná otázka ale daná odpověď
-                        questionType = 5;//Typ otázky = volná odpověď;
+                    {
+                        questionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
@@ -808,6 +897,11 @@ namespace TAO_Enhancer
                     {
                         questionType = 6;//Typ otázky = výběr z více možností (abc), jen jedna odpověď je správně
                     }
+                }
+
+                if (xmlReader.Name == "textEntryInteraction" && questionType == 5)
+                {
+                    questionType = 8;//Typ otázky = volná odpověď; odpověď je předem daná
                 }
 
                 if (amountOfSubitems > 1)
@@ -855,6 +949,9 @@ namespace TAO_Enhancer
                     break;
                 case 7:
                     QuestionTypeLabel.Text += "Výběr z více možností (doplnění textu); jedna správná odpověd";
+                    break;
+                case 8:
+                    QuestionTypeLabel.Text += "Volná odpověď, správná odpověď je automaticky určena";
                     break;
             }
         }
@@ -963,7 +1060,11 @@ namespace TAO_Enhancer
             }
             else if (questionType == 5)
             {
-                PossibleAnswerLabel.Text = "Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.\n" + possibleAnswers;
+                PossibleAnswerLabel.Text = "Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.";
+            }
+            else if (questionType == 8)
+            {
+                PossibleAnswerLabel.Text = "Otázka neobsahuje výběr z možností.";
             }
             else
             {
@@ -1040,6 +1141,17 @@ namespace TAO_Enhancer
                 else if (questionType == 5)
                 {
                     CorrectAnswerLabel.Visible = false;
+                }
+                else if(questionType == 8)
+                {
+                    if (xmlReader.Name == "value")
+                    {
+                        string value = xmlReader.ReadElementContentAsString();
+                        if (value.Length > 1)//TODO 8: viz TODO 2
+                        {
+                            correctAnswerArray.Add(value);
+                        }
+                    }
                 }
                 else
                 {
@@ -1172,12 +1284,6 @@ namespace TAO_Enhancer
 
             if (!fileExists)
             {
-              /*  double incorrectChoicePoints = 0;
-                if(questionType != 5)
-                {
-                    incorrectChoicePoints = GetCorrectChoicePoints() * (-1);
-                }
-                string itemPointsText = subitemIdentifier + ";N/A;" + incorrectChoicePoints + Environment.NewLine;*/
                 string itemPointsText = subitemIdentifier + ";N/A;N/A" + Environment.NewLine;
                 File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
                 SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
