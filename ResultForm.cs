@@ -38,6 +38,7 @@ namespace TAO_Enhancer
 
             if(!isTeacherReviewingAttempt)
             {
+                this.ResultsGridView.Columns[2].Visible = false;
                 this.ResultsGridView.Columns[3].Visible = false;
                 AmountOfTestsLabel.Location = new Point(StudentGB.Location.X + StudentEmailLabel.Location.X, StudentGB.Location.Y + StudentEmailLabel.Location.Y + 39);
             }

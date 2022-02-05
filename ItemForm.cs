@@ -15,11 +15,10 @@ using System.Xml.Linq;
 namespace TAO_Enhancer
 {
     /*
-     *Ošetřit import obrázků - lepší čtení + oznámit správci, že je dovolen max jeden obrázek
      *Text - při kliknutí na text zobrazit textbox s textem, ochrana toho že je špatné řádkování
-     *nezobrazovat studentům identifikátory, zmenšit ItemForm pro studenty
      *ResultForm - filtrování podle studenta?
-     *možná toolstrip?
+     *Ošteření vstupů
+     *Když máme N/A Points.txt, tak ve výsledcích píše 0/N/A namísto N/A (a také questionpointslabel je 0/0)
      */
     public partial class ItemForm : Form
     {
@@ -54,6 +53,7 @@ namespace TAO_Enhancer
         bool negativePoints = false;
         bool recommendedWrongChoicePoints = true;
         double selectedWrongChoicePoints = 0;
+        List<string> gapIdentifiers = new List<string>();
 
         public ItemForm(string testNameID, string itemNameID, string itemNumberID, string testNumberID, bool requestOrigin, string attemptIdentifier, string studentID, bool attemptFileCreated, bool isTeacherEditingDeliveryResult, bool negativePointsInTest)
         {
@@ -73,6 +73,12 @@ namespace TAO_Enhancer
                 studentIdentifier = studentID;
                 LoadDeliveryExecutionInfo();
                 ModifyQuestionGB.Visible = false;
+
+                if(!isTeacherEditingDeliveryResult)
+                {
+                    NumberIdentifierLabel.Visible = false;
+                    ResponseIdentifierLabel.Visible = false;
+                }
             }
 
             if(isTeacherEditingDeliveryResult)
@@ -204,6 +210,18 @@ namespace TAO_Enhancer
                 }
             }
 
+            if(questionType == 9)
+            {
+                if(amountOfSubitems > 1)
+                {
+                    QuestionLabel.Text = "Otázka: " + responseValueArray[SubitemCB.SelectedIndex];
+                }
+                else
+                {
+                    QuestionLabel.Text = "Otázka: " + responseValueArray[0];
+                }     
+            }
+
             FillPossibleAnswerLabel();
             FillCorrectAnswerLabel();
 
@@ -224,6 +242,11 @@ namespace TAO_Enhancer
                     subquestionArrayIterator++;
                 }
                 QuestionLabel.Text += "\n(" + subquestions + ")";
+            }
+
+            if(questionType == 9)
+            {
+                LoadGapIdentifiers();
             }
 
             LoadQuestionPoints();
@@ -268,7 +291,7 @@ namespace TAO_Enhancer
                             if(xmlReader.Name == "value")
                             {
                                 string studentsAnswer = xmlReader.ReadElementContentAsString();
-                                if(questionType == 3 || questionType == 4)
+                                if(questionType == 3 || questionType == 4 || questionType == 9)
                                 {
                                     string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
                                     if (studentsAnswerSplitBySpace.Length == 2)
@@ -315,7 +338,7 @@ namespace TAO_Enhancer
 
             string studentsAnswerToLabel = "";
             int answerNumber = 0;
-            bool studentAnsweredQustion = false;
+            bool studentAnsweredQuestion = false;
             for (int i = 0; i < studentsAnswers.Count; i++)
             {
                 for(int j = 0; j < choiceIdentifierValueTuple.Count; j++)
@@ -334,6 +357,18 @@ namespace TAO_Enhancer
                             }
                             answerNumber++;
                         }
+                        else if(questionType == 9)
+                        {
+                           /* if (answerNumber % 2 == 1)
+                            {
+                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
+                            }
+                            else
+                            {
+                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + " -> ";
+                            }
+                            answerNumber++;*/
+                        }
                         else
                         {
                             studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
@@ -343,16 +378,86 @@ namespace TAO_Enhancer
 
                 if(studentsAnswers[i] != "")
                 {
-                    studentAnsweredQustion = true;
+                    studentAnsweredQuestion = true;
                 }
             }
 
-            if(questionType == 5 || questionType == 8)
+            if(questionType == 9)
+            {
+                int gapNumber = 0;
+                for(int i = 0; i < gapIdentifiers.Count; i++)
+                {
+                    bool gapAnswered = false;
+                    for(int j = 0; j < studentsAnswers.Count; j++)
+                    {
+                        if(j % 2 == 1)
+                        {
+                            continue;
+                        }
+                        if(studentsAnswers[j] == gapIdentifiers[i])
+                        {
+                            for(int k = 0; k < choiceIdentifierValueTuple.Count; k++)
+                            {
+                                if(studentsAnswers[j + 1] == choiceIdentifierValueTuple[k].Item1)
+                                {
+                                    gapAnswered = true;
+                                    gapNumber++;
+                                    studentsAnswerToLabel += "[" + gapNumber + "] - " + choiceIdentifierValueTuple[k].Item2 + "\n";
+                                }
+                            }
+                        }
+                    }
+                    if(!gapAnswered)
+                    {
+                        gapNumber++;
+                        studentsAnswerToLabel += "[" + gapNumber + "] - nezodpovězeno\n";
+                    }
+                }
+            }
+
+            for(int i = 0; i < studentsAnswers.Count; i++)
+            {
+                Debug.WriteLine(i + ". studentsAnswers: " + studentsAnswers[i]);
+            }
+            for (int i = 0; i < choiceIdentifierValueTuple.Count; i++)
+            {
+                Debug.WriteLine(i + ". choiceIdentifierValueTuple: item 1 - " + choiceIdentifierValueTuple[i].Item1 + ", item 2 - " + choiceIdentifierValueTuple[i].Item2);
+            }
+
+     /*       if(questionType == 9)
+            {
+                studentsAnswerToLabel = "";
+                int addedAnswerNumber = 0;
+                for (int i = 0; i < studentsAnswers.Count; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        continue;
+                    }
+                    for (int j = 0; j < choiceIdentifierValueTuple.Count; j++)
+                    {
+                        if(studentsAnswers[i] == choiceIdentifierValueTuple[j].Item1)
+                        {
+                            addedAnswerNumber++;
+                            studentsAnswerToLabel += "[" + addedAnswerNumber + "] - " + choiceIdentifierValueTuple[j].Item2 + "\n";
+                            break;
+                        }
+                        if(j == choiceIdentifierValueTuple.Count - 1)
+                        {
+                            addedAnswerNumber++;
+                            studentsAnswerToLabel += "[" + addedAnswerNumber + "] - Nezodpovězeno\n";
+                        }
+                    }
+                }
+            }*/
+
+
+            if (questionType == 5 || questionType == 8)
             {
                 studentsAnswerToLabel = studentsAnswers[0];
             }
 
-            if (!studentAnsweredQustion)
+            if (!studentAnsweredQuestion)
             {
                 studentsAnswerToLabel = "Nevyplněno";
             }
@@ -442,7 +547,7 @@ namespace TAO_Enhancer
                             studentsReceivedPoints -= Math.Abs(Math.Abs(studentsAnswers.Count - studentsCorrectAnswers) * (selectedWrongChoicePoints));
                         }
                         break;
-                    case int n when (n == 3 || n == 4):
+                    case int n when (n == 3 || n == 4 || n == 9):
                         studentsCorrectAnswers = 0;
 
                         for (int i = 0; i < studentsAnswers.Count; i++)
@@ -490,6 +595,16 @@ namespace TAO_Enhancer
                             }
                         }
                         break;
+                    /*case 9:
+                        for(int i = 0; i < studentsAnswers.Count; i++)
+                        {
+                            Debug.WriteLine(i + ". studentsAnswers: " + studentsAnswers[i]);
+                        }
+                        for (int i = 0; i < correctChoiceArray.Count; i++)
+                        {
+                            Debug.WriteLine(i + ". correctChoiceArray: " + correctChoiceArray[i]);
+                        }
+                        break;*/
                 }
             }
 
@@ -536,7 +651,7 @@ namespace TAO_Enhancer
                         }
                     }
                     break;
-                case int n when (n == 3 || n == 4):
+                case int n when (n == 3 || n == 4 || n == 9):
                     studentsCorrectAnswers = 0;
 
                     for (int i = 0; i < studentsAnswers.Count; i++)
@@ -684,9 +799,15 @@ namespace TAO_Enhancer
                 case 2:
                     correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Count;
                     break;
-                case int n when (n == 3 || n == 4):
+                case int n when (n == 3 || n == 4 || n == 9):
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
                     break;
+            }
+            if(correctChoicePoints == Double.PositiveInfinity || correctChoicePoints == Double.NegativeInfinity)
+            {
+                string errorMessage = "Chyba: otázka nemá pravděpodobně zadané žádné správné odpovědi.\nIdentifikátory otázky: " + itemNameIdentifier + ", " + itemNumberIdentifier + "\nAplikace bude nyní ukončena.";
+                MessageBox.Show(errorMessage, "Neexistující správné odpovědi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(0);
             }
             return Math.Round(correctChoicePoints, 2);
         }
@@ -705,7 +826,7 @@ namespace TAO_Enhancer
                 {
                     string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
                     responseIdentifierArray.Add(responseIdentifier);
-                    (int amountOfImages, string questionText, _) = AmountOfSubitemImages(responseIdentifier);
+                    (int amountOfImages, string questionText, _) = SubitemImages(responseIdentifier);
 
                     if (responseIdentifierArray.Count - 1 > responseValueArray.Count)
                     {
@@ -746,6 +867,43 @@ namespace TAO_Enhancer
                                 string responseValue = xmlReader.ReadElementContentAsString();
                                 responseValueArray.Add(responseValue);
                             }
+
+                            if(xmlReader.Name == "gapMatchInteraction")
+                            {
+                                using (var innerReader = xmlReader.ReadSubtree())
+                                {
+                                    while (innerReader.Read())
+                                    {
+                                        if(innerReader.Name == "p")
+                                        {
+                                            string gapText = innerReader.ReadInnerXml();
+                                            string questionText = "";
+                                            bool addText = true;
+                                            int gapCounter = 1;
+
+                                            for (int i = 0; i < gapText.Length; i++)
+                                            {
+                                                if(gapText[i] == '<')
+                                                {
+                                                    addText = false;
+                                                    questionText += "(DOPLŇTE [" + gapCounter + "])";
+                                                    gapCounter++;
+                                                }
+                                                if (gapText[i] == '>')
+                                                {
+                                                    addText = true;
+                                                    continue;
+                                                }
+                                                if(addText)
+                                                {
+                                                    questionText += gapText[i];
+                                                }
+                                            }
+                                            responseValueArray.Add(questionText);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -757,6 +915,45 @@ namespace TAO_Enhancer
                 {
                     includesImage[i] = (includesImage[i].Item1, responseValueArray[i], includesImage[i].Item3);
                 }
+
+                if (includesImage[i].Item1 && includesImage[i].Item2 == "")
+                {
+                    XmlReader xmlReaderCorrection = XmlReader.Create(GetItemPath());
+                    while (xmlReaderCorrection.Read())
+                    {
+                        if(xmlReaderCorrection.Name == "choiceInteraction")
+                        {
+                            if(xmlReaderCorrection.GetAttribute("responseIdentifier") != responseIdentifierArray[i])
+                            {
+                                xmlReaderCorrection.Skip();
+                            }
+                        }
+                        if (xmlReaderCorrection.Name == "prompt")
+                        {
+                            string promptQuestionText = xmlReaderCorrection.ReadInnerXml();
+                            int firstStartTag = promptQuestionText.IndexOf('<');
+                            int lastEndTag = promptQuestionText.LastIndexOf('>');
+                            string questionText = promptQuestionText.Substring(0, firstStartTag) + promptQuestionText.Substring(1 + lastEndTag);
+                            responseValueArray[i] = questionText;
+                            includesImage[i] = (includesImage[i].Item1, responseValueArray[i], includesImage[i].Item3);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            bool subquestionWithoutText = false;
+            for(int i = 0; i < responseValueArray.Count; i++)
+            {
+                if(responseValueArray[i] == "")
+                {
+                    subquestionWithoutText = true;
+                }
+            }
+
+            if(subquestionWithoutText)
+            {
+                MessageBox.Show("Chyba: některá z načtených otázek nemá přidělený text (zadání). Může se jednat o chybu způsobenou chybným umístěním obrázku v rámci zadání otázky.", "Otázka bez textu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             if (SubitemCB.Enabled)
@@ -770,12 +967,11 @@ namespace TAO_Enhancer
             }
         }
 
-        public (int, string, string) AmountOfSubitemImages(string responseIdentifier)
+        public (int, string, string) SubitemImages(string responseIdentifier)
         {
             int amountOfImages = 0;
             string questionText = "";
             string imageSource = "";
-            string testt = "";
 
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             while (xmlReader.Read())
@@ -806,6 +1002,7 @@ namespace TAO_Enhancer
                                             }
                                             if (innerReaderNext.Name == "div")
                                             {
+                                             //   questionText = innerReaderNext.ReadString();
                                                 using (var innerReaderNextNext = innerReader.ReadSubtree())
                                                 {
                                                     while (innerReaderNextNext.Read())
@@ -817,7 +1014,6 @@ namespace TAO_Enhancer
                                                         }
                                                     }
                                                 }
-                                                questionText = innerReaderNext.ReadString();
                                             }
                                         }
                                     }
@@ -827,8 +1023,6 @@ namespace TAO_Enhancer
                     }
                 }
             }
-
-            Debug.WriteLine(testt);
 
             if(amountOfImages > 1)
             {
@@ -874,11 +1068,11 @@ namespace TAO_Enhancer
                         questionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
-                    {//TODO 10: Problém s tím, když je jedna možnost ve více párech
+                    {
                         questionType = 3;//Typ otázky = spojování párů
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
-                    {//TODO: co když je jen jedno správně?
+                    {
                         questionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
@@ -888,6 +1082,18 @@ namespace TAO_Enhancer
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
                         singleCorrectAnswer = true;
+                    }
+                }
+
+                if(xmlReader.Name == "gapMatchInteraction")
+                {
+                    if (amountOfSubitems > 1)
+                    {
+                        string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                        if (responseIdentifier == responseIdentifierArray[SubitemCB.SelectedIndex])
+                        {
+                            questionType = 9;
+                        }
                     }
                 }
 
@@ -953,6 +1159,9 @@ namespace TAO_Enhancer
                 case 8:
                     QuestionTypeLabel.Text += "Volná odpověď, správná odpověď je automaticky určena";
                     break;
+                case 9:
+                    QuestionTypeLabel.Text += "Dosazování pojmů do mezer";
+                    break;
             }
         }
 
@@ -992,7 +1201,7 @@ namespace TAO_Enhancer
                 XmlReader xmlReader = XmlReader.Create(GetItemPath());
                 while (xmlReader.Read())
                 {
-                    if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
+                    if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice" || xmlReader.Name == "gapText")
                     {
                         string choiceIdentifier = xmlReader.GetAttribute("identifier");
                         string choiceValue = xmlReader.ReadElementContentAsString();
@@ -1042,7 +1251,7 @@ namespace TAO_Enhancer
                 }
                 else
                 {
-                    if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice")
+                    if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice" || xmlReader.Name == "gapText")
                     {
                         string answerText = xmlReader.ReadElementContentAsString();
                         possibleAnswerArray.Add(answerText);
@@ -1153,6 +1362,51 @@ namespace TAO_Enhancer
                         }
                     }
                 }
+                else if (questionType == 9)
+                {
+                    if (xmlReader.Name == "value")
+                    {
+                        string value = xmlReader.ReadElementContentAsString();
+                        if (value.Length > 1)//TODO 8: viz TODO 2
+                        {
+                            string[] orderedCorrectChoices = value.Split(' ');
+                            correctChoiceArray.Add(orderedCorrectChoices[0]);
+                            correctChoiceArray.Add(orderedCorrectChoices[1]);
+                     //       correctAnswerArray.Add(" ");//placeholder
+                        }
+                    }
+
+                    if (xmlReader.Name == "gapText")
+                    {
+                        for(int i = 0; i < correctChoiceArray.Count; i++)
+                        {
+                            if(i % 2 == 1)
+                            {
+                                continue;
+                            }
+
+                            if (xmlReader.GetAttribute("identifier") == correctChoiceArray[i])
+                            {
+                                correctAnswerArray.Add(xmlReader.ReadElementContentAsString());
+                            }
+                        }
+                       /* int i = 0;
+                        foreach (string answer in correctChoiceArray)
+                        {
+                         /*   if(i % 2 == 1)
+                            {
+                                i++;
+                                continue;
+                            }
+                            if (xmlReader.GetAttribute("identifier") == answer)
+                            {
+                                string answerText = xmlReader.ReadElementContentAsString();
+                                correctAnswerArray[i] = answerText;
+                            }
+                            i++;
+                        }*/
+                    }
+                }
                 else
                 {
                     if (xmlReader.Name == "value")
@@ -1240,6 +1494,16 @@ namespace TAO_Enhancer
                 }
                 CorrectAnswerLabel.Text = "Správná odpověď:\n" + correctAnswer;
             }
+            else if(questionType == 9)
+            {
+                int answerNumber = 1;
+                foreach (string answer in correctAnswerArray)
+                {
+                    correctAnswer += "[" + answerNumber + "] - " + answer + "\n";
+                    answerNumber++;
+                }
+                CorrectAnswerLabel.Text = "Správná odpověď:\n" + correctAnswer;
+            }
             else
             {
                 foreach (string answer in correctAnswerArray)
@@ -1260,6 +1524,18 @@ namespace TAO_Enhancer
                 }
             }
             return "Chyba";
+        }
+
+        public void LoadGapIdentifiers()
+        {
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
+            while (xmlReader.Read())
+            {
+                if(xmlReader.Name == "gap")
+                {
+                    gapIdentifiers.Add(xmlReader.GetAttribute("identifier"));
+                }
+            }
         }
 
         public void LoadQuestionPoints()
@@ -1309,7 +1585,6 @@ namespace TAO_Enhancer
                         if (splitImportedFileLineBySemicolon[1] == "N/A")
                         {
                             undecidedPointsInFile = true;
-                         //   subquestionPoints = -1;
                         }
 
                         if(splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
@@ -1504,6 +1779,10 @@ namespace TAO_Enhancer
             if(!isDecimal)
             {
                 MessageBox.Show("Chyba: je nutné zadat číslo.", "Chybný počet bodů", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if(undecidedPointsInFile)
+            {
+                MessageBox.Show("Chyba: není možné upravit počet bodů studenta. Nejprve je nutné určit počet obdržených bodů za otázku.", "Počet bodů za otázku není určený", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {

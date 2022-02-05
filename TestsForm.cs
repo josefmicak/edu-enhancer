@@ -42,12 +42,19 @@ namespace TAO_Enhancer
                 string title = "";
                 string numberidentifier = "";
 
-                foreach(var directory_ in Directory.GetDirectories(directory + "\\tests"))
+                try
                 {
-                    numberidentifier = Path.GetFileName(directory_);
-                    subDirectory = directory_;
+                    foreach (var directory_ in Directory.GetDirectories(directory + "\\tests"))
+                    {
+                        numberidentifier = Path.GetFileName(directory_);
+                        subDirectory = directory_;
+                    }
+                    itemIdentifiers.Add((nameIdentifier, numberidentifier));
                 }
-                itemIdentifiers.Add((nameIdentifier, numberidentifier));
+                catch
+                {
+                    continue;
+                }
 
                 XmlReader xmlReader = XmlReader.Create(subDirectory + "\\test.xml");
                 while (xmlReader.Read())

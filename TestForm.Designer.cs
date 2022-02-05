@@ -105,7 +105,7 @@ namespace TAO_Enhancer
             // TestNumberIdentifierLabel
             // 
             this.TestNumberIdentifierLabel.AutoSize = true;
-            this.TestNumberIdentifierLabel.Location = new System.Drawing.Point(7, 68);
+            this.TestNumberIdentifierLabel.Location = new System.Drawing.Point(7, 33);
             this.TestNumberIdentifierLabel.Name = "TestNumberIdentifierLabel";
             this.TestNumberIdentifierLabel.Size = new System.Drawing.Size(146, 15);
             this.TestNumberIdentifierLabel.TabIndex = 3;
@@ -123,7 +123,7 @@ namespace TAO_Enhancer
             // TestNameIdentifierLabel
             // 
             this.TestNameIdentifierLabel.AutoSize = true;
-            this.TestNameIdentifierLabel.Location = new System.Drawing.Point(7, 33);
+            this.TestNameIdentifierLabel.Location = new System.Drawing.Point(7, 68);
             this.TestNameIdentifierLabel.Name = "TestNameIdentifierLabel";
             this.TestNameIdentifierLabel.Size = new System.Drawing.Size(134, 15);
             this.TestNameIdentifierLabel.TabIndex = 1;
@@ -267,7 +267,7 @@ namespace TAO_Enhancer
             // ItemNumberIdentifierLabel
             // 
             this.ItemNumberIdentifierLabel.AutoSize = true;
-            this.ItemNumberIdentifierLabel.Location = new System.Drawing.Point(7, 67);
+            this.ItemNumberIdentifierLabel.Location = new System.Drawing.Point(6, 33);
             this.ItemNumberIdentifierLabel.Name = "ItemNumberIdentifierLabel";
             this.ItemNumberIdentifierLabel.Size = new System.Drawing.Size(150, 15);
             this.ItemNumberIdentifierLabel.TabIndex = 1;
@@ -276,7 +276,7 @@ namespace TAO_Enhancer
             // ItemNameIdentifierLabel
             // 
             this.ItemNameIdentifierLabel.AutoSize = true;
-            this.ItemNameIdentifierLabel.Location = new System.Drawing.Point(7, 33);
+            this.ItemNameIdentifierLabel.Location = new System.Drawing.Point(7, 68);
             this.ItemNameIdentifierLabel.Name = "ItemNameIdentifierLabel";
             this.ItemNameIdentifierLabel.Size = new System.Drawing.Size(138, 15);
             this.ItemNameIdentifierLabel.TabIndex = 0;

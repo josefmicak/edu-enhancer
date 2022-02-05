@@ -51,7 +51,15 @@ namespace TAO_Enhancer
             {
                 LoadResultInfo();
                 QuestionInfoButton.Text = "Zobrazit otázku";
+                if(!isTeacherEditingDeliveryResult)
+                {
+                    TestNumberIdentifierLabel.Visible = false;
+                    ItemNumberIdentifierLabel.Visible = false;
+                    ResultIdentifierLabel.Visible = false;
+                    ItemNumberIdentifierColumn.Visible = false;
+                }
             }
+
             if(requestOrigin && !isTeacherEditingDeliveryResult)
             {
                 NegativePointsGB.Visible = true;
