@@ -213,6 +213,35 @@ namespace TAO_Enhancer
             return (testNameIdentifier, testNumberIdentifier);
         }
 
+        public bool DoTestPointsExist(string testNameIdentifier)
+        {
+            bool pointsFileExists = true;
+            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items"))
+            {
+                if(pointsFileExists)
+                {
+                    pointsFileExists = false;
+                }
+                else
+                {
+                    return false;
+                }
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    if(Path.GetFileName(file) == "Points.txt")
+                    {
+                        pointsFileExists = true;
+                        break;
+                    }
+                    else
+                    {
+                        pointsFileExists = false;
+                    }
+                }
+            }
+            return true;
+        }
+
         private void ReturnButton_Click(object sender, EventArgs e)
         {
             if(isTeacherReviewingDeliveryResult)
@@ -229,9 +258,14 @@ namespace TAO_Enhancer
 
         private void ShowTestButton_Click(object sender, EventArgs e)
         {
+            (string testNameIdentifier, _) = GetTestIdentifiers();
             if (selectedAttempt == -1)
             {
                 MessageBox.Show("Chyba - nevybral jste žadný výsledek testu. Prosím vyberte výsledek testu kliknutím na příslušný řádek.", "Nebyl vybrán výsledek testu", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if(!DoTestPointsExist(testNameIdentifier))
+            {
+                MessageBox.Show("Chyba: test " + testNameIdentifier + "nemá určený počet bodů.", "Neurčený počet bodů", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {

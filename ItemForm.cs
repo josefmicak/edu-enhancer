@@ -17,8 +17,6 @@ namespace TAO_Enhancer
     /*
      *Text - při kliknutí na text zobrazit textbox s textem, ochrana toho že je špatné řádkování
      *ResultForm - filtrování podle studenta?
-     *Ošteření vstupů
-     *Když máme N/A Points.txt, tak ve výsledcích píše 0/N/A namísto N/A (a také questionpointslabel je 0/0)
      */
     public partial class ItemForm : Form
     {
@@ -357,18 +355,6 @@ namespace TAO_Enhancer
                             }
                             answerNumber++;
                         }
-                        else if(questionType == 9)
-                        {
-                           /* if (answerNumber % 2 == 1)
-                            {
-                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
-                            }
-                            else
-                            {
-                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + " -> ";
-                            }
-                            answerNumber++;*/
-                        }
                         else
                         {
                             studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
@@ -384,7 +370,9 @@ namespace TAO_Enhancer
 
             if(questionType == 9)
             {
+                studentsAnswerToLabel = "";
                 int gapNumber = 0;
+
                 for(int i = 0; i < gapIdentifiers.Count; i++)
                 {
                     bool gapAnswered = false;
@@ -415,44 +403,7 @@ namespace TAO_Enhancer
                 }
             }
 
-            for(int i = 0; i < studentsAnswers.Count; i++)
-            {
-                Debug.WriteLine(i + ". studentsAnswers: " + studentsAnswers[i]);
-            }
-            for (int i = 0; i < choiceIdentifierValueTuple.Count; i++)
-            {
-                Debug.WriteLine(i + ". choiceIdentifierValueTuple: item 1 - " + choiceIdentifierValueTuple[i].Item1 + ", item 2 - " + choiceIdentifierValueTuple[i].Item2);
-            }
-
-     /*       if(questionType == 9)
-            {
-                studentsAnswerToLabel = "";
-                int addedAnswerNumber = 0;
-                for (int i = 0; i < studentsAnswers.Count; i++)
-                {
-                    if (i % 2 == 0)
-                    {
-                        continue;
-                    }
-                    for (int j = 0; j < choiceIdentifierValueTuple.Count; j++)
-                    {
-                        if(studentsAnswers[i] == choiceIdentifierValueTuple[j].Item1)
-                        {
-                            addedAnswerNumber++;
-                            studentsAnswerToLabel += "[" + addedAnswerNumber + "] - " + choiceIdentifierValueTuple[j].Item2 + "\n";
-                            break;
-                        }
-                        if(j == choiceIdentifierValueTuple.Count - 1)
-                        {
-                            addedAnswerNumber++;
-                            studentsAnswerToLabel += "[" + addedAnswerNumber + "] - Nezodpovězeno\n";
-                        }
-                    }
-                }
-            }*/
-
-
-            if (questionType == 5 || questionType == 8)
+            if (questionType == 5 || questionType == 8 || questionType == 10)
             {
                 studentsAnswerToLabel = studentsAnswers[0];
             }
@@ -502,7 +453,7 @@ namespace TAO_Enhancer
             {
                 switch (questionType)
                 {
-                    case int n when (n == 1 || n == 6 || n == 7):
+                    case int n when (n == 1 || n == 6 || n == 7 || n == 10):
                         bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
                         if (areStudentsAnswersCorrect)
                         {
@@ -610,7 +561,7 @@ namespace TAO_Enhancer
 
             switch (questionType)
             {
-                case int n when (n == 1 || n == 6 || n == 7):
+                case int n when (n == 1 || n == 6 || n == 7 || n == 10):
                     bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctChoiceArray, studentsAnswers);
                     if (!areStudentsAnswersCorrect)
                     {
@@ -793,7 +744,7 @@ namespace TAO_Enhancer
             double correctChoicePoints = 0;
             switch (questionType)
             {
-                case int n when (n == 1 || n == 5 || n == 6 || n == 7 || n == 8):
+                case int n when (n == 1 || n == 5 || n == 6 || n == 7 || n == 8 || n == 10):
                     correctChoicePoints = subquestionPoints;
                     break;
                 case 2:
@@ -867,40 +818,39 @@ namespace TAO_Enhancer
                                 string responseValue = xmlReader.ReadElementContentAsString();
                                 responseValueArray.Add(responseValue);
                             }
-
-                            if(xmlReader.Name == "gapMatchInteraction")
+                        }
+                        if (xmlReader.Name == "gapMatchInteraction")
+                        {
+                            using (var innerReader = xmlReader.ReadSubtree())
                             {
-                                using (var innerReader = xmlReader.ReadSubtree())
+                                while (innerReader.Read())
                                 {
-                                    while (innerReader.Read())
+                                    if (innerReader.Name == "p")
                                     {
-                                        if(innerReader.Name == "p")
-                                        {
-                                            string gapText = innerReader.ReadInnerXml();
-                                            string questionText = "";
-                                            bool addText = true;
-                                            int gapCounter = 1;
+                                        string gapText = innerReader.ReadInnerXml();
+                                        string questionText = "";
+                                        bool addText = true;
+                                        int gapCounter = 1;
 
-                                            for (int i = 0; i < gapText.Length; i++)
+                                        for (int i = 0; i < gapText.Length; i++)
+                                        {
+                                            if (gapText[i] == '<')
                                             {
-                                                if(gapText[i] == '<')
-                                                {
-                                                    addText = false;
-                                                    questionText += "(DOPLŇTE [" + gapCounter + "])";
-                                                    gapCounter++;
-                                                }
-                                                if (gapText[i] == '>')
-                                                {
-                                                    addText = true;
-                                                    continue;
-                                                }
-                                                if(addText)
-                                                {
-                                                    questionText += gapText[i];
-                                                }
+                                                addText = false;
+                                                questionText += "(DOPLŇTE [" + gapCounter + "])";
+                                                gapCounter++;
                                             }
-                                            responseValueArray.Add(questionText);
+                                            if (gapText[i] == '>')
+                                            {
+                                                addText = true;
+                                                continue;
+                                            }
+                                            if (addText)
+                                            {
+                                                questionText += gapText[i];
+                                            }
                                         }
+                                        responseValueArray.Add(questionText);
                                     }
                                 }
                             }
@@ -979,7 +929,7 @@ namespace TAO_Enhancer
                 if (xmlReader.NodeType == XmlNodeType.Element)
                 {
                     var name = xmlReader.Name;
-                    if (name == "choiceInteraction")
+                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction")
                     {
                         if(xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
                         {
@@ -1079,6 +1029,10 @@ namespace TAO_Enhancer
                     {
                         questionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
                     }
+                    else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
+                    {
+                        questionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
+                    }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
                         singleCorrectAnswer = true;
@@ -1154,13 +1108,16 @@ namespace TAO_Enhancer
                     QuestionTypeLabel.Text += "Výběr z více možností; jedna správná odpověd";
                     break;
                 case 7:
-                    QuestionTypeLabel.Text += "Výběr z více možností (doplnění textu); jedna správná odpověd";
+                    QuestionTypeLabel.Text += "Výběr z více možností (doplnění textu); jedna správná odpověď";
                     break;
                 case 8:
                     QuestionTypeLabel.Text += "Volná odpověď, správná odpověď je automaticky určena";
                     break;
                 case 9:
                     QuestionTypeLabel.Text += "Dosazování pojmů do mezer";
+                    break;
+                case 10:
+                    QuestionTypeLabel.Text += "Posuvník; jedna správná odpověď (číslo)";
                     break;
             }
         }
@@ -1247,6 +1204,15 @@ namespace TAO_Enhancer
                             string answerText = xmlReader.ReadElementContentAsString();
                             subquestionArray.Add(answerText);
                         }
+                    }
+                }
+                else if(questionType == 10)
+                {
+                    if (xmlReader.Name == "sliderInteraction" && xmlReader.NodeType != XmlNodeType.EndElement)
+                    {
+                        string lowerBound = xmlReader.GetAttribute("lowerBound");
+                        string upperBound = xmlReader.GetAttribute("upperBound");
+                        possibleAnswerArray.Add(lowerBound + " - " + upperBound);
                     }
                 }
                 else
@@ -1372,7 +1338,6 @@ namespace TAO_Enhancer
                             string[] orderedCorrectChoices = value.Split(' ');
                             correctChoiceArray.Add(orderedCorrectChoices[0]);
                             correctChoiceArray.Add(orderedCorrectChoices[1]);
-                     //       correctAnswerArray.Add(" ");//placeholder
                         }
                     }
 
@@ -1390,21 +1355,22 @@ namespace TAO_Enhancer
                                 correctAnswerArray.Add(xmlReader.ReadElementContentAsString());
                             }
                         }
-                       /* int i = 0;
-                        foreach (string answer in correctChoiceArray)
+                    }
+                }
+                else if(questionType == 10)
+                {
+                    if(xmlReader.Name == "correctResponse")
+                    {
+                        using (var innerReader = xmlReader.ReadSubtree())
                         {
-                         /*   if(i % 2 == 1)
+                            //TODO: Řešení TODO 2
+                            if(innerReader.ReadToFollowing("value"))
                             {
-                                i++;
-                                continue;
+                                string sliderStudentAnswer = innerReader.ReadElementContentAsString();
+                                correctChoiceArray.Add(sliderStudentAnswer);
+                                correctAnswerArray.Add(sliderStudentAnswer);
                             }
-                            if (xmlReader.GetAttribute("identifier") == answer)
-                            {
-                                string answerText = xmlReader.ReadElementContentAsString();
-                                correctAnswerArray[i] = answerText;
-                            }
-                            i++;
-                        }*/
+                        }
                     }
                 }
                 else
