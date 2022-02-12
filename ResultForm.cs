@@ -73,7 +73,7 @@ namespace TAO_Enhancer
                     IGraph g = new Graph();
                     FileLoader.Load(g, file);
                     IEnumerable<INode> nodes = g.AllNodes;
-                    int nodeLine = 1;//TODO: viz TODO 1
+                    int nodeLine = 1;
                     string tempStudentIdentifier = "";
                     foreach (INode node in nodes)
                     {
@@ -164,7 +164,7 @@ namespace TAO_Enhancer
                                     IGraph g = new Graph();
                                     FileLoader.Load(g, studentFile);
                                     IEnumerable<INode> nodes = g.AllNodes;
-                                    int nodeLine = 1;//TODO: viz TODO 1
+                                    int nodeLine = 1;
                                     foreach (INode node in nodes)
                                     {
                                         if (nodeLine == 1)

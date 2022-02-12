@@ -257,7 +257,7 @@ namespace TAO_Enhancer
                     IGraph g = new Graph();
                     FileLoader.Load(g, file);
                     IEnumerable<INode> nodes = g.AllNodes;
-                    int nodeLine = 1;//TODO 1: Předělat; Udělat podmínky jako if(node == ns0:userFirstName)
+                    int nodeLine = 1;
                     string login = "", name = "", surname = "";
                     foreach (INode node in nodes)
                     {

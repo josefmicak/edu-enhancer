@@ -506,7 +506,7 @@ namespace TAO_Enhancer
                             for (int j = 0; j < correctChoiceArray.Count; j++)
                             {
                                 if (i % 2 == 0 && j % 2 == 0)
-                                {//TODO: viz TODO 10, zde opět využívám sudosti
+                                {
                                     if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
                                         (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
                                     {
@@ -610,7 +610,7 @@ namespace TAO_Enhancer
                         for (int j = 0; j < correctChoiceArray.Count; j++)
                         {
                             if (i % 2 == 0 && j % 2 == 0)
-                            {//TODO: viz TODO 10, zde opět využívám sudosti
+                            {
                                 if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
                                     (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
                                 {
@@ -790,41 +790,22 @@ namespace TAO_Enhancer
                     if (includesImage.Count == 0)
                     {
                         string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text.\nIdentifikátory otázky: " + itemNameIdentifier + ", " + itemNumberIdentifier + "\nAplikace bude nyní ukončena.";
-                        MessageBox.Show(errorMessage, "Příliš vysoký počet obrázků", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(errorMessage, "Otázka nemá zadaný text", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(0);
                     }
                     else
                     {
-                        if (includesImage[responseIdentifierArray.Count - 1].Item1)
-                        {
-                            try
-                            {
-                                if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)
-                                {
-                                    string responseValue = xmlReader.ReadElementContentAsString();
-                                    responseValueArray.Add(responseValue);
-                                }
-                            }
-                            catch
-                            {
-                                string responseValue = includesImage[responseIdentifierArray.Count - 1].Item2;
-                                responseValueArray.Add(responseValue);
-                            }
-                        }
-                        else
-                        {
-                            if (xmlReader.Name == "prompt")
-                            {
-                                string responseValue = xmlReader.ReadElementContentAsString();
-                                responseValueArray.Add(responseValue);
-                            }
-                        }
                         if (xmlReader.Name == "gapMatchInteraction")
                         {
                             using (var innerReader = xmlReader.ReadSubtree())
                             {
                                 while (innerReader.Read())
                                 {
+                                    if (innerReader.Name == "p")
+                                    {
+
+                                    }
+
                                     if (innerReader.Name == "p")
                                     {
                                         string gapText = innerReader.ReadInnerXml();
@@ -855,6 +836,33 @@ namespace TAO_Enhancer
                                 }
                             }
                         }
+                        else
+                        {
+                            if (includesImage[responseIdentifierArray.Count - 1].Item1)
+                            {
+                                try
+                                {
+                                    if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)
+                                    {
+                                        string responseValue = xmlReader.ReadElementContentAsString();
+                                        responseValueArray.Add(responseValue);
+                                    }
+                                }
+                                catch
+                                {
+                                    string responseValue = includesImage[responseIdentifierArray.Count - 1].Item2;
+                                    responseValueArray.Add(responseValue);
+                                }
+                            }
+                            else
+                            {
+                                if (xmlReader.Name == "prompt")
+                                {
+                                    string responseValue = xmlReader.ReadElementContentAsString();
+                                    responseValueArray.Add(responseValue);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -877,6 +885,10 @@ namespace TAO_Enhancer
                             {
                                 xmlReaderCorrection.Skip();
                             }
+                        }
+                        if (xmlReaderCorrection.Name == "gapMatchInteraction")
+                        {
+                            xmlReaderCorrection.Skip();
                         }
                         if (xmlReaderCorrection.Name == "prompt")
                         {
@@ -929,7 +941,7 @@ namespace TAO_Enhancer
                 if (xmlReader.NodeType == XmlNodeType.Element)
                 {
                     var name = xmlReader.Name;
-                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction")
+                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction")
                     {
                         if(xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
                         {
@@ -1302,14 +1314,18 @@ namespace TAO_Enhancer
 
                 if (questionType == 3 || questionType == 4)
                 {
-                    if (xmlReader.Name == "value")
+                    if (xmlReader.Name == "correctResponse")
                     {
-                        string value = xmlReader.ReadElementContentAsString();
-                        if (value.Length > 1)//TODO 8: viz TODO 2
+                        using (var innerReader = xmlReader.ReadSubtree())
                         {
-                            string[] orderedCorrectChoices = value.Split(' ');
-                            correctChoiceArray.Add(orderedCorrectChoices[1]);
-                            correctChoiceArray.Add(orderedCorrectChoices[0]);
+                            bool whileLoopBool;
+                            while(whileLoopBool = innerReader.ReadToFollowing("value"))
+                            {
+                                string value = innerReader.ReadString();
+                                string[] orderedCorrectChoices = value.Split(' ');
+                                correctChoiceArray.Add(orderedCorrectChoices[1]);
+                                correctChoiceArray.Add(orderedCorrectChoices[0]);
+                            }
                         }
                     }
                 }
@@ -1319,25 +1335,33 @@ namespace TAO_Enhancer
                 }
                 else if(questionType == 8)
                 {
-                    if (xmlReader.Name == "value")
+                    if (xmlReader.Name == "correctResponse")
                     {
-                        string value = xmlReader.ReadElementContentAsString();
-                        if (value.Length > 1)//TODO 8: viz TODO 2
+                        using (var innerReader = xmlReader.ReadSubtree())
                         {
-                            correctAnswerArray.Add(value);
+                            bool whileLoopBool;
+                            while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                            {
+                                string value = innerReader.ReadString();
+                                correctAnswerArray.Add(value);
+                            }
                         }
                     }
                 }
                 else if (questionType == 9)
                 {
-                    if (xmlReader.Name == "value")
+                    if (xmlReader.Name == "correctResponse")
                     {
-                        string value = xmlReader.ReadElementContentAsString();
-                        if (value.Length > 1)//TODO 8: viz TODO 2
+                        using (var innerReader = xmlReader.ReadSubtree())
                         {
-                            string[] orderedCorrectChoices = value.Split(' ');
-                            correctChoiceArray.Add(orderedCorrectChoices[0]);
-                            correctChoiceArray.Add(orderedCorrectChoices[1]);
+                            bool whileLoopBool;
+                            while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                            {
+                                string value = innerReader.ReadString();
+                                string[] orderedCorrectChoices = value.Split(' ');
+                                correctChoiceArray.Add(orderedCorrectChoices[0]);
+                                correctChoiceArray.Add(orderedCorrectChoices[1]);
+                            }
                         }
                     }
 
@@ -1363,7 +1387,6 @@ namespace TAO_Enhancer
                     {
                         using (var innerReader = xmlReader.ReadSubtree())
                         {
-                            //TODO: Řešení TODO 2
                             if(innerReader.ReadToFollowing("value"))
                             {
                                 string sliderStudentAnswer = innerReader.ReadElementContentAsString();
@@ -1375,13 +1398,17 @@ namespace TAO_Enhancer
                 }
                 else
                 {
-                    if (xmlReader.Name == "value")
+                    if (xmlReader.Name == "correctResponse")
                     {
-                        string value = xmlReader.ReadElementContentAsString();
-                        if (value.Length > 1)//TODO 2: Později předělat kód, ať to zjišťuje jestli jsme v correctResponse (správně) nebo v defaultValue (špatně)
+                        using (var innerReader = xmlReader.ReadSubtree())
                         {
-                            correctChoiceArray.Add(value);
-                            correctAnswerArray.Add(" ");//placeholder
+                            bool whileLoopBool;
+                            while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                            {
+                                string value = innerReader.ReadString();
+                                correctChoiceArray.Add(value);
+                                correctAnswerArray.Add(" ");//placeholder
+                            }
                         }
                     }
 
@@ -1437,8 +1464,6 @@ namespace TAO_Enhancer
                 }
             }
 
-            //TODO 6: Zde máme sudý počet pojmů, a máme z nich vytvořit dvojice.
-            //Já využívám té sudosti a mám všechny možnosti v poli stringů, možná by bylo vhodnejší použití pole tuplů stringů
             if (questionType == 3 || questionType == 4)
             {
                 foreach (string answer in correctChoiceArray)
