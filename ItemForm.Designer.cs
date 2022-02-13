@@ -32,11 +32,8 @@ namespace TAO_Enhancer
             this.NumberIdentifierLabel = new System.Windows.Forms.Label();
             this.TitleLabel = new System.Windows.Forms.Label();
             this.LabelLabel = new System.Windows.Forms.Label();
-            this.QuestionLabel = new System.Windows.Forms.Label();
-            this.CorrectAnswerLabel = new System.Windows.Forms.Label();
             this.ReturnButton = new System.Windows.Forms.Button();
             this.QuestionImage = new System.Windows.Forms.PictureBox();
-            this.PossibleAnswerLabel = new System.Windows.Forms.Label();
             this.SubitemCB = new System.Windows.Forms.ComboBox();
             this.ResponseIdentifierLabel = new System.Windows.Forms.Label();
             this.ItemGB = new System.Windows.Forms.GroupBox();
@@ -44,15 +41,22 @@ namespace TAO_Enhancer
             this.NameIdentifierLabel = new System.Windows.Forms.Label();
             this.AmountOfSubquestionsLabel = new System.Windows.Forms.Label();
             this.SubitemGB = new System.Windows.Forms.GroupBox();
+            this.CorrectAnswerLabel = new System.Windows.Forms.Label();
+            this.PossibleAnswerLabel = new System.Windows.Forms.Label();
+            this.QuestionLabel = new System.Windows.Forms.Label();
+            this.CorrectAnswerTB = new System.Windows.Forms.TextBox();
+            this.PossibleAnswerTB = new System.Windows.Forms.TextBox();
+            this.QuestionLabelTB = new System.Windows.Forms.TextBox();
             this.SubquestionPointsLabel = new System.Windows.Forms.Label();
             this.QuestionTypeLabel = new System.Windows.Forms.Label();
             this.SubitemLabel = new System.Windows.Forms.Label();
             this.SubquestionPointsTB = new System.Windows.Forms.TextBox();
             this.EditSubquestionPointsLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerGB = new System.Windows.Forms.GroupBox();
+            this.StudentsAnswerLabel = new System.Windows.Forms.Label();
+            this.StudentsAnswerTB = new System.Windows.Forms.TextBox();
             this.StudentsAnswerPointstLabel = new System.Windows.Forms.Label();
             this.StudentsAnswerCorrectLabel = new System.Windows.Forms.Label();
-            this.StudentsAnswerLabel = new System.Windows.Forms.Label();
             this.ModifyQuestionGB = new System.Windows.Forms.GroupBox();
             this.RecommendedWrongChoicePointsTB = new System.Windows.Forms.TextBox();
             this.SelectedWrongChoicePointsTB = new System.Windows.Forms.TextBox();
@@ -101,27 +105,9 @@ namespace TAO_Enhancer
             this.LabelLabel.TabIndex = 2;
             this.LabelLabel.Text = "LabelLabel";
             // 
-            // QuestionLabel
-            // 
-            this.QuestionLabel.AutoSize = true;
-            this.QuestionLabel.Location = new System.Drawing.Point(16, 434);
-            this.QuestionLabel.Name = "QuestionLabel";
-            this.QuestionLabel.Size = new System.Drawing.Size(83, 15);
-            this.QuestionLabel.TabIndex = 3;
-            this.QuestionLabel.Text = "QuestionLabel";
-            // 
-            // CorrectAnswerLabel
-            // 
-            this.CorrectAnswerLabel.AutoSize = true;
-            this.CorrectAnswerLabel.Location = new System.Drawing.Point(298, 483);
-            this.CorrectAnswerLabel.Name = "CorrectAnswerLabel";
-            this.CorrectAnswerLabel.Size = new System.Drawing.Size(113, 15);
-            this.CorrectAnswerLabel.TabIndex = 4;
-            this.CorrectAnswerLabel.Text = "CorrectAnswerLabel";
-            // 
             // ReturnButton
             // 
-            this.ReturnButton.Location = new System.Drawing.Point(733, 693);
+            this.ReturnButton.Location = new System.Drawing.Point(688, 795);
             this.ReturnButton.Name = "ReturnButton";
             this.ReturnButton.Size = new System.Drawing.Size(75, 23);
             this.ReturnButton.TabIndex = 5;
@@ -132,21 +118,12 @@ namespace TAO_Enhancer
             // QuestionImage
             // 
             this.QuestionImage.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.QuestionImage.Location = new System.Drawing.Point(16, 208);
+            this.QuestionImage.Location = new System.Drawing.Point(15, 207);
             this.QuestionImage.Name = "QuestionImage";
-            this.QuestionImage.Size = new System.Drawing.Size(395, 198);
+            this.QuestionImage.Size = new System.Drawing.Size(592, 198);
             this.QuestionImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.QuestionImage.TabIndex = 6;
             this.QuestionImage.TabStop = false;
-            // 
-            // PossibleAnswerLabel
-            // 
-            this.PossibleAnswerLabel.AutoSize = true;
-            this.PossibleAnswerLabel.Location = new System.Drawing.Point(16, 483);
-            this.PossibleAnswerLabel.Name = "PossibleAnswerLabel";
-            this.PossibleAnswerLabel.Size = new System.Drawing.Size(117, 15);
-            this.PossibleAnswerLabel.TabIndex = 7;
-            this.PossibleAnswerLabel.Text = "PossibleAnswerLabel";
             // 
             // SubitemCB
             // 
@@ -155,7 +132,7 @@ namespace TAO_Enhancer
             this.SubitemCB.FormattingEnabled = true;
             this.SubitemCB.Location = new System.Drawing.Point(15, 67);
             this.SubitemCB.Name = "SubitemCB";
-            this.SubitemCB.Size = new System.Drawing.Size(395, 23);
+            this.SubitemCB.Size = new System.Drawing.Size(592, 23);
             this.SubitemCB.TabIndex = 9;
             this.SubitemCB.SelectedIndexChanged += new System.EventHandler(this.SubitemCB_SelectedIndexChanged);
             // 
@@ -212,21 +189,81 @@ namespace TAO_Enhancer
             // 
             // SubitemGB
             // 
+            this.SubitemGB.Controls.Add(this.CorrectAnswerLabel);
+            this.SubitemGB.Controls.Add(this.PossibleAnswerLabel);
+            this.SubitemGB.Controls.Add(this.QuestionLabel);
+            this.SubitemGB.Controls.Add(this.CorrectAnswerTB);
+            this.SubitemGB.Controls.Add(this.PossibleAnswerTB);
+            this.SubitemGB.Controls.Add(this.QuestionLabelTB);
             this.SubitemGB.Controls.Add(this.SubquestionPointsLabel);
             this.SubitemGB.Controls.Add(this.QuestionTypeLabel);
             this.SubitemGB.Controls.Add(this.SubitemLabel);
             this.SubitemGB.Controls.Add(this.SubitemCB);
             this.SubitemGB.Controls.Add(this.ResponseIdentifierLabel);
-            this.SubitemGB.Controls.Add(this.PossibleAnswerLabel);
             this.SubitemGB.Controls.Add(this.QuestionImage);
-            this.SubitemGB.Controls.Add(this.QuestionLabel);
-            this.SubitemGB.Controls.Add(this.CorrectAnswerLabel);
             this.SubitemGB.Location = new System.Drawing.Point(397, 30);
             this.SubitemGB.Name = "SubitemGB";
-            this.SubitemGB.Size = new System.Drawing.Size(613, 657);
+            this.SubitemGB.Size = new System.Drawing.Size(624, 748);
             this.SubitemGB.TabIndex = 12;
             this.SubitemGB.TabStop = false;
             this.SubitemGB.Text = "Podotázka";
+            // 
+            // CorrectAnswerLabel
+            // 
+            this.CorrectAnswerLabel.AutoSize = true;
+            this.CorrectAnswerLabel.Location = new System.Drawing.Point(327, 531);
+            this.CorrectAnswerLabel.Name = "CorrectAnswerLabel";
+            this.CorrectAnswerLabel.Size = new System.Drawing.Size(103, 15);
+            this.CorrectAnswerLabel.TabIndex = 19;
+            this.CorrectAnswerLabel.Text = "Správná odpověď:";
+            // 
+            // PossibleAnswerLabel
+            // 
+            this.PossibleAnswerLabel.AutoSize = true;
+            this.PossibleAnswerLabel.Location = new System.Drawing.Point(16, 531);
+            this.PossibleAnswerLabel.Name = "PossibleAnswerLabel";
+            this.PossibleAnswerLabel.Size = new System.Drawing.Size(99, 15);
+            this.PossibleAnswerLabel.TabIndex = 18;
+            this.PossibleAnswerLabel.Text = "Možné odpovědi:";
+            // 
+            // QuestionLabel
+            // 
+            this.QuestionLabel.AutoSize = true;
+            this.QuestionLabel.Location = new System.Drawing.Point(16, 429);
+            this.QuestionLabel.Name = "QuestionLabel";
+            this.QuestionLabel.Size = new System.Drawing.Size(46, 15);
+            this.QuestionLabel.TabIndex = 17;
+            this.QuestionLabel.Text = "Otázka:";
+            // 
+            // CorrectAnswerTB
+            // 
+            this.CorrectAnswerTB.Location = new System.Drawing.Point(327, 552);
+            this.CorrectAnswerTB.Multiline = true;
+            this.CorrectAnswerTB.Name = "CorrectAnswerTB";
+            this.CorrectAnswerTB.ReadOnly = true;
+            this.CorrectAnswerTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.CorrectAnswerTB.Size = new System.Drawing.Size(280, 165);
+            this.CorrectAnswerTB.TabIndex = 16;
+            // 
+            // PossibleAnswerTB
+            // 
+            this.PossibleAnswerTB.Location = new System.Drawing.Point(16, 552);
+            this.PossibleAnswerTB.Multiline = true;
+            this.PossibleAnswerTB.Name = "PossibleAnswerTB";
+            this.PossibleAnswerTB.ReadOnly = true;
+            this.PossibleAnswerTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.PossibleAnswerTB.Size = new System.Drawing.Size(280, 165);
+            this.PossibleAnswerTB.TabIndex = 15;
+            // 
+            // QuestionLabelTB
+            // 
+            this.QuestionLabelTB.Location = new System.Drawing.Point(16, 450);
+            this.QuestionLabelTB.Multiline = true;
+            this.QuestionLabelTB.Name = "QuestionLabelTB";
+            this.QuestionLabelTB.ReadOnly = true;
+            this.QuestionLabelTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.QuestionLabelTB.Size = new System.Drawing.Size(591, 69);
+            this.QuestionLabelTB.TabIndex = 14;
             // 
             // SubquestionPointsLabel
             // 
@@ -273,21 +310,41 @@ namespace TAO_Enhancer
             // 
             // StudentsAnswerGB
             // 
+            this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerLabel);
+            this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerTB);
             this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerPointstLabel);
             this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerCorrectLabel);
-            this.StudentsAnswerGB.Controls.Add(this.StudentsAnswerLabel);
-            this.StudentsAnswerGB.Location = new System.Drawing.Point(1027, 36);
+            this.StudentsAnswerGB.Location = new System.Drawing.Point(1034, 30);
             this.StudentsAnswerGB.Name = "StudentsAnswerGB";
-            this.StudentsAnswerGB.Size = new System.Drawing.Size(406, 300);
+            this.StudentsAnswerGB.Size = new System.Drawing.Size(406, 313);
             this.StudentsAnswerGB.TabIndex = 13;
             this.StudentsAnswerGB.TabStop = false;
-            this.StudentsAnswerGB.Text = "Vaše odpověď";
+            this.StudentsAnswerGB.Text = "Studentova odpověď";
             this.StudentsAnswerGB.Visible = false;
+            // 
+            // StudentsAnswerLabel
+            // 
+            this.StudentsAnswerLabel.AutoSize = true;
+            this.StudentsAnswerLabel.Location = new System.Drawing.Point(7, 31);
+            this.StudentsAnswerLabel.Name = "StudentsAnswerLabel";
+            this.StudentsAnswerLabel.Size = new System.Drawing.Size(121, 15);
+            this.StudentsAnswerLabel.TabIndex = 4;
+            this.StudentsAnswerLabel.Text = "Studentova odpověď:";
+            // 
+            // StudentsAnswerTB
+            // 
+            this.StudentsAnswerTB.Location = new System.Drawing.Point(7, 60);
+            this.StudentsAnswerTB.Multiline = true;
+            this.StudentsAnswerTB.Name = "StudentsAnswerTB";
+            this.StudentsAnswerTB.ReadOnly = true;
+            this.StudentsAnswerTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.StudentsAnswerTB.Size = new System.Drawing.Size(363, 165);
+            this.StudentsAnswerTB.TabIndex = 3;
             // 
             // StudentsAnswerPointstLabel
             // 
             this.StudentsAnswerPointstLabel.AutoSize = true;
-            this.StudentsAnswerPointstLabel.Location = new System.Drawing.Point(7, 264);
+            this.StudentsAnswerPointstLabel.Location = new System.Drawing.Point(7, 283);
             this.StudentsAnswerPointstLabel.Name = "StudentsAnswerPointstLabel";
             this.StudentsAnswerPointstLabel.Size = new System.Drawing.Size(157, 15);
             this.StudentsAnswerPointstLabel.TabIndex = 2;
@@ -296,20 +353,11 @@ namespace TAO_Enhancer
             // StudentsAnswerCorrectLabel
             // 
             this.StudentsAnswerCorrectLabel.AutoSize = true;
-            this.StudentsAnswerCorrectLabel.Location = new System.Drawing.Point(7, 229);
+            this.StudentsAnswerCorrectLabel.Location = new System.Drawing.Point(7, 248);
             this.StudentsAnswerCorrectLabel.Name = "StudentsAnswerCorrectLabel";
             this.StudentsAnswerCorrectLabel.Size = new System.Drawing.Size(159, 15);
             this.StudentsAnswerCorrectLabel.TabIndex = 1;
             this.StudentsAnswerCorrectLabel.Text = "StudentsAnswerCorrectLabel";
-            // 
-            // StudentsAnswerLabel
-            // 
-            this.StudentsAnswerLabel.AutoSize = true;
-            this.StudentsAnswerLabel.Location = new System.Drawing.Point(7, 37);
-            this.StudentsAnswerLabel.Name = "StudentsAnswerLabel";
-            this.StudentsAnswerLabel.Size = new System.Drawing.Size(120, 15);
-            this.StudentsAnswerLabel.TabIndex = 0;
-            this.StudentsAnswerLabel.Text = "StudentsAnswerLabel";
             // 
             // ModifyQuestionGB
             // 
@@ -410,7 +458,7 @@ namespace TAO_Enhancer
             this.ModifyStudentsPointsGB.Controls.Add(this.SaveStudentsPointsButton);
             this.ModifyStudentsPointsGB.Controls.Add(this.StudentsPointsTB);
             this.ModifyStudentsPointsGB.Controls.Add(this.EditStudentsPointsLabel);
-            this.ModifyStudentsPointsGB.Location = new System.Drawing.Point(1027, 353);
+            this.ModifyStudentsPointsGB.Location = new System.Drawing.Point(1034, 364);
             this.ModifyStudentsPointsGB.Name = "ModifyStudentsPointsGB";
             this.ModifyStudentsPointsGB.Size = new System.Drawing.Size(406, 140);
             this.ModifyStudentsPointsGB.TabIndex = 15;
@@ -448,7 +496,7 @@ namespace TAO_Enhancer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1549, 728);
+            this.ClientSize = new System.Drawing.Size(1455, 830);
             this.Controls.Add(this.ModifyStudentsPointsGB);
             this.Controls.Add(this.ModifyQuestionGB);
             this.Controls.Add(this.StudentsAnswerGB);
@@ -480,11 +528,8 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label NumberIdentifierLabel;
         private System.Windows.Forms.Label TitleLabel;
         private System.Windows.Forms.Label LabelLabel;
-        private System.Windows.Forms.Label QuestionLabel;
-        private System.Windows.Forms.Label CorrectAnswerLabel;
         private System.Windows.Forms.Button ReturnButton;
         private System.Windows.Forms.PictureBox QuestionImage;
-        private System.Windows.Forms.Label PossibleAnswerLabel;
         private System.Windows.Forms.ComboBox SubitemCB;
         private System.Windows.Forms.Label ResponseIdentifierLabel;
         private System.Windows.Forms.GroupBox ItemGB;
@@ -494,7 +539,6 @@ namespace TAO_Enhancer
         private System.Windows.Forms.Label AmountOfSubquestionsLabel;
         private System.Windows.Forms.GroupBox StudentsAnswerGB;
         private System.Windows.Forms.Label NameIdentifierLabel;
-        private System.Windows.Forms.Label StudentsAnswerLabel;
         private System.Windows.Forms.Label QuestionPointsLabel;
         private System.Windows.Forms.TextBox SubquestionPointsTB;
         private System.Windows.Forms.Label EditSubquestionPointsLabel;
@@ -514,5 +558,13 @@ namespace TAO_Enhancer
         private System.Windows.Forms.RadioButton SelectedWrongChoicePointsRB;
         private System.Windows.Forms.RadioButton RecommendedWrongChoicePointsRB;
         private System.Windows.Forms.Label WrongChoicePointsLabel;
+        private System.Windows.Forms.TextBox QuestionLabelTB;
+        private System.Windows.Forms.TextBox PossibleAnswerTB;
+        private System.Windows.Forms.TextBox CorrectAnswerTB;
+        private System.Windows.Forms.Label CorrectAnswerLabel;
+        private System.Windows.Forms.Label PossibleAnswerLabel;
+        private System.Windows.Forms.Label QuestionLabel;
+        private System.Windows.Forms.TextBox StudentsAnswerTB;
+        private System.Windows.Forms.Label StudentsAnswerLabel;
     }
 }

@@ -159,7 +159,7 @@ namespace TAO_Enhancer
 
                 if (includesImage[currentSubitem].Item1)
                 {
-                    QuestionLabel.Text = "Otázka: " + includesImage[currentSubitem].Item2;
+                    QuestionLabelTB.Text = includesImage[currentSubitem].Item2;
                     QuestionImage.ImageLocation = ("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\" + includesImage[currentSubitem].Item3);
                     /*if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)//TODO 3: Předělat (?), div je potomkem prompt, viz TODO 2
                     {
@@ -180,7 +180,7 @@ namespace TAO_Enhancer
                             int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
                             int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
                             string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
-                            QuestionLabel.Text = questionText;
+                            QuestionLabelTB.Text = questionText;
                             includesQuestion = true;
                         }
                     }
@@ -196,7 +196,7 @@ namespace TAO_Enhancer
                         }
                         if (xmlReader.Name == "prompt")
                         {
-                            QuestionLabel.Text = "Otázka: " + xmlReader.ReadElementContentAsString();
+                            QuestionLabelTB.Text = xmlReader.ReadElementContentAsString();
                             includesQuestion = true;
                         }
                     }
@@ -204,7 +204,7 @@ namespace TAO_Enhancer
 
                 if(!includesQuestion && !includesImage[currentSubitem].Item1)
                 {
-                    QuestionLabel.Text = "Otázka nebyla vyplněna.";
+                    QuestionLabelTB.Text = "Otázka nebyla vyplněna.";
                 }
             }
 
@@ -212,11 +212,11 @@ namespace TAO_Enhancer
             {
                 if(amountOfSubitems > 1)
                 {
-                    QuestionLabel.Text = "Otázka: " + responseValueArray[SubitemCB.SelectedIndex];
+                    QuestionLabelTB.Text = responseValueArray[SubitemCB.SelectedIndex];
                 }
                 else
                 {
-                    QuestionLabel.Text = "Otázka: " + responseValueArray[0];
+                    QuestionLabelTB.Text = responseValueArray[0];
                 }     
             }
 
@@ -239,7 +239,7 @@ namespace TAO_Enhancer
                     }
                     subquestionArrayIterator++;
                 }
-                QuestionLabel.Text += "\n(" + subquestions + ")";
+                QuestionLabelTB.Text += "\n(" + subquestions + ")";
             }
 
             if(questionType == 9)
@@ -347,7 +347,7 @@ namespace TAO_Enhancer
                         {
                             if (answerNumber % 2 == 1)
                             {
-                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
+                                studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + Environment.NewLine;
                             }
                             else
                             {
@@ -357,7 +357,7 @@ namespace TAO_Enhancer
                         }
                         else
                         {
-                            studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + "\n";
+                            studentsAnswerToLabel += choiceIdentifierValueTuple[j].Item2 + Environment.NewLine;
                         }
                     }
                 }
@@ -390,7 +390,7 @@ namespace TAO_Enhancer
                                 {
                                     gapAnswered = true;
                                     gapNumber++;
-                                    studentsAnswerToLabel += "[" + gapNumber + "] - " + choiceIdentifierValueTuple[k].Item2 + "\n";
+                                    studentsAnswerToLabel += "[" + gapNumber + "] - " + choiceIdentifierValueTuple[k].Item2 + Environment.NewLine;
                                 }
                             }
                         }
@@ -398,7 +398,7 @@ namespace TAO_Enhancer
                     if(!gapAnswered)
                     {
                         gapNumber++;
-                        studentsAnswerToLabel += "[" + gapNumber + "] - nezodpovězeno\n";
+                        studentsAnswerToLabel += "[" + gapNumber + "] - nezodpovězeno" + Environment.NewLine;
                     }
                 }
             }
@@ -413,7 +413,7 @@ namespace TAO_Enhancer
                 studentsAnswerToLabel = "Nevyplněno";
             }
 
-            StudentsAnswerLabel.Text = "Vaše odpověď: \n" + studentsAnswerToLabel;
+            StudentsAnswerTB.Text = studentsAnswerToLabel;
 
             studentsReceivedPoints = 0;
             StudentsAnswerCorrectness isAnswerCorrect = StudentsAnswerCorrectness.Correct;
@@ -722,8 +722,8 @@ namespace TAO_Enhancer
             choiceIdentifierValueTuple.Clear();
 
             QuestionImage.Image = null;
-            CorrectAnswerLabel.Text = "";
-            CorrectAnswerLabel.Visible = true;
+            CorrectAnswerTB.Text = "";
+            CorrectAnswerTB.Visible = true;
         }
 
         public int GetAmountOfSubitems()
@@ -1006,6 +1006,7 @@ namespace TAO_Enhancer
 
         public int GetQuestionType()
         {
+            bool unknownQuestionType = false;
             XmlReader xmlReader = XmlReader.Create(GetItemPath());
             bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
             while (xmlReader.Read())
@@ -1084,9 +1085,16 @@ namespace TAO_Enhancer
                         xmlReader.Skip();
                     }
                 }
+                if (xmlReader.NodeType != XmlNodeType.EndElement && (xmlReader.Name == "hottextInteraction" || xmlReader.Name == "mediaInteraction" || xmlReader.Name == "hotspotInteraction" 
+                    || xmlReader.Name == "customInteraction" || xmlReader.Name == "graphicOrderInteraction" || xmlReader.Name == "graphicAssociateInteraction" || xmlReader.Name == "graphicGapMatchInteraction"
+                    || xmlReader.Name == "selectPointInteraction"))
+                {
+                    unknownQuestionType = true;
+                    questionType = 0;//Typ otázky = neznámá otázka
+                }
             }
 
-            if (singleCorrectAnswer && questionType == 0)
+            if (singleCorrectAnswer && questionType == 0 && !unknownQuestionType)
             {
                 questionType = 7;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
             }
@@ -1241,25 +1249,25 @@ namespace TAO_Enhancer
             {
                 foreach (string answer in possibleAnswerArray)
                 {
-                    possibleAnswers += answer + "\n";
+                    possibleAnswers += answer + Environment.NewLine;
                 }
-                PossibleAnswerLabel.Text = "Možné odpovědi:\n" + possibleAnswers;
+                PossibleAnswerTB.Text = possibleAnswers;
             }
             else if (questionType == 5)
             {
-                PossibleAnswerLabel.Text = "Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.";
+                PossibleAnswerTB.Text = "Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.";
             }
             else if (questionType == 8)
             {
-                PossibleAnswerLabel.Text = "Otázka neobsahuje výběr z možností.";
+                PossibleAnswerTB.Text = "Otázka neobsahuje výběr z možností.";
             }
             else
             {
                 foreach (string answer in possibleAnswerArray)
                 {
-                    possibleAnswers += answer + "\n";
+                    possibleAnswers += answer + Environment.NewLine;
                 }
-                PossibleAnswerLabel.Text = "Možné odpovědi:\n" + possibleAnswers;
+                PossibleAnswerTB.Text = possibleAnswers;
             }
 
             if(questionType == 7)
@@ -1291,9 +1299,9 @@ namespace TAO_Enhancer
 
                 foreach (string answer in possibleAnswerArray)
                 {
-                    possibleAnswers += answer + "\n";
+                    possibleAnswers += answer + Environment.NewLine;
                 }
-                PossibleAnswerLabel.Text = "Možné odpovědi:\n" + possibleAnswers;
+                PossibleAnswerTB.Text = possibleAnswers;
             }
         }
 
@@ -1331,7 +1339,7 @@ namespace TAO_Enhancer
                 }
                 else if (questionType == 5)
                 {
-                    CorrectAnswerLabel.Visible = false;
+                    CorrectAnswerTB.Visible = false;
                 }
                 else if(questionType == 8)
                 {
@@ -1475,7 +1483,7 @@ namespace TAO_Enhancer
                 {
                     if (answerNumber % 2 == 1)
                     {
-                        correctAnswer += answer + "\n";
+                        correctAnswer += answer + Environment.NewLine;
                     }
                     else
                     {
@@ -1483,25 +1491,25 @@ namespace TAO_Enhancer
                     }
                     answerNumber++;
                 }
-                CorrectAnswerLabel.Text = "Správná odpověď:\n" + correctAnswer;
+                CorrectAnswerTB.Text = correctAnswer;
             }
             else if(questionType == 9)
             {
                 int answerNumber = 1;
                 foreach (string answer in correctAnswerArray)
                 {
-                    correctAnswer += "[" + answerNumber + "] - " + answer + "\n";
+                    correctAnswer += "[" + answerNumber + "] - " + answer + Environment.NewLine;
                     answerNumber++;
                 }
-                CorrectAnswerLabel.Text = "Správná odpověď:\n" + correctAnswer;
+                CorrectAnswerTB.Text = correctAnswer;
             }
             else
             {
                 foreach (string answer in correctAnswerArray)
                 {
-                    correctAnswer += answer + "\n";
+                    correctAnswer += answer + Environment.NewLine;
                 }
-                CorrectAnswerLabel.Text = "Správná odpověď:\n" + correctAnswer;
+                CorrectAnswerTB.Text = correctAnswer;
             }
         }
 
@@ -1562,7 +1570,12 @@ namespace TAO_Enhancer
                 for(int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
-                    if(splitImportedFileLineBySemicolon[0] == subitemIdentifier)
+                    if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
+                    {
+                        undecidedPointsInFile = true;
+                    }
+
+                    if (splitImportedFileLineBySemicolon[0] == subitemIdentifier)
                     {
                         itemRecordExists = true;
                         SubquestionPointsTB.Text = splitImportedFileLineBySemicolon[1];
@@ -1571,11 +1584,6 @@ namespace TAO_Enhancer
                         if (splitImportedFileLineBySemicolon[1] != "N/A")
                         {
                             subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
-                        }
-
-                        if (splitImportedFileLineBySemicolon[1] == "N/A")
-                        {
-                            undecidedPointsInFile = true;
                         }
 
                         if(splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
