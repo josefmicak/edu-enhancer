@@ -1,0 +1,98 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/*Index.cshtml*/
+.teacher-selection {
+    position: absolute;
+    top: 20%;
+    right: 45%;
+}
+
+.student-selection {
+    position: absolute;
+    top: 30%;
+    right: 45%;
+}
+
+/*TeacherMenu.cshtml*/
+.teacher-to-main-menu {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.teacher-to-testlist {
+    position: absolute;
+    top: 30%;
+    right: 60%;
+}
+
+.teacher-to-solvedtestlist {
+    position: absolute;
+    top: 30%;
+    right: 40%;
+}
+
+/*StudentMenu.cshtml*/
+.student-to-index {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+/*TestList.cshtml*/
+.testlist-to-teachermenu {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.testlist-table {
+    position: absolute;
+    top: 30%;
+    right: 45%;
+}
+
+/*TestTemplate.cshtml*/
+.testtemplate-to-testlist {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.testtemplate-test-parameters {
+    position: absolute;
+    top: 20%;
+    left: 25%;
+    border-style: solid;
+}
+
+.testtemplate-questionlist {
+    position: absolute;
+    top: 40%;
+    left: 35%;
+    border-style: solid;
+}
+
+.testtemplate-item-parameters {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    border-style: solid;
+}

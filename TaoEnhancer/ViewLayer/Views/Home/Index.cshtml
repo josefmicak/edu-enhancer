@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+
+    int total = 7;
+
+
+}
+
+@functions {
+    int total = 2;
+    public int asd()
+    {
+        return total;
+    }
+}
+
+<div class="teacher-selection"><a asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></div>
+<div class="student-selection"><a asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></div>
+<div class="text-center">
+    <h1 class="display-4">Hlavní menu</h1>
+
+    <br>
+    <p>hardcode: @total </p>
+    <p>function: @asd() </p>
+</div>
