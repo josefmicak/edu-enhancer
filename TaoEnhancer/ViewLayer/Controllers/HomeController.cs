@@ -67,10 +67,24 @@ namespace ViewLayer.Controllers
             return View();
         }
 
-        public IActionResult ItemTemplate(string itemNumberIdentifier, string itemNameIdentifier)
+        [HttpGet]
+        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier)
         {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
             ViewBag.itemNumberIdentifier = itemNumberIdentifier;
             ViewBag.itemNameIdentifier = itemNameIdentifier;
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
+            ViewBag.selectedSubitem = selectedSubitem;
             return View();
         }
 

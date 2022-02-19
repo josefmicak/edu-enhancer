@@ -103,3 +103,32 @@ body {
     left: 10%;
     border-style: solid;
 }
+
+/*ItemTemplate.cshtml*/
+
+.itemtemplate-to-testtemplate {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.itemtemplate-item-parameters {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    border-style: solid;
+}
+
+.itemtemplate-subitem-list {
+    position: absolute;
+    top: 10%;
+    left: 30%;
+    border-style: solid;
+}
+
+.itemtemplate-selected-subitem {
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    border-style: solid;
+}

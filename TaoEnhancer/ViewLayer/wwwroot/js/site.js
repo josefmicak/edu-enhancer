@@ -3,10 +3,6 @@
 
 // Write your JavaScript code.
 
-function manageTest(testNameIdentifier, testNumberIdentifier) {
-    window.alert("sometext");
-}
-
 function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points) {
     document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = "Číselný identifikátor otázky: " + itemNumberIdentifier;
     document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = "Jmenný identifikátor otázky: " + itemNameIdentifier;
@@ -14,8 +10,3 @@ function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label
     document.getElementById("testtemplate-item-label").innerHTML = "Označení otázky: " + label;
     document.getElementById("testtemplate-item-points").innerHTML = "Počet bodů za otázku: " + points;
 }
-
-function bla() {
-    document.getElementById("testtemplate-negative-points-no").checked = true;
-}
-

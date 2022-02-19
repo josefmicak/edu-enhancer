@@ -82,7 +82,7 @@
         string itemNumberIdenfifier = "";
         string itemNameIdenfifier = "";
         int i = 0;
-        List<(string, string, string, string, int)> itemParameters = new List<(string, string, string, string, int)>();
+        List<(string, string, string, string, int)> itemParametersTemp = new List<(string, string, string, string, int)>();
         List<(string, string, string, string)> questionList = LoadQuestions();
 
         foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\"))
@@ -103,15 +103,34 @@
                         {
                             if (xmlReader.Name == "assessmentItem")
                             {
-                                itemNumberIdenfifier = questionList[i].Item4;
-                                itemNameIdenfifier = questionList[i].Item3;
-                                title = xmlReader.GetAttribute("title");
-                                label = xmlReader.GetAttribute("label");
-                                itemParameters.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, 666));
-                                i++;
+                                for(int j = 0; j < questionList.Count; j++)
+                                {
+                                    if(questionList[j].Item4 == xmlReader.GetAttribute("identifier"))
+                                    {
+                                        itemNumberIdenfifier = questionList[j].Item4;
+                                        itemNameIdenfifier = questionList[j].Item3;
+                                        title = xmlReader.GetAttribute("title");
+                                        label = xmlReader.GetAttribute("label");
+                                        itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, 666));
+                                        i++;
+                                    }
+                                }
                             }
                         }
                     }                    
+                }
+            }
+        }
+
+        //pole nyní může být ve špatném pořadí kvůli jinému pořadí v rámci qti.xml celého testu a složek ve složce items - oprava
+        List<(string, string, string, string, int)> itemParameters = new List<(string, string, string, string, int)>();
+        for(int k = 0; k < questionList.Count; k++)
+        {
+            for(int l = 0; l < itemParametersTemp.Count; l++)
+            {
+                if(questionList[k].Item4 == itemParametersTemp[l].Item1)
+                {
+                    itemParameters.Add(itemParametersTemp[l]);
                 }
             }
         }
@@ -198,6 +217,8 @@
                     <td>TODO</td>
                     <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5')">Detaily otázky</button></td>
                     <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                    asp-route-testNameIdentifier="@testNameIdentifier"
+                    asp-route-testNumberIdentifier="@testNumberIdentifier"
                     asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
                     asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></button></td>
                 </tr>

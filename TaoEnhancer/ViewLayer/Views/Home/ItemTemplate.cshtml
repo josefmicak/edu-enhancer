@@ -1,5 +1,523 @@
 ﻿@{
     ViewData["Title"] = "Správa zadání otázky " + @ViewBag.itemNumberIdentifier + " / " + @ViewBag.itemNameIdentifier;
+    string testNameIdentifier = @ViewBag.testNameIdentifier;
+    string testNumberIdentifier = @ViewBag.testNumberIdentifier;
+    (string itemNameIdentifier, string itemNumberIdentifier, string title, string label, int amountOfSubitems) = LoadItemParameters();
+
+}
+
+@{
+    List<string> subitemList = LoadSubitemParameters();
+    (List<string> responseIdentifierArray, List<string> responseValueArray) = GetResponseIdentifiers(amountOfSubitems);
+
+    if(amountOfSubitems == 1)
+    {
+        ViewBag.selectedSubitem = responseIdentifierArray[0];
+    }
+    string responseIdentifier = "";
+    if(@ViewBag.selectedSubitem != null)
+    {
+        responseIdentifier = @ViewBag.selectedSubitem;
+    }
+}
+
+@functions{
+
+    public (string, string, string, string, int) LoadItemParameters()
+    {
+        string itemNameIdentifier = @ViewBag.itemNameIdentifier;
+        string itemNumberIdentifier = @ViewBag.itemNumberIdentifier;
+        string title = "";
+        string label = "";
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())//toto nemuze fungovat..musim do getitempath poslat id kazdeho itemu
+        {
+            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
+            {
+                if (xmlReader.Name == "assessmentItem")
+                {
+                    title = xmlReader.GetAttribute("title");
+                    label = xmlReader.GetAttribute("label");
+                }
+            }
+        }
+
+        int amountOfSubitems = GetAmountOfSubitems();
+
+        return (itemNameIdentifier, itemNumberIdentifier, title, label, amountOfSubitems);
+    }
+
+    public string GetItemPath()
+    {
+        return "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\" + @ViewBag.itemNumberIdentifier + "\\qti.xml";
+    }
+
+    public int GetAmountOfSubitems()
+    {
+        int amountOfSubitems = 0;
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
+            {
+                amountOfSubitems++;
+            }
+        }
+        return amountOfSubitems;
+    }
+
+    public List<string> LoadSubitemParameters()//načte parametry všech podotázek
+    {
+        List<string> subitemParametersList = new List<string>();
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
+            {
+                subitemParametersList.Add(xmlReader.GetAttribute("identifier"));
+            }
+        }
+
+        return subitemParametersList;
+    }
+
+    public (List<string>, List<string>) GetResponseIdentifiers(int amountOfSubitems)
+    {
+        List<string> responseIdentifierArray = new List<string>();
+        List<string> responseValueArray = new List<string>();
+        string questionText = "";
+        int amountOfAddedFaultyQuestions = 0;
+        List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
+            {
+                xmlReader.Skip();
+            }
+
+            if (xmlReader.GetAttribute("responseIdentifier") != null)
+            {
+                string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                responseIdentifierArray.Add(responseIdentifier);
+                int questionType = GetQuestionType(responseIdentifier, amountOfSubitems);
+                if(questionType == 7 || questionType == 8)
+                {
+                    amountOfAddedFaultyQuestions++;
+                    string faultyQuestionValue = GetFaultyQuestionValue(amountOfAddedFaultyQuestions);
+                    responseValueArray.Add(faultyQuestionValue);
+                }
+
+                (int amountOfImages, questionText, _, includesImage) = SubitemImages(responseIdentifier, includesImage);
+
+                if (responseIdentifierArray.Count - 1 > responseValueArray.Count)
+                {
+                    responseValueArray.Add("Otázka nebyla vyplněna.");
+                }
+            }
+
+            if(responseIdentifierArray.Count > 0)
+            {
+                if(includesImage.Count == 0)
+                {
+                    string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
+                    WriteMessageToUser(errorMessage);
+                }
+                else
+                {
+                    if (xmlReader.Name == "gapMatchInteraction")
+                    {
+                        using (var innerReader = xmlReader.ReadSubtree())
+                        {
+                            while (innerReader.Read())
+                            {
+
+                                if (innerReader.Name == "p")
+                                {
+                                    string gapText = innerReader.ReadInnerXml();
+                                    questionText = "";
+                                    bool addText = true;
+                                    int gapCounter = 1;
+
+                                    for (int i = 0; i < gapText.Length; i++)
+                                    {
+                                        if (gapText[i] == '<')
+                                        {
+                                            addText = false;
+                                            questionText += "(DOPLŇTE [" + gapCounter + "])";
+                                            gapCounter++;
+                                        }
+                                        if (gapText[i] == '>')
+                                        {
+                                            addText = true;
+                                            continue;
+                                        }
+                                        if (addText)
+                                        {
+                                            questionText += gapText[i];
+                                        }
+                                    }
+                                    responseValueArray.Add(questionText);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (includesImage[responseIdentifierArray.Count - 1].Item1)
+                        {
+                            try
+                            {
+                                if (xmlReader.Name == "div" && xmlReader.AttributeCount == 0 && xmlReader.NodeType != XmlNodeType.EndElement)
+                                {
+                                    string responseValue = xmlReader.ReadElementContentAsString();
+                                    responseValueArray.Add(responseValue);
+                                }
+                            }
+                            catch
+                            {
+                                string responseValue = questionText;
+                                responseValueArray.Add(responseValue);
+                            }
+                        }
+                        else
+                        {
+                            if (xmlReader.Name == "prompt")
+                            {
+                                string responseValue = xmlReader.ReadElementContentAsString();
+                                responseValueArray.Add(responseValue);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+        for(int i = 0; i < includesImage.Count; i++)
+        {
+            if(includesImage[i].Item1 && includesImage[i].Item2 == "")
+            {
+                includesImage[i] = (includesImage[i].Item1, responseValueArray[i], includesImage[i].Item3);
+            }
+
+            if (includesImage[i].Item1 && includesImage[i].Item2 == "")
+            {
+                XmlReader xmlReaderCorrection = XmlReader.Create(GetItemPath());
+                while (xmlReaderCorrection.Read())
+                {
+                    if(xmlReaderCorrection.Name == "choiceInteraction")
+                    {
+                        if(xmlReaderCorrection.GetAttribute("responseIdentifier") != responseIdentifierArray[i])
+                        {
+                            xmlReaderCorrection.Skip();
+                        }
+                    }
+                    if (xmlReaderCorrection.Name == "gapMatchInteraction")
+                    {
+                        xmlReaderCorrection.Skip();
+                    }
+                    if (xmlReaderCorrection.Name == "prompt")
+                    {
+                        string promptQuestionText = xmlReaderCorrection.ReadInnerXml();
+                        int firstStartTag = promptQuestionText.IndexOf('<');
+                        int lastEndTag = promptQuestionText.LastIndexOf('>');
+                        string questionTextNew = promptQuestionText.Substring(0, firstStartTag) + promptQuestionText.Substring(1 + lastEndTag);
+                        responseValueArray[i] = questionTextNew;
+                        includesImage[i] = (includesImage[i].Item1, responseValueArray[i], includesImage[i].Item3);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return (responseIdentifierArray, responseValueArray);
+    }
+
+    public (int, string, string, List<(bool, string, string)>) SubitemImages(string responseIdentifier, List<(bool, string, string)> includesImage)
+    {
+        int amountOfImages = 0;
+        string questionText = "";
+        string imageSource = "";
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (xmlReader.NodeType == XmlNodeType.Element)
+            {
+                var name = xmlReader.Name;
+                if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction")
+                {
+                    if(xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
+                    {
+                        xmlReader.Skip();
+                    }
+                    else
+                    {
+                        using (var innerReader = xmlReader.ReadSubtree())
+                        {
+                            while (innerReader.ReadToFollowing("prompt"))
+                            {
+                                using (var innerReaderNext = innerReader.ReadSubtree())
+                                {
+                                    while(innerReaderNext.Read())
+                                    {
+                                        if(innerReaderNext.Name == "img")
+                                        {
+                                            imageSource = innerReaderNext.GetAttribute("src");
+                                            amountOfImages++;
+                                        }
+                                        if (innerReaderNext.Name == "div")
+                                        {
+                                            //   questionText = innerReaderNext.ReadString();
+                                            using (var innerReaderNextNext = innerReader.ReadSubtree())
+                                            {
+                                                while (innerReaderNextNext.Read())
+                                                {
+                                                    if (innerReaderNext.Name == "img")
+                                                    {
+                                                        imageSource = innerReaderNext.GetAttribute("src");
+                                                        amountOfImages++;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(amountOfImages > 1)
+        {
+            string errorMessage = "Chyba: podotázka může obsahovat nanejvýš jeden obrázek.\nIdentifikátory otázky: " + @ViewBag.itemNameIdentifier + ", " + @ViewBag.itemNumberIdentifier + "\nPočet obrázků: " + amountOfImages;
+            WriteMessageToUser(errorMessage);
+        }
+        else if (amountOfImages == 1)
+        {
+            includesImage.Add((true, questionText, imageSource));
+        }
+        else
+        {
+            includesImage.Add((false, questionText, imageSource));
+        }
+
+        return (amountOfImages, questionText, imageSource, includesImage);
+    }
+
+    public void WriteMessageToUser(string message)
+    {
+        <script>
+        window.alert('@message');
+        </script>
+    }
+
+    public int GetQuestionType(string responseIdentifierCorrection, int amountOfSubitems)
+    {
+        bool unknownQuestionType = false;
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
+        int questionType = 0;
+
+        while (xmlReader.Read())
+        {
+            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
+            {
+                if (amountOfSubitems > 1)
+                {
+                    string responseIdentifierTemp = xmlReader.GetAttribute("identifier");
+                    if (responseIdentifierTemp != null && responseIdentifierTemp != responseIdentifierCorrection)
+                    {
+                        xmlReader.Skip();
+                    }
+                }
+
+                if (xmlReader.GetAttribute("cardinality") == "ordered" && xmlReader.GetAttribute("baseType") == "identifier")
+                {
+                    questionType = 1;//Typ otázky = seřazení pojmů
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "identifier")
+                {
+                    questionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
+                {
+                    questionType = 3;//Typ otázky = spojování párů
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
+                {
+                    questionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
+                {
+                    questionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
+                {
+                    questionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
+                }
+                else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
+                {
+                    singleCorrectAnswer = true;
+                }
+            }
+
+            if(xmlReader.Name == "gapMatchInteraction")
+            {
+                if (amountOfSubitems > 1)
+                {
+                    string responseIdentifierGap = xmlReader.GetAttribute("responseIdentifier");
+                    if (responseIdentifierGap == responseIdentifierCorrection)
+                    {
+                        questionType = 9;
+                    }
+                }
+            }
+
+            if (singleCorrectAnswer)
+            {
+                if (xmlReader.Name == "simpleChoice")
+                {
+                    questionType = 6;//Typ otázky = výběr z více možností (abc), jen jedna odpověď je správně
+                }
+            }
+
+            if (xmlReader.Name == "textEntryInteraction" && questionType == 5)
+            {
+                questionType = 8;//Typ otázky = volná odpověď; odpověď je předem daná
+            }
+
+            string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");//TODO: Smazat?
+            if (responseIdentifier != null && responseIdentifier != responseIdentifierCorrection)
+            {
+                xmlReader.Skip();
+            }
+            if (xmlReader.NodeType != XmlNodeType.EndElement && (xmlReader.Name == "hottextInteraction" || xmlReader.Name == "mediaInteraction" || xmlReader.Name == "hotspotInteraction" 
+                || xmlReader.Name == "customInteraction" || xmlReader.Name == "graphicOrderInteraction" || xmlReader.Name == "graphicAssociateInteraction" || xmlReader.Name == "graphicGapMatchInteraction"
+                || xmlReader.Name == "selectPointInteraction"))
+            {
+                unknownQuestionType = true;
+                questionType = 0;//Typ otázky = neznámá otázka
+            }
+        }
+
+        if (singleCorrectAnswer && questionType == 0 && !unknownQuestionType)
+        {
+            questionType = 7;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
+        }
+        return questionType;
+    }
+
+    public string GetFaultyQuestionValue(int amountOfAddedFaultyQuestions)
+    {
+        int amountOfFaultyQuestions = 0;
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (xmlReader.Name == "gapMatchInteraction")
+            {
+                xmlReader.Skip();
+            }
+
+            if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
+            {
+                amountOfFaultyQuestions++;
+                if(amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                {
+                    xmlReader.Skip();
+                }
+                else
+                {
+                    string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
+                    int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
+                    int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
+                    string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
+                    return questionText;
+                }
+            }
+        }
+
+        return "Při přidávání otázky nastala neočekávaná chyba";
+    }
+
+    public bool IsSelectDisabled(int amountOfSubitems)
+    {
+        if(amountOfSubitems > 1)
+        {
+            return false;
+        }
+        return true;
+    }
+
 }
 
 <h1>@ViewData["Title"]</h1>
+
+<div class="itemtemplate-to-testtemplate"><a asp-area="" asp-controller="Home" asp-action="TestTemplate"
+asp-route-testNameIdentifier="@testNameIdentifier"
+asp-route-testNumberIdentifier="@testNumberIdentifier"
+>Zpět</a></div>
+
+<div class="itemtemplate-item-parameters">
+    Parametry otázky:
+    <br>
+    Jmenný identifikátor otázky: @itemNameIdentifier
+    <br>
+    Číselný identifikátor otázky: @itemNumberIdentifier
+    <br>
+    Nadpis: @title
+    <br>
+    Označení: @label
+    <br>
+    Počet podotázek: @amountOfSubitems
+    <br>
+    Počet bodů za otázku: TODO
+</div>
+
+<form method="POST" class="itemtemplate-subitem-list">
+    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
+    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
+    Výběr podotázky:
+    <br>
+    @{
+        string subItemLabel = "";
+        if(@amountOfSubitems > 1)
+        {
+            subItemLabel = "Vyberte podotázku ze seznamu:";
+        }
+        else
+        {
+            subItemLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+        }
+        <label>@subItemLabel</label>
+    }
+
+    <br>
+    <select name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
+    @{
+        int i = 0;
+        foreach(string _ in responseIdentifierArray)
+        {
+            <option value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
+            i++;
+        }
+    }
+    </select>
+
+    <br>
+    <input class="itemtemplate-select-subitem-button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
+</form>
+
+<div class="itemtemplate-selected-subitem">
+    Parametry podotázky:
+    <br>
+    Jmenný identifikátor testu: @responseIdentifier
+</div>
