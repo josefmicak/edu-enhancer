@@ -79,7 +79,7 @@ body {
 .testtemplate-test-parameters {
     position: absolute;
     top: 20%;
-    left: 25%;
+    left: 10%;
     border-style: solid;
 }
 
@@ -94,5 +94,12 @@ body {
     position: absolute;
     top: 20%;
     left: 50%;
+    border-style: solid;
+}
+
+.testtemplate-negative-points {
+    position: absolute;
+    top: 50%;
+    left: 10%;
     border-style: solid;
 }

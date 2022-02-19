@@ -38,10 +38,39 @@ namespace ViewLayer.Controllers
             return View();
         }
 
+        [HttpGet]
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier)
         {
             ViewBag.testNameIdentifier = testNameIdentifier;
             ViewBag.testNumberIdentifier = testNumberIdentifier;
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier, string negativePoints)
+        {
+            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
+            string textToWrite = "";
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.negativePoints = negativePoints;
+
+            if (negativePoints == "negativePoints_no")
+            {
+                textToWrite = "0";
+            }
+            else if (negativePoints == "negativePoints_yes")
+            {
+                textToWrite = "1";
+            }
+            System.IO.File.WriteAllText(testPath + "\\NegativePoints.txt", textToWrite);
+            return View();
+        }
+
+        public IActionResult ItemTemplate(string itemNumberIdentifier, string itemNameIdentifier)
+        {
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
             return View();
         }
 

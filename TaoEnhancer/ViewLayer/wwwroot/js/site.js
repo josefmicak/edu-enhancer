@@ -8,16 +8,14 @@ function manageTest(testNameIdentifier, testNumberIdentifier) {
 }
 
 function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points) {
-  //  var persons = JSON.parse(questionList);
     document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = "Číselný identifikátor otázky: " + itemNumberIdentifier;
     document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = "Jmenný identifikátor otázky: " + itemNameIdentifier;
     document.getElementById("testtemplate-item-title").innerHTML = "Nadpis otázky: " + title;
     document.getElementById("testtemplate-item-label").innerHTML = "Označení otázky: " + label;
     document.getElementById("testtemplate-item-points").innerHTML = "Počet bodů za otázku: " + points;
-   // window.alert(itemParameters);
 }
 
-function returnid() {
-    return this.id;
+function bla() {
+    document.getElementById("testtemplate-negative-points-no").checked = true;
 }
 

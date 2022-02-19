@@ -7,10 +7,9 @@
 @{
     List<(string, string, string, string)> questionList = LoadQuestions();
     List<(string, string, string, string, int)> itemParameters = LoadItemInfo();
-    Console.WriteLine("asdd");
+
+    bool negativePoints = NegativePointsManagement();
 }
-
-
 
 @functions{
 
@@ -37,7 +36,6 @@
                 amountOfItems++;
             }
         }
-
         return (testNameIdentifier, testNumberIdentifier, title, amountOfItems);
     }
 
@@ -121,15 +119,41 @@
         return itemParameters;
     }
 
-    public string GetItemPath()
+    public bool NegativePointsManagement()
     {
-        return "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\" + @ViewBag.itemNumberIdentifier + "\\qti.xml";
+        bool negativePointsInTest = false;
+        bool fileExists = false;
+        string testPath = "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\tests\\" + @ViewBag.testNumberIdentifier;
+
+        foreach (var file in Directory.GetFiles(testPath))
+        {
+            if (ExtractFileName(file) == "NegativePoints.txt")
+            {
+                fileExists = true;
+                string[] negativePointsFileLines = File.ReadAllLines(file);
+                for (int i = 0; i < negativePointsFileLines.Length; i++)
+                {
+                    if (negativePointsFileLines[0] == "1")
+                    {
+                        negativePointsInTest = true;
+                    }
+                }
+            }
+        }
+
+        if (!fileExists)
+        {
+            File.WriteAllText(testPath + "\\NegativePoints.txt", "0");
+        }
+
+        return negativePointsInTest;
     }
 
-    //<td><button class="item-details-button" id="@i" onclick="javascript:asdtest('asd', @bee())">Vybrat otázku</button></td>
-//                    <td><button class="item-details-button" id="@i" onclick="asdtest(@itemParameters[0].Item1, @itemParameters[0].Item2)">Vybrat otázku</button></td>
-
-
+    public string ExtractFileName(string file)
+    {
+        string[] fileSplitBySlash = file.Split(@"\");
+        return fileSplitBySlash[fileSplitBySlash.Length - 1];
+    }
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -158,8 +182,9 @@
             <th>Sekce testu</th>
             <th>Jmenný identifikátor otázky</th>
             <th>Číselný identifikátor otázky</th>
-            <th>Počet bodů (zatím pro ID)</th>
-            <th>Správa</th>
+            <th>Počet bodů</th>
+            <th>Detaily otázky</th>
+            <th>Správa otázky</th>
         </tr>
         @{
             int i = 0;
@@ -171,7 +196,10 @@
                     <td>@question.Item3</td>
                     <td>@question.Item4</td>
                     <td>TODO</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5')">Vybrat otázku</button></td>
+                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5')">Detaily otázky</button></td>
+                    <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                    asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
+                    asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></button></td>
                 </tr>
                 i++;
             }
@@ -193,4 +221,47 @@
     <div id="testtemplate-item-points">Počet bodů za otázku:</div>
 </div>
 
+<form method="POST" class="testtemplate-negative-points">
+    @{
+        if(@ViewBag.negativePoints != null)
+        {
+            <label>Změny úspěšně uloženy</label>
+            <br>
+            string negativePointsSaved = "";
+            if(@ViewBag.negativePoints == "negativePoints_no")
+            {
+                negativePointsSaved = "(záporné body jsou nyní pouze v rámci otázky)";
+            }
+            else if(@ViewBag.negativePoints == "negativePoints_yes")
+            {
+                negativePointsSaved = "(záporné body jsou nyní v rámci testu)";
+            }
+            <label>@negativePointsSaved</label>
+            <br>
+        }
+    }
+    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+    Záporné body:
+    <br>
+    <input type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints">
+    <label for="testtemplate-negative-points-no">Záporné body pouze v rámci otázky</label><br>
+    <input type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints">
+    <label for="testtemplate-negative-points-yes">Záporné body i v rámci testu</label><br>
+    <input class="testtemplate-negative-points-button" type="submit" value="Uložit">
+</form>
 
+@{
+    if(!negativePoints)
+    {
+        <script>
+            document.getElementById("negativePoints_no").checked = true;
+        </script>
+    }
+    else
+    {
+        <script>
+            document.getElementById("negativePoints_yes").checked = true;
+        </script>
+    }
+}
