@@ -3,10 +3,18 @@
 
 // Write your JavaScript code.
 
-function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points) {
+function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points, questionPointsDetermined) {
     document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = "Číselný identifikátor otázky: " + itemNumberIdentifier;
     document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = "Jmenný identifikátor otázky: " + itemNameIdentifier;
     document.getElementById("testtemplate-item-title").innerHTML = "Nadpis otázky: " + title;
     document.getElementById("testtemplate-item-label").innerHTML = "Označení otázky: " + label;
+
+    if (questionPointsDetermined == "False") {
+        points = "N/A";
+    }
     document.getElementById("testtemplate-item-points").innerHTML = "Počet bodů za otázku: " + points;
+}
+
+function disableSelectedWrongChoicePointsTextbox() {
+    document.getElementById("wrongChoicePoints_selected_points").disabled = true
 }

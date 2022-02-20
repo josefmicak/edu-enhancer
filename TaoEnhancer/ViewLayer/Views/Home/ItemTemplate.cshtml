@@ -7,17 +7,37 @@
 }
 
 @{
-    List<string> subitemList = LoadSubitemParameters();
     (List<string> responseIdentifierArray, List<string> responseValueArray) = GetResponseIdentifiers(amountOfSubitems);
 
-    if(amountOfSubitems == 1)
+    if(amountOfSubitems == 1 || ViewBag.selectedSubitem == null)
     {
         ViewBag.selectedSubitem = responseIdentifierArray[0];
     }
-    string responseIdentifier = "";
-    if(@ViewBag.selectedSubitem != null)
+
+    string responseIdentifier = "", imageSource = "", subitemText = "";
+    bool subquestionPointsDetermined;
+    List<string> possibleAnswerArray = new List<string>();
+    List<string> subquestionArray = new List<string>();
+    List<string> correctChoiceArray = new List<string>();
+    List<string> correctAnswerArray = new List<string>();
+    int questionType = 0, subquestionPoints = 0, wrongChoicePoints = 0;
+    responseIdentifier = @ViewBag.selectedSubitem;
+    (responseIdentifier, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray);
+    (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(responseIdentifierArray, amountOfSubitems);
+    double correctChoicePoints = GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
+
+    if(wrongChoicePoints == correctChoicePoints * (-1))
     {
-        responseIdentifier = @ViewBag.selectedSubitem;
+        <script>
+        document.getElementById("wrongChoicePoints_recommended").checked = true;
+        </script>
+    }
+    else
+    {
+        <script>
+        document.getElementById("wrongChoicePoints_selected").value = @wrongChoicePoints;
+        document.getElementById("wrongChoicePoints_selected").checked = true;
+        </script>
     }
 }
 
@@ -31,7 +51,7 @@
         string label = "";
 
         XmlReader xmlReader = XmlReader.Create(GetItemPath());
-        while (xmlReader.Read())//toto nemuze fungovat..musim do getitempath poslat id kazdeho itemu
+        while (xmlReader.Read())
         {
             if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
             {
@@ -67,19 +87,33 @@
         return amountOfSubitems;
     }
 
-    public List<string> LoadSubitemParameters()//načte parametry všech podotázek
+    public (string, int, int, bool, int, string, string, List<string>, List<string>, List<string>, List<string>) LoadSubitemParameters(string responseIdentifier, int amountOfSubitems, List<string> responseIdentifierArray, List<string> responseValueArray)//načte parametry dané podotázky
     {
-        List<string> subitemParametersList = new List<string>();
-        XmlReader xmlReader = XmlReader.Create(GetItemPath());
-        while (xmlReader.Read())
+        int questionType = GetQuestionType(responseIdentifier, amountOfSubitems);
+        (int subquestionPoints, bool subquestionPointsDetermined, int wrongChoicePoints) = GetSubquestionPoints(responseIdentifier, amountOfSubitems, questionType);
+        List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
+        //TODO: Zde je odkaz na můj web, protože v ASP.NET nejde zobrazit obrázek z pevného disku. Ostatní soubory se zobrazují z pevního disku.
+        string imageSource = "";
+        if(SubitemImages(responseIdentifier, includesImage).Item3 != "")
         {
-            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
+            imageSource = "http://testt.8u.cz/TaoEnhancer/tests/" + @ViewBag.testNameIdentifier + "/items/" + @ViewBag.itemNumberIdentifier + "/" + SubitemImages(responseIdentifier, includesImage).Item3;
+        }
+        string subitemText = "";
+        {
+
+        }
+        for(int i = 0; i < responseIdentifierArray.Count; i++)
+        {
+            if(responseIdentifier == responseIdentifierArray[i])
             {
-                subitemParametersList.Add(xmlReader.GetAttribute("identifier"));
+                subitemText = responseValueArray[i];
             }
         }
 
-        return subitemParametersList;
+        (List<string> possibleAnswerArray, List<string> subquestionArray) = GetPossibleAnswerList(responseIdentifier, amountOfSubitems, questionType);
+        (List<string> correctChoiceArray, List<string> correctAnswerArray) = GetCorrectAnswerList(responseIdentifier, amountOfSubitems, questionType);
+
+        return (responseIdentifier, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray);
     }
 
     public (List<string>, List<string>) GetResponseIdentifiers(int amountOfSubitems)
@@ -413,6 +447,37 @@
         return questionType;
     }
 
+    public string GetQuestionTypeText(int questionType)
+    {
+        switch (questionType)
+        {
+            case 0:
+                return "Neznámý nebo nepodporovaný typ otázky!";
+            case 1:
+                return "Seřazení pojmů";
+            case 2:
+                return "Výběr z více možností; více možných správných odpovědí";
+            case 3:
+                return "Spojování pojmů";
+            case 4:
+                return "Více otázek k jednomu pojmu; více možných správných odpovědí";
+            case 5:
+                return "Volná odpověď, správná odpověď není automaticky určena";
+            case 6:
+                return "Výběr z více možností; jedna správná odpověd";
+            case 7:
+                return "Výběr z více možností (doplnění textu); jedna správná odpověď";
+            case 8:
+                return "Volná odpověď, správná odpověď je automaticky určena";
+            case 9:
+                return "Dosazování pojmů do mezer";
+            case 10:
+                return "Posuvník; jedna správná odpověď (číslo)";
+            default:
+                return "Neznámý nebo nepodporovaný typ otázky!";
+        }
+    }
+
     public string GetFaultyQuestionValue(int amountOfAddedFaultyQuestions)
     {
         int amountOfFaultyQuestions = 0;
@@ -455,6 +520,432 @@
         return true;
     }
 
+    public (List<string>, List<string>) GetPossibleAnswerList(string selectedResponseIdentifier, int amountOfSubitems, int questionType)
+    {
+        List<string> possibleAnswerArray = new List <string>();
+        List<string> subquestionArray = new List <string>();
+        int simpleMatchSetCounter = 0;
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (amountOfSubitems > 1)
+            {
+                string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
+                if (responseIdentifier != null && responseIdentifier != selectedResponseIdentifier)
+                {
+                    xmlReader.Skip();
+                }
+            }
+
+            if (questionType == 4)
+            {
+                if (xmlReader.Name == "simpleMatchSet")
+                {
+                    simpleMatchSetCounter++;
+                }
+
+                if (xmlReader.Name == "simpleAssociableChoice")
+                {
+                    if (simpleMatchSetCounter == 1)
+                    {
+                        string answerText = xmlReader.ReadElementContentAsString();
+                        possibleAnswerArray.Add(answerText);
+                    }
+                    else if (simpleMatchSetCounter == 3)
+                    {
+                        string answerText = xmlReader.ReadElementContentAsString();
+                        subquestionArray.Add(answerText);
+                    }
+                }
+            }
+            else if(questionType == 10)
+            {
+                if (xmlReader.Name == "sliderInteraction" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    string lowerBound = xmlReader.GetAttribute("lowerBound");
+                    string upperBound = xmlReader.GetAttribute("upperBound");
+                    possibleAnswerArray.Add(lowerBound + " - " + upperBound);
+                }
+            }
+            else
+            {
+                if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice" || xmlReader.Name == "gapText")
+                {
+                    string answerText = xmlReader.ReadElementContentAsString();
+                    possibleAnswerArray.Add(answerText);
+                }
+            }
+        }
+
+        if(questionType == 7)
+        {
+            XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+            while (xmlReaderInlineChoice.Read())
+            {
+                if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                {
+                    var name = xmlReaderInlineChoice.Name;
+                    if (name == "p")
+                    {
+                        using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                        {
+                            while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                            {
+                                using (var innerReaderNext = innerReader.ReadSubtree())
+                                {
+                                    while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                    {
+                                        possibleAnswerArray.Add(innerReaderNext.ReadString());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return (possibleAnswerArray, subquestionArray);
+    }
+
+    public (List<string>, List<string>) GetCorrectAnswerList(string selectedResponseIdentifier, int amountOfSubitems, int questionType)
+    {
+        List<string> correctChoiceArray = new List<string>();
+        List<string> correctAnswerArray = new List<string>();
+        //string correctAnswer = "";
+
+        XmlReader xmlReader = XmlReader.Create(GetItemPath());
+        while (xmlReader.Read())
+        {
+            if (amountOfSubitems > 1 && xmlReader.Name == "responseDeclaration")
+            {
+                string responseIdentifier = xmlReader.GetAttribute("identifier");
+                if (responseIdentifier != null && responseIdentifier != selectedResponseIdentifier)
+                {
+                    xmlReader.Skip();
+                }
+            }
+
+            if (questionType == 3 || questionType == 4)
+            {
+                if (xmlReader.Name == "correctResponse")
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        bool whileLoopBool;
+                        while(whileLoopBool = innerReader.ReadToFollowing("value"))
+                        {
+                            string value = innerReader.ReadString();
+                            string[] orderedCorrectChoices = value.Split(' ');
+                            correctChoiceArray.Add(orderedCorrectChoices[1]);
+                            correctChoiceArray.Add(orderedCorrectChoices[0]);
+                        }
+                    }
+                }
+            }
+            else if(questionType == 8)
+            {
+                if (xmlReader.Name == "correctResponse")
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        bool whileLoopBool;
+                        while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                        {
+                            string value = innerReader.ReadString();
+                            correctAnswerArray.Add(value);
+                        }
+                    }
+                }
+            }
+            else if (questionType == 9)
+            {
+                if (xmlReader.Name == "correctResponse")
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        bool whileLoopBool;
+                        while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                        {
+                            string value = innerReader.ReadString();
+                            string[] orderedCorrectChoices = value.Split(' ');
+                            correctChoiceArray.Add(orderedCorrectChoices[0]);
+                            correctChoiceArray.Add(orderedCorrectChoices[1]);
+                        }
+                    }
+                }
+
+                if (xmlReader.Name == "gapText")
+                {
+                    for(int i = 0; i < correctChoiceArray.Count; i++)
+                    {
+                        if(i % 2 == 1)
+                        {
+                            continue;
+                        }
+
+                        if (xmlReader.GetAttribute("identifier") == correctChoiceArray[i])
+                        {
+                            correctAnswerArray.Add(xmlReader.ReadElementContentAsString());
+                        }
+                    }
+                }
+            }
+            else if(questionType == 10)
+            {
+                if(xmlReader.Name == "correctResponse")
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        if(innerReader.ReadToFollowing("value"))
+                        {
+                            string sliderStudentAnswer = innerReader.ReadElementContentAsString();
+                            correctChoiceArray.Add(sliderStudentAnswer);
+                            correctAnswerArray.Add(sliderStudentAnswer);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (xmlReader.Name == "correctResponse")
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        bool whileLoopBool;
+                        while (whileLoopBool = innerReader.ReadToFollowing("value"))
+                        {
+                            string value = innerReader.ReadString();
+                            correctChoiceArray.Add(value);
+                            correctAnswerArray.Add(" ");//placeholder
+                        }
+                    }
+                }
+
+                if (xmlReader.Name == "simpleChoice")
+                {
+                    int i = 0;
+                    foreach (string answer in correctChoiceArray)
+                    {
+                        if (xmlReader.GetAttribute("identifier") == answer)
+                        {
+                            string answerText = xmlReader.ReadElementContentAsString();
+                            correctAnswerArray[i] = answerText;
+                        }
+                        i++;
+                    }
+                }
+            }
+        }
+
+        if(questionType == 7)
+        {
+            correctAnswerArray.Clear();
+
+            XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+            while (xmlReaderInlineChoice.Read())
+            {
+                if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                {
+                    var name = xmlReaderInlineChoice.Name;
+                    if (name == "p")
+                    {
+                        using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                        {
+                            while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                            {
+                                using (var innerReaderNext = innerReader.ReadSubtree())
+                                {
+                                    while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                    {
+                                        for(int i = 0; i < correctChoiceArray.Count; i++)
+                                        {
+                                            if(innerReaderNext.GetAttribute("identifier") == correctChoiceArray[i])
+                                            {
+                                                correctAnswerArray.Add(innerReaderNext.ReadString());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (questionType == 3 || questionType == 4)
+        {
+            foreach (string answer in correctChoiceArray)
+            {
+                correctAnswerArray.Add(GetChoiceValue(answer, GetChoiceIdentifierValues(questionType)));
+            }
+        }
+        return (correctChoiceArray, correctAnswerArray);
+    }
+
+    public List<(string, string)> GetChoiceIdentifierValues(int questionType)
+    {
+        List<(string, string)> choiceIdentifierValueTuple = new List<(string, string)>();
+
+        if(questionType == 7)
+        {
+            XmlReader xmlReaderInlineChoice = XmlReader.Create(GetItemPath());
+            while (xmlReaderInlineChoice.Read())
+            {
+                if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                {
+                    var name = xmlReaderInlineChoice.Name;
+                    if (name == "p")
+                    {
+                        using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                        {
+                            while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                            {
+                                using (var innerReaderNext = innerReader.ReadSubtree())
+                                {
+                                    while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                    {
+                                        string choiceIdentifier = innerReaderNext.GetAttribute("identifier");
+                                        string choiceValue = innerReaderNext.ReadString();
+                                        choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            XmlReader xmlReader = XmlReader.Create(GetItemPath());
+            while (xmlReader.Read())
+            {
+                if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice" || xmlReader.Name == "gapText")
+                {
+                    string choiceIdentifier = xmlReader.GetAttribute("identifier");
+                    string choiceValue = xmlReader.ReadElementContentAsString();
+                    choiceIdentifierValueTuple.Add((choiceIdentifier, choiceValue));
+                }
+            }
+        }
+
+        return choiceIdentifierValueTuple;
+    }
+
+    public string GetChoiceValue(string choiceIdentifier, List<(string, string)> choiceIdentifierValueTuple)
+    {
+        for (int i = 0; i < choiceIdentifierValueTuple.Count; i++)
+        {
+            if (choiceIdentifier == choiceIdentifierValueTuple[i].Item1)
+            {
+                return choiceIdentifierValueTuple[i].Item2;
+            }
+        }
+        return "Chyba";
+    }
+
+    public (int, bool, int) GetSubquestionPoints(string responseIdentifier, int amountOfSubitems, int questionType)
+    {
+        bool fileExists = false;
+        int subquestionPoints = 0;
+        bool subquestionPointsDetermined = true;
+        int wrongChoicePoints = 0;
+        string itemParentPath = "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\" + @ViewBag.itemNumberIdentifier;
+
+        foreach (var file in Directory.GetFiles(itemParentPath))
+        {
+            if(ExtractFileName(file) == "Points.txt")
+            {
+                fileExists = true;
+            }
+        }
+
+        if (!fileExists)
+        {
+            subquestionPointsDetermined = false;
+            string itemPointsText = responseIdentifier + ";N/A;N/A" + Environment.NewLine;
+            File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
+            //SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
+            //  SubquestionPointsTB.Text = "N/A";
+        }
+        else
+        {
+            string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+            for(int i = 0; i < importedFileLines.Length; i++)
+            {
+                string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
+                {
+                    subquestionPointsDetermined = false;
+                }
+
+                if (splitImportedFileLineBySemicolon[0] == responseIdentifier)
+                {
+                    if (splitImportedFileLineBySemicolon[1] != "N/A")
+                    {
+                        subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
+                    }
+
+                    if(splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
+                    {
+                        wrongChoicePoints = int.Parse(splitImportedFileLineBySemicolon[2]);
+                    }
+                }
+            }
+        }
+
+        return (subquestionPoints, subquestionPointsDetermined, wrongChoicePoints);
+    }
+
+    public (int, bool) GetQuestionPoints(List<string> responseIdentifierArray, int amountOfSubitems)
+    {
+        int questionPoints = 0;
+        bool questionPointsDetermined = true;
+
+        for(int i = 0; i < responseIdentifierArray.Count; i++)
+        {
+            int questionType = GetQuestionType(responseIdentifierArray[i], amountOfSubitems);
+            (int subquestionPoints, bool subquestionPointsDetermined, int wrongChoicePoints) = GetSubquestionPoints(responseIdentifierArray[i], amountOfSubitems, questionType);
+            questionPoints += subquestionPoints;
+            questionPointsDetermined = subquestionPointsDetermined;
+        }
+
+        return (questionPoints, questionPointsDetermined);
+    }
+
+    public string ExtractFileName(string file)
+    {
+        string[] fileSplitBySlash = file.Split(@"\");
+        return fileSplitBySlash[fileSplitBySlash.Length - 1];
+    }
+
+    public double GetCorrectChoicePoints(int subquestionPoints, List<string> correctChoiceArray, int questionType)
+    {
+        double correctChoicePoints = 0;
+        switch (questionType)
+        {
+            case int n when (n == 1 || n == 5 || n == 6 || n == 7 || n == 8 || n == 10):
+                correctChoicePoints = subquestionPoints;
+                break;
+            case 2:
+                correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Count;
+                break;
+            case int n when (n == 3 || n == 4 || n == 9):
+                correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
+                break;
+        }
+        if(correctChoicePoints == Double.PositiveInfinity || correctChoicePoints == Double.NegativeInfinity)
+        {
+            string errorMessage = "Chyba: otázka nemá pravděpodobně zadané žádné správné odpovědi.\nIdentifikátory otázky: " + @ViewBag.itemNameIdentifier + ", " + @ViewBag.itemNumberIdentifier;
+            WriteMessageToUser(errorMessage);      
+        }
+
+        return Math.Round(correctChoicePoints, 2);
+    }
+
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -477,7 +968,17 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     <br>
     Počet podotázek: @amountOfSubitems
     <br>
-    Počet bodů za otázku: TODO
+    @{
+        if(questionPointsDetermined)
+        {
+            <label>Počet bodů za otázku: @questionPoints</label>
+        }
+        else
+        {
+            <label>Počet bodů za otázku: N/A</label>
+        }
+    }
+    
 </div>
 
 <form method="POST" class="itemtemplate-subitem-list">
@@ -501,7 +1002,7 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     }
 
     <br>
-    <select name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
+    <select name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)" class="subitem-selection">
     @{
         int i = 0;
         foreach(string _ in responseIdentifierArray)
@@ -519,5 +1020,184 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
 <div class="itemtemplate-selected-subitem">
     Parametry podotázky:
     <br>
+    Typ otázky: @GetQuestionTypeText(@questionType)
+    <br>
     Jmenný identifikátor testu: @responseIdentifier
+    <br>
+    @{
+        if(@subquestionPointsDetermined)
+        {
+            <label>Počet bodů za podotázku: @subquestionPoints</label>
+        }
+        else
+        {
+            <label>Počet bodů za podotázku: N/A</label>
+        }
+    }
+    <br>
+    @{
+        if(@imageSource != "")
+        {
+            <img src="@imageSource" width="600" height="200">
+            <br>
+        }
+    }
+    Otázka:
+    <br>
+    @subitemText
+    <br>
+    @{
+        if(questionType == 4)
+        {
+            string subquestions = "";
+            int subquestionArrayIterator = 0;
+            foreach (string answer in subquestionArray)
+            {
+                if (subquestionArrayIterator != subquestionArray.Count - 1)
+                {
+                    subquestions += answer + ", ";
+                }
+                else
+                {
+                    subquestions += answer;
+                }
+                subquestionArrayIterator++;
+            }
+            <label>(@subquestions)</label>
+            <br>
+        }
+    } 
+    Možné odpovědi:
+    <br>
+    @{
+        if(questionType == 5)
+        {
+            <label>Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</label>
+        }
+        else if (questionType == 8)
+        {
+            <label>Otázka neobsahuje výběr z možností.</label>
+        }
+        else
+        {
+            foreach(string possibleAnswer in possibleAnswerArray)
+            {
+                <label>@possibleAnswer</label>
+                <br>
+            }
+        }
+    }
+    Správná odpověď:
+    <br>
+    @{
+        if (questionType == 3 || questionType == 4)
+        {
+            int answerNumber = 0;
+            foreach (string answer in correctAnswerArray)
+            {
+                if (answerNumber % 2 == 1)
+                {
+                    <label>@answer</label>
+                    <br>
+                }
+                else
+                {
+                    <label>@answer -></label>
+                }
+                answerNumber++;
+            }
+        }
+        else if(questionType == 9)
+        {
+            int answerNumber = 1;
+            foreach (string answer in correctAnswerArray)
+            {
+                <label>[@answerNumber] - @answer</label>
+                <br>
+                answerNumber++;
+            }
+        }
+        else
+        {
+            foreach (string answer in correctAnswerArray)
+            {
+                <label>@answer</label>
+                <br>
+            }
+        }
+
+    }
 </div>
+
+<form method="POST" class="itemtemplate-points">
+    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
+    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
+    <input type="hidden" value="@responseIdentifier" name="selectedSubitem">
+    <input type="hidden" value="@correctChoicePoints" name="correctChoicePoints">
+
+    @{
+        if(@ViewBag.subquestionPoints != null)
+        {
+            if(@ViewBag.ErrorText != null)
+            {
+                <label>@ViewBag.ErrorText</label>
+            }
+            else
+            {
+                <label>Počet bodů u podotázky byl úspešně změněn.</label>
+            }
+            <br>
+        }
+    }
+
+    Upravit otázku
+    <br>
+    <label for="subquestion-points">Počet bodů za podotázku:</label>
+    <input type="text" id="subquestion-points" name="subquestionPoints" value="@subquestionPoints">
+    <br>
+    <label for="subquestion-correct-choice-points">Počet bodů za správnou volbu:</label>
+    <input type="text" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@correctChoicePoints">
+    <br>
+    Počet bodů za špatnou volbu:
+    <br>
+    @{
+        double recommendedWrongChoicePoints = correctChoicePoints * (-1);
+        bool recommendedWrongChoicePointsChecked;
+        int selectedWrongChoicePoints = 0;
+        if(wrongChoicePoints == correctChoicePoints * (-1) || wrongChoicePoints == 0)
+        {
+            recommendedWrongChoicePointsChecked = true;
+        }
+        else
+        {
+            recommendedWrongChoicePointsChecked = false;
+            selectedWrongChoicePoints = wrongChoicePoints;
+        }
+    <input type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked">
+    <label for="wrongChoicePoints_recommended">Doporučený</label>
+    <input type="text" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints">
+    <br>
+    <input type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)">
+    <label for="wrongChoicePoints_selected">Vlastní</label>
+    <input type="text" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints">
+
+    if(!subquestionPointsDetermined)
+    {
+        <script>
+        document.getElementById("wrongChoicePoints_recommended").disabled = true;
+        document.getElementById("wrongChoicePoints_recommended").disabled = true;
+        document.getElementById("wrongChoicePoints_selected").disabled = true;
+        document.getElementById("wrongChoicePoints_selected").disabled = true;
+        document.getElementById("subquestion-points").value = "N/A";
+        document.getElementById("wrongChoicePoints_recommended_points").value = "N/A";
+        document.getElementById("wrongChoicePoints_selected_points").value = "N/A";
+        document.getElementById("subquestion-correct-choice-points").value = "N/A";
+        document.getElementById("wrongChoicePoints_selected_points").disabled = true;
+        </script>
+    }
+    }
+    <br>
+    <input type="submit" value="Uložit">
+</form>

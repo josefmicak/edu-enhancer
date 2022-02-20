@@ -78,13 +78,81 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem)
+        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints, string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints)
         {
             ViewBag.testNameIdentifier = testNameIdentifier;
             ViewBag.testNumberIdentifier = testNumberIdentifier;
             ViewBag.itemNumberIdentifier = itemNumberIdentifier;
             ViewBag.itemNameIdentifier = itemNameIdentifier;
             ViewBag.selectedSubitem = selectedSubitem;
+
+            if(subquestionPoints != null)
+            {
+                ViewBag.subquestionPoints = subquestionPoints;
+                bool isNumber = int.TryParse(subquestionPoints, out _);
+                if(wrongChoicePoints == "wrongChoicePoints_recommended")
+                {
+                    wrongChoicePoints = recommendedWrongChoicePoints;
+                }
+                else
+                {
+                    wrongChoicePoints = selectedWrongChoicePoints;
+                }
+
+                if(recommendedWrongChoicePoints == "N/A")
+                {
+                    wrongChoicePoints = (correctChoicePoints * (-1)).ToString();
+                }
+                
+                bool isWrongChoicePointsNumber = double.TryParse(wrongChoicePoints, out _);
+
+                if (!isNumber || !isWrongChoicePointsNumber)
+                {
+                    ViewBag.ErrorText = "Chyba: je nutné zadat číslo.";
+                }
+                else
+                {
+                    bool performSave = true;
+                    int subquestionPointsToSave = int.Parse(subquestionPoints);
+                    double wrongChoicePointsToSave = double.Parse(wrongChoicePoints);
+
+                    if (Math.Abs(wrongChoicePointsToSave) > subquestionPointsToSave)
+                    {
+                        performSave = false;
+                        ViewBag.ErrorText = "Chyba: za špatný výběr bude studentovi odečteno více bodů, než kolik může dostat za otázku.";
+                    }
+
+                    if(wrongChoicePointsToSave > 0)
+                    {
+                        performSave = false;
+                        ViewBag.ErrorText = "Chyba: za špatnou volbu nemůže být udělen kladný počet bodů.";
+                    }
+
+                    if (subquestionPointsToSave < 0)
+                    {
+                        performSave = false;
+                        ViewBag.ErrorText = "Chyba: zza správnou odpověď nemůže být udělen záporný počet bodů.";
+                    }
+
+                    if (performSave)
+                    {
+                        string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
+
+                        string[] importedFileLines = System.IO.File.ReadAllLines(itemParentPath + "\\Points.txt");
+                        string fileLinesToExport = "";
+                        for (int i = 0; i < importedFileLines.Length; i++)
+                        {
+                            string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                            if (splitImportedFileLineBySemicolon[0] == selectedSubitem)
+                            {
+                                importedFileLines[i] = selectedSubitem + ";" + subquestionPointsToSave + ";" + Math.Round(wrongChoicePointsToSave, 2);
+                            }
+                            fileLinesToExport += importedFileLines[i] + "\n";
+                        }
+                        System.IO.File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+                    }
+                }
+            }
             return View();
         }
 

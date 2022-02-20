@@ -6,7 +6,8 @@
 
 @{
     List<(string, string, string, string)> questionList = LoadQuestions();
-    List<(string, string, string, string, int)> itemParameters = LoadItemInfo();
+    List<(string, string, string, string, int, bool)> itemParameters = LoadItemInfo();
+    (int testPoints, bool testPointsDetermined) = GetTestPoints(itemParameters);
 
     bool negativePoints = NegativePointsManagement();
 }
@@ -75,15 +76,17 @@
         return questionList;
     }
 
-    public List<(string, string, string, string, int)> LoadItemInfo()//Jiné než v původní appce, načte seznam parametrů všech itemů
+    public List<(string, string, string, string, int, bool)> LoadItemInfo()//Jiné než v původní appce, načte seznam parametrů všech itemů
     {
         string title = "";
         string label = "";
         string itemNumberIdenfifier = "";
         string itemNameIdenfifier = "";
         int i = 0;
-        List<(string, string, string, string, int)> itemParametersTemp = new List<(string, string, string, string, int)>();
+        List<(string, string, string, string, int, bool)> itemParametersTemp = new List<(string, string, string, string, int, bool)>();
         List<(string, string, string, string)> questionList = LoadQuestions();
+        bool testPointsDetermined = false;
+        int testPoints = 0;
 
         foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\"))
         {
@@ -111,7 +114,9 @@
                                         itemNameIdenfifier = questionList[j].Item3;
                                         title = xmlReader.GetAttribute("title");
                                         label = xmlReader.GetAttribute("label");
-                                        itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, 666));
+                                        (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(itemNumberIdenfifier);
+
+                                        itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, questionPoints, questionPointsDetermined));
                                         i++;
                                     }
                                 }
@@ -123,7 +128,7 @@
         }
 
         //pole nyní může být ve špatném pořadí kvůli jinému pořadí v rámci qti.xml celého testu a složek ve složce items - oprava
-        List<(string, string, string, string, int)> itemParameters = new List<(string, string, string, string, int)>();
+        List<(string, string, string, string, int, bool)> itemParameters = new List<(string, string, string, string, int, bool)>();
         for(int k = 0; k < questionList.Count; k++)
         {
             for(int l = 0; l < itemParametersTemp.Count; l++)
@@ -136,6 +141,58 @@
         }
 
         return itemParameters;
+    }
+
+    public (int, bool) GetQuestionPoints(string itemNumberIdenfifier)
+    {
+        bool questionPointsDetermined = false;
+        int questionPoints = 0;
+        string itemParentPath = "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\" + itemNumberIdenfifier;
+
+        foreach (var file in Directory.GetFiles(itemParentPath))
+        {
+            if (ExtractFileName(file) == "Points.txt")
+            {
+                questionPointsDetermined = true;
+            }
+        }
+
+        if(questionPointsDetermined)
+        {
+            string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+            for (int j = 0; j < importedFileLines.Length; j++)
+            {
+                string[] splitImportedFileLineBySemicolon = importedFileLines[j].Split(";");
+
+                if (splitImportedFileLineBySemicolon[1] == "N/A")
+                {
+                    questionPointsDetermined = false;
+                }
+                else
+                {
+                    questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
+                }
+            }
+        }
+
+        return (questionPoints, questionPointsDetermined);
+    }
+
+    public(int, bool) GetTestPoints(List<(string, string, string, string, int, bool)> itemParameters)
+    {
+        int testPoints = 0;
+        bool testPointsDetermined = true;
+
+        for(int i = 0; i < itemParameters.Count; i++)
+        {
+            testPoints += itemParameters[i].Item5;
+            if(!itemParameters[i].Item6)
+            {
+                testPointsDetermined = false;
+            }
+        }
+
+        return (testPoints, testPointsDetermined);
     }
 
     public bool NegativePointsManagement()
@@ -190,7 +247,16 @@
     <br>
     Počet otázek: @amountOfItems
     <br>
-    Počet bodů: TODO
+    @{
+        if(@testPointsDetermined)
+        {
+            <label>Počet bodů: @testPoints</label>
+        }
+        else
+        {
+            <label>Počet bodů: N/A</label>
+        }
+    }
 </div>
 
 <div class="testtemplate-questionlist">
@@ -215,7 +281,7 @@
                     <td>@question.Item3</td>
                     <td>@question.Item4</td>
                     <td>TODO</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5')">Detaily otázky</button></td>
+                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
                     <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="ItemTemplate"
                     asp-route-testNameIdentifier="@testNameIdentifier"
                     asp-route-testNumberIdentifier="@testNumberIdentifier"
@@ -266,9 +332,9 @@
     Záporné body:
     <br>
     <input type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints">
-    <label for="testtemplate-negative-points-no">Záporné body pouze v rámci otázky</label><br>
+    <label for="negativePoints_no">Záporné body pouze v rámci otázky</label><br>
     <input type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints">
-    <label for="testtemplate-negative-points-yes">Záporné body i v rámci testu</label><br>
+    <label for="negativePoints_yes">Záporné body i v rámci testu</label><br>
     <input class="testtemplate-negative-points-button" type="submit" value="Uložit">
 </form>
 

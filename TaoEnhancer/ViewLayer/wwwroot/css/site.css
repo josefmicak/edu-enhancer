@@ -131,4 +131,17 @@ body {
     top: 30%;
     left: 30%;
     border-style: solid;
+    max-width: 1000px;
+}
+
+.subitem-selection {
+    max-width: 1000px;
+}
+
+.itemtemplate-points {
+    position: absolute;
+    top: 60%;
+    left: 10%;
+    border-style: solid;
+    max-width: 350px;
 }
