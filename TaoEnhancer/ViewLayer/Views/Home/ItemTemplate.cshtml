@@ -20,7 +20,8 @@
     List<string> subquestionArray = new List<string>();
     List<string> correctChoiceArray = new List<string>();
     List<string> correctAnswerArray = new List<string>();
-    int questionType = 0, subquestionPoints = 0, wrongChoicePoints = 0;
+    int questionType = 0, subquestionPoints = 0;
+    double wrongChoicePoints = 0;
     responseIdentifier = @ViewBag.selectedSubitem;
     (responseIdentifier, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray);
     (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(responseIdentifierArray, amountOfSubitems);
@@ -87,10 +88,10 @@
         return amountOfSubitems;
     }
 
-    public (string, int, int, bool, int, string, string, List<string>, List<string>, List<string>, List<string>) LoadSubitemParameters(string responseIdentifier, int amountOfSubitems, List<string> responseIdentifierArray, List<string> responseValueArray)//načte parametry dané podotázky
+    public (string, int, int, bool, double, string, string, List<string>, List<string>, List<string>, List<string>) LoadSubitemParameters(string responseIdentifier, int amountOfSubitems, List<string> responseIdentifierArray, List<string> responseValueArray)//načte parametry dané podotázky
     {
         int questionType = GetQuestionType(responseIdentifier, amountOfSubitems);
-        (int subquestionPoints, bool subquestionPointsDetermined, int wrongChoicePoints) = GetSubquestionPoints(responseIdentifier, amountOfSubitems, questionType);
+        (int subquestionPoints, bool subquestionPointsDetermined, double wrongChoicePoints) = GetSubquestionPoints(responseIdentifier, amountOfSubitems, questionType);
         List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
         //TODO: Zde je odkaz na můj web, protože v ASP.NET nejde zobrazit obrázek z pevného disku. Ostatní soubory se zobrazují z pevního disku.
         string imageSource = "";
@@ -847,12 +848,12 @@
         return "Chyba";
     }
 
-    public (int, bool, int) GetSubquestionPoints(string responseIdentifier, int amountOfSubitems, int questionType)
+    public (int, bool, double) GetSubquestionPoints(string responseIdentifier, int amountOfSubitems, int questionType)
     {
         bool fileExists = false;
         int subquestionPoints = 0;
         bool subquestionPointsDetermined = true;
-        int wrongChoicePoints = 0;
+        double wrongChoicePoints = 0;
         string itemParentPath = "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\items\\" + @ViewBag.itemNumberIdentifier;
 
         foreach (var file in Directory.GetFiles(itemParentPath))
@@ -868,8 +869,6 @@
             subquestionPointsDetermined = false;
             string itemPointsText = responseIdentifier + ";N/A;N/A" + Environment.NewLine;
             File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
-            //SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
-            //  SubquestionPointsTB.Text = "N/A";
         }
         else
         {
@@ -891,7 +890,7 @@
 
                     if(splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
                     {
-                        wrongChoicePoints = int.Parse(splitImportedFileLineBySemicolon[2]);
+                        wrongChoicePoints = double.Parse(splitImportedFileLineBySemicolon[2]);
                     }
                 }
             }
@@ -908,7 +907,7 @@
         for(int i = 0; i < responseIdentifierArray.Count; i++)
         {
             int questionType = GetQuestionType(responseIdentifierArray[i], amountOfSubitems);
-            (int subquestionPoints, bool subquestionPointsDetermined, int wrongChoicePoints) = GetSubquestionPoints(responseIdentifierArray[i], amountOfSubitems, questionType);
+            (int subquestionPoints, bool subquestionPointsDetermined, double wrongChoicePoints) = GetSubquestionPoints(responseIdentifierArray[i], amountOfSubitems, questionType);
             questionPoints += subquestionPoints;
             questionPointsDetermined = subquestionPointsDetermined;
         }
@@ -1151,7 +1150,6 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
             <br>
         }
     }
-
     Upravit otázku
     <br>
     <label for="subquestion-points">Počet bodů za podotázku:</label>
@@ -1165,7 +1163,7 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     @{
         double recommendedWrongChoicePoints = correctChoicePoints * (-1);
         bool recommendedWrongChoicePointsChecked;
-        int selectedWrongChoicePoints = 0;
+        double selectedWrongChoicePoints = 0;
         if(wrongChoicePoints == correctChoicePoints * (-1) || wrongChoicePoints == 0)
         {
             recommendedWrongChoicePointsChecked = true;
