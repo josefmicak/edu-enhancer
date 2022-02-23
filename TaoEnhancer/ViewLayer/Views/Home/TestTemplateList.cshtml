@@ -1,0 +1,79 @@
+﻿@{
+    ViewData["Title"] = "Správa zadání testů";
+}
+
+@functions {
+
+    public List<(string, string, string)> LoadTests()
+    {
+        List<(string, string, string)> testIdentifiers = new List<(string, string, string)>();
+        string subDirectory = "";
+
+        foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests"))
+        {
+            string[] splitDirectoryBySlash = directory.Split(@"\");
+            string nameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+            string title = "";
+            string numberidentifier = "";
+
+            try
+            {
+                foreach (var directory_ in Directory.GetDirectories(directory + "\\tests"))
+                {
+                    string[] splitDirectory_BySlash = directory_.Split(@"\");
+                    numberidentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                    subDirectory = directory_;
+                }
+            }
+            catch
+            {
+                continue;
+            }
+
+            XmlReader xmlReader = XmlReader.Create(subDirectory + "\\test.xml");
+            while (xmlReader.Read())
+            {
+                if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                {
+                    if (xmlReader.HasAttributes)
+                    {
+                        title = xmlReader.GetAttribute("title");
+                        testIdentifiers.Add((nameIdentifier, numberidentifier, title));
+                    }
+                }
+            }
+
+        }
+
+        return testIdentifiers;
+    }
+
+}
+    
+<h1>@ViewData["Title"]</h1>
+<div class="testtemplatelist-to-teachermenu"><a asp-area="" asp-controller="Home" asp-action="TeacherMenu">Zpět</a></div>
+
+<div class="testtemplatelist-table">
+    <table class="table table-bordered">
+        <tr>
+            <th>Jméno ve složce</th>
+            <th>Identifikátor</th>
+            <th>Nadpis</th>
+            <th>Správa</th>
+        </tr>
+        @foreach ((string, string, string) testIdentifiers in LoadTests())
+        {
+            <tr>
+                <td>@testIdentifiers.Item1</td>
+                <td>@testIdentifiers.Item2</td>
+                <td>@testIdentifiers.Item3</td>
+                <td><button class="manage-test-button"><a 
+                    asp-area="" 
+                    asp-controller="Home" 
+                    asp-action="TestTemplate" 
+                    asp-route-testNameIdentifier="@testIdentifiers.Item1" 
+                    asp-route-testNumberIdentifier="@testIdentifiers.Item2">Správa testu</a></button></td>
+            </tr>
+        }
+    </table>
+</div>

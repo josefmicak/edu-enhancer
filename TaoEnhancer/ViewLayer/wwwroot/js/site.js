@@ -18,3 +18,9 @@ function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label
 function disableSelectedWrongChoicePointsTextbox() {
     document.getElementById("wrongChoicePoints_selected_points").disabled = true
 }
+
+function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
+    document.getElementById("managesolvedtestlist-student-name").innerHTML = "Jméno studenta: " + studentName;
+    document.getElementById("managesolvedtestlist-student-login").innerHTML = "Login studenta: " + studentLogin;
+    document.getElementById("managesolvedtestlist-student-email").innerHTML = "Email studenta: " + studentEmail;
+}

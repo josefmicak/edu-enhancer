@@ -28,13 +28,22 @@ namespace ViewLayer.Controllers
             return View();
         }
 
-        public IActionResult TestList()
+        public IActionResult TestTemplateList()
         {
             return View();
         }
 
-        public IActionResult SolvedTestList()
+        public IActionResult ManageSolvedTestList()
         {
+            return View();
+        }
+
+        public IActionResult ManageSolvedTest(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.studentIdentifier = studentIdentifier;
             return View();
         }
 

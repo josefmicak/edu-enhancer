@@ -37,13 +37,13 @@ body {
     right: 45%;
 }
 
-.teacher-to-testlist {
+.teacher-to-testtemplatelist {
     position: absolute;
     top: 30%;
     right: 60%;
 }
 
-.teacher-to-solvedtestlist {
+.teacher-to-managesolvedtestlist {
     position: absolute;
     top: 30%;
     right: 40%;
@@ -56,14 +56,14 @@ body {
     right: 45%;
 }
 
-/*TestList.cshtml*/
-.testlist-to-teachermenu {
+/*TestTemplateList.cshtml*/
+.testtemplatelist-to-teachermenu {
     position: absolute;
     top: 80%;
     right: 45%;
 }
 
-.testlist-table {
+.testtemplatelist-table {
     position: absolute;
     top: 30%;
     right: 45%;
@@ -144,4 +144,60 @@ body {
     left: 10%;
     border-style: solid;
     max-width: 350px;
+}
+
+/*ManageSolvedTestList.cshtml*/
+.managesolvedtestlist-to-teachermenu {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.managesolvedtestlist-table {
+    position: absolute;
+    top: 30%;
+    right: 45%;
+    border-style: solid;
+}
+
+.managesolvedtestlist-student-details {
+    position: absolute;
+    top: 30%;
+    left: 10%;
+    border-style: solid;
+}
+
+/*ManageSolvedTest.cshtml*/
+.managesolvedtest-to-managesolvedtestlist {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.managesolvedtest-test-parameters {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    border-style: solid;
+}
+
+.managesolvedtest-questionlist {
+    position: absolute;
+    top: 40%;
+    left: 35%;
+    border-style: solid;
+}
+
+.managesolvedtest-item-parameters {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    border-style: solid;
+}
+
+.managesolvedtest-result-parameters {
+    position: absolute;
+    top: 20%;
+    left: 80%;
+    border-style: solid;
 }

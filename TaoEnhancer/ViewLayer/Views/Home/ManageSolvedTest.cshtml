@@ -1,15 +1,18 @@
 ﻿@{
-    ViewData["Title"] = "Test: " + @ViewBag.testNameIdentifier;
+    ViewData["Title"] = "Správa vyřešeného testu " + @ViewBag.deliveryExecutionIdentifier;
 
     (string testNameIdentifier, string testNumberIdentifier, string title, int amountOfItems) = LoadTestParameters();
+
 }
 
 @{
+
     List<(string, string, string, string)> questionList = LoadQuestions();
     List<(string, string, string, string, int, bool)> itemParameters = LoadItemInfo();
     (int testPoints, bool testPointsDetermined) = GetTestPoints(itemParameters);
+    List<(int questionResultPoints, bool questionResultPointsDetermined)> discard = GetQuestionResultPoints(itemParameters);
+    (string resultIdentifier, string resultTimestamp, string studentName, string studentLogin, string studentIdentifier) = LoadResultParameters();
 
-    bool negativePoints = NegativePointsManagement();
 }
 
 @functions{
@@ -195,48 +198,131 @@
         return (testPoints, testPointsDetermined);
     }
 
-    public bool NegativePointsManagement()
-    {
-        bool negativePointsInTest = false;
-        bool fileExists = false;
-        string testPath = "C:\\xampp\\exported\\tests\\" + @ViewBag.testNameIdentifier + "\\tests\\" + @ViewBag.testNumberIdentifier;
-
-        foreach (var file in Directory.GetFiles(testPath))
-        {
-            if (ExtractFileName(file) == "NegativePoints.txt")
-            {
-                fileExists = true;
-                string[] negativePointsFileLines = File.ReadAllLines(file);
-                for (int i = 0; i < negativePointsFileLines.Length; i++)
-                {
-                    if (negativePointsFileLines[0] == "1")
-                    {
-                        negativePointsInTest = true;
-                    }
-                }
-            }
-        }
-
-        if (!fileExists)
-        {
-            File.WriteAllText(testPath + "\\NegativePoints.txt", "0");
-        }
-
-        return negativePointsInTest;
-    }
-
     public string ExtractFileName(string file)
     {
         string[] fileSplitBySlash = file.Split(@"\");
         return fileSplitBySlash[fileSplitBySlash.Length - 1];
     }
+
+    public (string, string, string, string, string) LoadResultParameters()
+    {
+        string resultTimestamp = "";
+        string login = "", name = "", surname = "";
+
+        XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + ".xml");
+        while (xmlReader.Read())
+        {
+            if(xmlReader.Name == "testResult" && xmlReader.NodeType != XmlNodeType.EndElement)
+            {
+                resultTimestamp = xmlReader.GetAttribute("datestamp");
+            }
+        }
+
+        foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\testtakers"))
+        {
+            string extension = ExtractFileExtension(file);
+            if (extension == "rdf")
+            {
+                IGraph g = new Graph();
+                FileLoader.Load(g, file);
+                IEnumerable<INode> nodes = g.AllNodes;
+                int nodeLine = 1;
+                foreach (INode node in nodes)
+                {
+                    if (nodeLine == 1)
+                    {
+                        string[] splitByHashtag = node.ToString().Split("#");
+                        if(splitByHashtag[1] != @ViewBag.studentIdentifier)
+                        {
+                            break;
+                        }
+                    }
+                    if (nodeLine == 3)
+                    {
+                        login = node.ToString();
+                    }
+                    else if (nodeLine == 9)
+                    {
+                        name = node.ToString();
+                    }
+                    else if (nodeLine == 11)
+                    {
+                        surname = node.ToString();
+                    }
+                    nodeLine++;
+                }
+            }
+        }
+
+        return (@ViewBag.deliveryExecutionIdentifier, resultTimestamp, name + " " + surname, login, @ViewBag.studentIdentifier);
+    }
+
+    public string ExtractFileExtension(string file)
+    {
+        string[] fileSplitByDot = file.Split(@".");
+        return fileSplitByDot[fileSplitByDot.Length - 1];
+    }
+
+    public List<(int, bool)> GetQuestionResultPoints(List<(string, string, string, string, int, bool)> itemParameters)
+    {
+        List<(int, bool)> temp = new List<(int, bool)>();
+        string resultsFilePath = "C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + "Results.txt";
+        bool resultsFileExists = false;
+
+        foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier))
+        {
+            if (file == resultsFilePath)
+            {
+                resultsFileExists = true;
+            }
+        }
+
+        if(!resultsFileExists)
+        {
+            CreateNewResultPointsFile(itemParameters);
+            /*   string resultPointsToText = "";
+            for (int i = 0; i < itemParameters.Count; i++)
+            {
+            string itemNameIdentifier = itemParameters[i].Item2;
+            string itemNumberIdentifier = itemParameters[i].Item1;
+            ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false, isTeacherReviewingDeliveryResult, negativePoints);
+            List<double> itemPoints = itemForm.GetResultsFilePoints();
+            resultPointsToText += ItemsGridView.Rows[i].Cells[2].Value.ToString();
+                for(int j = 0; j < itemPoints.Count; j++)
+                {
+                resultPointsToText += ";" + Math.Round(itemPoints[j], 2);
+            }
+            resultPointsToText += "\n";
+        }
+        File.WriteAllText(resultsFilePath, resultPointsToText);*/
+        }
+
+        return temp;
+
+    }
+
+    public void CreateNewResultPointsFile(List<(string, string, string, string, int, bool)> itemParameters)
+    {
+        string resultPointsToText = "";
+        string resultsFilePath = "C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + "Results.txt";
+        {
+
+        }
+        for (int i = 0; i < itemParameters.Count; i++)
+        {
+            string itemNameIdentifier = itemParameters[i].Item2;
+            resultPointsToText += itemNameIdentifier + "\n";
+        }
+        File.WriteAllText(resultsFilePath, resultPointsToText);
+    }
+
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<div class="testtemplate-to-testlist"><a asp-area="" asp-controller="Home" asp-action="TestList">Zpět</a></div>
+<div class="managesolvedtest-to-managesolvedtestlist"><a asp-area="" asp-controller="Home" asp-action="ManageSolvedTestList">Zpět</a></div>
 
-<div class="testtemplate-test-parameters">
+<div class="managesolvedtest-test-parameters">
     Parametry testu:
     <br>
     Jmenný identifikátor testu: @testNameIdentifier
@@ -284,7 +370,6 @@
                 {
                     points = @itemParameters[i].Item5.ToString();
                 }
-
                 <tr>
                     <td>@question.Item1</td>
                     <td>@question.Item2</td>
@@ -318,47 +403,16 @@
     <div id="testtemplate-item-points">Počet bodů za otázku:</div>
 </div>
 
-<form method="POST" class="testtemplate-negative-points">
-    @{
-        if(@ViewBag.negativePoints != null)
-        {
-            <label>Změny úspěšně uloženy</label>
-            <br>
-            string negativePointsSaved = "";
-            if(@ViewBag.negativePoints == "negativePoints_no")
-            {
-                negativePointsSaved = "(záporné body jsou nyní pouze v rámci otázky)";
-            }
-            else if(@ViewBag.negativePoints == "negativePoints_yes")
-            {
-                negativePointsSaved = "(záporné body jsou nyní v rámci testu)";
-            }
-            <label>@negativePointsSaved</label>
-            <br>
-        }
-    }
-    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
-    Záporné body:
+<div class="managesolvedtest-result-parameters">
+    Parametry testu:
     <br>
-    <input type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints">
-    <label for="negativePoints_no">Záporné body pouze v rámci otázky</label><br>
-    <input type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints">
-    <label for="negativePoints_yes">Záporné body i v rámci testu</label><br>
-    <input class="testtemplate-negative-points-button" type="submit" value="Uložit">
-</form>
-
-@{
-    if(!negativePoints)
-    {
-        <script>
-            document.getElementById("negativePoints_no").checked = true;
-        </script>
-    }
-    else
-    {
-        <script>
-            document.getElementById("negativePoints_yes").checked = true;
-        </script>
-    }
-}
+    Identifikátor pokusu: @resultIdentifier
+    <br>
+    Časová známka: @resultTimestamp
+    <br>
+    Jméno studenta: @studentName
+    <br>
+    Login studenta: @studentLogin
+    <br>
+    Identifikátor studenta: @studentIdentifier
+</div>
