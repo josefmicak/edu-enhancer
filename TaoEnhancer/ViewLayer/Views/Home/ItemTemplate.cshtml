@@ -3,7 +3,7 @@
     string testNameIdentifier = @ViewBag.testNameIdentifier;
     string testNumberIdentifier = @ViewBag.testNumberIdentifier;
     (string itemNameIdentifier, string itemNumberIdentifier, string title, string label, int amountOfSubitems) = LoadItemParameters();
-
+    ItemController itemController = new ItemController();
 }
 
 @{
@@ -40,6 +40,7 @@
         document.getElementById("wrongChoicePoints_selected").checked = true;
         </script>
     }
+    
 }
 
 @functions{
@@ -977,7 +978,6 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
             <label>Počet bodů za otázku: N/A</label>
         }
     }
-    
 </div>
 
 <form method="POST" class="itemtemplate-subitem-list">

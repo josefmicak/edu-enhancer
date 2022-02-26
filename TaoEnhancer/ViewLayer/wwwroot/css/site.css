@@ -70,7 +70,7 @@ body {
 }
 
 /*TestTemplate.cshtml*/
-.testtemplate-to-testlist {
+.testtemplate-to-testtemplatelist {
     position: absolute;
     top: 80%;
     right: 45%;
@@ -199,5 +199,48 @@ body {
     position: absolute;
     top: 20%;
     left: 80%;
+    border-style: solid;
+}
+
+/*ManageSolvedItem.cshtml*/
+.managesolveditem-to-managesolvedtest {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.managesolveditem-item-parameters {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    border-style: solid;
+}
+
+.managesolveditem-subitem-list {
+    position: absolute;
+    top: 10%;
+    left: 30%;
+    border-style: solid;
+}
+
+.managesolveditem-selected-subitem {
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    border-style: solid;
+    max-width: 1000px;
+}
+
+.managesolveditem-students-answers {
+    position: absolute;
+    top: 20%;
+    left: 70%;
+    border-style: solid;
+}
+
+.managesolveditem-points {
+    position: absolute;
+    top: 60%;
+    left: 70%;
     border-style: solid;
 }

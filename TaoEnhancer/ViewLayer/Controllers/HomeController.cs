@@ -140,7 +140,7 @@ namespace ViewLayer.Controllers
                     if (subquestionPointsToSave < 0)
                     {
                         performSave = false;
-                        ViewBag.ErrorText = "Chyba: zza správnou odpověď nemůže být udělen záporný počet bodů.";
+                        ViewBag.ErrorText = "Chyba: za správnou odpověď nemůže být udělen záporný počet bodů.";
                     }
 
                     if (performSave)
@@ -160,6 +160,88 @@ namespace ViewLayer.Controllers
                         }
                         System.IO.File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
                     }
+                }
+            }
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.studentIdentifier = studentIdentifier;
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem, string studentsPoints, int amountOfSubitems, int subitemIndex, int questionPointsDetermined)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.studentIdentifier = studentIdentifier;
+            ViewBag.selectedSubitem = selectedSubitem;
+            ViewBag.studentsPoints = studentsPoints;
+            ViewBag.questionPointsDetermined = questionPointsDetermined;
+            if (studentsPoints != null)
+            {
+                bool isDecimal = double.TryParse(studentsPoints, out _);
+                if (!isDecimal)
+                {
+                    ViewBag.ErrorText = "Chyba: je nutné zadat číslo.";
+                }
+                else if (questionPointsDetermined == 0)
+                {
+                    ViewBag.ErrorText = "Chyba: není možné upravit počet bodů studenta. Nejprve je nutné určit počet obdržených bodů za otázku.";
+                }
+                else
+                {
+                    double studentsPointsToSave = double.Parse(studentsPoints);
+                    string[] resultsFileLines = System.IO.File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                    string resultsToFile = "";
+
+                    for (int i = 0; i < resultsFileLines.Length; i++)
+                    {
+                        string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
+                        if (splitResultsFileLineBySemicolon[0] != itemNameIdentifier)
+                        {
+                            resultsToFile += resultsFileLines[i] + "\n";
+                        }
+                        else
+                        {
+                            if (amountOfSubitems > 1)
+                            {
+                                resultsToFile += itemNameIdentifier;
+
+                                for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
+                                {
+                                    resultsToFile += ";";
+                                    if (j - 1 != subitemIndex)
+                                    {
+                                        resultsToFile += splitResultsFileLineBySemicolon[j];
+                                    }
+                                    else
+                                    {
+                                        resultsToFile += studentsPoints;
+                                    }
+                                }
+
+                                resultsToFile += "\n";
+                            }
+                            else
+                            {
+                                resultsToFile += itemNameIdentifier + ";" + studentsPoints + "\n";
+                            }
+                        }
+                    }
+
+                    System.IO.File.WriteAllText("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt", resultsToFile);
                 }
             }
             return View();

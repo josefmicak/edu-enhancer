@@ -1,0 +1,299 @@
+﻿@{
+    ViewData["Title"] = "Správa vyřešeného testu " + @ViewBag.deliveryExecutionIdentifier + ", otázka " + @ViewBag.itemNameIdentifier;
+    string testNameIdentifier = @ViewBag.testNameIdentifier;
+    string testNumberIdentifier = @ViewBag.testNumberIdentifier;
+    string itemNameIdentifier = @ViewBag.itemNameIdentifier;
+    string itemNumberIdentifier = @ViewBag.itemNumberIdentifier;
+    string deliveryExecutionIdentifier = @ViewBag.deliveryExecutionIdentifier;
+
+    ItemController itemController = new ItemController();
+    // (string itemNameIdentifier, string itemNumberIdentifier, string title, string label, int amountOfSubitems) = itemController.LoadItemParameters(@ViewBag.testNameIdentifier, @ViewBag.itemNameIdentifier, @ViewBag.itemNumberIdentifier);
+
+    (_, _, string title, string label, int amountOfSubitems) = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
+    {}
+    (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) = itemController.GetResponseIdentifiers(amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
+
+    if(errorMessageNumber == 1)
+    {
+        string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
+        WriteMessageToUser(errorMessage);
+    }
+
+    if(amountOfSubitems == 1 || ViewBag.selectedSubitem == null)
+    {
+        ViewBag.selectedSubitem = responseIdentifierArray[0];
+    }
+
+    string responseIdentifier = @ViewBag.selectedSubitem;
+    string responseIdentifierTemp = "", imageSource = "", subitemText = "";
+    bool subquestionPointsDetermined;
+    {}
+    List<string> possibleAnswerArray = new List<string>();
+    List<string> subquestionArray = new List<string>();
+    List<string> correctChoiceArray = new List<string>();
+    List<string> correctAnswerArray = new List<string>();
+    int questionType = 0, subquestionPoints = 0;
+    double wrongChoicePoints = 0;
+    responseIdentifier = @ViewBag.selectedSubitem;
+    (responseIdentifierTemp, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = itemController.LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray, testNameIdentifier, itemNumberIdentifier);
+    {}
+    List<double> studentsSubitemPointsList = itemController.GetStudentsSubitemPointsList(testNameIdentifier, itemNameIdentifier, deliveryExecutionIdentifier);
+    double studentsSubitemPoints = itemController.GetStudentsSubitemPoints(studentsSubitemPointsList, responseIdentifier, responseIdentifierArray);
+    double correctChoicePoints = itemController.GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
+    (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
+    (_, List<string> studentsAnswers, string studentsAnswerCorrectLabel, string studentsAnswerPointsLabel) = itemController.LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints);
+
+}
+
+@functions{
+
+    public bool IsSelectDisabled(int amountOfSubitems)
+    {
+        if(amountOfSubitems > 1)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void WriteMessageToUser(string message)
+    {
+        <script>
+        window.alert('@message');
+        </script>
+    }
+
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="managesolveditem-to-managesolvedtest"><a asp-area="" asp-controller="Home" asp-action="ManageSolvedTest"
+                    asp-route-testNameIdentifier="@ViewBag.testNameIdentifier"
+                    asp-route-testNumberIdentifier="@ViewBag.testNumberIdentifier"
+                    asp-route-deliveryExecutionIdentifier="@ViewBag.deliveryExecutionIdentifier"
+                    asp-route-studentIdentifier="@ViewBag.studentIdentifier">Zpět</a></div>
+
+<div class="managesolveditem-item-parameters">
+    Parametry otázky:
+    <br>
+    Jmenný identifikátor otázky: @itemNameIdentifier
+    <br>
+    Číselný identifikátor otázky: @itemNumberIdentifier
+    <br>
+    Nadpis: @title
+    <br>
+    Označení: @label
+    <br>
+    Počet podotázek: @amountOfSubitems
+    <br>
+    @{
+        if(questionPointsDetermined)
+        {
+            Debug.WriteLine("label - true");
+            <label>Počet bodů za otázku: @studentsSubitemPointsList.Sum() / @questionPoints</label>
+        }
+        else
+        {
+            Debug.WriteLine("label - false");
+            <label>Počet bodů za otázku: N/A</label>
+        }
+    }
+</div>
+
+<form method="POST" class="managesolveditem-subitem-list">
+    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
+    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
+    Výběr podotázky:
+    <br>
+    @{
+        string subItemLabel = "";
+        if(@amountOfSubitems > 1)
+        {
+            subItemLabel = "Vyberte podotázku ze seznamu:";
+        }
+        else
+        {
+            subItemLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+        }
+        <label>@subItemLabel</label>
+    }
+
+    <br>
+    <select name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)" class="subitem-selection">
+    @{
+        int i = 0;
+        foreach(string _ in responseIdentifierArray)
+        {
+            <option value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
+            i++;
+        }
+    }
+    </select>
+
+    <br>
+    <input class="itemtemplate-select-subitem-button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
+</form>
+
+<div class="managesolveditem-selected-subitem">
+    Parametry podotázky:
+    <br>
+    Typ otázky: @itemController.GetQuestionTypeText(@questionType)
+    <br>
+    Jmenný identifikátor testu: @responseIdentifier
+    <br>
+    @{
+        if(@subquestionPointsDetermined)
+        {
+            <label>Počet bodů za podotázku: @studentsSubitemPoints / @subquestionPoints</label>
+        }
+        else
+        {
+            <label>Počet bodů za podotázku: N/A</label>
+        }
+    }
+    <br>
+    @{
+        if(@imageSource != "")
+        {
+            <img src="@imageSource" width="600" height="200">
+            <br>
+        }
+    }
+    Otázka:
+    <br>
+    @subitemText
+    <br>
+    @{
+        if(questionType == 4)
+        {
+            string subquestions = "";
+            int subquestionArrayIterator = 0;
+            foreach (string answer in subquestionArray)
+            {
+                if (subquestionArrayIterator != subquestionArray.Count - 1)
+                {
+                    subquestions += answer + ", ";
+                }
+                else
+                {
+                    subquestions += answer;
+                }
+                subquestionArrayIterator++;
+            }
+            <label>(@subquestions)</label>
+            <br>
+        }
+    } 
+    Možné odpovědi:
+    <br>
+    @{
+        if(questionType == 5)
+        {
+            <label>Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</label>
+        }
+        else if (questionType == 8)
+        {
+            <label>Otázka neobsahuje výběr z možností.</label>
+        }
+        else
+        {
+            foreach(string possibleAnswer in possibleAnswerArray)
+            {
+                <label>@possibleAnswer</label>
+                <br>
+            }
+        }
+    }
+    Správná odpověď:
+    <br>
+    @{
+        if (questionType == 3 || questionType == 4)
+        {
+            int answerNumber = 0;
+            foreach (string answer in correctAnswerArray)
+            {
+                if (answerNumber % 2 == 1)
+                {
+                    <label>@answer</label>
+                    <br>
+                }
+                else
+                {
+                    <label>@answer -></label>
+                }
+                answerNumber++;
+            }
+        }
+        else if(questionType == 9)
+        {
+            int answerNumber = 1;
+            foreach (string answer in correctAnswerArray)
+            {
+                <label>[@answerNumber] - @answer</label>
+                <br>
+                answerNumber++;
+            }
+        }
+        else
+        {
+            foreach (string answer in correctAnswerArray)
+            {
+                <label>@answer</label>
+                <br>
+            }
+        }
+    }
+</div>
+
+<div class="managesolveditem-students-answers">
+    Studentova odpověď:
+    <br>
+    @{
+        foreach (string answer in studentsAnswers)
+        {
+            <label>@answer</label>
+            <br>
+        }
+        <label>@studentsAnswerCorrectLabel</label>
+        <br>
+        <label>@studentsAnswerPointsLabel</label>
+        <br>
+    }
+</div>
+
+<form method="POST" class="managesolveditem-points">
+    @{
+        int questionPointsDeterminedToInt = 0;
+        if(@questionPointsDetermined)
+        {
+            questionPointsDeterminedToInt = 1;
+        }
+    }
+    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
+    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
+    <input type="hidden" value="@amountOfSubitems" name="amountOfSubitems">
+    <input type="hidden" value="@questionPointsDeterminedToInt" name="questionPointsDetermined">
+    @{
+        if(@ViewBag.studentsPoints != null)
+        {
+            if(@ViewBag.ErrorText != null)
+            {
+                <label>@ViewBag.ErrorText</label>
+            }
+            else
+            {
+                <label>Počet získaných bodů byl u studenta úspěšně upraven.</label>
+            }
+            <br>
+        }
+    }
+    <input type="hidden" value="@itemController.GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray)" name="subitemIndex">
+    Upravit body:
+    <br>
+    <label for="studentsPointsLabel">Počet bodů získaných studentem:</label>
+    <input type="text" id="studentsPointsLabel" name="studentsPoints" value="@studentsSubitemPoints">
+    <br>
+    <input type="submit" value="Uložit">
+</form>

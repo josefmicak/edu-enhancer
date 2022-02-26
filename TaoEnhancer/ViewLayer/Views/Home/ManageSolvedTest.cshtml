@@ -2,7 +2,7 @@
     ViewData["Title"] = "Správa vyřešeného testu " + @ViewBag.deliveryExecutionIdentifier;
 
     (string testNameIdentifier, string testNumberIdentifier, string title, int amountOfItems) = LoadTestParameters();
-
+    ItemController itemController = new ItemController();
 }
 
 @{
@@ -10,12 +10,14 @@
     List<(string, string, string, string)> questionList = LoadQuestions();
     List<(string, string, string, string, int, bool)> itemParameters = LoadItemInfo();
     (int testPoints, bool testPointsDetermined) = GetTestPoints(itemParameters);
-    List<(int questionResultPoints, bool questionResultPointsDetermined)> discard = GetQuestionResultPoints(itemParameters);
+    List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints = GetQuestionResultPoints(itemParameters);
+    double totalStudentsPoints = GetTotalStudentsPoints(studentsPoints);
     (string resultIdentifier, string resultTimestamp, string studentName, string studentLogin, string studentIdentifier) = LoadResultParameters();
 
 }
 
 @functions{
+    ItemController itemController = new ItemController();
 
     public (string, string, string, int) LoadTestParameters()
     {
@@ -263,9 +265,9 @@
         return fileSplitByDot[fileSplitByDot.Length - 1];
     }
 
-    public List<(int, bool)> GetQuestionResultPoints(List<(string, string, string, string, int, bool)> itemParameters)
+    public List<(double, bool)> GetQuestionResultPoints(List<(string, string, string, string, int, bool)> itemParameters)
     {
-        List<(int, bool)> temp = new List<(int, bool)>();
+        List<(double, bool)> studentsAnswerPoints = new List<(double, bool)>();
         string resultsFilePath = "C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + "Results.txt";
         bool resultsFileExists = false;
 
@@ -279,41 +281,52 @@
 
         if(!resultsFileExists)
         {
-            CreateNewResultPointsFile(itemParameters);
-            /*   string resultPointsToText = "";
-            for (int i = 0; i < itemParameters.Count; i++)
+            int errorMessageNumber = itemController.CreateNewResultPointsFile(@ViewBag.testNameIdentifier, @ViewBag.testNumberIdentifier, @ViewBag.deliveryExecutionIdentifier, itemParameters);
+            if(errorMessageNumber == 1)
             {
-            string itemNameIdentifier = itemParameters[i].Item2;
-            string itemNumberIdentifier = itemParameters[i].Item1;
-            ItemForm itemForm = new ItemForm(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier, testNumberIdentifier, false, deliveryExecutionIdentifier, studentIdentifier, false, isTeacherReviewingDeliveryResult, negativePoints);
-            List<double> itemPoints = itemForm.GetResultsFilePoints();
-            resultPointsToText += ItemsGridView.Rows[i].Cells[2].Value.ToString();
-                for(int j = 0; j < itemPoints.Count; j++)
-                {
-                resultPointsToText += ";" + Math.Round(itemPoints[j], 2);
+                string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
+                WriteMessageToUser(errorMessage);
             }
-            resultPointsToText += "\n";
         }
-        File.WriteAllText(resultsFilePath, resultPointsToText);*/
+        for(int i = 0; i < itemParameters.Count; i++)
+        {
+            string itemNameIdentifier = itemParameters[i].Item2;
+            double totalReceivedPoints = 0;
+            string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + "Results.txt");
+            for (int j = 0; j < resultsFileLines.Length; j++)
+            {
+                string[] splitResultsFileLineBySemicolon = resultsFileLines[j].Split(";");
+                if (splitResultsFileLineBySemicolon[0] == itemNameIdentifier)
+                {
+                    for (int k = 1; k < splitResultsFileLineBySemicolon.Length; k++)
+                    {
+                        //   importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
+                        totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[k]);
+                    }
+                    studentsAnswerPoints.Add((totalReceivedPoints, true));
+                }
+            }
         }
 
-        return temp;
+        return studentsAnswerPoints;
 
     }
 
-    public void CreateNewResultPointsFile(List<(string, string, string, string, int, bool)> itemParameters)
+    public double GetTotalStudentsPoints(List<(double, bool)> studentsPoints)
     {
-        string resultPointsToText = "";
-        string resultsFilePath = "C:\\xampp\\exported\\results\\" + @ViewBag.testNameIdentifier + "\\delivery_execution_" + @ViewBag.deliveryExecutionIdentifier + "Results.txt";
+        double totalStudentsPoints = 0;
+        for(int i = 0; i < studentsPoints.Count; i++)
         {
+            totalStudentsPoints += studentsPoints[i].Item1;
+        }
+        return totalStudentsPoints;
+    }
 
-        }
-        for (int i = 0; i < itemParameters.Count; i++)
-        {
-            string itemNameIdentifier = itemParameters[i].Item2;
-            resultPointsToText += itemNameIdentifier + "\n";
-        }
-        File.WriteAllText(resultsFilePath, resultPointsToText);
+    public void WriteMessageToUser(string message)
+    {
+        <script>
+        window.alert('@message');
+        </script>
     }
 
 }
@@ -336,7 +349,7 @@
     @{
         if(@testPointsDetermined)
         {
-            <label>Počet bodů: @testPoints</label>
+            <label>Počet bodů: @totalStudentsPoints / @testPoints</label>
         }
         else
         {
@@ -368,7 +381,7 @@
                 }
                 else
                 {
-                    points = @itemParameters[i].Item5.ToString();
+                    points = @studentsPoints[i].Item1 + "/" + @itemParameters[i].Item5.ToString();
                 }
                 <tr>
                     <td>@question.Item1</td>
@@ -376,12 +389,14 @@
                     <td>@question.Item3</td>
                     <td>@question.Item4</td>
                     <td>@points</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
-                    <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@studentsPoints[i].Item1 / @itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
+                    <td><button class="managesolvedtest-to-managesolveditem"><a asp-area="" asp-controller="Home" asp-action="ManageSolvedItem"
                     asp-route-testNameIdentifier="@testNameIdentifier"
                     asp-route-testNumberIdentifier="@testNumberIdentifier"
                     asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
-                    asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></button></td>
+                    asp-route-itemNameIdentifier="@itemParameters[i].Item2"
+                    asp-route-deliveryExecutionIdentifier="@ViewBag.deliveryExecutionIdentifier"
+                    asp-route-studentIdentifier="@ViewBag.studentIdentifier">Správa otázky</a></button></td>
                 </tr>
                 i++;
             }
