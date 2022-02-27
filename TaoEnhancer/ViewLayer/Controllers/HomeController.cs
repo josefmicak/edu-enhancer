@@ -87,7 +87,8 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints, string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints)
+        public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints,
+            string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int questionType)
         {
             ViewBag.testNameIdentifier = testNameIdentifier;
             ViewBag.testNumberIdentifier = testNumberIdentifier;
@@ -99,66 +100,75 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.subquestionPoints = subquestionPoints;
                 bool isNumber = int.TryParse(subquestionPoints, out _);
-                if(wrongChoicePoints == "wrongChoicePoints_recommended")
+                if (!isNumber)
                 {
-                    wrongChoicePoints = recommendedWrongChoicePoints;
+                    ViewBag.errorText = "Chyba: je nutné zadat číslo.";
                 }
                 else
                 {
-                    wrongChoicePoints = selectedWrongChoicePoints;
-                }
-
-                if(recommendedWrongChoicePoints == "N/A")
-                {
-                    wrongChoicePoints = (correctChoicePoints * (-1)).ToString();
-                }
-                
-                bool isWrongChoicePointsNumber = double.TryParse(wrongChoicePoints, out _);
-
-                if (!isNumber || !isWrongChoicePointsNumber)
-                {
-                    ViewBag.ErrorText = "Chyba: je nutné zadat číslo.";
-                }
-                else
-                {
-                    bool performSave = true;
-                    int subquestionPointsToSave = int.Parse(subquestionPoints);
-                    double wrongChoicePointsToSave = double.Parse(wrongChoicePoints);
-
-                    if (Math.Abs(wrongChoicePointsToSave) > subquestionPointsToSave)
+                    if (wrongChoicePoints == "wrongChoicePoints_recommended")
                     {
-                        performSave = false;
-                        ViewBag.ErrorText = "Chyba: za špatný výběr bude studentovi odečteno více bodů, než kolik může dostat za otázku.";
+                        ItemController itemController = new ItemController();
+                        double recommendedWrongChoicePointsRecounted = itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) * (-1);
+                        wrongChoicePoints = recommendedWrongChoicePointsRecounted.ToString();
+                    }
+                    else
+                    {
+                        wrongChoicePoints = selectedWrongChoicePoints;
                     }
 
-                    if(wrongChoicePointsToSave > 0)
+                    if (recommendedWrongChoicePoints == "N/A")
                     {
-                        performSave = false;
-                        ViewBag.ErrorText = "Chyba: za špatnou volbu nemůže být udělen kladný počet bodů.";
+                        wrongChoicePoints = (correctChoicePoints * (-1)).ToString();
                     }
 
-                    if (subquestionPointsToSave < 0)
+                    bool isWrongChoicePointsNumber = double.TryParse(wrongChoicePoints, out _);
+
+                    if (!isWrongChoicePointsNumber)
                     {
-                        performSave = false;
-                        ViewBag.ErrorText = "Chyba: za správnou odpověď nemůže být udělen záporný počet bodů.";
+                        ViewBag.errorText = "Chyba: je nutné zadat číslo.";
                     }
-
-                    if (performSave)
+                    else
                     {
-                        string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
+                        bool performSave = true;
+                        int subquestionPointsToSave = int.Parse(subquestionPoints);
+                        double wrongChoicePointsToSave = double.Parse(wrongChoicePoints);
 
-                        string[] importedFileLines = System.IO.File.ReadAllLines(itemParentPath + "\\Points.txt");
-                        string fileLinesToExport = "";
-                        for (int i = 0; i < importedFileLines.Length; i++)
+                        if (Math.Abs(wrongChoicePointsToSave) > subquestionPointsToSave)
                         {
-                            string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
-                            if (splitImportedFileLineBySemicolon[0] == selectedSubitem)
-                            {
-                                importedFileLines[i] = selectedSubitem + ";" + subquestionPointsToSave + ";" + Math.Round(wrongChoicePointsToSave, 2);
-                            }
-                            fileLinesToExport += importedFileLines[i] + "\n";
+                            performSave = false;
+                            ViewBag.errorText = "Chyba: za špatný výběr bude studentovi odečteno více bodů, než kolik může dostat za otázku.";
                         }
-                        System.IO.File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+
+                        if (wrongChoicePointsToSave > 0)
+                        {
+                            performSave = false;
+                            ViewBag.errorText = "Chyba: za špatnou volbu nemůže být udělen kladný počet bodů.";
+                        }
+
+                        if (subquestionPointsToSave < 0)
+                        {
+                            performSave = false;
+                            ViewBag.errorText = "Chyba: za správnou odpověď nemůže být udělen záporný počet bodů.";
+                        }
+
+                        if (performSave)
+                        {
+                            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
+
+                            string[] importedFileLines = System.IO.File.ReadAllLines(itemParentPath + "\\Points.txt");
+                            string fileLinesToExport = "";
+                            for (int i = 0; i < importedFileLines.Length; i++)
+                            {
+                                string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
+                                if (splitImportedFileLineBySemicolon[0] == selectedSubitem)
+                                {
+                                    importedFileLines[i] = selectedSubitem + ";" + subquestionPointsToSave + ";" + Math.Round(wrongChoicePointsToSave, 2);
+                                }
+                                fileLinesToExport += importedFileLines[i] + "\n";
+                            }
+                            System.IO.File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+                        }
                     }
                 }
             }
@@ -194,11 +204,11 @@ namespace ViewLayer.Controllers
                 bool isDecimal = double.TryParse(studentsPoints, out _);
                 if (!isDecimal)
                 {
-                    ViewBag.ErrorText = "Chyba: je nutné zadat číslo.";
+                    ViewBag.errorText = "Chyba: je nutné zadat číslo.";
                 }
                 else if (questionPointsDetermined == 0)
                 {
-                    ViewBag.ErrorText = "Chyba: není možné upravit počet bodů studenta. Nejprve je nutné určit počet obdržených bodů za otázku.";
+                    ViewBag.errorText = "Chyba: není možné upravit počet bodů studenta. Nejprve je nutné určit počet obdržených bodů za otázku.";
                 }
                 else
                 {
@@ -247,10 +257,50 @@ namespace ViewLayer.Controllers
             return View();
         }
 
+        public IActionResult BrowseSolvedTestList(string studentIdentifier)
+        {
+            ViewBag.studentIdentifier = studentIdentifier;
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public IActionResult BrowseSolvedTest(string studentIdentifier, string deliveryExecutionIdentifier, string testNameIdentifier, string testNumberIdentifier)
+        {
+            ViewBag.studentIdentifier = studentIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.studentIdentifier = studentIdentifier;
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem)
+        {
+            ViewBag.testNameIdentifier = testNameIdentifier;
+            ViewBag.testNumberIdentifier = testNumberIdentifier;
+            ViewBag.itemNumberIdentifier = itemNumberIdentifier;
+            ViewBag.itemNameIdentifier = itemNameIdentifier;
+            ViewBag.deliveryExecutionIdentifier = deliveryExecutionIdentifier;
+            ViewBag.studentIdentifier = studentIdentifier;
+            ViewBag.selectedSubitem = selectedSubitem;
+            return View();
         }
     }
 }

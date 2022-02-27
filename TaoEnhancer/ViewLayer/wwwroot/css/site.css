@@ -49,13 +49,6 @@ body {
     right: 40%;
 }
 
-/*StudentMenu.cshtml*/
-.student-to-index {
-    position: absolute;
-    top: 80%;
-    right: 45%;
-}
-
 /*TestTemplateList.cshtml*/
 .testtemplatelist-to-teachermenu {
     position: absolute;
@@ -243,4 +236,51 @@ body {
     top: 60%;
     left: 70%;
     border-style: solid;
+}
+
+/*StudentMenu.cshtml*/
+.student-to-main-menu {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.studentmenu-studentlist {
+    position: absolute;
+    top: 30%;
+    right: 45%;
+}
+
+/*BrowseSolvedTestList.cshtml*/
+.browsesolvedtestlist-to-studentmenu {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+.browsesolvedtestlist-student-parameters {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    border-style: solid;
+}
+
+.browsesolvedtestlist-testlist {
+    position: absolute;
+    top: 30%;
+    right: 45%;
+}
+
+/*BrowseSolvedTestList.cshtml*/
+.browsesolvedtest-to-browsesolvedtestlist {
+    position: absolute;
+    top: 80%;
+    right: 45%;
+}
+
+/*BrowseSolvedItem.cshtml*/
+.browsesolveditem-to-browsesolvedtest {
+    position: absolute;
+    top: 80%;
+    right: 45%;
 }

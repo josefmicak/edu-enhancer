@@ -1,12 +1,14 @@
 ﻿@{
-    ViewData["Title"] = "Správa zadání otázky " + @ViewBag.itemNumberIdentifier + " / " + @ViewBag.itemNameIdentifier;
+    ViewData["Title"] = "Správa vyřešeného testu " + @ViewBag.deliveryExecutionIdentifier + ", otázka " + @ViewBag.itemNameIdentifier;
     string testNameIdentifier = @ViewBag.testNameIdentifier;
     string testNumberIdentifier = @ViewBag.testNumberIdentifier;
     string itemNameIdentifier = @ViewBag.itemNameIdentifier;
     string itemNumberIdentifier = @ViewBag.itemNumberIdentifier;
-    string viewBagSubquestionPoints = @ViewBag.subquestionPoints;
-    string errorText = @ViewBag.errorText;
+    string deliveryExecutionIdentifier = @ViewBag.deliveryExecutionIdentifier;
+    string studentIdentifier = @ViewBag.studentIdentifier();
+
     ItemController itemController = new ItemController();
+
     (_, _, string title, string label, int amountOfSubitems) = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
     {}
     (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) = itemController.GetResponseIdentifiers(amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
@@ -27,33 +29,26 @@
         ViewBag.selectedSubitem = responseIdentifierArray[0];
     }
 
-    string responseIdentifier = "", imageSource = "", subitemText = "";
+    string responseIdentifier = @ViewBag.selectedSubitem;
+    string responseIdentifierTemp = "", imageSource = "", subitemText = "";
     bool subquestionPointsDetermined;
+    {}
     List<string> possibleAnswerArray = new List<string>();
     List<string> subquestionArray = new List<string>();
     List<string> correctChoiceArray = new List<string>();
     List<string> correctAnswerArray = new List<string>();
     int questionType = 0, subquestionPoints = 0;
     double wrongChoicePoints = 0;
-    responseIdentifier = @ViewBag.selectedSubitem;
-    (responseIdentifier, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = itemController.LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray, testNameIdentifier, itemNumberIdentifier);
-    
-    double correctChoicePoints = itemController.GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
-    (_, _, int questionPoints, bool questionPointsDetermined) = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
-    if(wrongChoicePoints == correctChoicePoints * (-1))
-    {
-        <script>
-        document.getElementById("wrongChoicePoints_recommended").checked = true;
-        </script>
-    }
-    else
-    {
-        <script>
-        document.getElementById("wrongChoicePoints_selected").value = @wrongChoicePoints;
-        document.getElementById("wrongChoicePoints_selected").checked = true;
-        </script>
-    }
+    (responseIdentifierTemp, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = 
+    itemController.LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray, testNameIdentifier, itemNumberIdentifier);
+    {}
 
+    List<double> studentsSubitemPointsList = itemController.GetStudentsSubitemPointsList(testNameIdentifier, itemNameIdentifier, deliveryExecutionIdentifier);
+    double studentsSubitemPoints = itemController.GetStudentsSubitemPoints(studentsSubitemPointsList, responseIdentifier, responseIdentifierArray);
+    double correctChoicePoints = itemController.GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
+    (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
+    (_, List<string> studentsAnswers, string studentsAnswerCorrectLabel, string studentsAnswerPointsLabel) = itemController.LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, 
+        deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints, true, itemController.GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray));
 }
 
 @functions{
@@ -78,12 +73,13 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<div class="itemtemplate-to-testtemplate"><a asp-area="" asp-controller="Home" asp-action="TestTemplate"
-asp-route-testNameIdentifier="@testNameIdentifier"
-asp-route-testNumberIdentifier="@testNumberIdentifier"
->Zpět</a></div>
+<div class="managesolveditem-to-managesolvedtest"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
+                    asp-route-testNameIdentifier="@testNameIdentifier"
+                    asp-route-testNumberIdentifier="@testNumberIdentifier"
+                    asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
+                    asp-route-studentIdentifier="@studentIdentifier">Zpět</a></div>
 
-<div class="itemtemplate-item-parameters">
+<div class="managesolveditem-item-parameters">
     Parametry otázky:
     <br>
     Jmenný identifikátor otázky: @itemNameIdentifier
@@ -99,7 +95,7 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     @{
         if(questionPointsDetermined)
         {
-            <label>Počet bodů za otázku: @questionPoints</label>
+            <label>Počet bodů za otázku: @studentsSubitemPointsList.Sum() / @questionPoints</label>
         }
         else
         {
@@ -108,9 +104,8 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     }
 </div>
 
-<form method="POST" class="itemtemplate-subitem-list">
+<form method="POST" class="managesolveditem-subitem-list">
     <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
     <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
     <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
     Výběr podotázky:
@@ -144,7 +139,7 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     <input class="itemtemplate-select-subitem-button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
 </form>
 
-<div class="itemtemplate-selected-subitem">
+<div class="managesolveditem-selected-subitem">
     Parametry podotázky:
     <br>
     Typ otázky: @itemController.GetQuestionTypeText(@questionType)
@@ -154,7 +149,7 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
     @{
         if(@subquestionPointsDetermined)
         {
-            <label>Počet bodů za podotázku: @subquestionPoints</label>
+            <label>Počet bodů za podotázku: @studentsSubitemPoints / @subquestionPoints</label>
         }
         else
         {
@@ -252,80 +247,21 @@ asp-route-testNumberIdentifier="@testNumberIdentifier"
                 <br>
             }
         }
-
     }
 </div>
 
-<form method="POST" class="itemtemplate-points">
-    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
-    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
-    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
-    <input type="hidden" value="@responseIdentifier" name="selectedSubitem">
-    <input type="hidden" value="@correctChoicePoints" name="correctChoicePoints">
-    <input type="hidden" value="@correctChoiceArray" name="correctChoiceArray">
-    <input type="hidden" value="@questionType" name="questionType">
-
+<div class="managesolveditem-students-answers">
+    Vaše odpověď:
+    <br>
     @{
-        if(viewBagSubquestionPoints != null)
+        foreach (string answer in studentsAnswers)
         {
-            if(errorText != null)
-            {
-                <label>@errorText</label>
-            }
-            else
-            {
-                <label>Počet bodů u podotázky byl úspešně změněn.</label>
-            }
+            <label>@answer</label>
             <br>
         }
+        <label>@studentsAnswerCorrectLabel</label>
+        <br>
+        <label>@studentsAnswerPointsLabel</label>
+        <br>
     }
-    Upravit otázku
-    <br>
-    <label for="subquestion-points">Počet bodů za podotázku:</label>
-    <input type="text" id="subquestion-points" name="subquestionPoints" value="@subquestionPoints">
-    <br>
-    <label for="subquestion-correct-choice-points">Počet bodů za správnou volbu:</label>
-    <input type="text" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@correctChoicePoints">
-    <br>
-    Počet bodů za špatnou volbu:
-    <br>
-    @{
-        double recommendedWrongChoicePoints = correctChoicePoints * (-1);
-        bool recommendedWrongChoicePointsChecked;
-        double selectedWrongChoicePoints = 0;
-        if(wrongChoicePoints == correctChoicePoints * (-1) || wrongChoicePoints == 0)
-        {
-            recommendedWrongChoicePointsChecked = true;
-        }
-        else
-        {
-            recommendedWrongChoicePointsChecked = false;
-            selectedWrongChoicePoints = wrongChoicePoints;
-        }
-    <input type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked">
-    <label for="wrongChoicePoints_recommended">Doporučený</label>
-    <input type="text" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints">
-    <br>
-    <input type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)">
-    <label for="wrongChoicePoints_selected">Vlastní</label>
-    <input type="text" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints">
-
-    if(!subquestionPointsDetermined)
-    {
-        <script>
-        document.getElementById("wrongChoicePoints_recommended").disabled = true;
-        document.getElementById("wrongChoicePoints_recommended").disabled = true;
-        document.getElementById("wrongChoicePoints_selected").disabled = true;
-        document.getElementById("wrongChoicePoints_selected").disabled = true;
-        document.getElementById("subquestion-points").value = "N/A";
-        document.getElementById("wrongChoicePoints_recommended_points").value = "N/A";
-        document.getElementById("wrongChoicePoints_selected_points").value = "N/A";
-        document.getElementById("subquestion-correct-choice-points").value = "N/A";
-        document.getElementById("wrongChoicePoints_selected_points").disabled = true;
-        </script>
-    }
-    }
-    <br>
-    <input type="submit" value="Uložit">
-</form>
+</div>

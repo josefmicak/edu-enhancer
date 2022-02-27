@@ -1,0 +1,177 @@
+﻿@{
+    ViewData["Title"] = "Seznam testů studenta " + @ViewBag.studentIdentifier;
+    string studentIdentifier = @ViewBag.studentIdentifier;
+    (string login, string name, string email) = LoadStudent(studentIdentifier);
+    {}
+    List<(string, string, string, string)> studentTestList = LoadTests(studentIdentifier);
+}
+
+@functions{
+
+    public (string, string, string) LoadStudent(string studentIdentifier)
+    {
+        string login = "", name = "", surname = "", email = "";
+
+        foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\testtakers"))
+        {
+            string extension = ExtractFileExtension(file);
+            if (extension == "rdf")
+            {
+                IGraph g = new Graph();
+                FileLoader.Load(g, file);
+                IEnumerable<INode> nodes = g.AllNodes;
+                int nodeLine = 1;
+                foreach (INode node in nodes)
+                {
+                    if (nodeLine == 1)
+                    {
+                        string[] splitByHashtag = node.ToString().Split("#");
+                        if (splitByHashtag[1] != studentIdentifier)
+                        {
+                            break;
+                        }
+                    }
+                    if (nodeLine == 3)
+                    {
+                        login = node.ToString();
+                    }
+                    else if (nodeLine == 9)
+                    {
+                        name = node.ToString();
+                    }
+                    else if (nodeLine == 11)
+                    {
+                        surname = node.ToString();
+                    }
+                    else if (nodeLine == 13)
+                    {
+                        email = node.ToString();
+                    }
+                    nodeLine++;
+                }
+            }
+        }
+        return (login, name + " " + surname, email);
+    }
+
+    public string ExtractFileExtension(string file)
+    {
+        string[] fileSplitByDot = file.Split(@".");
+        return fileSplitByDot[fileSplitByDot.Length - 1];
+    }
+
+    public List<(string, string, string, string)> LoadTests(string studentIdentifier)
+    {
+        List<(string, string, string, string)> studentTestList = new List<(string, string, string, string)>();
+
+        foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\results"))
+        {
+            foreach (var file in Directory.GetFiles(directory))
+            {
+                string extension = ExtractFileExtension(file);
+                if (extension == "xml")
+                {
+                    bool addTest = false;
+                    string timeStamp = "";
+                    string testStudentIdentifier = "";
+
+                    XmlReader xmlReader = XmlReader.Create(file);
+                    while (xmlReader.Read())
+                    {
+                        if (xmlReader.Name == "context")
+                        {
+                            testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                            if (testStudentIdentifier == studentIdentifier)
+                            {
+                                addTest = true;
+                            }
+                        }
+
+                        if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                        {
+                            timeStamp = xmlReader.GetAttribute("datestamp");
+                        }
+                    }
+
+                    if(addTest)
+                    {
+                        string[] deliveryExecutionIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+                        string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
+                        string testNameIdentifier = ExtractFileName(directory).ToString();
+                        string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
+                        studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
+                    }
+                }
+            }
+        }
+
+        return studentTestList;
+    }
+
+    public string ExtractFileName(string file)
+    {
+        string[] fileSplitBySlash = file.Split(@"\");
+        return fileSplitBySlash[fileSplitBySlash.Length - 1];
+    }
+
+    public string ExtractFileNameWithoutExtension(string file)
+    {
+        string[] fileSplitBySlash = file.Split(@"\");
+        string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
+        return fileSplitByDot[fileSplitByDot.Length - 2];
+    }
+
+    public string GetTestNumberIdentifier(string testNameIdentifier)
+    {
+        string testNumberIdentifier = "";
+        foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests"))
+        {
+            testNumberIdentifier = ExtractFileName(directory);
+        }
+        return testNumberIdentifier;
+    }
+
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="browsesolvedtestlist-to-studentmenu"><a asp-area="" asp-controller="Home" asp-action="StudentMenu">Zpět</a></div>
+
+<div class="browsesolvedtestlist-student-parameters">
+    Student:
+    <br>
+    Jméno: @name
+    <br>
+    Login: @login
+    <br>
+    Email: @email
+    <br>
+    Počet vyplněných testů: @studentTestList.Count
+</div>
+
+<div class="browsesolvedtestlist-testlist">
+    Seznam výsledků:
+    <table class="table table-bordered">
+        <tr>
+            <th>Jmenný identifikátor testu</th>
+            <th>Časová známka</th>
+            <th>Zobrazit test</th>
+        </tr>
+        @{
+            int i = 0;
+            foreach ((string, string, string, string) studentTest in studentTestList)
+            {
+                <tr>
+                    <td>@studentTest.Item1</td>
+                    <td>@studentTest.Item2</td>
+                    <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
+                    asp-route-studentIdentifier="@studentIdentifier"
+                    asp-route-deliveryExecutionIdentifier="@studentTest.Item3"
+                    asp-route-testNameIdentifier="@studentTest.Item1"
+                    asp-route-testNumberIdentifier="@studentTest.Item4"
+                    >Zobrazit test</a></button></td>
+                </tr>
+                i++;
+            }
+        }
+    </table>
+</div>

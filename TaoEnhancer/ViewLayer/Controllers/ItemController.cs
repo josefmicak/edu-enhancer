@@ -36,7 +36,7 @@ namespace ViewLayer.Controllers
                             (responseIdentifierTemp, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray, testNameIdentifier, itemNumberIdentifier);
                             double correctChoicePoints = GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
                             (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
-                            (double studentsSubitemPoints, _, _, _) = LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints);
+                            (double studentsSubitemPoints, _, _, _) = LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints, false, GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray));
                             { }
                             resultPointsToText += ";" + studentsSubitemPoints.ToString();
                         }
@@ -114,10 +114,7 @@ namespace ViewLayer.Controllers
                 {
                     if (includesImage.Count == 0)
                     {
-                        /*             string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
-                                     WriteMessageToUser(errorMessage);
-                        TODO:WriteMessageToUser(errorMessage);
-                         */
+                        errorMessageNumber = 2;
                     }
                     else
                     {
@@ -305,7 +302,7 @@ namespace ViewLayer.Controllers
                     questionType = 8;//Typ otázky = volná odpověď; odpověď je předem daná
                 }
 
-                string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");//TODO: Smazat?
+                string responseIdentifier = xmlReader.GetAttribute("responseIdentifier");
                 if (responseIdentifier != null && responseIdentifier != responseIdentifierCorrection)
                 {
                     xmlReader.Skip();
@@ -394,7 +391,6 @@ namespace ViewLayer.Controllers
                                             }
                                             if (innerReaderNext.Name == "div")
                                             {
-                                                //   questionText = innerReaderNext.ReadString();
                                                 using (var innerReaderNextNext = innerReader.ReadSubtree())
                                                 {
                                                     while (innerReaderNextNext.Read())
@@ -840,7 +836,8 @@ namespace ViewLayer.Controllers
             return choiceIdentifierValueTuple;
         }
 
-        public (double, List<string>, string, string) LoadDeliveryExecutionInfo(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string responseIdentifier, string deliveryExecutionIdentifier, List<string> correctAnswerArray, List<string> correctChoiceArray, int subquestionPoints, bool recommendedWrongChoicePoints, double selectedWrongChoicePoints)
+        public (double, List<string>, string, string) LoadDeliveryExecutionInfo(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string responseIdentifier, string deliveryExecutionIdentifier, 
+            List<string> correctAnswerArray, List<string> correctChoiceArray, int subquestionPoints, bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, bool deliveryExecutionFileCreated, int currentSubitemIndex)
         {
             List<string> studentsAnswers = new List<string>();
             string subitemIdentifier = responseIdentifier;
@@ -1012,37 +1009,32 @@ namespace ViewLayer.Controllers
             studentsReceivedPoints = 0;
             StudentsAnswerCorrectness isAnswerCorrect = StudentsAnswerCorrectness.Correct;
 
-            if (false)
+            if (deliveryExecutionFileCreated)
             {
-                //TODO: if (deliveryExecutionFileCreated)
-                /* if (importedReceivedPointsArray.Count == 0)
-                 {
-                     double totalReceivedPoints = 0;
-                     string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
-                     for (int i = 0; i < resultsFileLines.Length; i++)
-                     {
-                         string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
-                         if (splitResultsFileLineBySemicolon[0] == itemNameIdentifier)
-                         {
-                             for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
-                             {
-                                 importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
-                                 totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
-                             }
-                         }
-                     }
+                List<double> importedReceivedPointsArray = new List<double>();
+                double totalReceivedPoints = 0;
+                string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                for (int i = 0; i < resultsFileLines.Length; i++)
+                {
+                    string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
+                    if (splitResultsFileLineBySemicolon[0] == itemNameIdentifier)
+                    {
+                        for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
+                        {
+                            importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
+                            totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
+                        }
+                    }
+                }
 
-                     QuestionPointsLabel.Text = "Počet bodů za otázku: " + totalReceivedPoints + "/" + questionPoints.ToString();
-                 }
-
-                 if (amountOfSubitems > 1)
-                 {
-                     studentsReceivedPoints = importedReceivedPointsArray[SubitemCB.SelectedIndex];
-                 }
-                 else
-                 {
-                     studentsReceivedPoints = importedReceivedPointsArray[0];
-                 }*/
+                if (amountOfSubitems > 1)
+                {
+                    studentsReceivedPoints = importedReceivedPointsArray[currentSubitemIndex];
+                }
+                else
+                {
+                    studentsReceivedPoints = importedReceivedPointsArray[0];
+                }
             }
             else
             {
@@ -1317,8 +1309,6 @@ namespace ViewLayer.Controllers
             {
                 string itemPointsText = subitemIdentifier + ";N/A;N/A" + Environment.NewLine;
                 File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
-                /*SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
-                SubquestionPointsTB.Text = "N/A";*/
             }
             else
             {
@@ -1334,56 +1324,19 @@ namespace ViewLayer.Controllers
                     if (splitImportedFileLineBySemicolon[0] == subitemIdentifier)
                     {
                         itemRecordExists = true;
-                      /*  SubquestionPointsTB.Text = splitImportedFileLineBySemicolon[1];
-                        SubquestionPointsLabel.Text = "Počet bodů za podotázku: " + splitImportedFileLineBySemicolon[1];*/
-
-                        if (splitImportedFileLineBySemicolon[1] != "N/A")
-                        {
-              //              subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
-                        }
 
                         if (splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
                         {
-                           /* RecommendedWrongChoicePointsRB.Enabled = true;
-                            SelectedWrongChoicePointsRB.Enabled = true;
-                            if (SelectedWrongChoicePointsRB.Checked)
-                            {
-                                SelectedWrongChoicePointsTB.ReadOnly = false;
-                            }*/
                             if (double.Parse(splitImportedFileLineBySemicolon[2]) == correctChoicePoints * (-1))
                             {
-                      /*          RecommendedWrongChoicePointsTB.Text = splitImportedFileLineBySemicolon[2];
-                                RecommendedWrongChoicePointsRB.Checked = true;*/
                                 recommendedWrongChoicePoints = true;
                             }
                             else
                             {
-                         /*       RecommendedWrongChoicePointsTB.Text = (GetCorrectChoicePoints() * (-1)).ToString();
-                                SelectedWrongChoicePointsTB.Text = splitImportedFileLineBySemicolon[2];
-                                SelectedWrongChoicePointsRB.Checked = true;*/
                                 recommendedWrongChoicePoints = false;
                                 selectedWrongChoicePoints = double.Parse(splitImportedFileLineBySemicolon[2]);
                             }
                         }
-                        else
-                        {
-                       /*     RecommendedWrongChoicePointsTB.Text = "";
-                            SelectedWrongChoicePointsTB.Text = "";
-                            SelectedWrongChoicePointsRB.Enabled = false;
-                            RecommendedWrongChoicePointsRB.Enabled = false;
-                            RecommendedWrongChoicePointsRB.Checked = true;
-                            SelectedWrongChoicePointsTB.ReadOnly = true;*/
-                        }
-
-                      /*  if (questionType == 5)
-                        {
-                            RecommendedWrongChoicePointsTB.Text = "";
-                            SelectedWrongChoicePointsTB.Text = "";
-                            SelectedWrongChoicePointsRB.Enabled = false;
-                            RecommendedWrongChoicePointsRB.Enabled = false;
-                            RecommendedWrongChoicePointsRB.Checked = true;
-                            SelectedWrongChoicePointsTB.ReadOnly = true;
-                        }*/
                     }
 
                     if (splitImportedFileLineBySemicolon[1] != "N/A")
@@ -1392,28 +1345,13 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-           /*     if (!itemRecordExists)
+                if (!itemRecordExists)
                 {
-                    SubquestionPointsLabel.Text = "Počet bodů za podotázku: N/A";
-                    SubquestionPointsTB.Text = "N/A";
                     string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
                     File.AppendAllText(itemParentPath + "\\Points.txt", itemPointsText);
-                }*/
+                }
             }
 
-          /*  if (!fileExists || !itemRecordExists || undecidedPointsInFile)
-            {
-                QuestionPointsLabel.Text = "Počet bodů za otázku: N/A";
-                CorrectChoicePointsTB.Text = "N/A";
-            }
-            else
-            {
-                if (!isTeacherReviewingDeliveryResult && isTeacherEditingQuestion)
-                {
-                    QuestionPointsLabel.Text = "Počet bodů za otázku: " + questionPoints.ToString();
-                    CorrectChoicePointsTB.Text = GetCorrectChoicePoints().ToString();
-                }
-            }*/
             return (recommendedWrongChoicePoints, selectedWrongChoicePoints, questionPoints, questionPointsDetermined);
         }
 

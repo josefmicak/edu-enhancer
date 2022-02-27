@@ -5,15 +5,22 @@
     string itemNameIdentifier = @ViewBag.itemNameIdentifier;
     string itemNumberIdentifier = @ViewBag.itemNumberIdentifier;
     string deliveryExecutionIdentifier = @ViewBag.deliveryExecutionIdentifier;
+    string studentIdentifier = @ViewBag.studentIdentifier;
+    string viewBagStudentsPoints = @ViewBag.studentsPoints;
+    string errorText = @ViewBag.errorText;
 
     ItemController itemController = new ItemController();
-    // (string itemNameIdentifier, string itemNumberIdentifier, string title, string label, int amountOfSubitems) = itemController.LoadItemParameters(@ViewBag.testNameIdentifier, @ViewBag.itemNameIdentifier, @ViewBag.itemNumberIdentifier);
 
     (_, _, string title, string label, int amountOfSubitems) = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
     {}
     (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) = itemController.GetResponseIdentifiers(amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
 
     if(errorMessageNumber == 1)
+    {
+        string errorMessage = "Chyba: otázka obsahuje více než jeden obrázek.";
+        WriteMessageToUser(errorMessage);
+    }
+    else if (errorMessageNumber == 2)
     {
         string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
         WriteMessageToUser(errorMessage);
@@ -34,14 +41,14 @@
     List<string> correctAnswerArray = new List<string>();
     int questionType = 0, subquestionPoints = 0;
     double wrongChoicePoints = 0;
-    responseIdentifier = @ViewBag.selectedSubitem;
     (responseIdentifierTemp, questionType, subquestionPoints, subquestionPointsDetermined, wrongChoicePoints, imageSource, subitemText, possibleAnswerArray, subquestionArray, correctChoiceArray, correctAnswerArray) = itemController.LoadSubitemParameters(responseIdentifier, amountOfSubitems, responseIdentifierArray, responseValueArray, testNameIdentifier, itemNumberIdentifier);
     {}
     List<double> studentsSubitemPointsList = itemController.GetStudentsSubitemPointsList(testNameIdentifier, itemNameIdentifier, deliveryExecutionIdentifier);
     double studentsSubitemPoints = itemController.GetStudentsSubitemPoints(studentsSubitemPointsList, responseIdentifier, responseIdentifierArray);
     double correctChoicePoints = itemController.GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
     (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
-    (_, List<string> studentsAnswers, string studentsAnswerCorrectLabel, string studentsAnswerPointsLabel) = itemController.LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints);
+    (_, List<string> studentsAnswers, string studentsAnswerCorrectLabel, string studentsAnswerPointsLabel) = itemController.LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, 
+        deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints, true, itemController.GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray));
 
 }
 
@@ -68,10 +75,10 @@
 <h1>@ViewData["Title"]</h1>
 
 <div class="managesolveditem-to-managesolvedtest"><a asp-area="" asp-controller="Home" asp-action="ManageSolvedTest"
-                    asp-route-testNameIdentifier="@ViewBag.testNameIdentifier"
-                    asp-route-testNumberIdentifier="@ViewBag.testNumberIdentifier"
-                    asp-route-deliveryExecutionIdentifier="@ViewBag.deliveryExecutionIdentifier"
-                    asp-route-studentIdentifier="@ViewBag.studentIdentifier">Zpět</a></div>
+                    asp-route-testNameIdentifier="@testNameIdentifier"
+                    asp-route-testNumberIdentifier="@testNumberIdentifier"
+                    asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
+                    asp-route-studentIdentifier="@studentIdentifier">Zpět</a></div>
 
 <div class="managesolveditem-item-parameters">
     Parametry otázky:
@@ -89,12 +96,10 @@
     @{
         if(questionPointsDetermined)
         {
-            Debug.WriteLine("label - true");
             <label>Počet bodů za otázku: @studentsSubitemPointsList.Sum() / @questionPoints</label>
         }
         else
         {
-            Debug.WriteLine("label - false");
             <label>Počet bodů za otázku: N/A</label>
         }
     }
@@ -276,11 +281,11 @@
     <input type="hidden" value="@amountOfSubitems" name="amountOfSubitems">
     <input type="hidden" value="@questionPointsDeterminedToInt" name="questionPointsDetermined">
     @{
-        if(@ViewBag.studentsPoints != null)
+        if(viewBagStudentsPoints != null)
         {
-            if(@ViewBag.ErrorText != null)
+            if(errorText != null)
             {
-                <label>@ViewBag.ErrorText</label>
+                <label>@errorText</label>
             }
             else
             {
