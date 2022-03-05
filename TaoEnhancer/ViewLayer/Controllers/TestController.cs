@@ -6,6 +6,83 @@ namespace ViewLayer.Controllers
 {
     public class TestController
     {
+        public string GetTestNumberIdentifier(string testNameIdentifier)
+        {
+            string testNumberIdentifier = "";
+            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests"))
+            {
+                testNumberIdentifier = ExtractFileName(directory);
+            }
+            return testNumberIdentifier;
+        }
+
+        public string ExtractFileExtension(string file)
+        {
+            string[] fileSplitByDot = file.Split(@".");
+            return fileSplitByDot[fileSplitByDot.Length - 1];
+        }
+
+        public List<(string, string, string, string)> LoadTests(string studentIdentifier)
+        {
+            List<(string, string, string, string)> studentTestList = new List<(string, string, string, string)>();
+
+            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\results"))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    string extension = ExtractFileExtension(file);
+                    if (extension == "xml")
+                    {
+                        bool addTest = false;
+                        string timeStamp = "";
+                        string testStudentIdentifier = "";
+
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.Name == "context")
+                            {
+                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                                if (testStudentIdentifier == studentIdentifier)
+                                {
+                                    addTest = true;
+                                }
+                            }
+
+                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            {
+                                timeStamp = xmlReader.GetAttribute("datestamp");
+                            }
+                        }
+
+                        if (addTest)
+                        {
+                            string[] deliveryExecutionIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+                            string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
+                            string testNameIdentifier = ExtractFileName(directory).ToString();
+                            string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
+                            studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
+                        }
+                    }
+                }
+            }
+
+            return studentTestList;
+        }
+
+        public string ExtractFileName(string file)
+        {
+            string[] fileSplitBySlash = file.Split(@"\");
+            return fileSplitBySlash[fileSplitBySlash.Length - 1];
+        }
+
+        public string ExtractFileNameWithoutExtension(string file)
+        {
+            string[] fileSplitBySlash = file.Split(@"\");
+            string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
+            return fileSplitByDot[fileSplitByDot.Length - 2];
+        }
+
         public (string, string, string, int) LoadTestParameters(string testNameIdentifier, string testNumberIdentifier)
         {
             string title = "";

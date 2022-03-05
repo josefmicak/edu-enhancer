@@ -5,6 +5,17 @@ namespace ViewLayer.Controllers
 {
     public class ItemController
     {
+        private readonly IFilePathManager _filePathManager;
+        public ItemController()
+        {
+
+        }
+
+        public ItemController(IFilePathManager filePathManager)
+        {
+            _filePathManager = filePathManager;
+        }
+
         public int CreateNewResultPointsFile(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, List<(string, string, string, string, int, bool)> itemParameters)
         {
             string resultPointsToText = "";
@@ -269,7 +280,7 @@ namespace ViewLayer.Controllers
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
                     {
-                        questionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
+                        questionType = 10;//Typ otázky = posuvník; jedna správná odpověď (číslo)
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
@@ -286,6 +297,10 @@ namespace ViewLayer.Controllers
                         {
                             questionType = 9;
                         }
+                    }
+                    else
+                    {
+                        questionType = 9;
                     }
                 }
 
@@ -486,16 +501,20 @@ namespace ViewLayer.Controllers
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
-                    if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
+                  /*  if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
                     {
                         subquestionPointsDetermined = false;
-                    }
+                    }*/
 
                     if (splitImportedFileLineBySemicolon[0] == responseIdentifier)
                     {
                         if (splitImportedFileLineBySemicolon[1] != "N/A")
                         {
                             subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
+                        }
+                        else
+                        {
+                            subquestionPointsDetermined = false;
                         }
 
                         if (splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
@@ -1384,7 +1403,7 @@ namespace ViewLayer.Controllers
             string title = "";
             string label = "";
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(_filePathManager.GetFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)

@@ -5,15 +5,15 @@
         private string pIdentifier;
         private string pNavigationMode;
         private string pSubmissionMode;
-        private TestSessionControl pSessionControl;
-        private TestTimeLimits pTimeLimits;
+        private TestSessionControl? pSessionControl;
+        private TestTimeLimits? pTimeLimits;
         private List<TestSection> pSections = new List<TestSection>();
 
         public string Identifier { get { return pIdentifier; } }
         public string NavigationMode { get { return pNavigationMode; } }
         public string SubmissionMode { get { return pSubmissionMode; } }
-        public TestSessionControl SessionControl { set { pSessionControl = value; } get { return pSessionControl; } }
-        public TestTimeLimits TimeLimits { set { pTimeLimits = value; } get { return pTimeLimits; } }
+        public TestSessionControl? SessionControl { set { pSessionControl = value; } get { return pSessionControl; } }
+        public TestTimeLimits? TimeLimits { set { pTimeLimits = value; } get { return pTimeLimits; } }
         public List<TestSection> Sections { set { pSections = value; } get { return pSections; } }
 
         public TestPart(string aIdentifier, string aNavigationMode, string aSubmissionMode)

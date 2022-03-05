@@ -1,16 +1,17 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using Common.Class;
+using DataLayer;
 
-TestLoader testLoader = new TestLoader();
-foreach (Test test in testLoader.LoadTests())
+TestData testData = new TestData();
+foreach (Test test in testData.Load())
 {
     Console.WriteLine(test + "\n");
 }
 
-TestTakerLoader testTakerLoader = new TestTakerLoader();
-foreach (TestTaker testTaker in testTakerLoader.LoadTestTakers())
+StudentData studentData = new StudentData();
+foreach (Student student in studentData.Load())
 {
-    Console.WriteLine(testTaker + "\n");
+    Console.WriteLine(student + "\n");
 }
 
 Console.ReadKey();
@@ -20,36 +21,30 @@ TODO:
     - ItemForm.cs
         - LoadItemInfo();
         - LoadDeliveryExecutionInfo();
-        - StudentsAnswerCorrectness
-        - LoadDeliveryExecutionInfoToEdit();
-        - GetResultsFilePoints();
-        - ResetLoadedItemInfo();
         - GetAmountOfSubItems();
-        - GetCorrectChoicePoints();
         - GetResponseIdentifiers();
         - SubitemImages();
         - GetQuestionType();
-        - SetQuestionTypeLabel();
         - GetChoiceIdentifierValues();
         - FillPossibleAnswerLabel();
         - FillCorrectAnswerLabel();
-        - GetChoiceValue();
         - LoadGapIdentifiers();
         - LoadQuestionPoints();
         - SaveQuestionPoints();
-        - ...
+        - SaveStudentsPoints();
     + ItemsForm.cs
-        + LoadItems();
+        + LoadItems(); - itemData.Load()
     - ResultForm.cs
-        + LoadStudent();
+        + LoadStudent(); - studentData.Load()
         - LoadResults();
-        + GetTestIdentifiers();
-        + DoTestPointsExist();
+        + GetTestIdentifiers(); - testData.GetTestNumberIdentifier()
+        + DoTestPointsExist(); - test.PointsDetermined
     + StudentForm.cs
-        + LoadTestTakers();
+        + LoadTestTakers(); - studentData.Load()
     - TestForm.cs
         - LoadResultInfo();
     + TestsForm.cs
+        + LoadTests(); - testData.Load()
 -------------------------------------------------
     - ItemLoader.cs
     - Item.cs

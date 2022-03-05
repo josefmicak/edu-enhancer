@@ -8,8 +8,8 @@
         private string pTitle;
         private bool pVisible;
         private bool pKeepTogether;
-        private TestSessionControl pSessionControl;
-        private TestTimeLimits pTimeLimits;
+        private TestSessionControl? pSessionControl;
+        private TestTimeLimits? pTimeLimits;
         private List<TestItem> pItems = new List<TestItem>();
 
         public string Identifier { get { return pIdentifier; } }
@@ -18,8 +18,8 @@
         public string Title { get { return pTitle; } }
         public bool Visible { get { return pVisible; } }
         public bool KeepTogether { get { return pKeepTogether; } }
-        public TestSessionControl SessionControl { set { pSessionControl = value; } get { return pSessionControl; } }
-        public TestTimeLimits TimeLimits { set { pTimeLimits = value; } get { return pTimeLimits; } }
+        public TestSessionControl? SessionControl { set { pSessionControl = value; } get { return pSessionControl; } }
+        public TestTimeLimits? TimeLimits { set { pTimeLimits = value; } get { return pTimeLimits; } }
         public List<TestItem> Items { set { pItems = value; } get { return pItems; } }
 
         public TestSection(string aIdentifier, bool aRequired, bool aFixed, string aTitle, bool aVisible, bool aKeepTogether)
