@@ -5,17 +5,6 @@ namespace ViewLayer.Controllers
 {
     public class ItemController
     {
-        private readonly IFilePathManager _filePathManager;
-        public ItemController()
-        {
-
-        }
-
-        public ItemController(IFilePathManager filePathManager)
-        {
-            _filePathManager = filePathManager;
-        }
-
         public int CreateNewResultPointsFile(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, List<(string, string, string, string, int, bool)> itemParameters)
         {
             string resultPointsToText = "";
@@ -33,7 +22,7 @@ namespace ViewLayer.Controllers
                         resultPointsToText += itemNameIdentifier;
                         int amountOfSubitems = GetAmountOfSubitems(testNameIdentifier, itemNumberIdentifier);
                         (List<string> responseIdentifierArray, List<string> responseValueArray, errorMessageNumber) = GetResponseIdentifiers(amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
-                        foreach(string responseIdentifier in responseIdentifierArray)
+                        foreach (string responseIdentifier in responseIdentifierArray)
                         {
                             string responseIdentifierTemp = responseIdentifier;
                             string imageSource = "", subitemText = "";
@@ -280,7 +269,7 @@ namespace ViewLayer.Controllers
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
                     {
-                        questionType = 10;//Typ otázky = posuvník; jedna správná odpověď (číslo)
+                        questionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
                     }
                     else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                     {
@@ -501,20 +490,16 @@ namespace ViewLayer.Controllers
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
-                  /*  if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
+                    if (splitImportedFileLineBySemicolon[1] == "N/A" || importedFileLines.Length != amountOfSubitems)
                     {
                         subquestionPointsDetermined = false;
-                    }*/
+                    }
 
                     if (splitImportedFileLineBySemicolon[0] == responseIdentifier)
                     {
                         if (splitImportedFileLineBySemicolon[1] != "N/A")
                         {
                             subquestionPoints = int.Parse(splitImportedFileLineBySemicolon[1]);
-                        }
-                        else
-                        {
-                            subquestionPointsDetermined = false;
                         }
 
                         if (splitImportedFileLineBySemicolon.Length > 2 && splitImportedFileLineBySemicolon[2] != "N/A")
@@ -855,7 +840,7 @@ namespace ViewLayer.Controllers
             return choiceIdentifierValueTuple;
         }
 
-        public (double, List<string>, string, string) LoadDeliveryExecutionInfo(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string responseIdentifier, string deliveryExecutionIdentifier, 
+        public (double, List<string>, string, string) LoadDeliveryExecutionInfo(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string responseIdentifier, string deliveryExecutionIdentifier,
             List<string> correctAnswerArray, List<string> correctChoiceArray, int subquestionPoints, bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, bool deliveryExecutionFileCreated, int currentSubitemIndex)
         {
             List<string> studentsAnswers = new List<string>();
@@ -936,6 +921,8 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
+
+            studentsAnswers.RemoveRange(studentsAnswers.Count / 2, studentsAnswers.Count / 2);
 
             for (int i = 0; i < studentsAnswers.Count; i++)
             {
@@ -1248,20 +1235,23 @@ namespace ViewLayer.Controllers
             }
 
             string studentsAnswerCorrectLabel = "";
-            switch (isAnswerCorrect)
+            if (subquestionPoints != 0)
             {
-                case StudentsAnswerCorrectness.Correct:
-                    studentsAnswerCorrectLabel = "Správná odpověď.";
-                    break;
-                case StudentsAnswerCorrectness.PartiallyCorrect:
-                    studentsAnswerCorrectLabel = "Částečně správná odpověď.";
-                    break;
-                case StudentsAnswerCorrectness.Incorrect:
-                    studentsAnswerCorrectLabel = "Nesprávná odpověď.";
-                    break;
-                case StudentsAnswerCorrectness.Unknown:
-                    studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně.";
-                    break;
+                switch (isAnswerCorrect)
+                {
+                    case StudentsAnswerCorrectness.Correct:
+                        studentsAnswerCorrectLabel = "Správná odpověď.";
+                        break;
+                    case StudentsAnswerCorrectness.PartiallyCorrect:
+                        studentsAnswerCorrectLabel = "Částečně správná odpověď.";
+                        break;
+                    case StudentsAnswerCorrectness.Incorrect:
+                        studentsAnswerCorrectLabel = "Nesprávná odpověď.";
+                        break;
+                    case StudentsAnswerCorrectness.Unknown:
+                        studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně.";
+                        break;
+                }
             }
 
             if ((studentsReceivedPoints < 0 && !NegativePoints(testNameIdentifier, testNumberIdentifier)) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))
@@ -1389,11 +1379,11 @@ namespace ViewLayer.Controllers
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
                     break;
             }
-           /* if (correctChoicePoints == Double.PositiveInfinity || correctChoicePoints == Double.NegativeInfinity)
-            {
-                string errorMessage = "Chyba: otázka nemá pravděpodobně zadané žádné správné odpovědi.\nIdentifikátory otázky: " + @ViewBag.itemNameIdentifier + ", " + @ViewBag.itemNumberIdentifier;
-                WriteMessageToUser(errorMessage);
-            }*/
+            /* if (correctChoicePoints == Double.PositiveInfinity || correctChoicePoints == Double.NegativeInfinity)
+             {
+                 string errorMessage = "Chyba: otázka nemá pravděpodobně zadané žádné správné odpovědi.\nIdentifikátory otázky: " + @ViewBag.itemNameIdentifier + ", " + @ViewBag.itemNumberIdentifier;
+                 WriteMessageToUser(errorMessage);
+             }*/
 
             return Math.Round(correctChoicePoints, 2);
         }
@@ -1403,7 +1393,7 @@ namespace ViewLayer.Controllers
             string title = "";
             string label = "";
 
-            XmlReader xmlReader = XmlReader.Create(_filePathManager.GetFilePath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
@@ -1472,9 +1462,9 @@ namespace ViewLayer.Controllers
 
         public double GetStudentsSubitemPoints(List<double> studentsSubitemPointsList, string responseIdentifier, List<string> responseIdentifierArray)
         {
-            for(int i = 0; i < responseIdentifierArray.Count; i++)
+            for (int i = 0; i < responseIdentifierArray.Count; i++)
             {
-                if(responseIdentifierArray[i] == responseIdentifier)
+                if (responseIdentifierArray[i] == responseIdentifier)
                 {
                     return studentsSubitemPointsList[i];
                 }
@@ -1486,7 +1476,7 @@ namespace ViewLayer.Controllers
         {
             List<string> studentsAnswers = new List<string>();
             string[] splitStudentsAnswersByNewLine = studentsAnswersToLabel.Split("\n");
-            for (int i = 0; i < splitStudentsAnswersByNewLine.Length;i++)
+            for (int i = 0; i < splitStudentsAnswersByNewLine.Length; i++)
             {
                 studentsAnswers.Add(splitStudentsAnswersByNewLine[i]);
             }

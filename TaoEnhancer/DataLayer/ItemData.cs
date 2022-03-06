@@ -575,7 +575,7 @@ namespace DataLayer
             bool subquestionPointsDetermined = true;
             double wrongChoicePoints = 0;
 
-            if(File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
+            if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
             {
                 string[] importedFileLines = LoadPoints(testNameIdentifier, itemNumberIdentifier);
                 for (int i = 0; i < importedFileLines.Length; i++)
@@ -610,7 +610,7 @@ namespace DataLayer
                 string fileLinesToExport = responseIdentifier + ";N/A;N/A" + Environment.NewLine;
                 SavePoints(testNameIdentifier, itemNumberIdentifier, fileLinesToExport);
             }
-            
+
             return (subquestionPoints, subquestionPointsDetermined, wrongChoicePoints);
         }
 
@@ -1352,10 +1352,10 @@ namespace DataLayer
             {
                 studentsAnswerPointsLabel = "Počet bodů za odpověď: " + studentsReceivedPoints + "/" + subquestionPoints;
             }*/
-            /*studentsReceivedPointsArray.Add(Math.Round(studentsReceivedPoints, 2));
-            List<string> studentsAnswersList = ConvertStudentsAnswersToList(studentsAnswerToLabel);
-            return (Math.Round(studentsReceivedPoints, 2), studentsAnswersList, studentsAnswerCorrectLabel, studentsAnswerPointsLabel);
-        }*/
+        /*studentsReceivedPointsArray.Add(Math.Round(studentsReceivedPoints, 2));
+        List<string> studentsAnswersList = ConvertStudentsAnswersToList(studentsAnswerToLabel);
+        return (Math.Round(studentsReceivedPoints, 2), studentsAnswersList, studentsAnswerCorrectLabel, studentsAnswerPointsLabel);
+    }*/
 
         private List<string> LoadGapIdentifiers(string testNameIdentifier, string itemNumberIdentifier)
         {
@@ -1381,7 +1381,7 @@ namespace DataLayer
             bool recommendedWrongChoicePoints = false;
             double selectedWrongChoicePoints = 0;
             int questionPoints = 0;
-            if(File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
+            if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
             {
                 string[] importedFileLines = LoadPoints(testNameIdentifier, itemNumberIdentifier);
                 for (int i = 0; i < importedFileLines.Length; i++)
@@ -1548,7 +1548,7 @@ namespace DataLayer
         public List<Item> Load(string testNameIdentifier)
         {
             Test test = testData.Load(testNameIdentifier);
-            
+
             return Load(testNameIdentifier, test);
         }
 
@@ -1595,7 +1595,7 @@ namespace DataLayer
                             xmlReader.GetAttribute("label"),
                             bool.Parse(xmlReader.GetAttribute("adaptive")),
                             bool.Parse(xmlReader.GetAttribute("timeDependent"))//,
-                            //xmlReader.GetAttribute("toolName"),
+                                                                               //xmlReader.GetAttribute("toolName"),
                             /*xmlReader.GetAttribute("toolVersion")*/,
                             File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)),
                             itemNumberIdentifier);
@@ -1603,7 +1603,7 @@ namespace DataLayer
                     }
                 }
 
-                if(xmlReader.Name == "responseDeclaration")
+                if (xmlReader.Name == "responseDeclaration")
                 {
                     if (xmlReader.NodeType != XmlNodeType.EndElement)
                     {

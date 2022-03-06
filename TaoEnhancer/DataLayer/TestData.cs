@@ -180,7 +180,7 @@ namespace DataLayer
 
         public Test Load(string testNameIdentifier)
         {
-            if(Directory.Exists(Settings.GetPath()))
+            if (Directory.Exists(Settings.GetPath()))
             {
                 if (Directory.Exists(Settings.GetTestsPath()))
                 {
