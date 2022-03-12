@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Common
+@{
     ViewData["Title"] = "Správa zadání testů";
 }
 
@@ -9,7 +10,7 @@
         List<(string, string, string)> testIdentifiers = new List<(string, string, string)>();
         string subDirectory = "";
 
-        foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests"))
+        foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
         {
             string[] splitDirectoryBySlash = directory.Split(@"\");
             string nameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();

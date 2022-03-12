@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using Common;
+using System.Xml;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 
@@ -11,22 +12,50 @@ namespace ViewLayer.Controllers
             string title = "";
             int amountOfItems = 0;
 
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier + "\\test.xml");
-            while (xmlReader.Read())
+            if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
             {
-                if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                if (Directory.Exists(Settings.GetTestTestsPath(testNameIdentifier)))
                 {
-                    if (xmlReader.HasAttributes)
+                    if (Directory.Exists(Settings.GetTestTestPath(testNameIdentifier, testNumberIdentifier)))
                     {
-                        title = xmlReader.GetAttribute("title");
-                    }
-                }
+                        if (File.Exists(Settings.GetTestTestFilePath(testNameIdentifier, testNumberIdentifier)))
+                        {
+                            try
+                            {
+                                XmlReader xmlReader = XmlReader.Create(Settings.GetTestTestFilePath(testNameIdentifier, testNumberIdentifier));
+                                while (xmlReader.Read())
+                                {
+                                    if (xmlReader.Name == "assessmentTest" && xmlReader.NodeType != XmlNodeType.EndElement)
+                                    {
+                                        if (xmlReader.GetAttribute("title") != null)
+                                        {
+                                            title = xmlReader.GetAttribute("title");
+                                        }
+                                        else
+                                        {
+                                            throw Exceptions.XmlAttributeNotFound;
+                                        }
+                                    }
 
-                if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
-                {
-                    amountOfItems++;
+                                    if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
+                                    {
+                                        amountOfItems++;
+                                    }
+                                }
+                            }
+                            catch (XmlException e) when (e.Message == "Root element is missing.")
+                            {
+                                throw Exceptions.XmlRootElementMissing;
+                            }
+                        }
+                        else { throw Exceptions.TestTestFilePathNotFoundException; }
+                    }
+                    else { throw Exceptions.TestTestPathNotFoundException; }
                 }
+                else { throw Exceptions.TestTestsPathNotFoundException; }
             }
+            else { throw Exceptions.TestPathNotFoundException; }
+
             return (testNameIdentifier, testNumberIdentifier, title, amountOfItems);
         }
 
@@ -38,7 +67,7 @@ namespace ViewLayer.Controllers
             string itemNameIdentifier = "";
             string itemNumberIdentifier = "";
 
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier + "\\test.xml");
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestTestFilePath(testNameIdentifier, testNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "testPart")
@@ -76,7 +105,7 @@ namespace ViewLayer.Controllers
             bool testPointsDetermined = false;
             int testPoints = 0;
 
-            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\"))
+            foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
@@ -135,33 +164,53 @@ namespace ViewLayer.Controllers
         {
             bool questionPointsDetermined = false;
             int questionPoints = 0;
-            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdenfifier;
 
-            foreach (var file in Directory.GetFiles(itemParentPath))
+            if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
             {
-                if (Path.GetFileName(file) == "Points.txt")
+                if (Directory.Exists(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
-                    questionPointsDetermined = true;
-                }
-            }
-
-            if (questionPointsDetermined)
-            {
-                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
-                for (int j = 0; j < importedFileLines.Length; j++)
-                {
-                    string[] splitImportedFileLineBySemicolon = importedFileLines[j].Split(";");
-
-                    if (splitImportedFileLineBySemicolon[1] == "N/A")
+                    if (Directory.Exists(Settings.GetTestItemPath(testNameIdentifier, itemNumberIdenfifier)))
                     {
-                        questionPointsDetermined = false;
+                        if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdenfifier)))
+                        {
+                            string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdenfifier));
+                            foreach (string importedFileLine in importedFileLines)
+                            {
+                                if (importedFileLine.Contains(';'))
+                                {
+                                    string[] splitImportedFileLineBySemicolon = importedFileLine.Split(";");
+
+                                    if (splitImportedFileLineBySemicolon[0].Length > 0)
+                                    {
+                                        try
+                                        {
+                                            questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
+                                            questionPointsDetermined = true;
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            questionPointsDetermined = false;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw Exceptions.DataIdentifierNotFound;
+                                    }
+                                }
+                                else
+                                {
+                                    questionPointsDetermined = false;
+                                    break;
+                                }
+                            }
+                        }
                     }
-                    else
-                    {
-                        questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
-                    }
+                    else { throw Exceptions.TestItemPathNotFoundException; }
                 }
+                else { throw Exceptions.TestItemsPathNotFoundException; }
             }
+            else { throw Exceptions.TestPathNotFoundException; }
 
             return (questionPoints, questionPointsDetermined);
         }
@@ -187,16 +236,12 @@ namespace ViewLayer.Controllers
         {
             ItemController itemController = new ItemController();
             List<(double, bool)> studentsAnswerPoints = new List<(double, bool)>();
-            string resultsFilePath = "C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt";
             bool resultsFileExists = false;
             int errorMessageNumber = 0;
 
-            foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\results\\" + testNameIdentifier))
+            if(File.Exists(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier)))
             {
-                if (file == resultsFilePath)
-                {
-                    resultsFileExists = true;
-                }
+                resultsFileExists = true;
             }
 
             if (!resultsFileExists)
@@ -207,7 +252,7 @@ namespace ViewLayer.Controllers
             {
                 string itemNameIdentifier = itemParameters[i].Item2;
                 double totalReceivedPoints = 0;
-                string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                 for (int j = 0; j < resultsFileLines.Length; j++)
                 {
                     string[] splitResultsFileLineBySemicolon = resultsFileLines[j].Split(";");
@@ -241,7 +286,7 @@ namespace ViewLayer.Controllers
             string resultTimestamp = "";
             string login = "", name = "", surname = "";
 
-            XmlReader xmlReader = XmlReader.Create("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + ".xml");
+            XmlReader xmlReader = XmlReader.Create(Settings.GetResultFilePath(testNameIdentifier, deliveryExecutionIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "testResult" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -250,7 +295,7 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            foreach (var file in Directory.GetFiles("C:\\xampp\\exported\\testtakers"))
+            foreach (var file in Directory.GetFiles(Settings.GetStudentsPath()))
             {
                 string extension = Path.GetExtension(file);
                 if (extension == ".rdf")
@@ -293,27 +338,23 @@ namespace ViewLayer.Controllers
         {
             bool negativePointsInTest = false;
             bool fileExists = false;
-            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
-
-            foreach (var file in Directory.GetFiles(testPath))
+            
+            if(File.Exists(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier)))
             {
-                if (Path.GetFileName(file) == "NegativePoints.txt")
+                fileExists = true;
+                string[] negativePointsFileLines = File.ReadAllLines(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier));
+                for (int i = 0; i < negativePointsFileLines.Length; i++)
                 {
-                    fileExists = true;
-                    string[] negativePointsFileLines = File.ReadAllLines(file);
-                    for (int i = 0; i < negativePointsFileLines.Length; i++)
+                    if (negativePointsFileLines[0] == "1")
                     {
-                        if (negativePointsFileLines[0] == "1")
-                        {
-                            negativePointsInTest = true;
-                        }
+                        negativePointsInTest = true;
                     }
                 }
             }
 
             if (!fileExists)
             {
-                File.WriteAllText(testPath + "\\NegativePoints.txt", "0");
+                File.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), "0");
             }
 
             return negativePointsInTest;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common;
+using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using ViewLayer.Models;
 
@@ -58,7 +59,6 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier, string negativePoints)
         {
-            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
             string textToWrite = "";
             ViewBag.testNameIdentifier = testNameIdentifier;
             ViewBag.testNumberIdentifier = testNumberIdentifier;
@@ -72,7 +72,7 @@ namespace ViewLayer.Controllers
             {
                 textToWrite = "1";
             }
-            System.IO.File.WriteAllText(testPath + "\\NegativePoints.txt", textToWrite);
+            System.IO.File.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), textToWrite);
             return View();
         }
 
@@ -154,9 +154,7 @@ namespace ViewLayer.Controllers
 
                         if (performSave)
                         {
-                            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
-
-                            string[] importedFileLines = System.IO.File.ReadAllLines(itemParentPath + "\\Points.txt");
+                            string[] importedFileLines = System.IO.File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                             string fileLinesToExport = "";
                             for (int i = 0; i < importedFileLines.Length; i++)
                             {
@@ -167,7 +165,7 @@ namespace ViewLayer.Controllers
                                 }
                                 fileLinesToExport += importedFileLines[i] + "\n";
                             }
-                            System.IO.File.WriteAllText(itemParentPath + "\\Points.txt", fileLinesToExport);
+                            System.IO.File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), fileLinesToExport);
                         }
                     }
                 }
@@ -213,7 +211,7 @@ namespace ViewLayer.Controllers
                 else
                 {
                     double studentsPointsToSave = double.Parse(studentsPoints);
-                    string[] resultsFileLines = System.IO.File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                    string[] resultsFileLines = System.IO.File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                     string resultsToFile = "";
 
                     for (int i = 0; i < resultsFileLines.Length; i++)
@@ -251,7 +249,7 @@ namespace ViewLayer.Controllers
                         }
                     }
 
-                    System.IO.File.WriteAllText("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt", resultsToFile);
+                    System.IO.File.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultsToFile);
                 }
             }
             return View();

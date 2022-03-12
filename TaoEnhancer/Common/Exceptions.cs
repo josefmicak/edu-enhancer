@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Common
 {
     public static class Exceptions
     {
+        // Filesystem exceptions
         public static DirectoryNotFoundException PathNotFoundException { get { return new DirectoryNotFoundException("Kořenová složka nebyla nalezena!"); } }
         public static DirectoryNotFoundException ResultsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s výsledky testů nebyla nalezena!"); } }
         public static DirectoryNotFoundException ResultPathNotFoundException { get { return new DirectoryNotFoundException("Složka s výsledky testu nebyla nalezena!"); } }
@@ -26,5 +28,12 @@ namespace Common
         public static DirectoryNotFoundException TestTestPathNotFoundException { get { return new DirectoryNotFoundException("Složka s konkrétním testem nebyla nalezena!"); } }
         public static FileNotFoundException TestTestFilePathNotFoundException { get { return new FileNotFoundException("XML soubor s konkrétním testem nebyl nalezen!"); } }
         public static FileNotFoundException TestTestNegativePointsDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor se zápornými body konkrétního testu nebyl nalezen!"); } }
+
+        // XML exceptions
+        public static XmlException XmlRootElementMissing { get { return new XmlException("Chybí kořenový element!"); } }
+        public static XmlException XmlAttributeNotFound { get { return new XmlException("Atribut nebyl nalezen!"); } }
+
+        // Data exceptions
+        public static Exception DataIdentifierNotFound { get { return new Exception("Identifier nebyl nalezen!"); } }
     }
 }

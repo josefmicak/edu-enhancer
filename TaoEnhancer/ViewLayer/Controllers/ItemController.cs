@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using System.Diagnostics;
+using Common;
 
 namespace ViewLayer.Controllers
 {
@@ -8,14 +9,13 @@ namespace ViewLayer.Controllers
         public int CreateNewResultPointsFile(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, List<(string, string, string, string, int, bool)> itemParameters)
         {
             string resultPointsToText = "";
-            string resultsFilePath = "C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt";
             int errorMessageNumber = 0;
 
             for (int i = 0; i < itemParameters.Count; i++)
             {
                 string itemNumberIdentifier = itemParameters[i].Item1;
                 string itemNameIdentifier = itemParameters[i].Item2;
-                foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\"))
+                foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
                     if (itemNumberIdentifier == ExtractFileName(directory))
                     {
@@ -44,7 +44,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            File.WriteAllText(resultsFilePath, resultPointsToText);
+            File.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultPointsToText);
             return errorMessageNumber;
         }
 
@@ -57,7 +57,7 @@ namespace ViewLayer.Controllers
         public int GetAmountOfSubitems(string testNameIdentifier, string itemNumberIdentifier)
         {
             int amountOfSubitems = 0;
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -66,11 +66,6 @@ namespace ViewLayer.Controllers
                 }
             }
             return amountOfSubitems;
-        }
-
-        public string GetSpecificItemPath(string testNameIdentifier, string itemNumberIdentifier)
-        {
-            return "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier + "\\qti.xml";
         }
 
         public (List<string>, List<string>, int) GetResponseIdentifiers(int amountOfSubitems, string testNameIdentifier, string itemNumberIdentifier)
@@ -82,7 +77,7 @@ namespace ViewLayer.Controllers
             int errorMessageNumber = 0;
             List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -196,7 +191,7 @@ namespace ViewLayer.Controllers
 
                 if (includesImage[i].Item1 && includesImage[i].Item2 == "")
                 {
-                    XmlReader xmlReaderCorrection = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+                    XmlReader xmlReaderCorrection = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                     while (xmlReaderCorrection.Read())
                     {
                         if (xmlReaderCorrection.Name == "choiceInteraction")
@@ -230,7 +225,7 @@ namespace ViewLayer.Controllers
         public int GetQuestionType(string responseIdentifierCorrection, int amountOfSubitems, string testNameIdentifier, string itemNumberIdentifier)
         {
             bool unknownQuestionType = false;
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
             int questionType = 0;
 
@@ -331,7 +326,7 @@ namespace ViewLayer.Controllers
         {
             int amountOfFaultyQuestions = 0;
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "gapMatchInteraction")
@@ -366,7 +361,7 @@ namespace ViewLayer.Controllers
             string questionText = "";
             string imageSource = "";
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element)
@@ -468,25 +463,21 @@ namespace ViewLayer.Controllers
             int subquestionPoints = 0;
             bool subquestionPointsDetermined = true;
             double wrongChoicePoints = 0;
-            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
 
-            foreach (var file in Directory.GetFiles(itemParentPath))
+            if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
             {
-                if (ExtractFileName(file) == "Points.txt")
-                {
-                    fileExists = true;
-                }
+                fileExists = true;
             }
 
             if (!fileExists)
             {
                 subquestionPointsDetermined = false;
                 string itemPointsText = responseIdentifier + ";N/A;N/A" + Environment.NewLine;
-                File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
+                File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
             }
             else
             {
-                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
@@ -519,7 +510,7 @@ namespace ViewLayer.Controllers
             List<string> subquestionArray = new List<string>();
             int simpleMatchSetCounter = 0;
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (amountOfSubitems > 1)
@@ -573,7 +564,7 @@ namespace ViewLayer.Controllers
 
             if (questionType == 7)
             {
-                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                 while (xmlReaderInlineChoice.Read())
                 {
                     if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
@@ -608,7 +599,7 @@ namespace ViewLayer.Controllers
             List<string> correctAnswerArray = new List<string>();
             //string correctAnswer = "";
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (amountOfSubitems > 1 && xmlReader.Name == "responseDeclaration")
@@ -736,7 +727,7 @@ namespace ViewLayer.Controllers
             {
                 correctAnswerArray.Clear();
 
-                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                 while (xmlReaderInlineChoice.Read())
                 {
                     if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
@@ -796,7 +787,7 @@ namespace ViewLayer.Controllers
 
             if (questionType == 7)
             {
-                XmlReader xmlReaderInlineChoice = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+                XmlReader xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                 while (xmlReaderInlineChoice.Read())
                 {
                     if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
@@ -825,7 +816,7 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+                XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                 while (xmlReader.Read())
                 {
                     if (xmlReader.Name == "simpleChoice" || xmlReader.Name == "simpleAssociableChoice" || xmlReader.Name == "gapText")
@@ -852,7 +843,7 @@ namespace ViewLayer.Controllers
             double studentsReceivedPoints = 0;
             List<double> studentsReceivedPointsArray = new List<double>();
 
-            foreach (var directory in Directory.GetDirectories("C:\\xampp\\exported\\results"))
+            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
@@ -1019,7 +1010,7 @@ namespace ViewLayer.Controllers
             {
                 List<double> importedReceivedPointsArray = new List<double>();
                 double totalReceivedPoints = 0;
-                string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+                string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                 for (int i = 0; i < resultsFileLines.Length; i++)
                 {
                     string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
@@ -1284,7 +1275,7 @@ namespace ViewLayer.Controllers
         public List<string> LoadGapIdentifiers(string testNameIdentifier, string itemNumberIdentifier)
         {
             List<string> gapIdentifiers = new List<string>();
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "gap")
@@ -1305,23 +1296,19 @@ namespace ViewLayer.Controllers
             bool recommendedWrongChoicePoints = false;
             double selectedWrongChoicePoints = 0;
             int questionPoints = 0;
-            string itemParentPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\items\\" + itemNumberIdentifier;
-            foreach (var file in Directory.GetFiles(itemParentPath))
+            if(File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
             {
-                if (Path.GetFileName(file) == "Points.txt")
-                {
-                    fileExists = true;
-                }
+                fileExists = true;
             }
 
             if (!fileExists)
             {
                 string itemPointsText = subitemIdentifier + ";N/A;N/A" + Environment.NewLine;
-                File.WriteAllText(itemParentPath + "\\Points.txt", itemPointsText);
+                File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
             }
             else
             {
-                string[] importedFileLines = File.ReadAllLines(itemParentPath + "\\Points.txt");
+                string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
@@ -1357,7 +1344,7 @@ namespace ViewLayer.Controllers
                 if (!itemRecordExists)
                 {
                     string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
-                    File.AppendAllText(itemParentPath + "\\Points.txt", itemPointsText);
+                    File.AppendAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
                 }
             }
 
@@ -1392,21 +1379,67 @@ namespace ViewLayer.Controllers
         {
             string title = "";
             string label = "";
+            int amountOfSubitems = 0;
 
-            XmlReader xmlReader = XmlReader.Create(GetSpecificItemPath(testNameIdentifier, itemNumberIdentifier));
-            while (xmlReader.Read())
+            if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
             {
-                if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
+                if (Directory.Exists(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
-                    if (xmlReader.Name == "assessmentItem")
+                    if (Directory.Exists(Settings.GetTestItemPath(testNameIdentifier, itemNumberIdentifier)))
                     {
-                        title = xmlReader.GetAttribute("title");
-                        label = xmlReader.GetAttribute("label");
-                    }
-                }
-            }
+                        if (File.Exists(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier)))
+                        {
+                            try
+                            {
+                                XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
+                                while (xmlReader.Read())
+                                {
+                                    if (xmlReader.Name == "assessmentItem" && xmlReader.NodeType == XmlNodeType.Element)
+                                    {
+                                        bool allAttributesFound = true;
 
-            int amountOfSubitems = GetAmountOfSubitems(testNameIdentifier, itemNumberIdentifier);
+                                        if (xmlReader.GetAttribute("title") != null)
+                                        {
+                                            title = xmlReader.GetAttribute("title");
+                                        }
+                                        else
+                                        {
+                                            allAttributesFound = false;
+                                        }
+
+                                        if (xmlReader.GetAttribute("label") != null)
+                                        {
+                                            label = xmlReader.GetAttribute("label");
+                                        }
+                                        else
+                                        {
+                                            allAttributesFound = false;
+                                        }
+
+                                        if(!allAttributesFound)
+                                        {
+                                            throw Exceptions.XmlAttributeNotFound;
+                                        }
+                                    }
+
+                                    if(xmlReader.Name == "responseDeclaration" && xmlReader.NodeType == XmlNodeType.Element)
+                                    {
+                                        amountOfSubitems++;
+                                    }
+                                }
+                            }
+                            catch (XmlException e) when (e.Message == "Root element is missing.")
+                            {
+                                throw Exceptions.XmlRootElementMissing;
+                            }
+                        }
+                        else { throw Exceptions.TestItemFilePathNotFoundException; }
+                    }
+                    else { throw Exceptions.TestItemPathNotFoundException; }
+                }
+                else { throw Exceptions.TestItemsPathNotFoundException; }
+            }
+            else { throw Exceptions.TestPathNotFoundException; }
 
             return (itemNameIdentifier, itemNumberIdentifier, title, label, amountOfSubitems);
         }
@@ -1445,7 +1478,7 @@ namespace ViewLayer.Controllers
         public List<double> GetStudentsSubitemPointsList(string testNameIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier)
         {
             List<double> studentsSubitemPoints = new List<double>();
-            string[] resultsFileLines = File.ReadAllLines("C:\\xampp\\exported\\results\\" + testNameIdentifier + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt");
+            string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
             for (int i = 0; i < resultsFileLines.Length; i++)
             {
                 string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
@@ -1498,7 +1531,7 @@ namespace ViewLayer.Controllers
         public bool NegativePoints(string testNameIdentifier, string testNumberIdentifier)
         {
             bool negativePoints = false;
-            string testPath = "C:\\xampp\\exported\\tests\\" + testNameIdentifier + "\\tests\\" + testNumberIdentifier;
+            string testPath = Settings.GetTestTestPath(testNameIdentifier, testNumberIdentifier);
             foreach (var file in Directory.GetFiles(testPath))
             {
                 if (Path.GetFileName(file) == "NegativePoints.txt")
