@@ -35,43 +35,47 @@
 
                     string[] attemptIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
                     string login = "", name = "", surname = "", email = "";
+                    bool studentFound = false;
 
-                    foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
-                    {
-                        string studentFileExtension = ExtractFileExtension(studentFile);
-                        if (studentFileExtension == "rdf")
+                    foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
+                        if(!studentFound)
                         {
-                            IGraph g = new Graph();
-                            FileLoader.Load(g, studentFile);
-                            IEnumerable<INode> nodes = g.AllNodes;
-                            int nodeLine = 1;
-                            foreach (INode node in nodes)
+                            XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
+                            while (xmlReaderStudent.Read())
                             {
-                                if (nodeLine == 1)
+                                if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                                 {
-                                    string[] splitByHashtag = node.ToString().Split("#");
-                                    if(splitByHashtag[1] != testStudentIdentifier)
+                                    string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
+                                    if(testStudentIdentifier == xmlReaderStudentIdentifier)
                                     {
+                                        studentFound = true;
+                                    }
+                                    else
+                                    {
+                                        studentFound = false;
                                         break;
                                     }
                                 }
-                                if (nodeLine == 3)
+
+                                if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                                 {
-                                    login = node.ToString();
+                                    login = xmlReaderStudent.ReadInnerXml();
                                 }
-                                else if (nodeLine == 9)
+
+                                if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                                 {
-                                    name = node.ToString();
+                                    name = xmlReaderStudent.ReadInnerXml();
                                 }
-                                else if (nodeLine == 11)
+
+                                if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                                 {
-                                    surname = node.ToString();
+                                    surname = xmlReaderStudent.ReadInnerXml();
                                 }
-                                else if (nodeLine == 13)
+
+                                if (xmlReaderStudent.Name == "ns0:userMail" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                                 {
-                                    email = node.ToString();
+                                    email = xmlReaderStudent.ReadInnerXml();
                                 }
-                                nodeLine++;
                             }
                         }
                     }
@@ -114,51 +118,71 @@
     }
 }
 
-<h1>@ViewData["Title"]</h1>
-
-<div class="managesolvedtestlist-to-teachermenu"><a asp-area="" asp-controller="Home" asp-action="TeacherMenu">Zpět</a></div>
-
-<div class="managesolvedtestlist-student-details">
-    Student:
-    <br>
-    <div id="managesolvedtestlist-student-name">Jméno studenta:</div>
-    <br>
-    <div id="managesolvedtestlist-student-login">Login studenta:</div>
-    <br>
-    <div id="managesolvedtestlist-student-email">Email studenta:</div>
-</div>
-
-<div class="managesolvedtestlist-table">
-    <table class="table table-bordered">
-        <tr>
-            <th>Jmenný identifikátor testu</th>
-            <th>Časová známka</th>
-            <th>Identifikátor pokusu</th>
-            <th>Login studenta</th>
-            <th>Detaily</th>
-            <th>Správa testu</th>
-        </tr>
-        @{
-            int i = 0;
-            foreach ((string, string, string, string, string, string, string) solvedTest in LoadSolvedTests())
-            {
-                <tr>
-                    <td>@solvedTest.Item1</td>
-                    <td>@solvedTest.Item2</td>
-                    <td>@solvedTest.Item3</td>
-                    <td>@solvedTest.Item4</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadSolvedTestDetails('@solvedTest.Item4', '@solvedTest.Item5', '@solvedTest.Item6')">Detaily</button></td>
-                    <td><button class="manage-test-button"><a 
-                        asp-area="" 
-                        asp-controller="Home" 
-                        asp-action="ManageSolvedTest" 
-                        asp-route-testNameIdentifier="@solvedTest.Item1" 
-                        asp-route-testNumberIdentifier="@GetTestNumberIdentifier(@solvedTest.Item1)"
-                        asp-route-deliveryExecutionIdentifier="@solvedTest.Item3"
-                        asp-route-studentIdentifier="@solvedTest.Item7">Správa testu</a></button></td>
-                </tr>
-                i++;
-            }
-        }
-    </table>
-</div>
+<header class="header">
+    <div class="header-content content-width">
+        <div>
+            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
+        </div>
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section">
+        <article class="article">
+            <h2 class="article-title title">Student</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor testu</th>
+                        <th>Časová známka</th>
+                        <th>Identifikátor pokusu</th>
+                        <th>Login studenta</th>
+                        <th>Detaily</th>
+                        <th>Správa testu</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string, string, string, string, string) solvedTest in LoadSolvedTests())
+                        {
+                            <tr>
+                                <td>@solvedTest.Item1</td>
+                                <td>@solvedTest.Item2</td>
+                                <td>@solvedTest.Item3</td>
+                                <td>@solvedTest.Item4</td>
+                                <td><button class="button" title="Detaily" id="@i" onclick="loadSolvedTestDetails('@solvedTest.Item4', '@solvedTest.Item5', '@solvedTest.Item6')">Detaily</button></td>
+                                <td><a class="button" title="Správa testu"
+                                    asp-area="" 
+                                    asp-controller="Home" 
+                                    asp-action="ManageSolvedTest" 
+                                    asp-route-testNameIdentifier="@solvedTest.Item1" 
+                                    asp-route-testNumberIdentifier="@GetTestNumberIdentifier(@solvedTest.Item1)"
+                                    asp-route-deliveryExecutionIdentifier="@solvedTest.Item3"
+                                    asp-route-studentIdentifier="@solvedTest.Item7">Správa testu</a></td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Student</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jméno studenta</th>
+                        <td id="managesolvedtestlist-student-name"></td>
+                    </tr>
+                    <tr>
+                        <th>Login studenta</th>
+                        <td id="managesolvedtestlist-student-login"></td>
+                    </tr>
+                    <tr>
+                        <th>Email studenta</th>
+                        <td id="managesolvedtestlist-student-email"></td>
+                    </tr>
+                </table>
+            </div>
+        </article>
+    </section>
+</main>

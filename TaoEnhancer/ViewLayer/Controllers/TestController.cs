@@ -1,7 +1,5 @@
 ﻿using Common;
 using System.Xml;
-using VDS.RDF;
-using VDS.RDF.Parsing;
 
 namespace ViewLayer.Controllers
 {
@@ -285,6 +283,7 @@ namespace ViewLayer.Controllers
         {
             string resultTimestamp = "";
             string login = "", name = "", surname = "";
+            bool studentFound = false;
 
             XmlReader xmlReader = XmlReader.Create(Settings.GetResultFilePath(testNameIdentifier, deliveryExecutionIdentifier));
             while (xmlReader.Read())
@@ -295,38 +294,41 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            foreach (var file in Directory.GetFiles(Settings.GetStudentsPath()))
+            foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
             {
-                string extension = Path.GetExtension(file);
-                if (extension == ".rdf")
+                if (!studentFound)
                 {
-                    IGraph g = new Graph();
-                    FileLoader.Load(g, file);
-                    IEnumerable<INode> nodes = g.AllNodes;
-                    int nodeLine = 1;
-                    foreach (INode node in nodes)
+                    XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
+                    while (xmlReaderStudent.Read())
                     {
-                        if (nodeLine == 1)
+                        if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                         {
-                            string[] splitByHashtag = node.ToString().Split("#");
-                            if (splitByHashtag[1] != studentIdentifier)
+                            string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
+                            if (studentIdentifier == xmlReaderStudentIdentifier)
                             {
+                                studentFound = true;
+                            }
+                            else
+                            {
+                                studentFound = false;
                                 break;
                             }
                         }
-                        if (nodeLine == 3)
+
+                        if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                         {
-                            login = node.ToString();
+                            login = xmlReaderStudent.ReadInnerXml();
                         }
-                        else if (nodeLine == 9)
+
+                        if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                         {
-                            name = node.ToString();
+                            name = xmlReaderStudent.ReadInnerXml();
                         }
-                        else if (nodeLine == 11)
+
+                        if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                         {
-                            surname = node.ToString();
+                            surname = xmlReaderStudent.ReadInnerXml();
                         }
-                        nodeLine++;
                     }
                 }
             }

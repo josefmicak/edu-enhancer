@@ -4,23 +4,26 @@
 // Write your JavaScript code.
 
 function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points, questionPointsDetermined) {
-    document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = "Číselný identifikátor otázky: " + itemNumberIdentifier;
-    document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = "Jmenný identifikátor otázky: " + itemNameIdentifier;
-    document.getElementById("testtemplate-item-title").innerHTML = "Nadpis otázky: " + title;
-    document.getElementById("testtemplate-item-label").innerHTML = "Označení otázky: " + label;
+    document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = itemNumberIdentifier;
+    document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = itemNameIdentifier;
+    document.getElementById("testtemplate-item-title").innerHTML = title;
+    document.getElementById("testtemplate-item-label").innerHTML = label;
 
     if (questionPointsDetermined == "False") {
         points = "N/A";
     }
-    document.getElementById("testtemplate-item-points").innerHTML = "Počet bodů za otázku: " + points;
+    document.getElementById("testtemplate-item-points").innerHTML = points;
 }
 
-function disableSelectedWrongChoicePointsTextbox() {
-    document.getElementById("wrongChoicePoints_selected_points").disabled = true
+function updatePointsInputs(correctAnswerCount) {
+    const subquestionPoints = document.getElementById("subquestion-points").value;
+    const subquestionPointsPerAnswer = subquestionPoints / (correctAnswerCount <= 0 ? 1 : correctAnswerCount);
+    document.getElementById("subquestion-correct-choice-points").value = subquestionPointsPerAnswer;
+    document.getElementById("wrongChoicePoints_recommended_points").value = subquestionPointsPerAnswer * (-1);
 }
 
 function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
-    document.getElementById("managesolvedtestlist-student-name").innerHTML = "Jméno studenta: " + studentName;
-    document.getElementById("managesolvedtestlist-student-login").innerHTML = "Login studenta: " + studentLogin;
-    document.getElementById("managesolvedtestlist-student-email").innerHTML = "Email studenta: " + studentEmail;
+    document.getElementById("managesolvedtestlist-student-name").innerHTML = studentName;
+    document.getElementById("managesolvedtestlist-student-login").innerHTML = studentLogin;
+    document.getElementById("managesolvedtestlist-student-email").innerHTML = studentEmail;
 }

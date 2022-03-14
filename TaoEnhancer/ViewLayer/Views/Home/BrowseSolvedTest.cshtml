@@ -35,104 +35,153 @@
 
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="browsesolvedtest-to-browsesolvedtestlist"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
-    asp-route-studentIdentifier="@studentIdentifier">Zpět</a></div>
-
-<!--Taddy jsou prozatím třídy z managesolvedtest, protože ty pozice jsou stejné-->
-<div class="managesolvedtest-test-parameters">
-    Parametry testu:
-    <br>
-    Jmenný identifikátor testu: @testNameIdentifier
-    <br>
-    Číselný identifikátor testu: @testNumberIdentifier
-    <br>
-    Nadpis: @title
-    <br>
-    Počet otázek: @amountOfItems
-    <br>
-    @{
-        if(@testPointsDetermined)
-        {
-            <label>Počet bodů: @totalStudentsPoints / @testPoints</label>
-        }
-        else
-        {
-            <label>Počet bodů: N/A</label>
-        }
-    }
-</div>
-
-<div class="testtemplate-questionlist">
-    Seznam otázek:
-    <table class="table table-bordered">
-        <tr>
-            <th>Část testu</th>
-            <th>Sekce testu</th>
-            <th>Jmenný identifikátor otázky</th>
-            <th>Číselný identifikátor otázky</th>
-            <th>Počet bodů</th>
-            <th>Detaily otázky</th>
-            <th>Správa otázky</th>
-        </tr>
-        @{
-            int i = 0;
-            foreach ((string, string, string, string) question in questionList)
-            {
-                string points = "";
-                if(!(@itemParameters[i].Item6))
-                {
-                    points = "N/A";
-                }
-                else
-                {
-                    points = @studentsPoints[i].Item1 + "/" + @itemParameters[i].Item5.ToString();
-                }
-                <tr>
-                    <td>@question.Item1</td>
-                    <td>@question.Item2</td>
-                    <td>@question.Item3</td>
-                    <td>@question.Item4</td>
-                    <td>@points</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@studentsPoints[i].Item1 / @itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
-                    <td><button class="managesolvedtest-to-managesolveditem"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedItem"
-                    asp-route-testNameIdentifier="@testNameIdentifier"
-                    asp-route-testNumberIdentifier="@testNumberIdentifier"
-                    asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
-                    asp-route-itemNameIdentifier="@itemParameters[i].Item2"
-                    asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
-                    asp-route-studentIdentifier="@studentIdentifier">Správa otázky</a></button></td>
-                </tr>
-                i++;
-            }
-        }
-    </table>
-</div>
-
-<div class="testtemplate-item-parameters">
-    Parametry otázky:
-    <br>
-    <div id="testtemplate-item-itemnumberidentifier">Číselný identifikátor otázky:</div>
-    <br>
-    <div id="testtemplate-item-itemnameidentifier">Jmenný identifikátor otázky:</div>
-    <br>
-    <div id="testtemplate-item-title">Nadpis otázky:</div>
-    <br>
-    <div id="testtemplate-item-label">Označení otázky:</div>
-    <br>
-    <div id="testtemplate-item-points">Počet bodů za otázku:</div>
-</div>
-
-<div class="managesolvedtest-result-parameters">
-    Parametry testu:
-    <br>
-    Identifikátor pokusu: @resultIdentifier
-    <br>
-    Časová známka: @resultTimestamp
-    <br>
-    Jméno studenta: @studentName
-    <br>
-    Login studenta: @studentLogin
-    <br>
-    Identifikátor studenta: @studentIdentifier
-</div>
+<header class="header">
+    <div class="header-content content-width">
+        <div>
+            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
+            asp-route-studentIdentifier="@studentIdentifier">arrow_back</a>
+        </div>
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section">
+        <article class="article">
+            <h2 class="article-title title">Parametry testu</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor testu</th>
+                        <td>@testNameIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Číselný identifikátor testu</th>
+                        <td>@testNumberIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Nadpis</th>
+                        <td>@title</td>
+                    </tr>
+                    <tr>
+                        <th>Počet otázek</th>
+                        <td>@amountOfItems</td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů</th>
+                        @{
+                            if(@testPointsDetermined)
+                            {
+                                <td>@totalStudentsPoints / @testPoints</td>
+                            }
+                            else
+                            {
+                                <td>N/A</td>
+                            }
+                        }
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Seznam otázek</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Část testu</th>
+                        <th>Sekce testu</th>
+                        <th>Jmenný identifikátor otázky</th>
+                        <th>Číselný identifikátor otázky</th>
+                        <th>Počet bodů</th>
+                        <th>Detaily otázky</th>
+                        <th>Správa otázky</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string, string) question in questionList)
+                        {
+                            string points = "";
+                            if(!(@itemParameters[i].Item6))
+                            {
+                                points = "N/A";
+                            }
+                            else
+                            {
+                                points = @studentsPoints[i].Item1 + "/" + @itemParameters[i].Item5.ToString();
+                            }
+                            <tr>
+                                <td>@question.Item1</td>
+                                <td>@question.Item2</td>
+                                <td>@question.Item3</td>
+                                <td>@question.Item4</td>
+                                <td>@points</td>
+                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@studentsPoints[i].Item1 / @itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
+                                <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="BrowseSolvedItem"
+                                asp-route-testNameIdentifier="@testNameIdentifier"
+                                asp-route-testNumberIdentifier="@testNumberIdentifier"
+                                asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
+                                asp-route-itemNameIdentifier="@itemParameters[i].Item2"
+                                asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
+                                asp-route-studentIdentifier="@studentIdentifier">Správa otázky</a></td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Parametry otázky</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Číselný identifikátor otázky</th>
+                        <td id="testtemplate-item-itemnumberidentifier"></td>
+                    </tr>
+                    <tr>
+                        <th>Jmenný identifikátor otázky</th>
+                        <td id="testtemplate-item-itemnameidentifier"></td>
+                    </tr>
+                    <tr>
+                        <th>Nadpis otázky</th>
+                        <td id="testtemplate-item-title"></td>
+                    </tr>
+                    <tr>
+                        <th>Označení otázky</th>
+                        <td id="testtemplate-item-label"></td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů za otázku</th>
+                        <td id="testtemplate-item-points"></td>
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Parametry pokusu</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Identifikátor pokusu</th>
+                        <td>@resultIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Časová známka</th>
+                        <td>@resultTimestamp</td>
+                    </tr>
+                    <tr>
+                        <th>Jméno studenta</th>
+                        <td>@studentName</td>
+                    </tr>
+                    <tr>
+                        <th>Login studenta</th>
+                        <td>@studentLogin</td>
+                    </tr>
+                    <tr>
+                        <th>Identifikátor studenta</th>
+                        <td>@studentIdentifier</td>
+                    </tr>
+                </table>
+            </div>
+        </article>
+    </section>
+</main>

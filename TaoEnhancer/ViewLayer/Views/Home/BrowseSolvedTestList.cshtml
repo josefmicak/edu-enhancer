@@ -12,43 +12,47 @@
     public (string, string, string) LoadStudent(string studentIdentifier)
     {
         string login = "", name = "", surname = "", email = "";
+        bool studentFound = false;
 
-        foreach (var file in Directory.GetFiles(Settings.GetStudentsPath()))
-        {
-            string extension = ExtractFileExtension(file);
-            if (extension == "rdf")
+        foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
+            if(!studentFound)
             {
-                IGraph g = new Graph();
-                FileLoader.Load(g, file);
-                IEnumerable<INode> nodes = g.AllNodes;
-                int nodeLine = 1;
-                foreach (INode node in nodes)
+                XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
+                while (xmlReaderStudent.Read())
                 {
-                    if (nodeLine == 1)
+                    if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                     {
-                        string[] splitByHashtag = node.ToString().Split("#");
-                        if (splitByHashtag[1] != studentIdentifier)
+                        string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
+                        if(studentIdentifier == xmlReaderStudentIdentifier)
                         {
+                            studentFound = true;
+                        }
+                        else
+                        {
+                            studentFound = false;
                             break;
                         }
                     }
-                    if (nodeLine == 3)
+
+                    if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                     {
-                        login = node.ToString();
+                        login = xmlReaderStudent.ReadInnerXml();
                     }
-                    else if (nodeLine == 9)
+
+                    if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                     {
-                        name = node.ToString();
+                        name = xmlReaderStudent.ReadInnerXml();
                     }
-                    else if (nodeLine == 11)
+
+                    if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                     {
-                        surname = node.ToString();
+                        surname = xmlReaderStudent.ReadInnerXml();
                     }
-                    else if (nodeLine == 13)
+
+                    if (xmlReaderStudent.Name == "ns0:userMail" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
                     {
-                        email = node.ToString();
+                        email = xmlReaderStudent.ReadInnerXml();
                     }
-                    nodeLine++;
                 }
             }
         }
@@ -134,45 +138,67 @@
 
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="browsesolvedtestlist-to-studentmenu"><a asp-area="" asp-controller="Home" asp-action="StudentMenu">Zpět</a></div>
-
-<div class="browsesolvedtestlist-student-parameters">
-    Student:
-    <br>
-    Jméno: @name
-    <br>
-    Login: @login
-    <br>
-    Email: @email
-    <br>
-    Počet vyplněných testů: @studentTestList.Count
-</div>
-
-<div class="browsesolvedtestlist-testlist">
-    Seznam výsledků:
-    <table class="table table-bordered">
-        <tr>
-            <th>Jmenný identifikátor testu</th>
-            <th>Časová známka</th>
-            <th>Zobrazit test</th>
-        </tr>
-        @{
-            int i = 0;
-            foreach ((string, string, string, string) studentTest in studentTestList)
-            {
-                <tr>
-                    <td>@studentTest.Item1</td>
-                    <td>@studentTest.Item2</td>
-                    <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
-                    asp-route-studentIdentifier="@studentIdentifier"
-                    asp-route-deliveryExecutionIdentifier="@studentTest.Item3"
-                    asp-route-testNameIdentifier="@studentTest.Item1"
-                    asp-route-testNumberIdentifier="@studentTest.Item4"
-                    >Zobrazit test</a></button></td>
-                </tr>
-                i++;
-            }
-        }
-    </table>
-</div>
+<header class="header">
+    <div class="header-content content-width">
+        <div>
+            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="StudentMenu">arrow_back</a>
+        </div>
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section">
+        <article class="article">
+            <h2 class="article-title title">Student</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jméno</th>
+                        <td>@name</td>
+                    </tr>
+                    <tr>
+                        <th>Login</th>
+                        <td>@login</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>@email</td>
+                    </tr>
+                    <tr>
+                        <th>Počet vyplněných testů</th>
+                        <td>@studentTestList.Count</td>
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Seznam výsledků</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor testu</th>
+                        <th>Časová známka</th>
+                        <th>Zobrazit test</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string, string) studentTest in studentTestList)
+                        {
+                            <tr>
+                                <td>@studentTest.Item1</td>
+                                <td>@studentTest.Item2</td>
+                                <td><a class="button" title="Zobrazit test" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
+                                asp-route-studentIdentifier="@studentIdentifier"
+                                asp-route-deliveryExecutionIdentifier="@studentTest.Item3"
+                                asp-route-testNameIdentifier="@studentTest.Item1"
+                                asp-route-testNumberIdentifier="@studentTest.Item4"
+                                >Zobrazit test</a></td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+    </section>
+</main>

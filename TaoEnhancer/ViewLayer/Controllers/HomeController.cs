@@ -96,7 +96,7 @@ namespace ViewLayer.Controllers
             ViewBag.itemNameIdentifier = itemNameIdentifier;
             ViewBag.selectedSubitem = selectedSubitem;
 
-            if(subquestionPoints != null)
+            if (subquestionPoints != null)
             {
                 ViewBag.subquestionPoints = subquestionPoints;
                 bool isNumber = int.TryParse(subquestionPoints, out _);

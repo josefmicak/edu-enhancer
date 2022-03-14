@@ -49,6 +49,19 @@
     (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
     (_, List<string> studentsAnswers, string studentsAnswerCorrectLabel, string studentsAnswerPointsLabel) = itemController.LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, 
         deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints, true, itemController.GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray));
+
+    string answerClass = "";
+    switch(@studentsAnswerCorrectLabel) {
+        case "Správná odpověď":
+            answerClass = "correct";
+            break;
+        case "Částečně správná odpověď":
+            answerClass = "partiallyCorrect";
+            break;
+        case "Nesprávná odpověď":
+            answerClass = "incorrect";
+            break;
+    }
 }
 
 @functions{
@@ -71,197 +84,239 @@
 
 }
 
-<h1>@ViewData["Title"]</h1>
-
-<div class="managesolveditem-to-managesolvedtest"><a asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
-                    asp-route-testNameIdentifier="@testNameIdentifier"
-                    asp-route-testNumberIdentifier="@testNumberIdentifier"
-                    asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
-                    asp-route-studentIdentifier="@studentIdentifier">Zpět</a></div>
-
-<div class="managesolveditem-item-parameters">
-    Parametry otázky:
-    <br>
-    Jmenný identifikátor otázky: @itemNameIdentifier
-    <br>
-    Číselný identifikátor otázky: @itemNumberIdentifier
-    <br>
-    Nadpis: @title
-    <br>
-    Označení: @label
-    <br>
-    Počet podotázek: @amountOfSubitems
-    <br>
-    @{
-        if(questionPointsDetermined)
-        {
-            <label>Počet bodů za otázku: @studentsSubitemPointsList.Sum() / @questionPoints</label>
-        }
-        else
-        {
-            <label>Počet bodů za otázku: N/A</label>
-        }
-    }
-</div>
-
-<form method="POST" class="managesolveditem-subitem-list">
-    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
-    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
-    Výběr podotázky:
-    <br>
-    @{
-        string subItemLabel = "";
-        if(@amountOfSubitems > 1)
-        {
-            subItemLabel = "Vyberte podotázku ze seznamu:";
-        }
-        else
-        {
-            subItemLabel = "Tato otázka obsahuje pouze jednu podotázku.";
-        }
-        <label>@subItemLabel</label>
-    }
-
-    <br>
-    <select name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)" class="subitem-selection">
-    @{
-        int i = 0;
-        foreach(string _ in responseIdentifierArray)
-        {
-            <option value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
-            i++;
-        }
-    }
-    </select>
-
-    <br>
-    <input class="itemtemplate-select-subitem-button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
-</form>
-
-<div class="managesolveditem-selected-subitem">
-    Parametry podotázky:
-    <br>
-    Typ otázky: @itemController.GetQuestionTypeText(@questionType)
-    <br>
-    Jmenný identifikátor testu: @responseIdentifier
-    <br>
-    @{
-        if(@subquestionPointsDetermined)
-        {
-            <label>Počet bodů za podotázku: @studentsSubitemPoints / @subquestionPoints</label>
-        }
-        else
-        {
-            <label>Počet bodů za podotázku: N/A</label>
-        }
-    }
-    <br>
-    @{
-        if(@imageSource != "")
-        {
-            <img src="@imageSource" width="600" height="200">
-            <br>
-        }
-    }
-    Otázka:
-    <br>
-    @subitemText
-    <br>
-    @{
-        if(questionType == 4)
-        {
-            string subquestions = "";
-            int subquestionArrayIterator = 0;
-            foreach (string answer in subquestionArray)
-            {
-                if (subquestionArrayIterator != subquestionArray.Count - 1)
-                {
-                    subquestions += answer + ", ";
-                }
-                else
-                {
-                    subquestions += answer;
-                }
-                subquestionArrayIterator++;
-            }
-            <label>(@subquestions)</label>
-            <br>
-        }
-    } 
-    Možné odpovědi:
-    <br>
-    @{
-        if(questionType == 5)
-        {
-            <label>Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</label>
-        }
-        else if (questionType == 8)
-        {
-            <label>Otázka neobsahuje výběr z možností.</label>
-        }
-        else
-        {
-            foreach(string possibleAnswer in possibleAnswerArray)
-            {
-                <label>@possibleAnswer</label>
-                <br>
-            }
-        }
-    }
-    Správná odpověď:
-    <br>
-    @{
-        if (questionType == 3 || questionType == 4)
-        {
-            int answerNumber = 0;
-            foreach (string answer in correctAnswerArray)
-            {
-                if (answerNumber % 2 == 1)
-                {
-                    <label>@answer</label>
-                    <br>
-                }
-                else
-                {
-                    <label>@answer -></label>
-                }
-                answerNumber++;
-            }
-        }
-        else if(questionType == 9)
-        {
-            int answerNumber = 1;
-            foreach (string answer in correctAnswerArray)
-            {
-                <label>[@answerNumber] - @answer</label>
-                <br>
-                answerNumber++;
-            }
-        }
-        else
-        {
-            foreach (string answer in correctAnswerArray)
-            {
-                <label>@answer</label>
-                <br>
-            }
-        }
-    }
-</div>
-
-<div class="managesolveditem-students-answers">
-    Vaše odpověď:
-    <br>
-    @{
-        foreach (string answer in studentsAnswers)
-        {
-            <label>@answer</label>
-            <br>
-        }
-        <label>@studentsAnswerCorrectLabel</label>
-        <br>
-        <label>@studentsAnswerPointsLabel</label>
-        <br>
-    }
-</div>
+<header class="header">
+    <div class="header-content content-width">
+        <div>
+            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
+            asp-route-testNameIdentifier="@testNameIdentifier"
+            asp-route-testNumberIdentifier="@testNumberIdentifier"
+            asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
+            asp-route-studentIdentifier="@studentIdentifier">arrow_back</a>
+        </div>
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section">
+        <article class="article">
+            <h2 class="article-title title">Parametry otázky</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor otázky</th>
+                        <td>@itemNameIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Číselný identifikátor otázky</th>
+                        <td>@itemNumberIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Nadpis</th>
+                        <td>@title</td>
+                    </tr>
+                    <tr>
+                        <th>Označení</th>
+                        <td>@label</td>
+                    </tr>
+                    <tr>
+                        <th>Počet podotázek</th>
+                        <td>@amountOfSubitems</td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů za otázku</th>
+                        @{
+                            if(@questionPointsDetermined)
+                            {
+                                <td>@studentsSubitemPointsList.Sum() / @questionPoints</td>
+                            }
+                            else
+                            {
+                                <td>N/A</td>
+                            }
+                        }
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Výběr podotázky</h2>
+            <div class="article-content">
+                <form method="POST">
+                    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+                    <input type="hidden" value="@itemNameIdentifier" name="itemNameIdentifier">
+                    <input type="hidden" value="@itemNumberIdentifier" name="itemNumberIdentifier">
+                    <table class="article-table">
+                        <tr>
+                            <th>
+                                @{
+                                    string subItemLabel = "";
+                                    if(@amountOfSubitems > 1)
+                                    {
+                                        subItemLabel = "Vyberte podotázku ze seznamu";
+                                    }
+                                    else
+                                    {
+                                        subItemLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+                                    }
+                                    @subItemLabel
+                                }
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <select class="input" name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                                    @{
+                                        int i = 0;
+                                        foreach(string _ in responseIdentifierArray)
+                                        {
+                                            <option title="@responseValueArray[@i]" value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
+                                            i++;
+                                        }
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center">
+                                <input class="button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Parametry podotázky</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Typ otázky</th>
+                        <td>@itemController.GetQuestionTypeText(@questionType)</td>
+                    </tr>
+                    <tr>
+                        <th>Jmenný identifikátor testu</th>
+                        <td>@responseIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů za podotázku</th>
+                        @{
+                            if(@subquestionPointsDetermined)
+                            {
+                                <td>@studentsSubitemPoints / @subquestionPoints</td>
+                            }
+                            else
+                            {
+                                <td>N/A</td>
+                            }
+                        }
+                    </tr>
+                    @{
+                        if(@imageSource != "")
+                        {
+                            <tr><td colspan="2"><img src="@imageSource" width="600" height="200"></td></tr>
+                        }
+                    }
+                    <tr>
+                        <th colspan="2">Otázka</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2">@subitemText</td>
+                    </tr>
+                    @{
+                        if(questionType == 4)
+                        {
+                            string subquestions = "";
+                            int subquestionArrayIterator = 0;
+                            foreach (string answer in subquestionArray)
+                            {
+                                if (subquestionArrayIterator != subquestionArray.Count - 1)
+                                {
+                                    subquestions += answer + ", ";
+                                }
+                                else
+                                {
+                                    subquestions += answer;
+                                }
+                                subquestionArrayIterator++;
+                            }
+                            <tr><td colspan="2">(@subquestions)</td></tr>
+                        }
+                    }
+                    <tr>
+                        <th colspan="2">Možné odpovědi</th>
+                    </tr>
+                    @{
+                        if(questionType == 5)
+                        {
+                            <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
+                        }
+                        else if (questionType == 8)
+                        {
+                            <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                        }
+                        else
+                        {
+                            foreach(string possibleAnswer in possibleAnswerArray)
+                            {
+                                <tr><td colspan="2">@possibleAnswer</td></tr>
+                            }
+                        }
+                    }
+                    @{
+                        if(correctAnswerArray.Count > 0)
+                        {
+                            <tr>
+                                <th colspan="2">Správná odpověď</th>
+                            </tr>
+                        }
+                        if (questionType == 3 || questionType == 4)
+                        {
+                            for(int answerNumber = 0; answerNumber < correctAnswerArray.Count; answerNumber+=2)
+                            {
+                                <tr><td colspan="2">@correctAnswerArray[answerNumber] -> @correctAnswerArray[answerNumber + 1]</td></tr>
+                            }
+                        }
+                        else if(questionType == 9)
+                        {
+                            int answerNumber = 1;
+                            foreach (string answer in correctAnswerArray)
+                            {
+                                <tr><td colspan="2">[@answerNumber] - @answer</td></tr>
+                                answerNumber++;
+                            }
+                        }
+                        else
+                        {
+                            foreach (string answer in correctAnswerArray)
+                            {
+                                <tr><td colspan="2">@answer</td></tr>
+                            }
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Vaše odpověď</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    @{
+                        foreach (string answer in studentsAnswers)
+                        {
+                            <tr><td colspan="2">@answer</td></tr>
+                        }
+                    }
+                    <tr>
+                        <th class="@answerClass" colspan="2" align="center">@studentsAnswerCorrectLabel</th></tr>
+                    <tr>
+                        @{
+                            string[] studentsAnswerPointsLabelSplit = @studentsAnswerPointsLabel.Split(": ");
+                            <th class="@answerClass">@studentsAnswerPointsLabelSplit[0]</th>
+                            <td class="@answerClass">@studentsAnswerPointsLabelSplit[1]</td>
+                        }
+                    </tr>
+                </table>
+            </div>
+        </article>
+    </section>
+</main>

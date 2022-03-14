@@ -13,121 +13,169 @@
     bool negativePoints = testController.NegativePointsManagement(testNameIdentifier, testNumberIdentifier);
 }
 
-<h1>@ViewData["Title"]</h1>
+<header class="header">
+    <div class="header-content content-width">
+        <div>
+            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
+        </div>
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section">
+        <article class="article">
+            <h2 class="article-title title">Parametry testu</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor testu</th>
+                        <td>@testNameIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Číselný identifikátor testu</th>
+                        <td>@testNumberIdentifier</td>
+                    </tr>
+                    <tr>
+                        <th>Nadpis</th>
+                        <td>@title</td>
+                    </tr>
+                    <tr>
+                        <th>Počet otázek</th>
+                        <td>@amountOfItems</td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů</th>
+                        @{
+                            if(@testPointsDetermined)
+                            {
+                                <td>@testPoints</td>
+                            }
+                            else
+                            {
+                                <td>N/A</td>
+                            }
+                        }
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Seznam otázek</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Část testu</th>
+                        <th>Sekce testu</th>
+                        <th>Jmenný identifikátor otázky</th>
+                        <th>Číselný identifikátor otázky</th>
+                        <th>Počet bodů</th>
+                        <th>Detaily otázky</th>
+                        <th>Správa otázky</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string, string) question in questionList)
+                        {
+                            string points = "";
+                            if(!(@itemParameters[i].Item6))
+                            {
+                                points = "N/A";
+                            }
+                            else
+                            {
+                                points = @itemParameters[i].Item5.ToString();
+                            }
 
-<div class="testtemplate-to-testtemplatelist"><a asp-area="" asp-controller="Home" asp-action="TestTemplateList">Zpět</a></div>
-
-<div class="testtemplate-test-parameters">
-    Parametry testu:
-    <br>
-    Jmenný identifikátor testu: @testNameIdentifier
-    <br>
-    Číselný identifikátor testu: @testNumberIdentifier
-    <br>
-    Nadpis: @title
-    <br>
-    Počet otázek: @amountOfItems
-    <br>
-    @{
-        if(@testPointsDetermined)
-        {
-            <label>Počet bodů: @testPoints</label>
-        }
-        else
-        {
-            <label>Počet bodů: N/A</label>
-        }
-    }
-</div>
-
-<div class="testtemplate-questionlist">
-    Seznam otázek:
-    <table class="table table-bordered">
-        <tr>
-            <th>Část testu</th>
-            <th>Sekce testu</th>
-            <th>Jmenný identifikátor otázky</th>
-            <th>Číselný identifikátor otázky</th>
-            <th>Počet bodů</th>
-            <th>Detaily otázky</th>
-            <th>Správa otázky</th>
-        </tr>
-        @{
-            int i = 0;
-            foreach ((string, string, string, string) question in questionList)
-            {
-                string points = "";
-                if(!(@itemParameters[i].Item6))
-                {
-                    points = "N/A";
-                }
-                else
-                {
-                    points = @itemParameters[i].Item5.ToString();
-                }
-
-                <tr>
-                    <td>@question.Item1</td>
-                    <td>@question.Item2</td>
-                    <td>@question.Item3</td>
-                    <td>@question.Item4</td>
-                    <td>@points</td>
-                    <td><button class="item-details-button" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
-                    <td><button class="testtemplate-to-itemtemplate"><a asp-area="" asp-controller="Home" asp-action="ItemTemplate"
-                    asp-route-testNameIdentifier="@testNameIdentifier"
-                    asp-route-testNumberIdentifier="@testNumberIdentifier"
-                    asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
-                    asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></button></td>
-                </tr>
-                i++;
-            }
-        }
-    </table>
-</div>
-
-<div class="testtemplate-item-parameters">
-    Parametry otázky:
-    <br>
-    <div id="testtemplate-item-itemnumberidentifier">Číselný identifikátor otázky:</div>
-    <br>
-    <div id="testtemplate-item-itemnameidentifier">Jmenný identifikátor otázky:</div>
-    <br>
-    <div id="testtemplate-item-title">Nadpis otázky:</div>
-    <br>
-    <div id="testtemplate-item-label">Označení otázky:</div>
-    <br>
-    <div id="testtemplate-item-points">Počet bodů za otázku:</div>
-</div>
-
-<form method="POST" class="testtemplate-negative-points">
-    @{
-        if(@viewBagNegativePoints != null)
-        {
-            <label>Změny úspěšně uloženy</label>
-            <br>
-            string negativePointsSaved = "";
-            if(@viewBagNegativePoints == "negativePoints_no")
-            {
-                negativePointsSaved = "(záporné body jsou nyní pouze v rámci otázky)";
-            }
-            else if(@viewBagNegativePoints == "negativePoints_yes")
-            {
-                negativePointsSaved = "(záporné body jsou nyní v rámci testu)";
-            }
-            <label>@negativePointsSaved</label>
-            <br>
-        }
-    }
-    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
-    Záporné body:
-    <br>
-    <input type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints">
-    <label for="negativePoints_no">Záporné body pouze v rámci otázky</label><br>
-    <input type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints">
-    <label for="negativePoints_yes">Záporné body i v rámci testu</label><br>
-    <input class="testtemplate-negative-points-button" type="submit" value="Uložit">
-</form>
+                            <tr>
+                                <td>@question.Item1</td>
+                                <td>@question.Item2</td>
+                                <td>@question.Item3</td>
+                                <td>@question.Item4</td>
+                                <td>@points</td>
+                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
+                                <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                                asp-route-testNameIdentifier="@testNameIdentifier"
+                                asp-route-testNumberIdentifier="@testNumberIdentifier"
+                                asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
+                                asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Parametry otázky</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Číselný identifikátor otázky</th>
+                        <td id="testtemplate-item-itemnumberidentifier"></td>
+                    </tr>
+                    <tr>
+                        <th>Jmenný identifikátor otázky</th>
+                        <td id="testtemplate-item-itemnameidentifier"></td>
+                    </tr>
+                    <tr>
+                        <th>Nadpis otázky</th>
+                        <td id="testtemplate-item-title"></td>
+                    </tr>
+                    <tr>
+                        <th>Označení otázky</th>
+                        <td id="testtemplate-item-label"></td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů za otázku</th>
+                        <td id="testtemplate-item-points"></td>
+                    </tr>
+                </table>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title">Záporné body</h2>
+            <div class="article-content">
+                <form method="POST">
+                    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
+                    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+                    <table class="article-table">
+                        @{
+                            if(@viewBagNegativePoints != null)
+                            {
+                                <tr><th class="correct" align="center">Změny úspěšně uloženy</th></tr>
+                                string negativePointsSaved = "";
+                                if(@viewBagNegativePoints == "negativePoints_no")
+                                {
+                                    negativePointsSaved = "(záporné body jsou nyní pouze v rámci otázky)";
+                                }
+                                else if(@viewBagNegativePoints == "negativePoints_yes")
+                                {
+                                    negativePointsSaved = "(záporné body jsou nyní v rámci testu)";
+                                }
+                                <tr><td class="correct" align="center">@negativePointsSaved</td></tr>
+                            }
+                        }
+                        <tr>
+                            <td>
+                                <input class="radio input" type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints"><label class="radio-label" for="negativePoints_no">Záporné body pouze v rámci otázky</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input class="radio input" type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints"><label class="radio-label" for="negativePoints_yes">Záporné body i v rámci testu</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center">
+                                <input class="button" type="submit" value="Uložit">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </article>
+    </section>
+</main>
 
 @{
     if(!negativePoints)

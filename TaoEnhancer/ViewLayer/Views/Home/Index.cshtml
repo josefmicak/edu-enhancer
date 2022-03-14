@@ -2,8 +2,20 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="teacher-selection"><a asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></div>
-<div class="student-selection"><a asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></div>
-<div class="text-center">
-    <h1 class="display-4">Hlavní menu</h1>
-</div>
+<header class="header">
+    <div class="header-content content-width">
+        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section justify-content-center">
+        <article class="article">
+            <nav class="nav">
+                <ul>
+                    <li><a class="button" title="Jsem učitel" asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></li>
+                    <li><a class="button" title="Jsem student" asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></li>
+                </ul>
+            </nav>
+        </article>
+    </section>
+</main>

@@ -440,9 +440,16 @@ namespace ViewLayer.Controllers
                 imageSource = "http://testt.8u.cz/TaoEnhancer/tests/" + testNameIdentifier + "/items/" + itemNumberIdentifier + "/" + SubitemImages(responseIdentifier, includesImage, testNameIdentifier, itemNumberIdentifier).Item3;
             }
             string subitemText = "";
-            {
 
+            if (responseIdentifierArray.Count != responseValueArray.Count)
+            {
+                responseValueArray.Clear();
+                for (int i = 0; i < responseIdentifierArray.Count; i++)
+                {
+                    responseValueArray.Add("Chyba - některé z otázek nemá zadaný text. Texty podotázek nebudou pro tuto otázku fungovat.");
+                }
             }
+
             for (int i = 0; i < responseIdentifierArray.Count; i++)
             {
                 if (responseIdentifier == responseIdentifierArray[i])
@@ -913,6 +920,7 @@ namespace ViewLayer.Controllers
                 }
             }
 
+            // Debug řádek pokud nesedí body
             studentsAnswers.RemoveRange(studentsAnswers.Count / 2, studentsAnswers.Count / 2);
 
             for (int i = 0; i < studentsAnswers.Count; i++)
@@ -1226,31 +1234,31 @@ namespace ViewLayer.Controllers
             }
 
             string studentsAnswerCorrectLabel = "";
-            if (subquestionPoints != 0)
-            {
+            /*if (subquestionPoints != 0)
+            {*/
                 switch (isAnswerCorrect)
                 {
                     case StudentsAnswerCorrectness.Correct:
-                        studentsAnswerCorrectLabel = "Správná odpověď.";
+                        studentsAnswerCorrectLabel = "Správná odpověď";
                         break;
                     case StudentsAnswerCorrectness.PartiallyCorrect:
-                        studentsAnswerCorrectLabel = "Částečně správná odpověď.";
+                        studentsAnswerCorrectLabel = "Částečně správná odpověď";
                         break;
                     case StudentsAnswerCorrectness.Incorrect:
-                        studentsAnswerCorrectLabel = "Nesprávná odpověď.";
+                        studentsAnswerCorrectLabel = "Nesprávná odpověď";
                         break;
                     case StudentsAnswerCorrectness.Unknown:
-                        studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně.";
+                        studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně";
                         break;
                 }
-            }
+            //}
 
             if ((studentsReceivedPoints < 0 && !NegativePoints(testNameIdentifier, testNumberIdentifier)) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))
             {
                 studentsReceivedPoints = 0;
             }
 
-            string studentsAnswerPointsLabel = "Počet bodů za odpověď: " + studentsReceivedPoints + "/" + subquestionPoints;
+            string studentsAnswerPointsLabel = "Počet bodů za odpověď: " + studentsReceivedPoints + " / " + subquestionPoints;
             /*if (determ)
             {
                 studentsAnswerPointsLabel = "Počet bodů za odpověď: N/A";
@@ -1511,7 +1519,10 @@ namespace ViewLayer.Controllers
             string[] splitStudentsAnswersByNewLine = studentsAnswersToLabel.Split("\n");
             for (int i = 0; i < splitStudentsAnswersByNewLine.Length; i++)
             {
-                studentsAnswers.Add(splitStudentsAnswersByNewLine[i]);
+                if(splitStudentsAnswersByNewLine[i] != "")
+                {
+                    studentsAnswers.Add(splitStudentsAnswersByNewLine[i]);
+                }
             }
             return studentsAnswers;
         }
