@@ -37,17 +37,20 @@
 
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
             asp-route-studentIdentifier="@studentIdentifier">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section">
         <article class="article">
-            <h2 class="article-title title">Parametry testu</h2>
+            <h2 class="article-title title" title="Parametry testu">Parametry testu</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -83,7 +86,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Seznam otázek</h2>
+            <h2 class="article-title title" title="Seznam otázek">Seznam otázek</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -130,7 +133,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Parametry otázky</h2>
+            <h2 class="article-title title" title="Parametry otázky">Parametry otázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -157,7 +160,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Parametry pokusu</h2>
+            <h2 class="article-title title" title="Parametry pokusu">Parametry pokusu</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>

@@ -1,9 +1,4 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
-
-function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points, questionPointsDetermined) {
+﻿function loadQuestionInfo(itemNumberIdentifier, itemNameIdentifier, title, label, points, questionPointsDetermined) {
     document.getElementById("testtemplate-item-itemnumberidentifier").innerHTML = itemNumberIdentifier;
     document.getElementById("testtemplate-item-itemnameidentifier").innerHTML = itemNameIdentifier;
     document.getElementById("testtemplate-item-title").innerHTML = title;
@@ -27,3 +22,32 @@ function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
     document.getElementById("managesolvedtestlist-student-login").innerHTML = studentLogin;
     document.getElementById("managesolvedtestlist-student-email").innerHTML = studentEmail;
 }
+
+// Google Sign In
+/*let auth2;
+let googleUser;
+
+function handleCredentialResponse(response) {
+    const responsePayload = decodeJwtResponse(response.credential);
+
+    console.log("ID: " + responsePayload.sub);
+    console.log('Full Name: ' + responsePayload.name);
+    console.log('Given Name: ' + responsePayload.given_name);
+    console.log('Family Name: ' + responsePayload.family_name);
+    console.log("Image URL: " + responsePayload.picture);
+    console.log("Email: " + responsePayload.email);
+}
+
+function decodeJwtResponse(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+};
+
+function signOut() {
+    google.accounts.id.disableAutoSelect();
+}*/

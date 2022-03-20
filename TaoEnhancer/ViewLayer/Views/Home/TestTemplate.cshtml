@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Test: " + @ViewBag.testNameIdentifier;
+    ViewData["Title"] = "Správa zadání testu " + @ViewBag.testNameIdentifier;
     string testNameIdentifier = @ViewBag.testNameIdentifier;
     string testNumberIdentifier = @ViewBag.testNumberIdentifier;
     string viewBagNegativePoints = @ViewBag.NegativePoints;
@@ -11,20 +11,40 @@
     List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
     (int testPoints, bool testPointsDetermined) = testController.GetTestPoints(itemParameters);
     bool negativePoints = testController.NegativePointsManagement(testNameIdentifier, testNumberIdentifier);
+    if(questionList.Count == 0)
+    {
+        //string message = "Test does not include any questions. Please correct this mistake using the TAO Core tool.";
+        string message = "Test neobsahuje žádné otázky. Prosím opravte tuto chybu pomocí nástroje TAO Core.";
+        WriteMessageToUser(message);
+    }
+}
+
+@functions{
+
+    public void WriteMessageToUser(string message)
+    {
+        <script>
+        window.alert('@message');
+        </script>
+    }
+
 }
 
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section">
         <article class="article">
-            <h2 class="article-title title">Parametry testu</h2>
+            <h2 class="article-title title" title="Parametry testu">Parametry testu</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -60,7 +80,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Seznam otázek</h2>
+            <h2 class="article-title title" title="Seznam otázek">Seznam otázek</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -106,7 +126,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Parametry otázky</h2>
+            <h2 class="article-title title" title="Parametry otázky">Parametry otázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -157,17 +177,17 @@
                         }
                         <tr>
                             <td>
-                                <input class="radio input" type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints"><label class="radio-label" for="negativePoints_no">Záporné body pouze v rámci otázky</label>
+                                <input class="radio input" title="Záporné body pouze v rámci otázky" type="radio" id="negativePoints_no" value="negativePoints_no" name="negativePoints"><label class="radio-label" title="Záporné body pouze v rámci otázky" for="negativePoints_no">Záporné body pouze v rámci otázky</label>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <input class="radio input" type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints"><label class="radio-label" for="negativePoints_yes">Záporné body i v rámci testu</label>
+                                <input class="radio input" title="Záporné body i v rámci testu" type="radio" id="negativePoints_yes" value="negativePoints_yes" name="negativePoints"><label class="radio-label" title="Záporné body i v rámci testu" for="negativePoints_yes">Záporné body i v rámci testu</label>
                             </td>
                         </tr>
                         <tr>
                             <td align="center">
-                                <input class="button" type="submit" value="Uložit">
+                                <input class="button" title="Uložit" type="submit" value="Uložit">
                             </td>
                         </tr>
                     </table>

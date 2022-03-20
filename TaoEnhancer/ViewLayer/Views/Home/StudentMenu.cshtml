@@ -1,6 +1,6 @@
 ﻿@using Common
 @{
-    ViewData["Title"] = "Student menu";
+    ViewData["Title"] = "Studentské menu";
 
     List<(string, string, string)> studentList = LoadStudents();
 }
@@ -52,16 +52,19 @@
 
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section">
         <article class="article">
-            <h2 class="article-title title">Seznam studentů</h2>
+            <h2 class="article-title title" title="Seznam studentů">Seznam studentů</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>

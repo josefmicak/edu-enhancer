@@ -103,36 +103,39 @@ namespace ViewLayer.Controllers
             bool testPointsDetermined = false;
             int testPoints = 0;
 
-            foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
+            if(Directory.Exists(Settings.GetTestItemsPath(testNameIdentifier)))
             {
-                foreach (var file in Directory.GetFiles(directory))
+                foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
-                    string[] fileSplitBySlash = file.Split(@"\");
-                    if (fileSplitBySlash[fileSplitBySlash.Length - 1] != "qti.xml")
+                    foreach (var file in Directory.GetFiles(directory))
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        XmlReader xmlReader = XmlReader.Create(file);
-                        while (xmlReader.Read())
+                        string[] fileSplitBySlash = file.Split(@"\");
+                        if (fileSplitBySlash[fileSplitBySlash.Length - 1] != "qti.xml")
                         {
-                            if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
+                            continue;
+                        }
+                        else
+                        {
+                            XmlReader xmlReader = XmlReader.Create(file);
+                            while (xmlReader.Read())
                             {
-                                if (xmlReader.Name == "assessmentItem")
+                                if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
                                 {
-                                    for (int j = 0; j < questionList.Count; j++)
+                                    if (xmlReader.Name == "assessmentItem")
                                     {
-                                        if (questionList[j].Item4 == xmlReader.GetAttribute("identifier"))
+                                        for (int j = 0; j < questionList.Count; j++)
                                         {
-                                            itemNumberIdenfifier = questionList[j].Item4;
-                                            itemNameIdenfifier = questionList[j].Item3;
-                                            title = xmlReader.GetAttribute("title");
-                                            label = xmlReader.GetAttribute("label");
-                                            (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(testNameIdentifier, itemNumberIdenfifier);
+                                            if (questionList[j].Item4 == xmlReader.GetAttribute("identifier"))
+                                            {
+                                                itemNumberIdenfifier = questionList[j].Item4;
+                                                itemNameIdenfifier = questionList[j].Item3;
+                                                title = xmlReader.GetAttribute("title");
+                                                label = xmlReader.GetAttribute("label");
+                                                (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(testNameIdentifier, itemNumberIdenfifier);
 
-                                            itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, questionPoints, questionPointsDetermined));
-                                            i++;
+                                                itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, questionPoints, questionPointsDetermined));
+                                                i++;
+                                            }
                                         }
                                     }
                                 }
@@ -141,6 +144,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
+            else { throw Exceptions.TestItemsPathNotFoundException; }
 
             //pole nyní může být ve špatném pořadí kvůli jinému pořadí v rámci qti.xml celého testu a složek ve složce items - oprava
             List<(string, string, string, string, int, bool)> itemParameters = new List<(string, string, string, string, int, bool)>();

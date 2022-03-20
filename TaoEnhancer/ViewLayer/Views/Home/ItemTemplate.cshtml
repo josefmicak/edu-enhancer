@@ -83,18 +83,21 @@
 
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplate"
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplate"
             asp-route-testNameIdentifier="@testNameIdentifier"
             asp-route-testNumberIdentifier="@testNumberIdentifier">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section">
         <article class="article">
-            <h2 class="article-title title">Parametry otázky</h2>
+            <h2 class="article-title title" title="Parametry otázky">Parametry otázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -134,7 +137,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Výběr podotázky</h2>
+            <h2 class="article-title title" title="Výběr podotázky">Výběr podotázky</h2>
             <div class="article-content">
                 <form method="POST">
                     <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
@@ -160,21 +163,23 @@
                         </tr>
                         <tr>
                             <td>
-                                <select class="input" name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
-                                    @{
-                                        int i = 0;
-                                        foreach(string _ in responseIdentifierArray)
-                                        {
-                                            <option value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
-                                            i++;
+                                <div class="input-wrapper">
+                                    <select class="input" name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                                        @{
+                                            int i = 0;
+                                            foreach(string _ in responseIdentifierArray)
+                                            {
+                                                <option value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
+                                                i++;
+                                            }
                                         }
-                                    }
-                                </select>
+                                    </select>
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <td align="center">
-                                <input class="button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                                <input class="button" title="Vybrat" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
                             </td>
                         </tr>
                     </table>
@@ -182,7 +187,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Parametry podotázky</h2>
+            <h2 class="article-title title" title="Parametry podotázky">Parametry podotázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -209,7 +214,7 @@
                     @{
                         if(@imageSource != "")
                         {
-                            <tr><td colspan="2"><img src="@imageSource" width="600" height="200"></td></tr>
+                            <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                         }
                     }
                     <tr>
@@ -293,7 +298,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Upravit otázku</h2>
+            <h2 class="article-title title" title="Upravit otázku">Upravit otázku</h2>
             <div class="article-content">
                 <form method="POST">
                     <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
@@ -321,13 +326,17 @@
                         <tr>
                             <th>Počet bodů za podotázku</th>
                             <td>
-                                <input class="input" type="number" min="0" id="subquestion-points" name="subquestionPoints" value="@subquestionPoints.ToString().Replace(",",".")" oninput="updatePointsInputs(@correctAnswerCount)">
+                                <div class="input-wrapper">
+                                    <input class="input" type="number" min="0" id="subquestion-points" name="subquestionPoints" value="@subquestionPoints.ToString().Replace(",",".")" oninput="updatePointsInputs(@correctAnswerCount)">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th>Počet bodů za správnou volbu</th>
                             <td>
-                                <input class="input" type="number" min="0" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@correctChoicePoints.ToString().Replace(",",".")">
+                                <div class="input-wrapper">
+                                    <input class="input" type="number" min="0" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@correctChoicePoints.ToString().Replace(",",".")">
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -349,23 +358,27 @@
 
                             <tr>
                                 <td>
-                                    <input class="radio input" type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked"><label class="radio-label" for="wrongChoicePoints_recommended">Doporučený</label>
+                                    <input class="radio input" title="Doporučený" type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked"><label class="radio-label" title="Doporučený" for="wrongChoicePoints_recommended">Doporučený</label>
                                 </td>
                                 <td>
-                                    <input class="input" type="number" max="0" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints.ToString().Replace(",",".")">
+                                    <div class="input-wrapper">
+                                        <input class="input" type="number" max="0" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints.ToString().Replace(",",".")">
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <input class="radio input" type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)"><label class="radio-label" for="wrongChoicePoints_selected">Vlastní</label>
+                                    <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_selected">Vlastní</label>
                                 </td>
                                 <td>
-                                    <input class="input" type="number" max="0" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                    <div class="input-wrapper">
+                                        <input class="input" type="number" max="0" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2" align="center">
-                                    <input class="button" type="submit" value="Uložit">
+                                    <input class="button" title="Uložit" type="submit" value="Uložit">
                                 </td>
                             </tr>
                         }

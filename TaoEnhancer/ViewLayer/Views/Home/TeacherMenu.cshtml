@@ -1,23 +1,28 @@
 ﻿@{
-    ViewData["Title"] = "Teacher menu";
+    ViewData["Title"] = "Učitelské menu";
 }
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section justify-content-center">
         <article class="article">
-            <nav class="nav">
-                <ul>
-                    <li><a class="button" title="Správa zadání testů" asp-area="" asp-controller="Home" asp-action="TestTemplateList">Správa zadání testů</a></li>
-                    <li><a class="button" title="Správa vyřešených testů" asp-area="" asp-controller="Home" asp-action="ManageSolvedTestList">Správa vyřešených testů</a></li>
-                </ul>
-            </nav>
+            <div class="article-content">
+                <nav class="nav">
+                    <ul>
+                        <li><a class="button" title="Správa zadání testů" asp-area="" asp-controller="Home" asp-action="TestTemplateList">Správa zadání testů</a></li>
+                        <li><a class="button" title="Správa vyřešených testů" asp-area="" asp-controller="Home" asp-action="ManageSolvedTestList">Správa vyřešených testů</a></li>
+                    </ul>
+                </nav>
+            </div>
         </article>
     </section>
 </main>

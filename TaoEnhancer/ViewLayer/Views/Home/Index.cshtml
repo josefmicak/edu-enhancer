@@ -1,21 +1,56 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Solution"] = "TaoEnhancer";
+    ViewData["Title"] = "Přihlášení";
 }
 
 <header class="header">
     <div class="header-content content-width">
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Solution"]">@ViewData["Solution"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section justify-content-center">
         <article class="article">
-            <nav class="nav">
-                <ul>
-                    <li><a class="button" title="Jsem učitel" asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></li>
-                    <li><a class="button" title="Jsem student" asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></li>
-                </ul>
-            </nav>
+            <h2 class="article-title title" title="Přihlášení">Přihlášení</h2>
+            <div class="article-content">
+                <nav class="nav">
+                    <ul>
+                        <li>
+                            <!--<div id="g_id_onload"
+                                 data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
+                                 data-context="signin"
+                                 data-ux_mode="redirect"
+                                 data-login_uri="https://localhost:7057/signin-google">
+                            </div>
+                            <div class="g_id_signin"
+                                 data-type="standard"
+                                 data-shape="rectangular"
+                                 data-theme="outline"
+                                 data-text="signin_with"
+                                 data-size="large"
+                                 data-logo_alignment="left">
+                            </div>-->
+                            <a asp-area="" asp-controller="Account" asp-action="Login">Přihlásit se</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </article>
+    </section>
+    <section class="section justify-content-center">
+        <article class="article">
+            <h2 class="article-title title" title="Přihlášení">Výběr uživatele (old)</h2>
+            <div class="article-content">
+                <nav class="nav">
+                    <ul>
+                        <li><a class="button" title="Jsem učitel" asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></li>
+                        <li><a class="button" title="Jsem student" asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></li>
+                    </ul>
+                </nav>
+            </div>
         </article>
     </section>
 </main>

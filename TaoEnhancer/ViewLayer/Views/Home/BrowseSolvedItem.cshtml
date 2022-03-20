@@ -86,20 +86,23 @@
 
 <header class="header">
     <div class="header-content content-width">
-        <div>
-            <a class="header-back button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
             asp-route-testNameIdentifier="@testNameIdentifier"
             asp-route-testNumberIdentifier="@testNumberIdentifier"
             asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
             asp-route-studentIdentifier="@studentIdentifier">arrow_back</a>
         </div>
-        <h1 class="header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+        </div>
     </div>
 </header>
 <main class="main content-width">
     <section class="section">
         <article class="article">
-            <h2 class="article-title title">Parametry otázky</h2>
+            <h2 class="article-title title" title="Parametry otázky">Parametry otázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -139,7 +142,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Výběr podotázky</h2>
+            <h2 class="article-title title" title="Výběr podotázky">Výběr podotázky</h2>
             <div class="article-content">
                 <form method="POST">
                     <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
@@ -164,21 +167,23 @@
                         </tr>
                         <tr>
                             <td>
-                                <select class="input" name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
-                                    @{
-                                        int i = 0;
-                                        foreach(string _ in responseIdentifierArray)
-                                        {
-                                            <option title="@responseValueArray[@i]" value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
-                                            i++;
+                                <div class="input-wrapper">
+                                    <select class="input" name="selectedSubitem" id="selectedSubitem" onchange="loadSubitemInfo(this)" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                                        @{
+                                            int i = 0;
+                                            foreach(string _ in responseIdentifierArray)
+                                            {
+                                                <option title="@responseValueArray[@i]" value="@responseIdentifierArray[@i]">@responseValueArray[@i]</option>
+                                                i++;
+                                            }
                                         }
-                                    }
-                                </select>
+                                    </select>
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <td align="center">
-                                <input class="button" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
+                                <input class="button" title="Vybrat" type="submit" value="Vybrat" disabled="@IsSelectDisabled(@amountOfSubitems)">
                             </td>
                         </tr>
                     </table>
@@ -186,7 +191,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Parametry podotázky</h2>
+            <h2 class="article-title title" title="Parametry podotázky">Parametry podotázky</h2>
             <div class="article-content">
                 <table class="article-table">
                     <tr>
@@ -213,7 +218,7 @@
                     @{
                         if(@imageSource != "")
                         {
-                            <tr><td colspan="2"><img src="@imageSource" width="600" height="200"></td></tr>
+                            <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                         }
                     }
                     <tr>
@@ -297,7 +302,7 @@
             </div>
         </article>
         <article class="article">
-            <h2 class="article-title title">Vaše odpověď</h2>
+            <h2 class="article-title title" title="Vaše odpověď">Vaše odpověď</h2>
             <div class="article-content">
                 <table class="article-table">
                     @{
