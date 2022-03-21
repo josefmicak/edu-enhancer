@@ -24,7 +24,8 @@ function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
 }
 
 // Google Sign In
-/*let auth2;
+/*console.log(document.cookie);
+let auth2;
 let googleUser;
 
 function handleCredentialResponse(response) {
@@ -49,5 +50,6 @@ function decodeJwtResponse(token) {
 };
 
 function signOut() {
+    console.log("Sign out");
     google.accounts.id.disableAutoSelect();
 }*/

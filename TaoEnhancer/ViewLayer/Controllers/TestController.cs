@@ -300,7 +300,7 @@ namespace ViewLayer.Controllers
 
             foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
             {
-                if (!studentFound)
+                if (new FileInfo(studentFile).Extension == ".rdf" && !studentFound)
                 {
                     XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
                     while (xmlReaderStudent.Read())

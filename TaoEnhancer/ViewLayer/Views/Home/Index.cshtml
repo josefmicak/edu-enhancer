@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Common
+@{
     ViewData["Solution"] = "TaoEnhancer";
     ViewData["Title"] = "Přihlášení";
 }
@@ -7,7 +8,7 @@
     <div class="header-content content-width">
         <h1 class="header-center header-title title" title="@ViewData["Solution"]">@ViewData["Solution"]</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
     </div>
 </header>
@@ -19,11 +20,12 @@
                 <nav class="nav">
                     <ul>
                         <li>
-                            <!--<div id="g_id_onload"
+                            <div id="g_id_onload"
                                  data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
                                  data-context="signin"
                                  data-ux_mode="redirect"
-                                 data-login_uri="https://localhost:7057/signin-google">
+                                 data-login_uri="@Settings.GetSignInURL()"
+                                 data-auto_prompt="false">
                             </div>
                             <div class="g_id_signin"
                                  data-type="standard"
@@ -32,15 +34,15 @@
                                  data-text="signin_with"
                                  data-size="large"
                                  data-logo_alignment="left">
-                            </div>-->
-                            <a asp-area="" asp-controller="Account" asp-action="Login">Přihlásit se</a>
+                            </div>
+                            <!--<a asp-area="" asp-controller="Account" asp-action="Login">Přihlásit se</a>-->
                         </li>
                     </ul>
                 </nav>
             </div>
         </article>
     </section>
-    <section class="section justify-content-center">
+    <!--<section class="section justify-content-center">
         <article class="article">
             <h2 class="article-title title" title="Přihlášení">Výběr uživatele (old)</h2>
             <div class="article-content">
@@ -52,5 +54,5 @@
                 </nav>
             </div>
         </article>
-    </section>
+    </section>-->
 </main>

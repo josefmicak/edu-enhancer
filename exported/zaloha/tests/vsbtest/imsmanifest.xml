@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd" identifier="QTI-TEST-MANIFEST-tao61f24fa03ec513-01415003">
+    <metadata>
+        <schema>QTIv2.2 Package</schema>
+        <schemaversion>1.0.0</schemaversion>
+    </metadata>
+    <organizations/>
+    <resources>
+            <resource identifier="i1634302215546267" type="imsqti_item_xmlv2p2" href="items/i1634302215546267/qti.xml">
+            <file href="items/i1634302215546267/qti.xml"/>
+                        <file href="items/i1634302215546267/vsb.png"/>
+                        <file href="items/i1634302215546267/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i163430245838368" type="imsqti_item_xmlv2p2" href="items/i163430245838368/qti.xml">
+            <file href="items/i163430245838368/qti.xml"/>
+                        <file href="items/i163430245838368/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i1634303043840769" type="imsqti_item_xmlv2p2" href="items/i1634303043840769/qti.xml">
+            <file href="items/i1634303043840769/qti.xml"/>
+                    </resource><resource identifier="i1634305118452370" type="imsqti_item_xmlv2p2" href="items/i1634305118452370/qti.xml">
+            <file href="items/i1634305118452370/qti.xml"/>
+                    </resource><resource identifier="i1634305383464171" type="imsqti_item_xmlv2p2" href="items/i1634305383464171/qti.xml">
+            <file href="items/i1634305383464171/qti.xml"/>
+                    </resource><resource identifier="i16430934626265143" type="imsqti_item_xmlv2p2" href="items/i16430934626265143/qti.xml">
+            <file href="items/i16430934626265143/qti.xml"/>
+                    </resource><resource identifier="i1634308070121573" type="imsqti_test_xmlv2p2" href="tests/i1634308070121573/test.xml"><file href="tests/i1634308070121573/test.xml"/><dependency identifierref="i1634302215546267"/><dependency identifierref="i163430245838368"/><dependency identifierref="i1634303043840769"/><dependency identifierref="i1634305118452370"/><dependency identifierref="i1634305383464171"/><dependency identifierref="i16430934626265143"/></resource></resources>
+</manifest>

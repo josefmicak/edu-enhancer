@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16445890213918443" title="Topologie" label="Topologie" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="directedPair">
+    <correctResponse>
+      <value><![CDATA[choice_1 gap_1]]></value>
+      <value><![CDATA[choice_2 gap_2]]></value>
+      <value><![CDATA[choice_3 gap_3]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_1" cardinality="multiple" baseType="directedPair">
+    <correctResponse>
+      <value><![CDATA[choice_4 choice_6]]></value>
+      <value><![CDATA[choice_4 choice_7]]></value>
+      <value><![CDATA[choice_5 choice_8]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="2"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>2</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <gapMatchInteraction responseIdentifier="RESPONSE" shuffle="true">
+          <prompt><div><img src="Sbernice.png" alt="Sbernice" width="100%" type="image/png"/></div>
+Přiřaďte pojmy související s topologiemi počítačových sítí</prompt>
+          <gapText identifier="choice_1" fixed="false" matchMax="1" matchMin="0">hvězda</gapText>
+          <gapText identifier="choice_2" fixed="false" matchMax="1" matchMin="0">sběrnice</gapText>
+          <gapText identifier="choice_3" fixed="false" matchMax="1" matchMin="0">kruh</gapText>
+          <p>Topologie ve které je ve středu 1 centrální prvek se nazývá <gap identifier="gap_1" fixed="false" required="false"/>. Topologie s jedním páteřním kablem na který jsou připojena jednotlivá uživatelská rozhraní se nazývá <gap identifier="gap_2" fixed="false" required="false"/>. Topologie ve které jsou je každé zařízení spojeno s dvěma jinými zařízeními se nazývá <gap identifier="gap_3" fixed="false" required="false"/>.</p>
+        </gapMatchInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <matchInteraction responseIdentifier="RESPONSE_1" shuffle="false" maxAssociations="0" minAssociations="0">
+          <prompt><div><img src="1626972148_552387_1626972374_noticia_normal.jpg" alt="1626972148_552387_1626972374_noticia_normal" width="100%" type="image/jpeg"/></div>
+Je následující topologie odolná vůci výpadkům stanic?</prompt>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_4" fixed="false" showHide="show" matchMax="0" matchMin="0">Ano</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_5" fixed="false" showHide="show" matchMax="0" matchMin="0">Ne</simpleAssociableChoice>
+          </simpleMatchSet>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_6" fixed="false" showHide="show" matchMax="0" matchMin="0">Hvězda</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_7" fixed="false" showHide="show" matchMax="0" matchMin="0">Strom</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_8" fixed="false" showHide="show" matchMax="0" matchMin="0">Kruh</simpleAssociableChoice>
+          </simpleMatchSet>
+        </matchInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE"/>
+          <correct identifier="RESPONSE"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_1"/>
+          <correct identifier="RESPONSE_1"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+  </responseProcessing>
+</assessmentItem>

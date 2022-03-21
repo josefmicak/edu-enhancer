@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16430934626265143" title="testing2" label="testing2" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE_2" cardinality="single" baseType="string">
+    <correctResponse>
+      <value><![CDATA[spravna odpoved]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_1" cardinality="multiple" baseType="pair">
+    <correctResponse>
+      <value><![CDATA[choice_7 choice_4]]></value>
+      <value><![CDATA[choice_5 choice_6]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_3" cardinality="multiple" baseType="directedPair">
+    <correctResponse>
+      <value><![CDATA[choice_8 choice_10]]></value>
+      <value><![CDATA[choice_9 choice_11]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_4" cardinality="ordered" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_12]]></value>
+      <value><![CDATA[choice_13]]></value>
+      <value><![CDATA[choice_14]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_2]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="5"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>5</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1" minChoices="0" orientation="vertical">
+          <prompt>Kde sídlí VŠB?</prompt>
+          <simpleChoice identifier="choice_1" fixed="false" showHide="show">Brno</simpleChoice>
+          <simpleChoice identifier="choice_2" fixed="false" showHide="show">Ostrava</simpleChoice>
+          <simpleChoice identifier="choice_3" fixed="false" showHide="show">Praha</simpleChoice>
+        </choiceInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <extendedTextInteraction responseIdentifier="RESPONSE_2" base="10" minStrings="0" format="plain">
+          <prompt>testt</prompt>
+        </extendedTextInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <associateInteraction responseIdentifier="RESPONSE_1" shuffle="false" maxAssociations="0" minAssociations="0">
+          <prompt>priradte</prompt>
+          <simpleAssociableChoice identifier="choice_4" fixed="false" showHide="show" matchMax="0" matchMin="0">vlak</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_5" fixed="false" showHide="show" matchMax="0" matchMin="0">bus</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_6" fixed="false" showHide="show" matchMax="0" matchMin="0">silnice</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_7" fixed="false" showHide="show" matchMax="0" matchMin="0">koleje</simpleAssociableChoice>
+        </associateInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <matchInteraction responseIdentifier="RESPONSE_3" shuffle="false" maxAssociations="0" minAssociations="0">
+          <prompt>je oc?</prompt>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_8" fixed="false" showHide="show" matchMax="0" matchMin="0">ano</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_9" fixed="false" showHide="show" matchMax="0" matchMin="0">ne</simpleAssociableChoice>
+          </simpleMatchSet>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_10" fixed="false" showHide="show" matchMax="0" matchMin="0">oc</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_11" fixed="false" showHide="show" matchMax="0" matchMin="0">as</simpleAssociableChoice>
+          </simpleMatchSet>
+        </matchInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <orderInteraction responseIdentifier="RESPONSE_4" shuffle="false" orientation="vertical">
+          <prompt>seradte</prompt>
+          <simpleChoice identifier="choice_12" fixed="false" showHide="show">choice #1</simpleChoice>
+          <simpleChoice identifier="choice_13" fixed="false" showHide="show">choice #2</simpleChoice>
+          <simpleChoice identifier="choice_14" fixed="false" showHide="show">choice #3</simpleChoice>
+        </orderInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE"/>
+          <correct identifier="RESPONSE"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_2"/>
+          <correct identifier="RESPONSE_2"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_1"/>
+          <correct identifier="RESPONSE_1"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_3"/>
+          <correct identifier="RESPONSE_3"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_4"/>
+          <correct identifier="RESPONSE_4"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+  </responseProcessing>
+</assessmentItem>

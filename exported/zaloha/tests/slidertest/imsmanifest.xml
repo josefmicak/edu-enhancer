@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd" identifier="QTI-TEST-MANIFEST-tao61fe57737d2ca6-03190943">
+    <metadata>
+        <schema>QTIv2.2 Package</schema>
+        <schemaversion>1.0.0</schemaversion>
+    </metadata>
+    <organizations/>
+    <resources>
+            <resource identifier="i16440548572296396" type="imsqti_item_xmlv2p2" href="items/i16440548572296396/qti.xml">
+            <file href="items/i16440548572296396/qti.xml"/>
+                        <file href="items/i16440548572296396/3S3Q6Ao.jpg"/>
+                        <file href="items/i16440548572296396/1458687792094.jpg"/>
+                        <file href="items/i16440548572296396/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i16440549592719397" type="imsqti_test_xmlv2p2" href="tests/i16440549592719397/test.xml"><file href="tests/i16440549592719397/test.xml"/><dependency identifierref="i16440548572296396"/></resource></resources>
+</manifest>

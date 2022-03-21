@@ -1,0 +1,6 @@
+item-1;11
+item-2;5
+item-3;7
+item-4;4
+item-5;0
+item-7;2;0;-7;10;5

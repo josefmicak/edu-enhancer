@@ -2,8 +2,19 @@
 {
     public static class Settings
     {
+        public const string URL = "https://localhost:7057";
         public const string Path = "C:\\xampp\\exported\\";
         public const string ExternalPath = "http://testt.8u.cz/TaoEnhancer";
+
+        public static string GetURL()
+        {
+            return URL;
+        }
+
+        public static string GetSignInURL()
+        {
+            return GetURL() + "/Account/SignIn";
+        }
 
         public static string GetPath()
         {
@@ -38,6 +49,11 @@
         public static string GetStudentFilePath(string studentNumberIdentifier)
         {
             return GetStudentsPath() + "\\" + studentNumberIdentifier + ".rdf";
+        }
+
+        public static string GetStudentLoginDataPath(string loginEmail)
+        {
+            return GetStudentsPath() + "\\" + loginEmail + ".txt";
         }
 
         public static string GetTestsPath()

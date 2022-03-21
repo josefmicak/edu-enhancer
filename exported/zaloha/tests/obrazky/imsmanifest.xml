@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd" identifier="QTI-TEST-MANIFEST-tao61fe23add57ad2-49150922">
+    <metadata>
+        <schema>QTIv2.2 Package</schema>
+        <schemaversion>1.0.0</schemaversion>
+    </metadata>
+    <organizations/>
+    <resources>
+            <resource identifier="i16439606123986313" type="imsqti_item_xmlv2p2" href="items/i16439606123986313/qti.xml">
+            <file href="items/i16439606123986313/qti.xml"/>
+                        <file href="items/i16439606123986313/250px-WalkerTitle.jpg"/>
+                        <file href="items/i16439606123986313/vsb.png"/>
+                        <file href="items/i16439606123986313/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i1634302215546267" type="imsqti_item_xmlv2p2" href="items/i1634302215546267/qti.xml">
+            <file href="items/i1634302215546267/qti.xml"/>
+                        <file href="items/i1634302215546267/vsb.png"/>
+                        <file href="items/i1634302215546267/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i1634305383464171" type="imsqti_item_xmlv2p2" href="items/i1634305383464171/qti.xml">
+            <file href="items/i1634305383464171/qti.xml"/>
+                    </resource><resource identifier="i16439605829564312" type="imsqti_test_xmlv2p2" href="tests/i16439605829564312/test.xml"><file href="tests/i16439605829564312/test.xml"/><dependency identifierref="i16439606123986313"/><dependency identifierref="i1634302215546267"/><dependency identifierref="i1634305383464171"/></resource></resources>
+</manifest>

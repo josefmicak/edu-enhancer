@@ -14,30 +14,33 @@
         foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
             string studentIdentifier = "", login = "", name = "", surname = "";
 
-            XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
-            while (xmlReaderStudent.Read())
+            if (new FileInfo(studentFile).Extension == ".rdf")
             {
-                if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
+                XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
+                while (xmlReaderStudent.Read())
                 {
-                    studentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
-                }
+                    if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
+                    {
+                        studentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
+                    }
 
-                if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                {
-                    login = xmlReaderStudent.ReadInnerXml();
-                }
+                    if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
+                    {
+                        login = xmlReaderStudent.ReadInnerXml();
+                    }
 
-                if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                {
-                    name = xmlReaderStudent.ReadInnerXml();
-                }
+                    if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
+                    {
+                        name = xmlReaderStudent.ReadInnerXml();
+                    }
 
-                if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                {
-                    surname = xmlReaderStudent.ReadInnerXml();
+                    if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
+                    {
+                        surname = xmlReaderStudent.ReadInnerXml();
+                    }
                 }
+                studentList.Add((studentIdentifier, login, name + " " + surname));
             }
-            studentList.Add((studentIdentifier, login, name + " " + surname));
         }
         return studentList;
     }
@@ -57,7 +60,7 @@
         </div>
         <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons" title="Odhlásit se" onclick="signOut">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
     </div>
 </header>

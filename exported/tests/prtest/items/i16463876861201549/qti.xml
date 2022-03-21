@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16463876861201549" title="QuickSort" label="QuickSort" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="directedPair">
+    <correctResponse>
+      <value><![CDATA[choice_2 gap_1]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="1"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>1</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <gapMatchInteraction responseIdentifier="RESPONSE" shuffle="true">
+          <prompt>Vyberte algoritmus z nabídky</prompt>
+          <gapText identifier="choice_1" fixed="false" matchMax="1" matchMin="0">BubbleSort</gapText>
+          <gapText identifier="choice_2" fixed="false" matchMax="1" matchMin="0">QuickSort</gapText>
+          <gapText identifier="choice_3" fixed="false" matchMax="1" matchMin="0">SelectionSort</gapText>
+          <p>Algoritmus, který používá při třízení takzvaného pivota, se nazývá <gap identifier="gap_1" fixed="false" required="false"/></p>
+        </gapMatchInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing template="http://www.imsglobal.org/question/qti_v2p2/rptemplates/match_correct"/>
+</assessmentItem>

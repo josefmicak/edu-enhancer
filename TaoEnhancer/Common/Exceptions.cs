@@ -12,6 +12,7 @@ namespace Common
         public static FileNotFoundException ResultResultsDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor s výsledkem testu nebyl nalezen!"); } }
         public static DirectoryNotFoundException StudentsPathNotFoundException { get { return new DirectoryNotFoundException("Složka se studenty nebyla nalezena!"); } }
         public static FileNotFoundException StudentFilePathNotFoundException { get { return new FileNotFoundException("RDF soubor se studentem nebyl nalezen!"); } }
+        public static FileNotFoundException StudentLoginDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor se studentem nebyl nalezen!"); } }
         public static DirectoryNotFoundException TestsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s testy nebyla nalezena!"); } }
         public static DirectoryNotFoundException TestPathNotFoundException { get { return new DirectoryNotFoundException("Složka s testem nebyla nalezena!"); } }
         public static DirectoryNotFoundException TestItemsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s otázkami z testu nebyla nalezena!"); } }
@@ -29,6 +30,6 @@ namespace Common
         public static XmlException XmlAttributeNotFound { get { return new XmlException("Atribut nebyl nalezen!"); } }
 
         // Data exceptions
-        public static Exception DataIdentifierNotFound { get { return new Exception("Identifier nebyl nalezen!"); } }
+        public static Exception DataIdentifierNotFound { get { return new Exception("Identifikátor nebyl nalezen!"); } }
     }
 }

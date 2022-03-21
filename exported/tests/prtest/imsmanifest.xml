@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd" identifier="QTI-TEST-MANIFEST-tao6221e2a67719a9-66814346">
+    <metadata>
+        <schema>QTIv2.2 Package</schema>
+        <schemaversion>1.0.0</schemaversion>
+    </metadata>
+    <organizations/>
+    <resources>
+            <resource identifier="i1646384183554540" type="imsqti_item_xmlv2p2" href="items/i1646384183554540/qti.xml">
+            <file href="items/i1646384183554540/qti.xml"/>
+                        <file href="items/i1646384183554540/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i16463847665905541" type="imsqti_item_xmlv2p2" href="items/i16463847665905541/qti.xml">
+            <file href="items/i16463847665905541/qti.xml"/>
+                    </resource><resource identifier="i16463849633151542" type="imsqti_item_xmlv2p2" href="items/i16463849633151542/qti.xml">
+            <file href="items/i16463849633151542/qti.xml"/>
+                    </resource><resource identifier="i16463855153387543" type="imsqti_item_xmlv2p2" href="items/i16463855153387543/qti.xml">
+            <file href="items/i16463855153387543/qti.xml"/>
+                    </resource><resource identifier="i16463857907220544" type="imsqti_item_xmlv2p2" href="items/i16463857907220544/qti.xml">
+            <file href="items/i16463857907220544/qti.xml"/>
+                    </resource><resource identifier="i16463860664434545" type="imsqti_item_xmlv2p2" href="items/i16463860664434545/qti.xml">
+            <file href="items/i16463860664434545/qti.xml"/>
+                    </resource><resource identifier="i16463863126026546" type="imsqti_item_xmlv2p2" href="items/i16463863126026546/qti.xml">
+            <file href="items/i16463863126026546/qti.xml"/>
+                    </resource><resource identifier="i16463876861201549" type="imsqti_item_xmlv2p2" href="items/i16463876861201549/qti.xml">
+            <file href="items/i16463876861201549/qti.xml"/>
+                    </resource><resource identifier="i16463868892605547" type="imsqti_test_xmlv2p2" href="tests/i16463868892605547/test.xml"><file href="tests/i16463868892605547/test.xml"/><dependency identifierref="i1646384183554540"/><dependency identifierref="i16463847665905541"/><dependency identifierref="i16463849633151542"/><dependency identifierref="i16463855153387543"/><dependency identifierref="i16463857907220544"/><dependency identifierref="i16463860664434545"/><dependency identifierref="i16463863126026546"/><dependency identifierref="i16463876861201549"/></resource></resources>
+</manifest>

@@ -333,6 +333,26 @@ namespace ViewLayer.Controllers
                     xmlReader.Skip();
                 }
 
+                if (xmlReader.Name == "div" && xmlReader.GetAttribute("class") == "col-12" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
+                    if (inlineChoiceInteractionLine[0] != '<' && inlineChoiceInteractionLine.Substring(0, 1) != "\n")
+                    {
+                        amountOfFaultyQuestions++;
+                        if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                        {
+                            xmlReader.Skip();
+                        }
+                        else
+                        {
+                            int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
+                            int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
+                            string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
+                            return questionText;
+                        }
+                    }
+                }
+
                 if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
                     amountOfFaultyQuestions++;
@@ -366,8 +386,8 @@ namespace ViewLayer.Controllers
                 if (xmlReader.NodeType == XmlNodeType.Element)
                 {
                     var name = xmlReader.Name;
-                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction")
-                    {
+                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" || name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction")
+                        {
                         if (xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
                         {
                             xmlReader.Skip();

@@ -1,12 +1,19 @@
-using Auth0.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Auth0
 builder.Services
-.AddAuth0WebAppAuthentication(options => {
-    options.Domain = builder.Configuration["Auth0:Domain"];
-    options.ClientId = builder.Configuration["Auth0:ClientId"];
+.AddAuthentication((options) =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie()
+.AddGoogle((options) =>
+{
+    options.ClientId = "755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6.apps.googleusercontent.com";
+    options.ClientSecret = "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";
 });
 
 // Add services to the container.
