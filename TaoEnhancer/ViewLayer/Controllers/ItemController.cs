@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Diagnostics;
+using System.Xml;
 using Common;
 
 namespace ViewLayer.Controllers
@@ -93,6 +94,16 @@ namespace ViewLayer.Controllers
                     {
                         amountOfAddedFaultyQuestions++;
                         string faultyQuestionValue = GetFaultyQuestionValue(amountOfAddedFaultyQuestions, testNameIdentifier, itemNumberIdentifier);
+                        List<int> amountOfInlineChoiceInteractions = GetAmountOfInlineChoiceInteractions(testNameIdentifier, itemNumberIdentifier);
+                        for (int i = 0; i < amountOfInlineChoiceInteractions.Count; i++)
+                        {
+                            int amountOfSubitemInlineChoiceInterractions = amountOfInlineChoiceInteractions[i];
+                            if (amountOfSubitemInlineChoiceInterractions > 1)
+                            {
+                                faultyQuestionValue = "Při přidávání otázky nastala chyba, jedna podotázka nemůže obsahovat více než 1 doplnění pojmu do textu. Chybu prosím opravte v nástroji TAO Core.";
+                            }
+                            continue;
+                        }
                         responseValueArray.Add(faultyQuestionValue);
                     }
 
@@ -178,6 +189,15 @@ namespace ViewLayer.Controllers
                         }
                     }
 
+                }
+            }
+
+            if (includesImage.Count != responseValueArray.Count)
+            {
+                responseValueArray.Clear();
+                for (int i = 0; i < includesImage.Count; i++)
+                {
+                    responseValueArray.Add("Chyba - některé z otázek nemají zadaný text. Texty podotázek nebudou pro tuto otázku fungovat.");
                 }
             }
 
@@ -321,6 +341,12 @@ namespace ViewLayer.Controllers
             return questionType;
         }
 
+        /*
+ * TODO:
+ * 2) zminit v textu (obrazkem) ktere typy otazek jsou akceptovany
+ * 3) zkusit dat vice doplnovacek textu a nebo vyberu v textu do jedne podotazky, pokud to vyhodi chybu tak to osetrit
+ * 4) co kdyz bude obrazek az po textu, nebo uprostred textu?
+ */
         public string GetFaultyQuestionValue(int amountOfAddedFaultyQuestions, string testNameIdentifier, string itemNumberIdentifier)
         {
             int amountOfFaultyQuestions = 0;
@@ -335,26 +361,56 @@ namespace ViewLayer.Controllers
 
                 if (xmlReader.Name == "div" && xmlReader.GetAttribute("class") == "col-12" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
-                    string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
-                    if (inlineChoiceInteractionLine[0] != '<' && inlineChoiceInteractionLine.Substring(0, 1) != "\n")
+                    using (var innerReader = xmlReader.ReadSubtree())
                     {
-                        amountOfFaultyQuestions++;
-                        if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                        while (innerReader.Read())
                         {
-                            xmlReader.Skip();
+                            if (innerReader.Name == "p")
+                            {
+                                string inlineChoiceInteractionLine_ = xmlReader.ReadInnerXml();
+                                if (inlineChoiceInteractionLine_ != null && inlineChoiceInteractionLine_[0] != '<' && inlineChoiceInteractionLine_.Substring(0, 1) != "\n")
+                                {
+                                    amountOfFaultyQuestions++;
+                                    if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                                    {
+                                        xmlReader.Skip();
+                                    }
+                                    else
+                                    {
+                                        int firstStartTag = inlineChoiceInteractionLine_.IndexOf('<');
+                                        int lastEndTag = inlineChoiceInteractionLine_.LastIndexOf('>');
+                                        string questionText = inlineChoiceInteractionLine_.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine_.Substring(1 + lastEndTag);
+                                        return questionText;
+                                    }
+                                }
+                            }
                         }
-                        else
+                    }
+                    string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
+                    if (inlineChoiceInteractionLine != null && inlineChoiceInteractionLine != "")
+                    {
+                        if (inlineChoiceInteractionLine[0] != '<' && inlineChoiceInteractionLine.Substring(0, 1) != "\n")
                         {
-                            int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
-                            int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
-                            string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
-                            return questionText;
+                            amountOfFaultyQuestions++;
+                            if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                            {
+                                xmlReader.Skip();
+                            }
+                            else
+                            {
+                                int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
+                                int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
+                                string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
+                                return questionText;
+                            }
                         }
                     }
                 }
 
-                if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
+                //Debug.WriteLine(xmlReader.Name);
+                /*if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
+                    Debug.Write("possible");
                     amountOfFaultyQuestions++;
                     if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
                     {
@@ -368,10 +424,37 @@ namespace ViewLayer.Controllers
                         string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
                         return questionText;
                     }
-                }
+                }*/
             }
 
             return "Při přidávání otázky nastala neočekávaná chyba";
+        }
+
+        public List<int> GetAmountOfInlineChoiceInteractions(string testNameIdentifier, string itemNumberIdentifier)
+        {
+            List<int> amountOfInlineChoiceInteractions = new List<int>();
+
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
+            while (xmlReader.Read())
+            {
+                if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    int amountOfSubitemInlineChoiceInterractions = 0;
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        while (innerReader.Read())
+                        {
+                            if ((innerReader.Name == "inlineChoiceInteraction" || innerReader.Name == "textEntryInteraction") && innerReader.NodeType != XmlNodeType.EndElement)
+                            {
+                                amountOfSubitemInlineChoiceInterractions++;
+                            }
+                        }
+                    }
+                    amountOfInlineChoiceInteractions.Add(amountOfSubitemInlineChoiceInterractions);
+                }
+            }
+
+            return amountOfInlineChoiceInteractions;
         }
 
         public (int, string, string, List<(bool, string, string)>, int) SubitemImages(string responseIdentifier, List<(bool, string, string)> includesImage, string testNameIdentifier, string itemNumberIdentifier)
@@ -386,8 +469,9 @@ namespace ViewLayer.Controllers
                 if (xmlReader.NodeType == XmlNodeType.Element)
                 {
                     var name = xmlReader.Name;
-                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" || name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction")
-                        {
+                    if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" || name == "extendedTextInteraction"
+                        || name == "orderInteraction" || name == "associateInteraction")//chybi volne odpovedi obe?
+                    {
                         if (xmlReader.GetAttribute("responseIdentifier") != responseIdentifier)
                         {
                             xmlReader.Skip();
@@ -465,7 +549,7 @@ namespace ViewLayer.Controllers
                 responseValueArray.Clear();
                 for (int i = 0; i < responseIdentifierArray.Count; i++)
                 {
-                    responseValueArray.Add("Chyba - některé z otázek nemá zadaný text. Texty podotázek nebudou pro tuto otázku fungovat.");
+                    responseValueArray.Add("Chyba - některé z otázek nemají zadaný text. Texty podotázek nebudou pro tuto otázku fungovat.");
                 }
             }
 
@@ -1255,21 +1339,21 @@ namespace ViewLayer.Controllers
             string studentsAnswerCorrectLabel = "";
             /*if (subquestionPoints != 0)
             {*/
-                switch (isAnswerCorrect)
-                {
-                    case StudentsAnswerCorrectness.Correct:
-                        studentsAnswerCorrectLabel = "Správná odpověď";
-                        break;
-                    case StudentsAnswerCorrectness.PartiallyCorrect:
-                        studentsAnswerCorrectLabel = "Částečně správná odpověď";
-                        break;
-                    case StudentsAnswerCorrectness.Incorrect:
-                        studentsAnswerCorrectLabel = "Nesprávná odpověď";
-                        break;
-                    case StudentsAnswerCorrectness.Unknown:
-                        studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně";
-                        break;
-                }
+            switch (isAnswerCorrect)
+            {
+                case StudentsAnswerCorrectness.Correct:
+                    studentsAnswerCorrectLabel = "Správná odpověď";
+                    break;
+                case StudentsAnswerCorrectness.PartiallyCorrect:
+                    studentsAnswerCorrectLabel = "Částečně správná odpověď";
+                    break;
+                case StudentsAnswerCorrectness.Incorrect:
+                    studentsAnswerCorrectLabel = "Nesprávná odpověď";
+                    break;
+                case StudentsAnswerCorrectness.Unknown:
+                    studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně";
+                    break;
+            }
             //}
 
             if ((studentsReceivedPoints < 0 && !NegativePoints(testNameIdentifier, testNumberIdentifier)) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))
@@ -1323,7 +1407,7 @@ namespace ViewLayer.Controllers
             bool recommendedWrongChoicePoints = false;
             double selectedWrongChoicePoints = 0;
             int questionPoints = 0;
-            if(File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
+            if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier)))
             {
                 fileExists = true;
             }
@@ -1443,13 +1527,13 @@ namespace ViewLayer.Controllers
                                             allAttributesFound = false;
                                         }
 
-                                        if(!allAttributesFound)
+                                        if (!allAttributesFound)
                                         {
                                             throw Exceptions.XmlAttributeNotFound;
                                         }
                                     }
 
-                                    if(xmlReader.Name == "responseDeclaration" && xmlReader.NodeType == XmlNodeType.Element)
+                                    if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType == XmlNodeType.Element)
                                     {
                                         amountOfSubitems++;
                                     }
@@ -1538,7 +1622,7 @@ namespace ViewLayer.Controllers
             string[] splitStudentsAnswersByNewLine = studentsAnswersToLabel.Split("\n");
             for (int i = 0; i < splitStudentsAnswersByNewLine.Length; i++)
             {
-                if(splitStudentsAnswersByNewLine[i] != "")
+                if (splitStudentsAnswersByNewLine[i] != "")
                 {
                     studentsAnswers.Add(splitStudentsAnswersByNewLine[i]);
                 }
