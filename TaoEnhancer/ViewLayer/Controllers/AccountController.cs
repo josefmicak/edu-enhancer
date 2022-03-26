@@ -60,7 +60,7 @@ namespace ViewLayer.Controllers
                         try
                         {
                             StudentController studentController = new StudentController();
-                            (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) studentData = studentController.LoadStudentData(claimsIdentity.Claims.ToList()[2].Value);
+                            (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) studentData = studentController.LoadStudentByEmail(claimsIdentity.Claims.ToList()[2].Value);
                             
                             switch(studentData.role)
                             {
@@ -89,20 +89,6 @@ namespace ViewLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignOut()
         {
-            /*//Check if any cookie value is present
-            if (HttpContext.Request.Cookies.Count > 0)
-            {
-                //Check for the cookie value with the name mentioned for authentication and delete each cookie
-                var siteCookies = HttpContext.Request.Cookies.Where(c => c.Key.Contains(".AspNetCore.") || c.Key.Contains("Google.Authentication"));
-                foreach (var cookie in siteCookies)
-                {
-                    Response.Cookies.Delete(cookie.Key);
-                }
-            }
-            //signout with any cookie present 
-            await HttpContext.SignOutAsync("External");
-            
-            return RedirectToAction("Index", "Home");*/
             return Redirect("https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + Settings.GetURL());
         }
     }

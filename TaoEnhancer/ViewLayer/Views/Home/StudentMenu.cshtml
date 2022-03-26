@@ -1,64 +1,11 @@
-﻿@using Common
-@{
-    ViewData["Title"] = "Studentské menu";
-
-    List<(string, string, string)> studentList = LoadStudents();
-}
-
-@functions{
-
-    public List<(string, string, string)> LoadStudents()
-    {
-        List<(string, string, string)> studentList = new List<(string, string, string)>();
-
-        foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
-            string studentIdentifier = "", login = "", name = "", surname = "";
-
-            if (new FileInfo(studentFile).Extension == ".rdf")
-            {
-                XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
-                while (xmlReaderStudent.Read())
-                {
-                    if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        studentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        login = xmlReaderStudent.ReadInnerXml();
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        name = xmlReaderStudent.ReadInnerXml();
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        surname = xmlReaderStudent.ReadInnerXml();
-                    }
-                }
-                studentList.Add((studentIdentifier, login, name + " " + surname));
-            }
-        }
-        return studentList;
-    }
-
-    public string ExtractFileExtension(string file)
-    {
-        string[] fileSplitByDot = file.Split(@".");
-        return fileSplitByDot[fileSplitByDot.Length - 1];
-    }
-
-}
+﻿@model ViewLayer.Models.StudentMenuModel
 
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -78,12 +25,12 @@
                     </tr>
                     @{
                         int i = 0;
-                        foreach ((string, string, string) student in studentList)
+                        foreach ((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) student in @Model.Students)
                         {
                             <tr>
-                                <td>@student.Item1</td>
-                                <td>@student.Item2</td>
-                                <td>@student.Item3</td>
+                                <td>@student.studentIdentifier</td>
+                                <td>@student.login</td>
+                                <td>@student.firstName @student.lastName</td>
                                 <td><a class="button" title="Zobrazit studentovy testy" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
                                 asp-route-studentIdentifier="@student.Item1">Zobrazit studentovy testy</a></td>
                             </tr>

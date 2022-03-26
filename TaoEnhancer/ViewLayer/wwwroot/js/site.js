@@ -24,6 +24,22 @@ function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
 }
 
 // Google Sign In
+function handlePreferedColorSchemeChange(e) {
+    if(e.matches) {
+        if(document.getElementsByClassName("g_id_signin")[0]) {
+            document.getElementsByClassName("g_id_signin")[0].dataset.theme = "filled_blue";
+        }
+    }
+    else {
+        if(document.getElementsByClassName("g_id_signin")[0]) {
+            document.getElementsByClassName("g_id_signin")[0].dataset.theme = "outline";
+        }
+    }
+}
+
+const preferedColorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+handlePreferedColorSchemeChange(preferedColorScheme);
+
 /*console.log(document.cookie);
 let auth2;
 let googleUser;

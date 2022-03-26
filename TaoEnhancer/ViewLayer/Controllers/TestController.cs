@@ -286,9 +286,7 @@ namespace ViewLayer.Controllers
         public (string, string, string, string, string) LoadResultParameters(string testNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
             string resultTimestamp = "";
-            string login = "", name = "", surname = "";
-            bool studentFound = false;
-
+            
             XmlReader xmlReader = XmlReader.Create(Settings.GetResultFilePath(testNameIdentifier, deliveryExecutionIdentifier));
             while (xmlReader.Read())
             {
@@ -298,46 +296,9 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
-            {
-                if (new FileInfo(studentFile).Extension == ".rdf" && !studentFound)
-                {
-                    XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
-                    while (xmlReaderStudent.Read())
-                    {
-                        if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                        {
-                            string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
-                            if (studentIdentifier == xmlReaderStudentIdentifier)
-                            {
-                                studentFound = true;
-                            }
-                            else
-                            {
-                                studentFound = false;
-                                break;
-                            }
-                        }
-
-                        if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                        {
-                            login = xmlReaderStudent.ReadInnerXml();
-                        }
-
-                        if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                        {
-                            name = xmlReaderStudent.ReadInnerXml();
-                        }
-
-                        if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                        {
-                            surname = xmlReaderStudent.ReadInnerXml();
-                        }
-                    }
-                }
-            }
-
-            return (deliveryExecutionIdentifier, resultTimestamp, name + " " + surname, login, studentIdentifier);
+            (string studentNumberIdentifier, string _, string login, string firstName, string lastName, string email) = new StudentController().LoadStudentByIdentifier(studentIdentifier);
+            
+            return (deliveryExecutionIdentifier, resultTimestamp, firstName + " " + lastName, login, studentIdentifier);
         }
 
         public bool NegativePointsManagement(string testNameIdentifier, string testNumberIdentifier)
@@ -364,6 +325,166 @@ namespace ViewLayer.Controllers
             }
 
             return negativePointsInTest;
+        }
+
+        public List<(string, string, string)> LoadTests()
+        {
+            List<(string, string, string)> testIdentifiers = new List<(string, string, string)>();
+            string subDirectory = "";
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
+            {
+                string[] splitDirectoryBySlash = directory.Split(@"\");
+                string nameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+                string title = "";
+                string numberidentifier = "";
+
+                try
+                {
+                    foreach (var directory_ in Directory.GetDirectories(directory + "\\tests"))
+                    {
+                        string[] splitDirectory_BySlash = directory_.Split(@"\");
+                        numberidentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                        subDirectory = directory_;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+
+                XmlReader xmlReader = XmlReader.Create(subDirectory + "\\test.xml");
+                while (xmlReader.Read())
+                {
+                    if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                    {
+                        if (xmlReader.HasAttributes)
+                        {
+                            title = xmlReader.GetAttribute("title");
+                            testIdentifiers.Add((nameIdentifier, numberidentifier, title));
+                        }
+                    }
+                }
+
+            }
+
+            return testIdentifiers;
+        }
+
+        public List<(string, string, string, string)> LoadTests(string studentIdentifier)
+        {
+            List<(string, string, string, string)> studentTestList = new List<(string, string, string, string)>();
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    string extension = ExtractFileExtension(file);
+                    if (extension == "xml")
+                    {
+                        bool addTest = false;
+                        string timeStamp = "";
+                        string testStudentIdentifier = "";
+
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.Name == "context")
+                            {
+                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                                if (testStudentIdentifier == studentIdentifier)
+                                {
+                                    addTest = true;
+                                }
+                            }
+
+                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            {
+                                timeStamp = xmlReader.GetAttribute("datestamp");
+                            }
+                        }
+
+                        if (addTest)
+                        {
+                            string[] deliveryExecutionIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+                            string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
+                            string testNameIdentifier = ExtractFileName(directory).ToString();
+                            string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
+                            studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
+                        }
+                    }
+                }
+            }
+
+            return studentTestList;
+        }
+
+        public List<(string, string, string, string, string, string, string, string)> LoadSolvedTests()
+        {
+            List<(string, string, string, string, string, string, string, string)> solvedTestList = new List<(string, string, string, string, string, string, string, string)>();
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    string extension = ExtractFileExtension(file);
+                    if (extension == "xml")
+                    {
+                        string timeStamp = "";
+                        string testStudentIdentifier = "";
+
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.Name == "context")
+                            {
+                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                            }
+
+                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            {
+                                timeStamp = xmlReader.GetAttribute("datestamp");
+                            }
+                        }
+
+                        string[] attemptIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+
+                        (string studentNumberIdentifier, string _, string login, string firstName, string lastName, string email) student = new StudentController().LoadStudentByIdentifier(testStudentIdentifier);
+
+                        solvedTestList.Add((GetTestNumberIdentifier(ExtractFileName(directory).ToString()), ExtractFileName(directory).ToString(), timeStamp, attemptIdentifierSplitByUnderscore[2], student.login, student.firstName + " " + student.lastName, student.email, testStudentIdentifier));
+                    }
+                }
+            }
+
+            return solvedTestList;
+        }
+
+        public string ExtractFileExtension(string file)
+        {
+            string[] fileSplitByDot = file.Split(@".");
+            return fileSplitByDot[fileSplitByDot.Length - 1];
+        }
+
+        public string ExtractFileName(string file)
+        {
+            string[] fileSplitBySlash = file.Split(@"\");
+            return fileSplitBySlash[fileSplitBySlash.Length - 1];
+        }
+
+        public string ExtractFileNameWithoutExtension(string file)
+        {
+            string[] fileSplitBySlash = file.Split(@"\");
+            string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
+            return fileSplitByDot[fileSplitByDot.Length - 2];
+        }
+
+        public string GetTestNumberIdentifier(string testNameIdentifier)
+        {
+            foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
+            {
+                return ExtractFileName(directory);
+            }
+            return "Nastala neočekávaná chyba.";
         }
     }
 }

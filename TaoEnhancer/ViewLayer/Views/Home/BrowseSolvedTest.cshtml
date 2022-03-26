@@ -1,47 +1,29 @@
-﻿@{
-    ViewData["Title"] = "Prohlížení pokusu " + @ViewBag.deliveryExecutionIdentifier;
-    string studentIdentifier = @ViewBag.studentIdentifier;
-    string attemptIdentifier = @ViewBag.attemptIdentifier;
-    string testNameIdentifier = @ViewBag.testNameIdentifier;
-    string testNumberIdentifier = @ViewBag.testNumberIdentifier;
-    string deliveryExecutionIdentifier = @ViewBag.deliveryExecutionIdentifier;
+﻿@model ViewLayer.Models.BrowseSolvedTestModel
 
-    TestController testController = new TestController();
-
-    (_, _, string title, int amountOfItems) = testController.LoadTestParameters(testNameIdentifier, testNumberIdentifier);
-    {}
-    List<(string, string, string, string)> questionList = testController.LoadQuestions(testNameIdentifier, testNumberIdentifier);
-    List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
-    (int testPoints, bool testPointsDetermined) = testController.GetTestPoints(itemParameters);
-    (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
-    if (errorMessageNumber == 1)
+@{
+    if (@Model.QuestionResultPoints.Item2 == 1)
     {
         string errorMessage = "Chyba: otázka nemá pravděpodobně zadaný žádný text";
         WriteMessageToUser(errorMessage);
     }
-
-    double totalStudentsPoints = testController.GetTotalStudentsPoints(studentsPoints);
-    (string resultIdentifier, string resultTimestamp, string studentName, string studentLogin, _) = testController.LoadResultParameters(testNameIdentifier, deliveryExecutionIdentifier, studentIdentifier);
 }
 
 @functions{
-
     public void WriteMessageToUser(string message)
     {
         <script>
         window.alert('@message');
         </script>
     }
-
 }
 
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
-            asp-route-studentIdentifier="@studentIdentifier">arrow_back</a>
+            asp-route-studentIdentifier="@Model.StudentIdentifier">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -55,26 +37,26 @@
                 <table class="article-table">
                     <tr>
                         <th>Jmenný identifikátor testu</th>
-                        <td>@testNameIdentifier</td>
+                        <td>@Model.TestNameIdentifier</td>
                     </tr>
                     <tr>
                         <th>Číselný identifikátor testu</th>
-                        <td>@testNumberIdentifier</td>
+                        <td>@Model.TestNumberIdentifier</td>
                     </tr>
                     <tr>
                         <th>Nadpis</th>
-                        <td>@title</td>
+                        <td>@Model.TestParameters.Item3</td>
                     </tr>
                     <tr>
                         <th>Počet otázek</th>
-                        <td>@amountOfItems</td>
+                        <td>@Model.TestParameters.Item4</td>
                     </tr>
                     <tr>
                         <th>Počet bodů</th>
                         @{
-                            if(@testPointsDetermined)
+                            if(@Model.TestPoints.Item2)
                             {
-                                <td>@totalStudentsPoints / @testPoints</td>
+                                <td>@Model.TotalStudentsPoints / @Model.TestPoints.Item1</td>
                             }
                             else
                             {
@@ -100,16 +82,16 @@
                     </tr>
                     @{
                         int i = 0;
-                        foreach ((string, string, string, string) question in questionList)
+                        foreach ((string, string, string, string) question in Model.QuestionList)
                         {
                             string points = "";
-                            if(!(@itemParameters[i].Item6))
+                            if(!(@Model.ItemParameters[i].Item6))
                             {
                                 points = "N/A";
                             }
                             else
                             {
-                                points = @studentsPoints[i].Item1 + "/" + @itemParameters[i].Item5.ToString();
+                                points = @Model.QuestionResultPoints.Item1[i].Item1 + "/" + @Model.ItemParameters[i].Item5.ToString();
                             }
                             <tr>
                                 <td>@question.Item1</td>
@@ -117,14 +99,14 @@
                                 <td>@question.Item3</td>
                                 <td>@question.Item4</td>
                                 <td>@points</td>
-                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@studentsPoints[i].Item1 / @itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
+                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.QuestionResultPoints.Item1[i].Item1 / @Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
                                 <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="BrowseSolvedItem"
-                                asp-route-testNameIdentifier="@testNameIdentifier"
-                                asp-route-testNumberIdentifier="@testNumberIdentifier"
-                                asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
-                                asp-route-itemNameIdentifier="@itemParameters[i].Item2"
-                                asp-route-deliveryExecutionIdentifier="@deliveryExecutionIdentifier"
-                                asp-route-studentIdentifier="@studentIdentifier">Správa otázky</a></td>
+                                asp-route-testNameIdentifier="@Model.TestNameIdentifier"
+                                asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
+                                asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
+                                asp-route-itemNameIdentifier="@Model.ItemParameters[i].Item2"
+                                asp-route-deliveryExecutionIdentifier="@Model.DeliveryExecutionIdentifier"
+                                asp-route-studentIdentifier="@Model.StudentIdentifier">Správa otázky</a></td>
                             </tr>
                             i++;
                         }
@@ -165,23 +147,23 @@
                 <table class="article-table">
                     <tr>
                         <th>Identifikátor pokusu</th>
-                        <td>@resultIdentifier</td>
+                        <td>@Model.ResultParameters.Item1</td>
                     </tr>
                     <tr>
                         <th>Časová známka</th>
-                        <td>@resultTimestamp</td>
+                        <td>@Model.ResultParameters.Item2</td>
                     </tr>
                     <tr>
                         <th>Jméno studenta</th>
-                        <td>@studentName</td>
+                        <td>@Model.ResultParameters.Item3</td>
                     </tr>
                     <tr>
                         <th>Login studenta</th>
-                        <td>@studentLogin</td>
+                        <td>@Model.ResultParameters.Item4</td>
                     </tr>
                     <tr>
                         <th>Identifikátor studenta</th>
-                        <td>@studentIdentifier</td>
+                        <td>@Model.StudentIdentifier</td>
                     </tr>
                 </table>
             </div>

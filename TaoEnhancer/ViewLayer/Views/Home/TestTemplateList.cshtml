@@ -1,62 +1,11 @@
-﻿@using Common
-@{
-    ViewData["Title"] = "Správa zadání testů";
-}
-
-@functions {
-
-    public List<(string, string, string)> LoadTests()
-    {
-        List<(string, string, string)> testIdentifiers = new List<(string, string, string)>();
-        string subDirectory = "";
-
-        foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
-        {
-            string[] splitDirectoryBySlash = directory.Split(@"\");
-            string nameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
-            string title = "";
-            string numberidentifier = "";
-
-            try
-            {
-                foreach (var directory_ in Directory.GetDirectories(directory + "\\tests"))
-                {
-                    string[] splitDirectory_BySlash = directory_.Split(@"\");
-                    numberidentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
-                    subDirectory = directory_;
-                }
-            }
-            catch
-            {
-                continue;
-            }
-
-            XmlReader xmlReader = XmlReader.Create(subDirectory + "\\test.xml");
-            while (xmlReader.Read())
-            {
-                if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
-                {
-                    if (xmlReader.HasAttributes)
-                    {
-                        title = xmlReader.GetAttribute("title");
-                        testIdentifiers.Add((nameIdentifier, numberidentifier, title));
-                    }
-                }
-            }
-
-        }
-
-        return testIdentifiers;
-    }
-
-}
+﻿@model ViewLayer.Models.TestTemplateListModel
  
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -73,7 +22,7 @@
                         <th>Nadpis</th>
                         <th>Správa</th>
                     </tr>
-                    @foreach ((string, string, string) testIdentifiers in LoadTests())
+                    @foreach ((string, string, string) testIdentifiers in @Model.Tests)
                     {
                         <tr>
                             <td>@testIdentifiers.Item1</td>

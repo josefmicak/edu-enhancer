@@ -57,6 +57,63 @@
     --radio-disabled-checked-border-color: #888;
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color: #FFF;
+        --background: #000;
+        --header-background: #111;
+        --article-table-border-color: #222;
+        --article-table-hover-border-color: #333;
+        --article-table-odd-background: #080808;
+        --article-table-th-correct-color: #D0FFE8;
+        --article-table-th-partiallyCorrect-color: #FFE8D0;
+        --article-table-th-incorrect-color: #FFD0D0;
+        --article-table-th-background: #111;
+        --article-table-th-correct-background: #002F18;
+        --article-table-th-partiallyCorrect-background: #2F1800;
+        --article-table-th-incorrect-background: #2F0000;
+        --article-table-th-colspan-correct-color: #C0EFD8;
+        --article-table-th-colspan-partiallyCorrect-color: #EFD8C0;
+        --article-table-th-colspan-incorrect-color: #EFC0C0;
+        --article-table-th-colspan-background: #222;
+        --article-table-th-colspan-correct-background: #103F28;
+        --article-table-th-colspan-partiallyCorrect-background: #3F2810;
+        --article-table-th-colspan-incorrect-background: #3F1010;
+        --article-table-td-correct-color: #F0FFF8;
+        --article-table-td-partiallyCorrect-color: #FFF8F0;
+        --article-table-td-incorrect-color: #FFF0F0;
+        --article-table-td-correct-background: #000F08;
+        --article-table-td-partiallyCorrect-background: #0F0800;
+        --article-table-td-incorrect-background: #0F0000;
+        --box-shadow-color: #888;
+        --button-color: #CCC;
+        --button-hover-color: #FFF;
+        --button-disabled-color: #AAA;
+        --button-background: #111;
+        --button-hover-background: #222;
+        --button-disabled-background: #333;
+        --button-box-shadow-color: var(--box-shadow-color);
+        --button-hover-box-shadow-color: #999;
+        --button-disabled-box-shadow-color: #555;
+        --input-color: #FFF;
+        --input-hover-color: var(--input-color);
+        --input-disabled-color: #AAA;
+        --input-background: #000;
+        --input-hover-background: var(--input-background);
+        --input-disabled-background: #111;
+        --input-border-color: #222;
+        --input-hover-border-color: #333;
+        --input-disabled-border-color: #111;
+        --input-box-shadow-color: #555;
+        --input-hover-box-shadow-color: #888;
+        --input-disabled-box-shadow-color: #333;
+        --radio-checked-background: #08F;
+        --radio-disabled-checked-background: #888;
+        --radio-checked-border-color: #08F;
+        --radio-disabled-checked-border-color: #888;
+    }
+}
+
 /* Elements */
 html, body {
     color: var(--color);
@@ -218,7 +275,6 @@ button {
 }
 .header-center {
     grid-area: center;
-    justify-self: center;
 }
 .header-right {
     grid-area: right;

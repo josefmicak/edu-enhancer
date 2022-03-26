@@ -1,129 +1,11 @@
-﻿@using Common
-@{
-    ViewData["Title"] = "Správa vyřešených testů";
-}
-
-@functions {
-
-    public List<(string, string, string, string, string, string, string)> LoadSolvedTests()
-    {
-        List<(string, string, string, string, string, string, string)> solvedTestList = new List<(string, string, string, string, string, string, string)>();
-
-        foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
-        {
-            foreach (var file in Directory.GetFiles(directory))
-            {
-                string extension = ExtractFileExtension(file);
-                if (extension == "xml")
-                {
-                    string timeStamp = "";
-                    string testStudentIdentifier = "";
-
-                    XmlReader xmlReader = XmlReader.Create(file);
-                    while (xmlReader.Read())
-                    {
-                        if (xmlReader.Name == "context")
-                        {
-                            testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
-                        }
-
-                        if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
-                        {
-                            timeStamp = xmlReader.GetAttribute("datestamp");
-                        }
-                    }
-
-                    string[] attemptIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
-                    string login = "", name = "", surname = "", email = "";
-                    bool studentFound = false;
-
-                    foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
-                        if(new FileInfo(studentFile).Extension == ".rdf" && !studentFound)
-                        {
-                            XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
-                            while (xmlReaderStudent.Read())
-                            {
-                                if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                                {
-                                    string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
-                                    if(testStudentIdentifier == xmlReaderStudentIdentifier)
-                                    {
-                                        studentFound = true;
-                                    }
-                                    else
-                                    {
-                                        studentFound = false;
-                                        break;
-                                    }
-                                }
-
-                                if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                                {
-                                    login = xmlReaderStudent.ReadInnerXml();
-                                }
-
-                                if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                                {
-                                    name = xmlReaderStudent.ReadInnerXml();
-                                }
-
-                                if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                                {
-                                    surname = xmlReaderStudent.ReadInnerXml();
-                                }
-
-                                if (xmlReaderStudent.Name == "ns0:userMail" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                                {
-                                    email = xmlReaderStudent.ReadInnerXml();
-                                }
-                            }
-                        }
-                    }
-
-                    solvedTestList.Add((ExtractFileName(directory).ToString(), timeStamp, attemptIdentifierSplitByUnderscore[2], login, name + " " + surname, email, testStudentIdentifier));
-                }
-            }
-        }
-
-        return solvedTestList;
-    }
-
-    public string ExtractFileName(string file)
-    {
-        string[] fileSplitBySlash = file.Split(@"\");
-        return fileSplitBySlash[fileSplitBySlash.Length - 1];
-    }
-
-
-    public string ExtractFileExtension(string file)
-    {
-        string[] fileSplitByDot = file.Split(@".");
-        return fileSplitByDot[fileSplitByDot.Length - 1];
-    }
-
-    public string ExtractFileNameWithoutExtension(string file)
-    {
-        string[] fileSplitBySlash = file.Split(@"\");
-        string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
-        return fileSplitByDot[fileSplitByDot.Length - 2];
-    }
-
-    public string GetTestNumberIdentifier(string testNameIdentifier)
-    {
-        foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
-        {
-            return ExtractFileName(directory);
-        }
-        return "Nastala neočekávaná chyba.";
-    }
-}
+﻿@model ViewLayer.Models.ManageSolvedTestListModel
 
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -145,22 +27,22 @@
                     </tr>
                     @{
                         int i = 0;
-                        foreach ((string, string, string, string, string, string, string) solvedTest in LoadSolvedTests())
+                        foreach ((string, string, string, string, string, string, string, string) solvedTest in @Model.SolvedTests)
                         {
                             <tr>
-                                <td>@solvedTest.Item1</td>
                                 <td>@solvedTest.Item2</td>
                                 <td>@solvedTest.Item3</td>
                                 <td>@solvedTest.Item4</td>
-                                <td><button class="button" title="Detaily" id="@i" onclick="loadSolvedTestDetails('@solvedTest.Item4', '@solvedTest.Item5', '@solvedTest.Item6')">Detaily</button></td>
+                                <td>@solvedTest.Item5</td>
+                                <td><button class="button" title="Detaily" id="@i" onclick="loadSolvedTestDetails('@solvedTest.Item6', '@solvedTest.Item5', '@solvedTest.Item7')">Detaily</button></td>
                                 <td><a class="button" title="Správa testu"
                                     asp-area="" 
                                     asp-controller="Home" 
                                     asp-action="ManageSolvedTest" 
-                                    asp-route-testNameIdentifier="@solvedTest.Item1" 
-                                    asp-route-testNumberIdentifier="@GetTestNumberIdentifier(@solvedTest.Item1)"
-                                    asp-route-deliveryExecutionIdentifier="@solvedTest.Item3"
-                                    asp-route-studentIdentifier="@solvedTest.Item7">Správa testu</a></td>
+                                    asp-route-testNameIdentifier="@solvedTest.Item2" 
+                                    asp-route-testNumberIdentifier="@solvedTest.Item1"
+                                    asp-route-deliveryExecutionIdentifier="@solvedTest.Item4"
+                                    asp-route-studentIdentifier="@solvedTest.Item8">Správa testu</a></td>
                             </tr>
                             i++;
                         }

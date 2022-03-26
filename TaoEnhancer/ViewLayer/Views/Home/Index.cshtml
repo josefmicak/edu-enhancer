@@ -1,12 +1,8 @@
-﻿@using Common
-@{
-    ViewData["Solution"] = "TaoEnhancer";
-    ViewData["Title"] = "Přihlášení";
-}
+﻿@model ViewLayer.Models.IndexModel
 
 <header class="header">
     <div class="header-content content-width">
-        <h1 class="header-center header-title title" title="@ViewData["Solution"]">@ViewData["Solution"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Solution">@Model.Solution</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -24,7 +20,7 @@
                                  data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
                                  data-context="signin"
                                  data-ux_mode="redirect"
-                                 data-login_uri="@Settings.GetSignInURL()"
+                                 data-login_uri="@Model.SignInURL"
                                  data-auto_prompt="false">
                             </div>
                             <div class="g_id_signin"

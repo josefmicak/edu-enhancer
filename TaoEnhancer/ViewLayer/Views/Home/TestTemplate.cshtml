@@ -1,17 +1,7 @@
-﻿@{
-    ViewData["Title"] = "Správa zadání testu " + @ViewBag.testNameIdentifier;
-    string testNameIdentifier = @ViewBag.testNameIdentifier;
-    string testNumberIdentifier = @ViewBag.testNumberIdentifier;
-    string viewBagNegativePoints = @ViewBag.NegativePoints;
+﻿@model ViewLayer.Models.TestTemplateModel
 
-    TestController testController = new TestController();
-    (_, _, string title, int amountOfItems) = testController.LoadTestParameters(testNameIdentifier, testNumberIdentifier);
-    {}
-    List<(string, string, string, string)> questionList = testController.LoadQuestions(testNameIdentifier, testNumberIdentifier);
-    List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
-    (int testPoints, bool testPointsDetermined) = testController.GetTestPoints(itemParameters);
-    bool negativePoints = testController.NegativePointsManagement(testNameIdentifier, testNumberIdentifier);
-    if(questionList.Count == 0)
+@{
+    if(@Model.QuestionList.Count == 0)
     {
         //string message = "Test does not include any questions. Please correct this mistake using the TAO Core tool.";
         string message = "Test neobsahuje žádné otázky. Prosím opravte tuto chybu pomocí nástroje TAO Core.";
@@ -20,14 +10,12 @@
 }
 
 @functions{
-
     public void WriteMessageToUser(string message)
     {
         <script>
         window.alert('@message');
         </script>
     }
-
 }
 
 <header class="header">
@@ -35,7 +23,7 @@
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -49,26 +37,26 @@
                 <table class="article-table">
                     <tr>
                         <th>Jmenný identifikátor testu</th>
-                        <td>@testNameIdentifier</td>
+                        <td>@Model.TestNameIdentifier</td>
                     </tr>
                     <tr>
                         <th>Číselný identifikátor testu</th>
-                        <td>@testNumberIdentifier</td>
+                        <td>@Model.TestNumberIdentifier</td>
                     </tr>
                     <tr>
                         <th>Nadpis</th>
-                        <td>@title</td>
+                        <td>@Model.TestParameters.Item3</td>
                     </tr>
                     <tr>
                         <th>Počet otázek</th>
-                        <td>@amountOfItems</td>
+                        <td>@Model.TestParameters.Item4</td>
                     </tr>
                     <tr>
                         <th>Počet bodů</th>
                         @{
-                            if(@testPointsDetermined)
+                            if(@Model.TestPoints.Item2)
                             {
-                                <td>@testPoints</td>
+                                <td>@Model.TestPoints.Item1</td>
                             }
                             else
                             {
@@ -94,16 +82,16 @@
                     </tr>
                     @{
                         int i = 0;
-                        foreach ((string, string, string, string) question in questionList)
+                        foreach ((string, string, string, string) question in Model.QuestionList)
                         {
                             string points = "";
-                            if(!(@itemParameters[i].Item6))
+                            if(!(@Model.ItemParameters[i].Item6))
                             {
                                 points = "N/A";
                             }
                             else
                             {
-                                points = @itemParameters[i].Item5.ToString();
+                                points = @Model.ItemParameters[i].Item5.ToString();
                             }
 
                             <tr>
@@ -112,12 +100,12 @@
                                 <td>@question.Item3</td>
                                 <td>@question.Item4</td>
                                 <td>@points</td>
-                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@itemParameters[i].Item1', '@itemParameters[i].Item2', '@itemParameters[i].Item3', '@itemParameters[i].Item4', '@itemParameters[i].Item5', '@itemParameters[i].Item6')">Detaily otázky</button></td>
+                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
                                 <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
-                                asp-route-testNameIdentifier="@testNameIdentifier"
-                                asp-route-testNumberIdentifier="@testNumberIdentifier"
-                                asp-route-itemNumberIdentifier="@itemParameters[i].Item1"
-                                asp-route-itemNameIdentifier="@itemParameters[i].Item2">Správa otázky</a></td>
+                                asp-route-testNameIdentifier="@Model.TestNameIdentifier"
+                                asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
+                                asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
+                                asp-route-itemNameIdentifier="@Model.ItemParameters[i].Item2">Správa otázky</a></td>
                             </tr>
                             i++;
                         }
@@ -156,19 +144,19 @@
             <h2 class="article-title title">Záporné body</h2>
             <div class="article-content">
                 <form method="POST">
-                    <input type="hidden" value="@testNameIdentifier" name="testNameIdentifier">
-                    <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+                    <input type="hidden" value="@Model.TestNameIdentifier" name="testNameIdentifier">
+                    <input type="hidden" value="@Model.TestNumberIdentifier" name="testNumberIdentifier">
                     <table class="article-table">
                         @{
-                            if(@viewBagNegativePoints != null)
+                            if(@Model.NegativePointsOption != null)
                             {
                                 <tr><th class="correct" align="center">Změny úspěšně uloženy</th></tr>
                                 string negativePointsSaved = "";
-                                if(@viewBagNegativePoints == "negativePoints_no")
+                                if(@Model.NegativePointsOption == "negativePoints_no")
                                 {
                                     negativePointsSaved = "(záporné body jsou nyní pouze v rámci otázky)";
                                 }
-                                else if(@viewBagNegativePoints == "negativePoints_yes")
+                                else if(@Model.NegativePointsOption == "negativePoints_yes")
                                 {
                                     negativePointsSaved = "(záporné body jsou nyní v rámci testu)";
                                 }
@@ -198,7 +186,7 @@
 </main>
 
 @{
-    if(!negativePoints)
+    if(!Model.NegativePoints)
     {
         <script>
             document.getElementById("negativePoints_no").checked = true;

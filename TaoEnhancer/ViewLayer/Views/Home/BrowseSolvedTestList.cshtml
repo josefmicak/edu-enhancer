@@ -1,142 +1,4 @@
-﻿@using Common
-@{
-    ViewData["Title"] = "Seznam testů studenta " + @ViewBag.studentIdentifier;
-    string studentIdentifier = @ViewBag.studentIdentifier;
-    (string login, string name, string email) = LoadStudent(studentIdentifier);
-    {}
-    List<(string, string, string, string)> studentTestList = LoadTests(studentIdentifier);
-}
-
-@functions{
-
-    public (string, string, string) LoadStudent(string studentIdentifier)
-    {
-        string login = "", name = "", surname = "", email = "";
-        bool studentFound = false;
-
-        foreach(var studentFile in Directory.GetFiles(Settings.GetStudentsPath())) {
-            if(new FileInfo(studentFile).Extension == ".rdf" && !studentFound)
-            {
-                XmlReader xmlReaderStudent = XmlReader.Create(studentFile);
-                while (xmlReaderStudent.Read())
-                {
-                    if (xmlReaderStudent.Name == "rdf:Description" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        string xmlReaderStudentIdentifier = xmlReaderStudent.GetAttribute("rdf:about").Split("#")[1];
-                        if(studentIdentifier == xmlReaderStudentIdentifier)
-                        {
-                            studentFound = true;
-                        }
-                        else
-                        {
-                            studentFound = false;
-                            break;
-                        }
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:login" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        login = xmlReaderStudent.ReadInnerXml();
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:userFirstName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        name = xmlReaderStudent.ReadInnerXml();
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:userLastName" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        surname = xmlReaderStudent.ReadInnerXml();
-                    }
-
-                    if (xmlReaderStudent.Name == "ns0:userMail" && xmlReaderStudent.NodeType != XmlNodeType.EndElement)
-                    {
-                        email = xmlReaderStudent.ReadInnerXml();
-                    }
-                }
-            }
-        }
-        return (login, name + " " + surname, email);
-    }
-
-    public string ExtractFileExtension(string file)
-    {
-        string[] fileSplitByDot = file.Split(@".");
-        return fileSplitByDot[fileSplitByDot.Length - 1];
-    }
-
-    public List<(string, string, string, string)> LoadTests(string studentIdentifier)
-    {
-        List<(string, string, string, string)> studentTestList = new List<(string, string, string, string)>();
-
-        foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
-        {
-            foreach (var file in Directory.GetFiles(directory))
-            {
-                string extension = ExtractFileExtension(file);
-                if (extension == "xml")
-                {
-                    bool addTest = false;
-                    string timeStamp = "";
-                    string testStudentIdentifier = "";
-
-                    XmlReader xmlReader = XmlReader.Create(file);
-                    while (xmlReader.Read())
-                    {
-                        if (xmlReader.Name == "context")
-                        {
-                            testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
-                            if (testStudentIdentifier == studentIdentifier)
-                            {
-                                addTest = true;
-                            }
-                        }
-
-                        if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
-                        {
-                            timeStamp = xmlReader.GetAttribute("datestamp");
-                        }
-                    }
-
-                    if(addTest)
-                    {
-                        string[] deliveryExecutionIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
-                        string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
-                        string testNameIdentifier = ExtractFileName(directory).ToString();
-                        string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
-                        studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
-                    }
-                }
-            }
-        }
-
-        return studentTestList;
-    }
-
-    public string ExtractFileName(string file)
-    {
-        string[] fileSplitBySlash = file.Split(@"\");
-        return fileSplitBySlash[fileSplitBySlash.Length - 1];
-    }
-
-    public string ExtractFileNameWithoutExtension(string file)
-    {
-        string[] fileSplitBySlash = file.Split(@"\");
-        string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
-        return fileSplitByDot[fileSplitByDot.Length - 2];
-    }
-
-    public string GetTestNumberIdentifier(string testNameIdentifier)
-    {
-        string testNumberIdentifier = "";
-        foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
-        {
-            testNumberIdentifier = ExtractFileName(directory);
-        }
-        return testNumberIdentifier;
-    }
-
-}
+﻿@model ViewLayer.Models.BrowseSolvedTestListModel
 
 <header class="header">
     <div class="header-content content-width">
@@ -144,7 +6,7 @@
             <!--<a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="StudentMenu">arrow_back</a>-->
             <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
         </div>
-        <h1 class="header-center header-title title" title="@ViewData["Title"]">@ViewData["Title"]</h1>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
             <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
@@ -158,19 +20,19 @@
                 <table class="article-table">
                     <tr>
                         <th>Jméno</th>
-                        <td>@name</td>
+                        <td>@Model.Student.Item4 @Model.Student.Item5</td>
                     </tr>
                     <tr>
                         <th>Login</th>
-                        <td>@login</td>
+                        <td>@Model.Student.Item3</td>
                     </tr>
                     <tr>
                         <th>Email</th>
-                        <td>@email</td>
+                        <td>@Model.Student.Item6</td>
                     </tr>
                     <tr>
                         <th>Počet vyplněných testů</th>
-                        <td>@studentTestList.Count</td>
+                        <td>@Model.StudentTestList.Count</td>
                     </tr>
                 </table>
             </div>
@@ -186,13 +48,13 @@
                     </tr>
                     @{
                         int i = 0;
-                        foreach ((string, string, string, string) studentTest in studentTestList)
+                        foreach ((string, string, string, string) studentTest in Model.StudentTestList)
                         {
                             <tr>
                                 <td>@studentTest.Item1</td>
                                 <td>@studentTest.Item2</td>
                                 <td><a class="button" title="Zobrazit test" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTest"
-                                asp-route-studentIdentifier="@studentIdentifier"
+                                asp-route-studentIdentifier="@Model.StudentIdentifier"
                                 asp-route-deliveryExecutionIdentifier="@studentTest.Item3"
                                 asp-route-testNameIdentifier="@studentTest.Item1"
                                 asp-route-testNumberIdentifier="@studentTest.Item4">Zobrazit test</a></td>
