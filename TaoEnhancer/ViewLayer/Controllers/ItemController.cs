@@ -17,7 +17,8 @@ namespace ViewLayer.Controllers
                 string itemNameIdentifier = itemParameters[i].Item2;
                 foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
-                    if (itemNumberIdentifier == ExtractFileName(directory))
+                    string[] directoryName = directory.Split(@"\");
+                    if (itemNumberIdentifier == directoryName[directoryName.Length - 1])
                     {
                         resultPointsToText += itemNameIdentifier;
                         int amountOfSubitems = GetAmountOfSubitems(testNameIdentifier, itemNumberIdentifier);
@@ -46,12 +47,6 @@ namespace ViewLayer.Controllers
             }
             File.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultPointsToText);
             return errorMessageNumber;
-        }
-
-        public string ExtractFileName(string file)
-        {
-            string[] fileSplitBySlash = file.Split(@"\");
-            return fileSplitBySlash[fileSplitBySlash.Length - 1];
         }
 
         public int GetAmountOfSubitems(string testNameIdentifier, string itemNumberIdentifier)

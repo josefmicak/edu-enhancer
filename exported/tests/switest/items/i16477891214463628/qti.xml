@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16477891214463628" title="Diagram" label="Diagram" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_1]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_1" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_4]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_2" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_7]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="3"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>3</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <choiceInteraction responseIdentifier="RESPONSE" shuffle="true" maxChoices="1" minChoices="0" orientation="vertical">
+          <prompt><div><img src="diagram1.png" alt="diagram1"/></div>
+Který diagram je na obrázku?</prompt>
+          <simpleChoice identifier="choice_1" fixed="false" showHide="show">Stavový diagram</simpleChoice>
+          <simpleChoice identifier="choice_2" fixed="false" showHide="show">Diagram nasazení</simpleChoice>
+          <simpleChoice identifier="choice_3" fixed="false" showHide="show">Sekvenční diagram</simpleChoice>
+        </choiceInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <choiceInteraction responseIdentifier="RESPONSE_1" shuffle="true" maxChoices="1" minChoices="0" orientation="vertical">
+          <prompt><div><img src="diagram2.png" alt="diagram2" width="68%" type="image/png"/></div>
+Který diagram je na obrázku?</prompt>
+          <simpleChoice identifier="choice_4" fixed="false" showHide="show">Use Case diagram</simpleChoice>
+          <simpleChoice identifier="choice_5" fixed="false" showHide="show">Diagram spolupráce</simpleChoice>
+          <simpleChoice identifier="choice_6" fixed="false" showHide="show">Diagram tříd</simpleChoice>
+        </choiceInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <choiceInteraction responseIdentifier="RESPONSE_2" shuffle="true" maxChoices="1" minChoices="0" orientation="vertical">
+          <prompt><div><img src="diagram3.png" alt="diagram3" width="37%" type="image/png"/></div>
+Který diagram je na obrázku?</prompt>
+          <simpleChoice identifier="choice_7" fixed="false" showHide="show">Diagram komponent</simpleChoice>
+          <simpleChoice identifier="choice_8" fixed="false" showHide="show">Sekvenční diagram</simpleChoice>
+          <simpleChoice identifier="choice_9" fixed="false" showHide="show">Use Case diagram</simpleChoice>
+        </choiceInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE"/>
+          <correct identifier="RESPONSE"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_1"/>
+          <correct identifier="RESPONSE_1"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_2"/>
+          <correct identifier="RESPONSE_2"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+  </responseProcessing>
+</assessmentItem>

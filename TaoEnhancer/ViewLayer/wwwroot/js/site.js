@@ -23,7 +23,7 @@ function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
     document.getElementById("managesolvedtestlist-student-email").innerHTML = studentEmail;
 }
 
-// Google Sign In
+// Dark theme
 function handlePreferedColorSchemeChange(e) {
     if(e.matches) {
         if(document.getElementsByClassName("g_id_signin")[0]) {

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16477821471801617" title="Normalni formy" label="Normalni formy" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="pair">
+    <correctResponse>
+      <value><![CDATA[choice_1 choice_5]]></value>
+      <value><![CDATA[choice_2 choice_6]]></value>
+      <value><![CDATA[choice_3 choice_7]]></value>
+      <value><![CDATA[choice_4 choice_8]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="1"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>1</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <associateInteraction responseIdentifier="RESPONSE" shuffle="true" maxAssociations="0" minAssociations="0">
+          <prompt>Spojte normální formy relací (NF) s jejich vlastnostmi</prompt>
+          <simpleAssociableChoice identifier="choice_1" fixed="false" showHide="show" matchMax="0" matchMin="0">1NF</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_2" fixed="false" showHide="show" matchMax="0" matchMin="0">2NF</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_3" fixed="false" showHide="show" matchMax="0" matchMin="0">3NF</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_4" fixed="false" showHide="show" matchMax="0" matchMin="0">BCNF</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_5" fixed="false" showHide="show" matchMax="0" matchMin="0">obsahuje pouze atomické atributy</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_6" fixed="false" showHide="show" matchMax="0" matchMin="0">každý sekundární atribut je plně závislý na každém klíci schématu</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_7" fixed="false" showHide="show" matchMax="0" matchMin="0">žádný sekundární atribut není tranzitivně závislý na žádném klíci schématu</simpleAssociableChoice>
+          <simpleAssociableChoice identifier="choice_8" fixed="false" showHide="show" matchMax="0" matchMin="0">nesmí mít závislosti mezi atributy klíče</simpleAssociableChoice>
+        </associateInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing template="http://www.imsglobal.org/question/qti_v2p2/rptemplates/match_correct"/>
+</assessmentItem>

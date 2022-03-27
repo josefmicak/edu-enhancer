@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/qti/qtiv2p2/qtiv2p2_imscpv1p2_v1p0.xsd" identifier="QTI-TEST-MANIFEST-tao62374cee296479-25813446">
+    <metadata>
+        <schema>QTIv2.2 Package</schema>
+        <schemaversion>1.0.0</schemaversion>
+    </metadata>
+    <organizations/>
+    <resources>
+            <resource identifier="i16477808856949614" type="imsqti_item_xmlv2p2" href="items/i16477808856949614/qti.xml">
+            <file href="items/i16477808856949614/qti.xml"/>
+                        <file href="items/i16477808856949614/5.png"/>
+                        <file href="items/i16477808856949614/style/custom/tao-user-styles.css"/>
+                    </resource><resource identifier="i16477811771132615" type="imsqti_item_xmlv2p2" href="items/i16477811771132615/qti.xml">
+            <file href="items/i16477811771132615/qti.xml"/>
+                    </resource><resource identifier="i16477821471801617" type="imsqti_item_xmlv2p2" href="items/i16477821471801617/qti.xml">
+            <file href="items/i16477821471801617/qti.xml"/>
+                    </resource><resource identifier="i1647784743321618" type="imsqti_item_xmlv2p2" href="items/i1647784743321618/qti.xml">
+            <file href="items/i1647784743321618/qti.xml"/>
+                        <file href="items/i1647784743321618/kardinalita.png"/>
+                    </resource><resource identifier="i16477849936019619" type="imsqti_item_xmlv2p2" href="items/i16477849936019619/qti.xml">
+            <file href="items/i16477849936019619/qti.xml"/>
+                    </resource><resource identifier="i16477808643003612" type="imsqti_test_xmlv2p2" href="tests/i16477808643003612/test.xml"><file href="tests/i16477808643003612/test.xml"/><dependency identifierref="i16477808856949614"/><dependency identifierref="i16477811771132615"/><dependency identifierref="i16477821471801617"/><dependency identifierref="i1647784743321618"/><dependency identifierref="i16477849936019619"/></resource></resources>
+</manifest>

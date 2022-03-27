@@ -379,7 +379,8 @@ namespace ViewLayer.Controllers
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
-                    string extension = ExtractFileExtension(file);
+                    string[] fileSplitByDot = file.Split(@".");
+                    string extension = fileSplitByDot[fileSplitByDot.Length - 1];
                     if (extension == "xml")
                     {
                         bool addTest = false;
@@ -406,11 +407,17 @@ namespace ViewLayer.Controllers
 
                         if (addTest)
                         {
-                            string[] deliveryExecutionIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+                            string[] fileSplitBySlash = file.Split(@"\");
+                            fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
+                            string[] deliveryExecutionIdentifierSplitByUnderscore = fileSplitByDot[fileSplitByDot.Length - 2].Split("_");
                             string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
-                            string testNameIdentifier = ExtractFileName(directory).ToString();
+                            fileSplitBySlash = directory.Split(@"\");
+                            string testNameIdentifier = fileSplitBySlash[fileSplitBySlash.Length - 1].ToString();
                             string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
-                            studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
+                            if (testNumberIdentifier != "")
+                            {
+                                studentTestList.Add((testNameIdentifier, timeStamp, deliveryExecutionIdentifier, testNumberIdentifier));
+                            }
                         }
                     }
                 }
@@ -427,7 +434,8 @@ namespace ViewLayer.Controllers
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
-                    string extension = ExtractFileExtension(file);
+                    string[] fileSplitByDot = file.Split(@".");
+                    string extension = fileSplitByDot[fileSplitByDot.Length - 1];
                     if (extension == "xml")
                     {
                         string timeStamp = "";
@@ -447,11 +455,19 @@ namespace ViewLayer.Controllers
                             }
                         }
 
-                        string[] attemptIdentifierSplitByUnderscore = ExtractFileNameWithoutExtension(file).Split("_");
+                        string[] fileSplitBySlash = file.Split(@"\");
+                        fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
+                        string[] attemptIdentifierSplitByUnderscore = fileSplitByDot[fileSplitByDot.Length - 2].Split("_");
 
                         (string studentNumberIdentifier, string _, string login, string firstName, string lastName, string email) student = new StudentController().LoadStudentByIdentifier(testStudentIdentifier);
 
-                        solvedTestList.Add((GetTestNumberIdentifier(ExtractFileName(directory).ToString()), ExtractFileName(directory).ToString(), timeStamp, attemptIdentifierSplitByUnderscore[2], student.login, student.firstName + " " + student.lastName, student.email, testStudentIdentifier));
+                        fileSplitBySlash = directory.Split(@"\");
+
+                        string testNumberIdentifier = GetTestNumberIdentifier(fileSplitBySlash[fileSplitBySlash.Length - 1].ToString(), true);
+                        if (testNumberIdentifier != "")
+                        {
+                            solvedTestList.Add((testNumberIdentifier, fileSplitBySlash[fileSplitBySlash.Length - 1].ToString(), timeStamp, attemptIdentifierSplitByUnderscore[2], student.login, student.firstName + " " + student.lastName, student.email, testStudentIdentifier));
+                        }
                     }
                 }
             }
@@ -459,32 +475,42 @@ namespace ViewLayer.Controllers
             return solvedTestList;
         }
 
-        public string ExtractFileExtension(string file)
+        public string GetTestNumberIdentifier(string testNameIdentifier, bool manageFlag = false)
         {
-            string[] fileSplitByDot = file.Split(@".");
-            return fileSplitByDot[fileSplitByDot.Length - 1];
-        }
-
-        public string ExtractFileName(string file)
-        {
-            string[] fileSplitBySlash = file.Split(@"\");
-            return fileSplitBySlash[fileSplitBySlash.Length - 1];
-        }
-
-        public string ExtractFileNameWithoutExtension(string file)
-        {
-            string[] fileSplitBySlash = file.Split(@"\");
-            string[] fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
-            return fileSplitByDot[fileSplitByDot.Length - 2];
-        }
-
-        public string GetTestNumberIdentifier(string testNameIdentifier)
-        {
-            foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
+            switch (manageFlag)
             {
-                return ExtractFileName(directory);
+                case true:
+                    if(Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
+                    {
+                        foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
+                        {
+                            string[] fileSplitBySlash = directory.Split(@"\");
+                            return fileSplitBySlash[fileSplitBySlash.Length - 1];
+                        }
+                        return "Nastala neočekávaná chyba.";
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                    break;
+                default:
+                    if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
+                    {
+                        string testNumberIdentifier = "";
+                        foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
+                        {
+                            string[] fileSplitBySlash = directory.Split(@"\");
+                            testNumberIdentifier = fileSplitBySlash[fileSplitBySlash.Length - 1];
+                        }
+                        return testNumberIdentifier;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                    break;
             }
-            return "Nastala neočekávaná chyba.";
         }
     }
 }

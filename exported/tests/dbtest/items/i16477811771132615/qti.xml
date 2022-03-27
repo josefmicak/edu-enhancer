@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16477811771132615" title="SQL" label="SQL" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="directedPair">
+    <correctResponse>
+      <value><![CDATA[choice_1 choice_3]]></value>
+      <value><![CDATA[choice_2 choice_4]]></value>
+      <value><![CDATA[choice_2 choice_5]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_1" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_7]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <responseDeclaration identifier="RESPONSE_2" cardinality="ordered" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_10]]></value>
+      <value><![CDATA[choice_11]]></value>
+      <value><![CDATA[choice_12]]></value>
+      <value><![CDATA[choice_13]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="3"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>3</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <matchInteraction responseIdentifier="RESPONSE" shuffle="false" maxAssociations="0" minAssociations="0">
+          <prompt>Vyberte správné možnosti týkající se jazyka SQL</prompt>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_1" fixed="false" showHide="show" matchMax="0" matchMin="0">Ano</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_2" fixed="false" showHide="show" matchMax="0" matchMin="0">Ne</simpleAssociableChoice>
+          </simpleMatchSet>
+          <simpleMatchSet>
+            <simpleAssociableChoice identifier="choice_3" fixed="false" showHide="show" matchMax="0" matchMin="0">SQL je deklarativní jazyk</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_4" fixed="false" showHide="show" matchMax="0" matchMin="0">Zkratka SQL znamená Session Queue Language</simpleAssociableChoice>
+            <simpleAssociableChoice identifier="choice_5" fixed="false" showHide="show" matchMax="0" matchMin="0">Každá variace jazyka SQL zahrnuje procedurální rozšiření</simpleAssociableChoice>
+          </simpleMatchSet>
+        </matchInteraction>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">Jedním z nejznámějších příkladů procedurálních rozšiření jazyka SQL je jazyk <inlineChoiceInteraction responseIdentifier="RESPONSE_1" shuffle="false" required="false"><inlineChoice identifier="choice_6" fixed="false" showHide="show">MariaDB</inlineChoice><inlineChoice identifier="choice_7" fixed="false" showHide="show">T-SQL</inlineChoice><inlineChoice identifier="choice_8" fixed="false" showHide="show">NoSQL</inlineChoice><inlineChoice identifier="choice_9" fixed="false" showHide="show">MSSQL</inlineChoice></inlineChoiceInteraction> . </div>
+    </div>
+    <div class="grid-row">
+      <div class="col-12">
+        <orderInteraction responseIdentifier="RESPONSE_2" shuffle="true" orientation="vertical">
+          <prompt>Seřaďte úkony prováděné při generování plánu vykonávání dotazu, od nejdříve prováděného po nejpozději prováděný.</prompt>
+          <simpleChoice identifier="choice_10" fixed="false" showHide="show">Převod dotazu do interní formy</simpleChoice>
+          <simpleChoice identifier="choice_11" fixed="false" showHide="show">Převod do kanonické formy</simpleChoice>
+          <simpleChoice identifier="choice_12" fixed="false" showHide="show">Výběr nízkoúrovňových procedur</simpleChoice>
+          <simpleChoice identifier="choice_13" fixed="false" showHide="show">Vygenerování plánů dotazu a výběr nejlevnějšího plánu</simpleChoice>
+        </orderInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE"/>
+          <correct identifier="RESPONSE"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_1"/>
+          <correct identifier="RESPONSE_1"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+    <responseCondition>
+      <responseIf>
+        <match>
+          <variable identifier="RESPONSE_2"/>
+          <correct identifier="RESPONSE_2"/>
+        </match>
+        <setOutcomeValue identifier="SCORE">
+          <sum>
+            <variable identifier="SCORE"/>
+            <baseValue baseType="integer">1</baseValue>
+          </sum>
+        </setOutcomeValue>
+      </responseIf>
+    </responseCondition>
+  </responseProcessing>
+</assessmentItem>

@@ -239,28 +239,33 @@ namespace ViewLayer.Controllers
             string responseIdentifier = (itemParameters.amountOfSubitems == 1 || selectedSubitem == null ? responseIdentifiers.responseIdentifierArray[0] : selectedSubitem);
             (string responseIdentifierTemp, int questionType, int subquestionPoints, bool subquestionPointsDetermined, double wrongChoicePoints, string imageSource, string subitemText, List<string> possibleAnswerArray, List<string> subquestionArray, List<string> correctChoiceArray, List<string> correctAnswerArray) subitemParameters = itemController.LoadSubitemParameters(responseIdentifier, itemParameters.amountOfSubitems, responseIdentifiers.responseIdentifierArray, responseIdentifiers.responseValueArray, testNameIdentifier, itemNumberIdentifier);
             (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) questionPoints = itemController.LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, itemParameters.amountOfSubitems, correctChoicePoints);
-            
-            return View(new ItemTemplateModel {
+
+            ItemTemplateModel model = new ItemTemplateModel()
+            {
                 Title = "Správa zadání otázky " + itemNumberIdentifier + " / " + itemNameIdentifier,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
                 ItemNameIdentifier = itemNameIdentifier,
-                ItemNumberIdentifier = itemNumberIdentifier,
-                ItemParameters = itemParameters,
-                ResponseIdentifiers = responseIdentifiers,
-                ResponseIdentifier = responseIdentifier,
-                SubitemParameters = subitemParameters,
-                QuestionPoints = questionPoints,
-                QuestionTypeText = itemController.GetQuestionTypeText(subitemParameters.questionType),
-                IsSelectDisabled = (itemParameters.amountOfSubitems > 1 ? false : true),
-                CorrectChoicePoints = correctChoicePoints,
-                CorrectChoiceArray = correctChoiceArray,
-                CorrectAnswerCount = (subitemParameters.questionType == 3 || subitemParameters.questionType == 4 ? subitemParameters.correctAnswerArray.Count / 2 : subitemParameters.correctAnswerArray.Count),
-                WrongChoicePoints = double.Parse(wrongChoicePoints),
-                SubquestionPoints = int.Parse(subquestionPoints),
-                SubquestionPointsText = subquestionPoints,
-                ErrorText = errorText
-            });
+                ItemNumberIdentifier = itemNumberIdentifier
+            };
+            model.ItemParameters = itemParameters;
+            model.ResponseIdentifiers = responseIdentifiers;
+            model.ResponseIdentifier = responseIdentifier;
+            model.SubitemParameters = subitemParameters;
+            model.QuestionPoints = questionPoints;
+            model.QuestionTypeText = itemController.GetQuestionTypeText(subitemParameters.questionType);
+            model.IsSelectDisabled = (itemParameters.amountOfSubitems > 1 ? false : true);
+            model.CorrectChoicePoints = (subquestionPoints != null ? itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) : subitemParameters.subquestionPoints);
+            model.CorrectChoiceArray = correctChoiceArray;
+            model.CorrectAnswerCount = (subitemParameters.questionType == 3 || subitemParameters.questionType == 4 ? subitemParameters.correctAnswerArray.Count / 2 : subitemParameters.correctAnswerArray.Count);
+            if (wrongChoicePoints != null) { model.WrongChoicePoints = double.Parse(wrongChoicePoints); }
+            else { model.WrongChoicePoints = subitemParameters.wrongChoicePoints; }
+            if (subquestionPoints != null) { model.SubquestionPoints = int.Parse(subquestionPoints); }
+            else { model.SubquestionPoints = subitemParameters.subquestionPoints; }
+            model.SubquestionPointsText = subquestionPoints;
+            model.ErrorText = errorText;
+
+            return View(model);
         }
 
         [HttpGet]
