@@ -3,11 +3,11 @@
 <header class="header">
     <div class="header-content content-width">
         <!--<div class="header-left">
-            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
+            <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="Index">arrow_back</a>
         </div>-->
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -18,17 +18,17 @@
                 <table class="article-table">
                     <tr>
                         <td align="center">
-                            <a class="button" title="Správa uživatelů" asp-area="" asp-controller="Home" asp-action="ManageUserList">Správa uživatelů</a>
+                            <a class="button" id="manageUserListBtn" title="Správa uživatelů" asp-area="" asp-controller="Home" asp-action="ManageUserList">Správa uživatelů</a>
                         </td>
                     </tr>
                     <tr>
                         <td align="center">
-                            <a class="button" title="Správa zadání testů" asp-area="" asp-controller="Home" asp-action="TestTemplateList">Správa zadání testů</a>
+                            <a class="button" id="testTemplateListBtn" title="Správa zadání testů" asp-area="" asp-controller="Home" asp-action="TestTemplateList">Správa zadání testů</a>
                         </td>
                     </tr>
                     <tr>
                         <td align="center">
-                            <a class="button" title="Správa vyřešených testů" asp-area="" asp-controller="Home" asp-action="ManageSolvedTestList">Správa vyřešených testů</a>
+                            <a class="button" id="manageSolvedTestListBtn" title="Správa vyřešených testů" asp-area="" asp-controller="Home" asp-action="ManageSolvedTestList">Správa vyřešených testů</a>
                         </td>
                     </tr>
                 </table>

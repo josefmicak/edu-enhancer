@@ -4,19 +4,19 @@
     <div class="header-content content-width">
         <div class="header-left">
             @{
-                if(new StudentController().HaveRequiredRole(2))
+                if(@Model.UserRole >= 2)
                 {
-                    <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
+                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
                 }
                 else
                 {
-                    <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
+                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
                 }
             }
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -37,7 +37,7 @@
                             <td>@testIdentifiers.Item1</td>
                             <td>@testIdentifiers.Item2</td>
                             <td>@testIdentifiers.Item3</td>
-                            <td><a class="button" title="Správa testu"
+                            <td><a class="button" id="testTemplateBtn" title="Správa testu"
                                 asp-area="" 
                                 asp-controller="Home" 
                                 asp-action="TestTemplate" 

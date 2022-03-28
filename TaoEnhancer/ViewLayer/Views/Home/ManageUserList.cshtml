@@ -3,11 +3,11 @@
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
-            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
+            <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -142,13 +142,13 @@
                                 if(Model.StudentsOfTaoNotPaired.Count > 0)
                                 {
                                     <td colspan="3" align="center">
-                                        <input class="button" title="Přidat" type="submit" value="Přidat">
+                                        <input class="button" id="addUserBtn" title="Přidat" type="submit" value="Přidat">
                                     </td>
                                 }
                                 else
                                 {
                                     <td colspan="2" align="center">
-                                        <input class="button" title="Přidat" type="submit" value="Přidat">
+                                        <input class="button" id="addUserBtn" title="Přidat" type="submit" value="Přidat">
                                     </td>
                                 }
                             }
@@ -187,7 +187,7 @@
                                     {
                                         <tr>
                                             <td colspan="2">@studentsByRole.students[j].loginEmail</td>
-                                            <td><a class="button" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
+                                            <td><a class="button" id="delUserBtn" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
                                             asp-route-loginEmail="@studentsByRole.students[j].loginEmail">Odebrání uživatele</a></td>
                                         </tr>
                                     }
@@ -198,7 +198,7 @@
                                         <tr>
                                             <td>@studentsByRole.students[j].loginEmail</td>
                                             <td>@studentsByRole.students[j].login</td>
-                                            <td><a class="button" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
+                                            <td><a class="button" id="delUserBtn" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
                                             asp-route-loginEmail="@studentsByRole.students[j].loginEmail">Odebrání uživatele</a></td>
                                         </tr>
                                     }

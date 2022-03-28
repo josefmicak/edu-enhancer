@@ -25,7 +25,7 @@
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
-            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="ManageSolvedTest"
+            <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="ManageSolvedTest"
             asp-route-testNameIdentifier="@Model.TestNameIdentifier"
             asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
             asp-route-deliveryExecutionIdentifier="@Model.DeliveryExecutionIdentifier"
@@ -33,7 +33,7 @@
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -121,7 +121,7 @@
                         </tr>
                         <tr>
                             <td align="center">
-                                <input class="button" title="Vybrat" type="submit" value="Vybrat" disabled="@Model.IsSelectDisabled">
+                                <input class="button" id="setSubitemBtn" title="Vybrat" type="submit" value="Vybrat" disabled="@Model.IsSelectDisabled">
                             </td>
                         </tr>
                     </table>
@@ -302,7 +302,7 @@
                         </tr>
                         <tr>
                             <td colspan="2" align="center">
-                                <input class="button" title="Uložit" type="submit" value="Uložit">
+                                <input class="button" id="setStudentsPointsBtn" title="Uložit" type="submit" value="Uložit">
                             </td>
                         </tr>
                     </table>

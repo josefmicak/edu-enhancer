@@ -21,11 +21,11 @@
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
-            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
+            <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -100,8 +100,8 @@
                                 <td>@question.Item3</td>
                                 <td>@question.Item4</td>
                                 <td>@points</td>
-                                <td><button class="button" title="Detaily otázky" id="@i" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
-                                <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                                <td><button class="button" title="Detaily otázky" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
+                                <td><a class="button" id="itemTemplateBtn" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
                                 asp-route-testNameIdentifier="@Model.TestNameIdentifier"
                                 asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
                                 asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
@@ -175,7 +175,7 @@
                         </tr>
                         <tr>
                             <td align="center">
-                                <input class="button" title="Uložit" type="submit" value="Uložit">
+                                <input class="button" id="setNegativePointsBtn" title="Uložit" type="submit" value="Uložit">
                             </td>
                         </tr>
                     </table>

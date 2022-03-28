@@ -4,19 +4,19 @@
     <div class="header-content content-width">
         <div class="header-left">
             @{
-                if(new StudentController().HaveRequiredRole(2))
+                if(@Model.UserRole >= 2)
                 {
-                    <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
+                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
                 }
                 else
                 {
-                    <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
+                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
                 }
             }
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+            <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
         </div>
     </div>
 </header>
@@ -43,8 +43,8 @@
                                 <td>@solvedTest.Item3</td>
                                 <td>@solvedTest.Item4</td>
                                 <td>@solvedTest.Item5</td>
-                                <td><button class="button" title="Detaily" id="@i" onclick="loadSolvedTestDetails('@solvedTest.Item6', '@solvedTest.Item5', '@solvedTest.Item7')">Detaily</button></td>
-                                <td><a class="button" title="Správa testu"
+                                <td><button class="button" title="Detaily" onclick="loadSolvedTestDetails('@solvedTest.Item6', '@solvedTest.Item5', '@solvedTest.Item7')">Detaily</button></td>
+                                <td><a class="button" id="manageSolvedTestBtn" title="Správa testu"
                                     asp-area="" 
                                     asp-controller="Home" 
                                     asp-action="ManageSolvedTest" 
