@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16484084904593653" title="SIP" label="SIP" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="identifier"/>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="0"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>0</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <choiceInteraction responseIdentifier="RESPONSE" shuffle="true" maxChoices="0" minChoices="0" orientation="vertical">
+          <prompt>SIP používá 5 žádostí. Vyberte z nabídky žádosti, které SIP používá.</prompt>
+          <simpleChoice identifier="choice_1" fixed="false" showHide="show">INVITE</simpleChoice>
+          <simpleChoice identifier="choice_2" fixed="false" showHide="show">ACK</simpleChoice>
+          <simpleChoice identifier="choice_3" fixed="false" showHide="show">BYE</simpleChoice>
+          <simpleChoice identifier="choice_4" fixed="false" showHide="show">CANCEL</simpleChoice>
+          <simpleChoice identifier="choice_5" fixed="false" showHide="show">REGISTER</simpleChoice>
+          <simpleChoice identifier="choice_6" fixed="false" showHide="show">NO</simpleChoice>
+          <simpleChoice identifier="choice_7" fixed="false" showHide="show">CALL</simpleChoice>
+          <simpleChoice identifier="choice_8" fixed="false" showHide="show">DECLINE</simpleChoice>
+          <simpleChoice identifier="choice_9" fixed="false" showHide="show">SIGN</simpleChoice>
+          <simpleChoice identifier="choice_10" fixed="false" showHide="show">INITIATE</simpleChoice>
+        </choiceInteraction>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing template="http://www.imsglobal.org/question/qti_v2p2/rptemplates/match_correct"/>
+</assessmentItem>

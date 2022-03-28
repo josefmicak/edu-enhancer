@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16484019989003650" title="DOCSIS" label="DOCSIS" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
+  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier"/>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="0"/>
+  <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>0</value>
+    </defaultValue>
+  </outcomeDeclaration>
+  <itemBody>
+    <div class="grid-row">
+      <div class="col-12">
+        <p>
+          <img src="docsis.png" alt="docsis" width="97%" type="image/png"/>
+        </p>
+        <p>Technologie DOCSIS používá ke své činnosti <inlineChoiceInteraction responseIdentifier="RESPONSE" shuffle="true" required="false"><inlineChoice identifier="choice_1" fixed="false" showHide="show">rozvody kabelové televize</inlineChoice><inlineChoice identifier="choice_2" fixed="false" showHide="show">rádiosignály</inlineChoice><inlineChoice identifier="choice_3" fixed="false" showHide="show">optické vlákno</inlineChoice></inlineChoiceInteraction> </p>
+      </div>
+    </div>
+  </itemBody>
+  <responseProcessing template="http://www.imsglobal.org/question/qti_v2p2/rptemplates/match_correct"/>
+</assessmentItem>

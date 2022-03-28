@@ -23,6 +23,23 @@ function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
     document.getElementById("managesolvedtestlist-student-email").innerHTML = studentEmail;
 }
 
+function updateUserInputsWithRole(value) {
+    if(document.getElementById("studentNumberIdentifier")) {
+        if(value > 0 || document.getElementById("studentNumberIdentifier").querySelectorAll("option").length <= 1) {
+            document.getElementById("studentNumberIdentifier").disabled = true;
+        }
+        else{
+            document.getElementById("studentNumberIdentifier").disabled = false;
+        }
+    }
+}
+
+function updateUserInputsWithStudentNumberIdentifier(value) {
+    if(document.getElementById("studentNumberIdentifier-value")) {
+        document.getElementById("studentNumberIdentifier-value").value = value;
+    }
+}
+
 // Dark theme
 function handlePreferedColorSchemeChange(e) {
     if(e.matches) {

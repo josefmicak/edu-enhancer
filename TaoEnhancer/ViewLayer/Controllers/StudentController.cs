@@ -1,6 +1,8 @@
 ﻿using Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mail;
+using System.Security.Claims;
 using System.Xml;
 
 namespace ViewLayer.Controllers
@@ -163,6 +165,27 @@ namespace ViewLayer.Controllers
             return student;
         }
 
+        public List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> LoadStudentsByEmail()
+        {
+            List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>();
+
+            if (Directory.Exists(Settings.GetStudentsPath()))
+            {
+                foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
+                {
+                    if (new FileInfo(studentFile).Extension == ".txt")
+                    {
+                        string loginEmail = Path.GetFileNameWithoutExtension(new FileInfo(studentFile).Name);
+                        (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = LoadStudentByEmail(loginEmail);
+                        students.Add(student);
+                    }
+                }
+            }
+            else { throw Exceptions.StudentsPathNotFoundException; }
+
+            return students;
+        }
+
         public (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) LoadStudentByEmail(string loginEmail)
         {
             (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = (loginEmail, "", -1, "", "", "", "", "");
@@ -184,7 +207,7 @@ namespace ViewLayer.Controllers
 
                                 try
                                 {
-                                    (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) loadedStudent = LoadStudentByNumberIdentifier(splitImportedFileLineBySemicolon[0]);
+                                    (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) loadedStudent = LoadStudentByNumberIdentifier(student.studentNumberIdentifier);
                                     student.studentIdentifier = loadedStudent.studentIdentifier;
                                     student.login = loadedStudent.login;
                                     student.firstName = loadedStudent.firstName;
@@ -212,6 +235,42 @@ namespace ViewLayer.Controllers
             else { throw Exceptions.StudentsPathNotFoundException; }
 
             return student;
+        }
+
+        public void EditUser(string loginEmail, string studentNumberIdentifier, int role)
+        {
+            System.IO.File.WriteAllText(Settings.GetStudentLoginDataPath(loginEmail), studentNumberIdentifier + ";" + role);
+        }
+
+        public void DeleteUser(string loginEmail)
+        {
+            System.IO.File.Delete(Settings.GetStudentLoginDataPath(loginEmail));
+        }
+
+        public string GetMyEmail()
+        {
+            return (User != null ? ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value : "");
+        }
+
+        public int GetMyRole()
+        {
+            try
+            {
+                return LoadStudentByEmail(GetMyEmail()).role;
+            }
+            catch(Exception e)
+            {
+                return -1;
+            }
+        }
+
+        public bool HaveRequiredRole(int role)
+        {
+            if (GetMyRole() >= role)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -57,29 +57,41 @@ namespace ViewLayer.Controllers
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                         // Redirect after login
-                        try
+                        StudentController studentController = new StudentController();
+                        List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+                        if(students.Count > 0)
                         {
-                            StudentController studentController = new StudentController();
-                            (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) studentData = studentController.LoadStudentByEmail(claimsIdentity.Claims.ToList()[2].Value);
-                            
-                            switch(studentData.role)
+                            try
                             {
-                                case 1:
-                                    return RedirectToAction("TeacherMenu", "Home");
-                                    break;
-                                default:
-                                    return RedirectToAction("BrowseSolvedTestList", "Home", new { studentIdentifier = studentData.studentIdentifier });
-                                    break;
+                                (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = studentController.LoadStudentByEmail(claimsIdentity.Claims.ToList()[2].Value);
+
+                                switch (student.role)
+                                {
+                                    case 2:
+                                        return RedirectToAction("AdminMenu", "Home");
+                                        break;
+                                    case 1:
+                                        return RedirectToAction("TeacherMenu", "Home");
+                                        break;
+                                    default:
+                                        return RedirectToAction("BrowseSolvedTestList", "Home", new { studentIdentifier = student.studentIdentifier });
+                                        break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                return RedirectToAction("Index", "Home", new { error = "user_not_found_exception" });
                             }
                         }
-                        catch (Exception e)
+                        else
                         {
-                            return RedirectToAction("Index", "Home");
+                            studentController.EditUser(claimsIdentity.Claims.ToList()[2].Value, "", 2);
+                            return RedirectToAction("AdminMenu", "Home");
                         }
                     }
                 }
             }
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home", new { error = "unexpected_exception" });
         }
 
         /// <summary>

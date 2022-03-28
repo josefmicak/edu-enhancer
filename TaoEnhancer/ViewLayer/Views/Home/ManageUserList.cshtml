@@ -1,0 +1,213 @@
+﻿@model ViewLayer.Models.ManageUserListModel
+
+<header class="header">
+    <div class="header-content content-width">
+        <div class="header-left">
+            <a class="header-button button button-transparent material-icons" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
+        </div>
+        <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
+        <div class="header-right">
+            <a class="header-button button button-transparent material-icons g_id_signout" title="Odhlásit se" asp-area="" asp-controller="Home" asp-action="Index">logout</a>
+        </div>
+    </div>
+</header>
+<main class="main content-width">
+    <section class="section justify-content-center">
+        <article class="article">
+            <h2 class="article-title title" title="Přidání uživatele">Přidání uživatele</h2>
+            <div class="article-content">
+                <form method="POST">
+                    @{
+                        if(Model.StudentNumberIdentifier != "") {
+                            <input type="hidden" id="studentNumberIdentifier-value" name="studentNumberIdentifier" value="@Model.StudentNumberIdentifier">
+                        }
+                        else if(Model.StudentsOfTaoNotPaired.Count > 0)
+                        {
+                            <input type="hidden" id="studentNumberIdentifier-value" name="studentNumberIdentifier" value="@Model.StudentsOfTaoNotPaired[0].studentNumberIdentifier">
+                        }
+                    }
+                    <table class="article-table">
+                        @{
+                            if(Model.Text != null)
+                            {
+                                if(Model.StudentsOfTaoNotPaired.Count > 0)
+                                {
+                                    <tr><th class="@Model.TextClass" colspan="3" align="center">@Model.Text</th></tr>
+                                }
+                                else
+                                {
+                                    <tr><th class="@Model.TextClass" colspan="2" align="center">@Model.Text</th></tr>
+                                }
+                            }
+                        }
+                        <tr>
+                            <th>Přihlašovací email</th>
+                            <th>Role</th>
+                            @{
+                                if(Model.StudentsOfTaoNotPaired.Count > 0)
+                                {
+                                    <th>Student</th>
+                                }
+                            }
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input class="input" type="email" id="email" name="loginEmail" value="@Model.LoginEmail" required>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <select class="input" id="role" name="role" onchange="updateUserInputsWithRole(this.value)">
+                                        @{
+                                            if(Model.StudentsOfTaoNotPaired.Count > 0)
+                                            {
+                                                for(int i = 0; i < Model.RoleTexts.Length; i++)
+                                                {
+                                                    if(Model.Role == i.ToString())
+                                                    {
+                                                        <option title="@Model.RoleTexts[i]" value="@i" selected>@Model.RoleTexts[i]</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option title="@Model.RoleTexts[i]" value="@i">@Model.RoleTexts[i]</option>
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                for(int i = 1; i < Model.RoleTexts.Length; i++)
+                                                {
+                                                    if(Model.Role == i.ToString())
+                                                    {
+                                                        <option title="@Model.RoleTexts[i]" value="@i" selected>@Model.RoleTexts[i]</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option title="@Model.RoleTexts[i]" value="@i">@Model.RoleTexts[i]</option>
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </td>
+                            @{
+                                if(Model.StudentsOfTaoNotPaired.Count == 1 || (Model.StudentsOfTaoNotPaired.Count > 1 && Model.Role != "" && int.Parse(Model.Role) > 0))
+                                {
+                                    <td>
+                                        <div class="input-wrapper">
+                                            <select class="input" id="studentNumberIdentifier" onchange="updateUserInputsWithStudentNumberIdentifier(this.value)" disabled>
+                                                @{
+                                                    foreach((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTaoNotPaired in Model.StudentsOfTaoNotPaired)
+                                                    {
+                                                        if(Model.StudentNumberIdentifier == studentOfTaoNotPaired.studentNumberIdentifier)
+                                                        {
+                                                            <option title="@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)" value="@studentOfTaoNotPaired.studentNumberIdentifier" selected>@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)</option>
+                                                        }
+                                                        else {
+                                                            <option title="@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)" value="@studentOfTaoNotPaired.studentNumberIdentifier">@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                }
+                                else if(Model.StudentsOfTaoNotPaired.Count > 1)
+                                {
+                                    <td>
+                                        <div class="input-wrapper">
+                                            <select class="input" id="studentNumberIdentifier" onchange="updateUserInputsWithStudentNumberIdentifier(this.value)">
+                                                @{
+                                                    foreach((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTaoNotPaired in Model.StudentsOfTaoNotPaired)
+                                                    {
+                                                        if(Model.StudentNumberIdentifier == studentOfTaoNotPaired.studentNumberIdentifier)
+                                                        {
+                                                            <option title="@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)" value="@studentOfTaoNotPaired.studentNumberIdentifier" selected>@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)</option>
+                                                        }
+                                                        else {
+                                                            <option title="@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)" value="@studentOfTaoNotPaired.studentNumberIdentifier">@studentOfTaoNotPaired.login (@studentOfTaoNotPaired.studentNumberIdentifier)</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                }
+                            }
+                        </tr>
+                        <tr>
+                            @{
+                                if(Model.StudentsOfTaoNotPaired.Count > 0)
+                                {
+                                    <td colspan="3" align="center">
+                                        <input class="button" title="Přidat" type="submit" value="Přidat">
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td colspan="2" align="center">
+                                        <input class="button" title="Přidat" type="submit" value="Přidat">
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </article>
+        <article class="article">
+            <h2 class="article-title title" title="Seznam uživatelů">Seznam uživatelů</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    @{
+                        for(int i = Model.StudentsByRoles.Count - 1; i >= 0; i--)
+                        {
+                            (string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students) studentsByRole = Model.StudentsByRoles[i];
+                            if(studentsByRole.students.Count > 0)
+                            {
+                                <tr>
+                                    <th colspan="3" align="center">@studentsByRole.roleText</th>
+                                </tr>
+                                <tr>
+                                    @{
+                                        if(i >= 1) {
+                                            <th class="regular" colspan="2">Přihlašovací email</th>
+                                        }
+                                        else {
+                                            <th>Přihlašovací email</th>
+                                            <th>Login studenta</th>
+                                        }
+                                    }
+                                    <th>Odebrání uživatele</th>
+                                </tr>
+                                if(i >= 1) {
+                                    for(int j = 0; j < studentsByRole.students.Count; j++)
+                                    {
+                                        <tr>
+                                            <td colspan="2">@studentsByRole.students[j].loginEmail</td>
+                                            <td><a class="button" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
+                                            asp-route-loginEmail="@studentsByRole.students[j].loginEmail">Odebrání uživatele</a></td>
+                                        </tr>
+                                    }
+                                }
+                                else {
+                                    for(int j = 0; j < studentsByRole.students.Count; j++)
+                                    {
+                                        <tr>
+                                            <td>@studentsByRole.students[j].loginEmail</td>
+                                            <td>@studentsByRole.students[j].login</td>
+                                            <td><a class="button" title="Odebrání uživatele" asp-area="" asp-controller="Home" asp-action="DeleteUser"
+                                            asp-route-loginEmail="@studentsByRole.students[j].loginEmail">Odebrání uživatele</a></td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                        }
+                    }
+                </table>
+            </div>
+        </article>
+    </section>
+</main>

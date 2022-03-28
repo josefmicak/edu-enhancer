@@ -208,7 +208,7 @@ namespace ViewLayer.Controllers
                     XmlReader xmlReaderCorrection = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                     while (xmlReaderCorrection.Read())
                     {
-                        if (xmlReaderCorrection.Name == "choiceInteraction")
+                        if (xmlReaderCorrection.GetAttribute("responseIdentifier") != null)
                         {
                             if (xmlReaderCorrection.GetAttribute("responseIdentifier") != responseIdentifierArray[i])
                             {
@@ -336,12 +336,6 @@ namespace ViewLayer.Controllers
             return questionType;
         }
 
-        /*
- * TODO:
- * 2) zminit v textu (obrazkem) ktere typy otazek jsou akceptovany
- * 3) zkusit dat vice doplnovacek textu a nebo vyberu v textu do jedne podotazky, pokud to vyhodi chybu tak to osetrit
- * 4) co kdyz bude obrazek az po textu, nebo uprostred textu?
- */
         public string GetFaultyQuestionValue(int amountOfAddedFaultyQuestions, string testNameIdentifier, string itemNumberIdentifier)
         {
             int amountOfFaultyQuestions = 0;
@@ -362,13 +356,54 @@ namespace ViewLayer.Controllers
                         {
                             if (innerReader.Name == "p")
                             {
-                                string inlineChoiceInteractionLine_ = xmlReader.ReadInnerXml();
-                                if (inlineChoiceInteractionLine_ != null && inlineChoiceInteractionLine_[0] != '<' && inlineChoiceInteractionLine_.Substring(0, 1) != "\n")
+                                string inlineChoiceInteractionLine_ = innerReader.ReadInnerXml();
+                                if (inlineChoiceInteractionLine_.Length > 0)
+                                {
+                                    if (inlineChoiceInteractionLine_[0] != '<' && inlineChoiceInteractionLine_.Substring(0, 1) != "\n")
+                                    {
+                                        amountOfFaultyQuestions++;
+                                        if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
+                                        {
+                                            innerReader.Skip();
+                                        }
+                                        else
+                                        {
+                                            int firstStartTag = inlineChoiceInteractionLine_.IndexOf('<');
+                                            int lastEndTag = inlineChoiceInteractionLine_.LastIndexOf('>');
+                                            string questionText = inlineChoiceInteractionLine_.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine_.Substring(1 + lastEndTag);
+                                            return questionText;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
+            while (xmlReader.Read())
+            {
+                if (xmlReader.Name == "gapMatchInteraction")
+                {
+                    xmlReader.Skip();
+                }
+
+                if (xmlReader.Name == "div" && xmlReader.GetAttribute("class") == "col-12" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    using (var innerReader = xmlReader.ReadSubtree())
+                    {
+                        while (innerReader.Read())
+                        {
+                            string inlineChoiceInteractionLine_ = innerReader.ReadInnerXml();
+                            if (inlineChoiceInteractionLine_.Length > 0)
+                            {
+                                if (inlineChoiceInteractionLine_[0] != '<' && inlineChoiceInteractionLine_.Substring(0, 1) != "\n")
                                 {
                                     amountOfFaultyQuestions++;
                                     if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
                                     {
-                                        xmlReader.Skip();
+                                        innerReader.Skip();
                                     }
                                     else
                                     {
@@ -381,45 +416,7 @@ namespace ViewLayer.Controllers
                             }
                         }
                     }
-                    string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
-                    if (inlineChoiceInteractionLine != null && inlineChoiceInteractionLine != "")
-                    {
-                        if (inlineChoiceInteractionLine[0] != '<' && inlineChoiceInteractionLine.Substring(0, 1) != "\n")
-                        {
-                            amountOfFaultyQuestions++;
-                            if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
-                            {
-                                xmlReader.Skip();
-                            }
-                            else
-                            {
-                                int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
-                                int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
-                                string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
-                                return questionText;
-                            }
-                        }
-                    }
                 }
-
-                //Debug.WriteLine(xmlReader.Name);
-                /*if (xmlReader.Name == "p" && xmlReader.NodeType != XmlNodeType.EndElement)
-                {
-                    Debug.Write("possible");
-                    amountOfFaultyQuestions++;
-                    if (amountOfAddedFaultyQuestions != amountOfFaultyQuestions)
-                    {
-                        xmlReader.Skip();
-                    }
-                    else
-                    {
-                        string inlineChoiceInteractionLine = xmlReader.ReadInnerXml();
-                        int firstStartTag = inlineChoiceInteractionLine.IndexOf('<');
-                        int lastEndTag = inlineChoiceInteractionLine.LastIndexOf('>');
-                        string questionText = inlineChoiceInteractionLine.Substring(0, firstStartTag) + "(DOPLŇTE)" + inlineChoiceInteractionLine.Substring(1 + lastEndTag);
-                        return questionText;
-                    }
-                }*/
             }
 
             return "Při přidávání otázky nastala neočekávaná chyba";

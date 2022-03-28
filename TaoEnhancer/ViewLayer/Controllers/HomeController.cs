@@ -1,6 +1,8 @@
 ﻿using Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 using ViewLayer.Models;
 
 namespace ViewLayer.Controllers
@@ -17,31 +19,229 @@ namespace ViewLayer.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public bool HaveRequiredRole(int requiredRole, int role)
         {
+            if (role >= requiredRole)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        [HttpGet]
+        public IActionResult Index(string error="")
+        {
+            string text = "", textClass = "";
+
+            switch (error)
+            {
+                case "unexpected_exception":
+                    text = "Při přihlášení nastala neočekávaná chyba.\n" +
+                        "Zkuste se prosím znovu přihlásit později.";
+                    textClass = "incorrect";
+                    break;
+                case "user_not_found_exception":
+                    text = "Uživatel s tímto emailem v systému neexistuje.\n" +
+                        "Požádejte prosím správce systému, aby tento email spároval s vaším uživatelským účtem.";
+                    textClass = "partiallyCorrect";
+                    break;
+                default:
+                    List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+                    if (students.Count == 0)
+                    {
+                        text = "Systém dosud neobsahuje žádného uživatele.\n" +
+                            "Po úspěšném přihlášení bude váš účet nastaven do role správce.";
+                        textClass = "info";
+                    }
+                    break;
+            }
+
             return View(new IndexModel {
                 Title = "Přihlášení",
+                Text = text,
+                TextClass = textClass,
                 SignInURL = Settings.GetSignInURL()
             });
         }
 
-        public IActionResult TeacherMenu()
+        public IActionResult AdminMenu()
         {
-            return View(new PageModel {
-                Title = "Učitelské menu"
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(2, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+            
+            return View(new PageModel
+            {
+                Title = "Správce"
             });
         }
 
-        public IActionResult StudentMenu()
+        [HttpGet]
+        public IActionResult ManageUserList(string text="")
         {
-            return View(new StudentMenuModel {
-                Title = "Studentské menu",
-                Students = studentController.LoadStudents()
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(2, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
+            List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+            List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
+            string[] rolesTexts = new string[] { "Studenti", "Učitelé", "Správci" };
+            for(int i = 0; i < 3; i++)
+            {
+                studentsByRoles.Add((rolesTexts[i], new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>()));
+            }
+            foreach((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+            {
+                studentsByRoles[student.role].students.Add(student);
+            }
+            
+            List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTao = studentController.LoadStudents();
+            List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTaoPaired = new List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)>();
+            foreach((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTao in studentsOfTao)
+            {
+                foreach((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+                {
+                    if(studentOfTao.studentNumberIdentifier == student.studentNumberIdentifier)
+                    {
+                        studentsOfTaoPaired.Add(studentOfTao);
+                        break;
+                    }
+                }
+            }
+
+            ManageUserListModel model = new ManageUserListModel {
+                Title = "Správa uživatelů",
+                Students = students,
+                StudentsByRoles = studentsByRoles,
+                StudentsOfTao = studentsOfTao,
+                StudentsOfTaoNotPaired = studentsOfTao.Except(studentsOfTaoPaired).ToList(),
+                RoleTexts = new string[] { "Student", "Učitel", "Správce" },
+                LoginEmail = "",
+                Role = "",
+                StudentNumberIdentifier = ""
+            };
+            switch(text)
+            {
+                case "user_successfully_added":
+                    model.Text = "Uživatel byl úspěšně přidán.";
+                    model.TextClass = "correct";
+                    break;
+                case "user_successfully_deleted":
+                    model.Text = "Uživatel byl úspěšně odebrán.";
+                    model.TextClass = "correct";
+                    break;
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ManageUserList(string loginEmail, string role, string studentNumberIdentifier="")
+        {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(2, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
+            List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+            List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
+            string[] rolesTexts = new string[] { "Studenti", "Učitelé", "Správci" };
+            for (int i = 0; i < 3; i++)
+            {
+                studentsByRoles.Add((rolesTexts[i], new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>()));
+            }
+            foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+            {
+                studentsByRoles[student.role].students.Add(student);
+            }
+
+            List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTao = studentController.LoadStudents();
+            List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTaoPaired = new List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)>();
+            foreach ((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTao in studentsOfTao)
+            {
+                foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+                {
+                    if (studentOfTao.studentNumberIdentifier == student.studentNumberIdentifier)
+                    {
+                        studentsOfTaoPaired.Add(studentOfTao);
+                        break;
+                    }
+                }
+            }
+
+            string text = "", textClass = "correct";
+            foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+            {
+                if (student.loginEmail == loginEmail)
+                {
+                    text = "Tento email již v systému existuje.";
+                    textClass = "incorrect";
+                    break;
+                }
+                else if(role == "0" && student.studentNumberIdentifier == studentNumberIdentifier)
+                {
+                    text = "Tento student je již spárován s emailem: " + student.loginEmail;
+                    textClass = "incorrect";
+                    break;
+                }
+            }
+
+            if(role == "0" && studentNumberIdentifier == "")
+            {
+                text = "Při výběru role student je nutné vybrat studenta.";
+                textClass = "incorrect";
+            }
+            else if(textClass == "correct")
+            {
+                switch(role)
+                {
+                    case "0":
+                        studentController.EditUser(loginEmail, studentNumberIdentifier, int.Parse(role));
+                        break;
+                    default:
+                        studentController.EditUser(loginEmail, "", int.Parse(role));
+                        break;
+                }
+                return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_added" });
+            }
+
+            return View(new ManageUserListModel
+            {
+                Title = "Správa uživatelů",
+                Students = students,
+                StudentsByRoles = studentsByRoles,
+                StudentsOfTao = studentsOfTao,
+                StudentsOfTaoNotPaired = studentsOfTao.Except(studentsOfTaoPaired).ToList(),
+                RoleTexts = new string[] { "Student", "Učitel", "Správce" },
+                LoginEmail = (textClass == "correct" ? "" : loginEmail),
+                Role = (textClass == "correct" ? "" : role),
+                StudentNumberIdentifier = (textClass == "correct" ? "" : studentNumberIdentifier),
+                Text = text,
+                TextClass = textClass
+            });
+        }
+
+        [HttpGet]
+        public IActionResult DeleteUser(string loginEmail)
+        {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(2, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
+            studentController.DeleteUser(loginEmail);
+            return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_deleted" });
+        }
+
+        public IActionResult TeacherMenu()
+        {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
+            return View(new PageModel {
+                Title = "Učitel"
             });
         }
 
         public IActionResult TestTemplateList()
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             return View(new TestTemplateListModel {
                 Title = "Správa zadání testů",
                 Tests = testController.LoadTests()
@@ -50,6 +250,9 @@ namespace ViewLayer.Controllers
 
         public IActionResult ManageSolvedTestList()
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             return View(new ManageSolvedTestListModel {
                 Title = "Správa vyřešených testů",
                 SolvedTests = testController.LoadSolvedTests()
@@ -58,6 +261,9 @@ namespace ViewLayer.Controllers
 
         public IActionResult ManageSolvedTest(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) questionResultPoints = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
 
@@ -81,6 +287,9 @@ namespace ViewLayer.Controllers
         [HttpGet]
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             
             return View(new TestTemplateModel
@@ -99,6 +308,9 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier, string negativePoints)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             string textToWrite = "";
             if (negativePoints == "negativePoints_no")
             {
@@ -128,6 +340,9 @@ namespace ViewLayer.Controllers
         [HttpGet]
         public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             string responseIdentifier = responseIdentifiers.responseIdentifierArray[0];
@@ -161,6 +376,9 @@ namespace ViewLayer.Controllers
         public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints,
             string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int questionType)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             string errorText = "";
             if (subquestionPoints != null)
             {
@@ -271,6 +489,9 @@ namespace ViewLayer.Controllers
         [HttpGet]
         public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             string responseIdentifier = responseIdentifiers.responseIdentifierArray[0];
@@ -321,6 +542,9 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem, string studentsPoints, int amountOfSubitems, int subitemIndex, int questionPointsDetermined)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(1, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             string errorText = "";
             if (studentsPoints != null)
             {
@@ -427,6 +651,9 @@ namespace ViewLayer.Controllers
 
         public IActionResult BrowseSolvedTestList(string studentIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(0, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             return View(new BrowseSolvedTestListModel {
                 Title = "Seznam testů studenta",
                 StudentIdentifier = studentIdentifier,
@@ -443,6 +670,9 @@ namespace ViewLayer.Controllers
 
         public IActionResult BrowseSolvedTest(string studentIdentifier, string deliveryExecutionIdentifier, string testNameIdentifier, string testNumberIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(0, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) questionResultPoints = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
 
@@ -465,6 +695,9 @@ namespace ViewLayer.Controllers
         [HttpGet]
         public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(0, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             string responseIdentifier = responseIdentifiers.responseIdentifierArray[0];
@@ -513,6 +746,9 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem)
         {
+            // Check if my role is higher or equal to required value
+            if (!HaveRequiredRole(0, studentController.LoadStudentByEmail(((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value).role)) { return RedirectToAction("Index", "Home"); }
+
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             string responseIdentifier = (itemParameters.amountOfSubitems == 1 || selectedSubitem == null ? responseIdentifiers.responseIdentifierArray[0] : selectedSubitem);

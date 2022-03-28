@@ -8,26 +8,36 @@
     --article-table-border-color: #DDD;
     --article-table-hover-border-color: #CCC;
     --article-table-odd-background: #F8F8F8;
+    --article-table-th-color: #111;
     --article-table-th-correct-color: #002F18;
     --article-table-th-partiallyCorrect-color: #2F1800;
     --article-table-th-incorrect-color: #2F0000;
+    --article-table-th-info-color: #00182F;
     --article-table-th-background: #EEE;
     --article-table-th-correct-background: #D0FFE8;
     --article-table-th-partiallyCorrect-background: #FFE8D0;
     --article-table-th-incorrect-background: #FFD0D0;
+    --article-table-th-info-background: #D0E8FF;
+    --article-table-th-colspan-color: #222;
     --article-table-th-colspan-correct-color: #103F28;
     --article-table-th-colspan-partiallyCorrect-color: #3F2810;
     --article-table-th-colspan-incorrect-color: #3F1010;
+    --article-table-th-colspan-info-color: #10283F;
     --article-table-th-colspan-background: #DDD;
     --article-table-th-colspan-correct-background: #C0EFD8;
     --article-table-th-colspan-partiallyCorrect-background: #EFD8C0;
     --article-table-th-colspan-incorrect-background: #EFC0C0;
+    --article-table-th-colspan-info-background: #C0D8EF;
+    --article-table-td-color: #000;
     --article-table-td-correct-color: #000F08;
     --article-table-td-partiallyCorrect-color: #0F0800;
     --article-table-td-incorrect-color: #0F0000;
+    --article-table-td-info-color: #00080F;
+    --article-table-td-background: #FFF;
     --article-table-td-correct-background: #F0FFF8;
     --article-table-td-partiallyCorrect-background: #FFF8F0;
     --article-table-td-incorrect-background: #FFF0F0;
+    --article-table-td-info-background: #F0F8FF;
     --box-shadow: 0 0.1em 0.4em -0.2em;
     --box-shadow-color: #888;
     --button-color: #333;
@@ -65,26 +75,36 @@
         --article-table-border-color: #222;
         --article-table-hover-border-color: #333;
         --article-table-odd-background: #080808;
+        --article-table-th-color: #EEE;
         --article-table-th-correct-color: #D0FFE8;
         --article-table-th-partiallyCorrect-color: #FFE8D0;
         --article-table-th-incorrect-color: #FFD0D0;
+        --article-table-th-info-color: #D0E8FF;
         --article-table-th-background: #111;
         --article-table-th-correct-background: #002F18;
         --article-table-th-partiallyCorrect-background: #2F1800;
         --article-table-th-incorrect-background: #2F0000;
+        --article-table-th-info-background: #00182F;
+        --article-table-th-colspan-color: #DDD;
         --article-table-th-colspan-correct-color: #C0EFD8;
         --article-table-th-colspan-partiallyCorrect-color: #EFD8C0;
         --article-table-th-colspan-incorrect-color: #EFC0C0;
+        --article-table-th-colspan-info-color: #C0D8EF;
         --article-table-th-colspan-background: #222;
         --article-table-th-colspan-correct-background: #103F28;
         --article-table-th-colspan-partiallyCorrect-background: #3F2810;
         --article-table-th-colspan-incorrect-background: #3F1010;
+        --article-table-th-colspan-info-background: #10283F;
+        --article-table-td-color: #FFF;
         --article-table-td-correct-color: #F0FFF8;
         --article-table-td-partiallyCorrect-color: #FFF8F0;
         --article-table-td-incorrect-color: #FFF0F0;
+        --article-table-td-info-color: #F0F8FF;
+        --article-table-td-background: #000;
         --article-table-td-correct-background: #000F08;
         --article-table-td-partiallyCorrect-background: #0F0800;
         --article-table-td-incorrect-background: #0F0000;
+        --article-table-td-info-background: #00080F;
         --box-shadow-color: #888;
         --button-color: #CCC;
         --button-hover-color: #FFF;
@@ -250,6 +270,10 @@ button {
     vertical-align: middle;
 }
 
+.g_id_signin {
+    display: inline-block;
+}
+
 /* Page structure */
 .header {
     position: fixed;
@@ -359,12 +383,10 @@ button {
     border-left-width: 0;
 }
 
-.article-table th {
+.article-table th, .article-table th[colspan].regular {
+    color: var(--article-table-th-color);
     background: var(--article-table-th-background);
     font-weight: 400;
-}
-.article-table th[colspan] {
-    background: var(--article-table-th-colspan-background);
 }
 .article-table th.correct {
     color: var(--article-table-th-correct-color);
@@ -378,6 +400,14 @@ button {
     color: var(--article-table-th-incorrect-color);
     background: var(--article-table-th-incorrect-background);
 }
+.article-table th.info {
+    color: var(--article-table-th-info-color);
+    background: var(--article-table-th-info-background);
+}
+.article-table th[colspan] {
+    color: var(--article-table-th-colspan-color);
+    background: var(--article-table-th-colspan-background);
+}
 .article-table th[colspan].correct {
     color: var(--article-table-th-colspan-correct-color);
     background: var(--article-table-th-colspan-correct-background);
@@ -390,7 +420,15 @@ button {
     color: var(--article-table-th-colspan-incorrect-color);
     background: var(--article-table-th-colspan-incorrect-background);
 }
+.article-table th[colspan].info {
+    color: var(--article-table-th-colspan-info-color);
+    background: var(--article-table-th-colspan-info-background);
+}
 
+.article-table td {
+    color: var(--article-table-td-color);
+    background: var(--article-table-td-background);
+}
 .article-table td.correct {
     color: var(--article-table-td-correct-color);
     background: var(--article-table-td-correct-background);
@@ -402,6 +440,10 @@ button {
 .article-table td.incorrect {
     color: var(--article-table-td-incorrect-color);
     background: var(--article-table-td-incorrect-background);
+}
+.article-table td.info {
+    color: var(--article-table-td-info-color);
+    background: var(--article-table-td-info-background);
 }
 
 .nav {

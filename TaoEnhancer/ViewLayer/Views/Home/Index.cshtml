@@ -13,28 +13,45 @@
         <article class="article">
             <h2 class="article-title title" title="Přihlášení">Přihlášení</h2>
             <div class="article-content">
-                <nav class="nav">
-                    <ul>
-                        <li>
+                <table class="article-table">
+                    @{
+                        if(@Model.Text != "")
+                        {
+                            string[] textRowSplit = @Model.Text.Split("\n");
+                            if(textRowSplit.Length > 0)
+                            {
+                                <tr>
+                                    <th class="@Model.TextClass" align="center">@textRowSplit[0]</th>
+                                </tr>
+                                for(int i = 1; i < textRowSplit.Length; i++)
+                                {
+                                    <tr>
+                                        <td class="@Model.TextClass" align="center">@textRowSplit[1]</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    }
+                    <tr>
+                        <td align="center">
                             <div id="g_id_onload"
-                                 data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
-                                 data-context="signin"
-                                 data-ux_mode="redirect"
-                                 data-login_uri="@Model.SignInURL"
-                                 data-auto_prompt="false">
+                                data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
+                                data-context="signin"
+                                data-ux_mode="redirect"
+                                data-login_uri="@Model.SignInURL"
+                                data-auto_prompt="false">
                             </div>
                             <div class="g_id_signin"
-                                 data-type="standard"
-                                 data-shape="rectangular"
-                                 data-theme="outline"
-                                 data-text="signin_with"
-                                 data-size="large"
-                                 data-logo_alignment="left">
+                                data-type="standard"
+                                data-shape="rectangular"
+                                data-theme="outline"
+                                data-text="signin_with"
+                                data-size="large"
+                                data-logo_alignment="left">
                             </div>
-                            <!--<a asp-area="" asp-controller="Account" asp-action="Login">Přihlásit se</a>-->
-                        </li>
-                    </ul>
-                </nav>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </article>
     </section>
@@ -44,6 +61,7 @@
             <div class="article-content">
                 <nav class="nav">
                     <ul>
+                        <li><a class="button" title="Jsem administrátor" asp-area="" asp-controller="Home" asp-action="AdminMenu">Jsem administrátor</a></li>
                         <li><a class="button" title="Jsem učitel" asp-area="" asp-controller="Home" asp-action="TeacherMenu">Jsem učitel</a></li>
                         <li><a class="button" title="Jsem student" asp-area="" asp-controller="Home" asp-action="StudentMenu">Jsem student</a></li>
                     </ul>
