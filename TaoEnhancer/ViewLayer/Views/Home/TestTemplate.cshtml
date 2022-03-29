@@ -101,7 +101,7 @@
                                 <td>@question.Item4</td>
                                 <td>@points</td>
                                 <td><button class="button" title="Detaily otázky" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
-                                <td><a class="button" id="itemTemplateBtn" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                                <td><a class="button" id="itemTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
                                 asp-route-testNameIdentifier="@Model.TestNameIdentifier"
                                 asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
                                 asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"

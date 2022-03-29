@@ -1,5 +1,4 @@
 ﻿using Common;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -19,32 +18,45 @@ namespace ViewLayer.Controllers
             _logger = logger;
         }
 
-        public bool HaveRequiredRole(int requiredRole, string loginEmail)
+        public string GetUserLoginEmail()
+        {
+            return ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
+        }
+
+        public int GetUserRole()
         {
             try
             {
-                int role = studentController.LoadStudentByEmail(loginEmail).role;
-                if (role >= requiredRole)
-                {
-                    return true;
-                }
-                return false;
+                return studentController.LoadStudentByEmail(GetUserLoginEmail()).role;
             }
-            catch(Exception e)
+            catch (Exception e) { return -1; }
+        }
+
+        public bool HaveRequiredRole(int requiredRole)
+        {
+            int userRole = GetUserRole();
+            if (userRole >= requiredRole)
             {
-                return false;
+                return true;
             }
+            return false;
         }
 
         [HttpGet]
         public IActionResult Index(string error="")
         {
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            // Check if my role is higher or equal to required value
+            if(!HaveRequiredRole(-1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
+            
             string text = "", textClass = "";
 
             switch (error)
             {
+                case "access_denied":
+                    text = "Přístup odepřen.";
+                    textClass = "incorrect";
+                    break;
                 case "unexpected_exception":
                     text = "Při přihlášení nastala neočekávaná chyba.\n" +
                         "Zkuste se prosím znovu přihlásit později.";
@@ -78,9 +90,8 @@ namespace ViewLayer.Controllers
         public IActionResult AdminMenu()
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(2, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             return View(new PageModel
             {
@@ -93,9 +104,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageUserList(string text="")
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(2, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
             List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
@@ -145,6 +155,10 @@ namespace ViewLayer.Controllers
                     model.Text = "Uživatel byl úspěšně odebrán.";
                     model.TextClass = "correct";
                     break;
+                case "last_admin_cannot_be_deleted":
+                    model.Text = "Poslední správce nemůže být odebrán.";
+                    model.TextClass = "incorrect";
+                    break;
             }
 
             return View(model);
@@ -154,9 +168,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageUserList(string loginEmail, string role, string studentNumberIdentifier="")
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(2, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
             List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
@@ -208,16 +221,24 @@ namespace ViewLayer.Controllers
             }
             else if(textClass == "correct")
             {
-                switch(role)
+                try
                 {
-                    case "0":
-                        studentController.EditUser(loginEmail, studentNumberIdentifier, int.Parse(role));
-                        break;
-                    default:
-                        studentController.EditUser(loginEmail, "", int.Parse(role));
-                        break;
+                    switch (role)
+                    {
+                        case "0":
+                            studentController.EditUser(loginEmail, studentNumberIdentifier, int.Parse(role));
+                            break;
+                        default:
+                            studentController.EditUser(loginEmail, "", int.Parse(role));
+                            break;
+                    }
+                    return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_added" });
                 }
-                return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_added" });
+                catch(Exception e)
+                {
+                    text = "Email obsahuje nepovolené znaky.";
+                    textClass = "partiallyCorrect";
+                }
             }
 
             return View(new ManageUserListModel
@@ -241,10 +262,27 @@ namespace ViewLayer.Controllers
         public IActionResult DeleteUser(string loginEmail)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(2, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
 
+            int role = studentController.LoadStudentByEmail(loginEmail).role;
+            if(role >= 2)
+            {
+                List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+                int adminCount = 0;
+                foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+                {
+                    if (student.role >= 2)
+                    {
+                        if (adminCount + 1 > 1)
+                        {
+                            studentController.DeleteUser(loginEmail);
+                            return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_deleted" });
+                        }
+                        adminCount++;
+                    }
+                }
+                return RedirectToAction("ManageUserList", "Home", new { text = "last_admin_cannot_be_deleted" });
+            }
             studentController.DeleteUser(loginEmail);
             return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_deleted" });
         }
@@ -252,9 +290,8 @@ namespace ViewLayer.Controllers
         public IActionResult TeacherMenu()
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             return View(new PageModel {
                 Title = "Učitel",
@@ -265,9 +302,8 @@ namespace ViewLayer.Controllers
         public IActionResult TestTemplateList()
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             return View(new TestTemplateListModel {
                 Title = "Správa zadání testů",
@@ -279,9 +315,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageSolvedTestList()
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             return View(new ManageSolvedTestListModel {
                 Title = "Správa vyřešených testů",
@@ -293,9 +328,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageSolvedTest(string testNameIdentifier, string testNumberIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) questionResultPoints = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
@@ -322,9 +356,8 @@ namespace ViewLayer.Controllers
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             
@@ -346,9 +379,8 @@ namespace ViewLayer.Controllers
         public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier, string negativePoints)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             string textToWrite = "";
             if (negativePoints == "negativePoints_no")
@@ -381,9 +413,8 @@ namespace ViewLayer.Controllers
         public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
@@ -420,9 +451,8 @@ namespace ViewLayer.Controllers
             string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int questionType)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             string errorText = "";
             if (subquestionPoints != null)
@@ -536,9 +566,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
@@ -592,9 +621,8 @@ namespace ViewLayer.Controllers
         public IActionResult ManageSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem, string studentsPoints, int amountOfSubitems, int subitemIndex, int questionPointsDetermined)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(1, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             string errorText = "";
             if (studentsPoints != null)
@@ -704,9 +732,8 @@ namespace ViewLayer.Controllers
         public IActionResult BrowseSolvedTestList(string studentIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(0, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(0)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             return View(new BrowseSolvedTestListModel {
                 Title = "Seznam testů studenta",
@@ -726,9 +753,8 @@ namespace ViewLayer.Controllers
         public IActionResult BrowseSolvedTest(string studentIdentifier, string deliveryExecutionIdentifier, string testNameIdentifier, string testNumberIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(0, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(0)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) questionResultPoints = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
@@ -754,9 +780,8 @@ namespace ViewLayer.Controllers
         public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(0, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(0)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
@@ -808,9 +833,8 @@ namespace ViewLayer.Controllers
         public IActionResult BrowseSolvedItem(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier, string studentIdentifier, string selectedSubitem)
         {
             // Check if my role is higher or equal to required value
-            string userLoginEmail = ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value;
-            if (!HaveRequiredRole(0, userLoginEmail)) { return RedirectToAction("Index", "Home"); }
-            int userRole = studentController.LoadStudentByEmail(userLoginEmail).role;
+            if (!HaveRequiredRole(0)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            int userRole = GetUserRole();
 
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);

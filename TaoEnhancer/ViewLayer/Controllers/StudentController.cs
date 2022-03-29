@@ -1,7 +1,5 @@
 ﻿using Common;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mail;
 using System.Security.Claims;
 using System.Xml;
 

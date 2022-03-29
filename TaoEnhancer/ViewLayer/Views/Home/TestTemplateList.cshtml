@@ -31,19 +31,23 @@
                         <th>Nadpis</th>
                         <th>Správa</th>
                     </tr>
-                    @foreach ((string, string, string) testIdentifiers in @Model.Tests)
-                    {
-                        <tr>
-                            <td>@testIdentifiers.Item1</td>
-                            <td>@testIdentifiers.Item2</td>
-                            <td>@testIdentifiers.Item3</td>
-                            <td><a class="button" id="testTemplateBtn" title="Správa testu"
-                                asp-area="" 
-                                asp-controller="Home" 
-                                asp-action="TestTemplate" 
-                                asp-route-testNameIdentifier="@testIdentifiers.Item1" 
-                                asp-route-testNumberIdentifier="@testIdentifiers.Item2">Správa testu</a></td>
-                        </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string) testIdentifiers in @Model.Tests)
+                        {
+                            <tr>
+                                <td>@testIdentifiers.Item1</td>
+                                <td>@testIdentifiers.Item2</td>
+                                <td>@testIdentifiers.Item3</td>
+                                <td><a class="button" id="testTemplateBtn_@i" title="Správa testu"
+                                    asp-area="" 
+                                    asp-controller="Home" 
+                                    asp-action="TestTemplate" 
+                                    asp-route-testNameIdentifier="@testIdentifiers.Item1" 
+                                    asp-route-testNumberIdentifier="@testIdentifiers.Item2">Správa testu</a></td>
+                            </tr>
+                            i++;
+                        }
                     }
                 </table>
             </div>
