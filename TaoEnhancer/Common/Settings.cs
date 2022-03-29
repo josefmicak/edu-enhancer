@@ -2,7 +2,14 @@
 {
     public static class Settings
     {
+        // Server URL
         public const string URL = "https://localhost:7057";
+
+        // Google Sign In API
+        public const string GoogleSignInClientId = "755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6";
+        public const string GoogleSignInClientSecret = "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";
+
+        // File paths
         public const string Path = "C:\\xampp\\exported\\";
         public const string ExternalPath = "http://testt.8u.cz/TaoEnhancer";
 

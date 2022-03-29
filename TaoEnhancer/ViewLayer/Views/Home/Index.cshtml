@@ -1,4 +1,5 @@
-﻿@model ViewLayer.Models.IndexModel
+﻿@using Common
+@model ViewLayer.Models.IndexModel
 
 <header class="header">
     <div class="header-content content-width">
@@ -35,7 +36,7 @@
                     <tr>
                         <td align="center">
                             <div id="g_id_onload"
-                                data-client_id="755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6"
+                                data-client_id="@Settings.GoogleSignInClientId"
                                 data-context="signin"
                                 data-ux_mode="redirect"
                                 data-login_uri="@Model.SignInURL"
