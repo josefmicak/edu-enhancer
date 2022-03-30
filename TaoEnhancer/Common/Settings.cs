@@ -3,19 +3,69 @@
     public static class Settings
     {
         // Server URL
-        public const string URL = "https://localhost:7057";
+        public const string WindowsURL = "https://localhost:7057";
+        public const string UbuntuURL = "https://vsrvfeia0h-51.vsb.cz:5000";
 
         // Google Sign In API
         public const string GoogleSignInClientId = "755040283949-il8fo77mu6v795aj8elvu83fomd5aqj6";
         public const string GoogleSignInClientSecret = "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";
 
         // File paths
-        public const string Path = "C:\\xampp\\exported\\";
-        public const string ExternalPath = "http://testt.8u.cz/TaoEnhancer";
+        public const string WindowsPath = "C:\\xampp\\exported";
+        public const string UbuntuPath = @"/home/fei/mic0378/exported";
+
+        enum Platform
+        {
+            Windows,
+            Ubuntu
+        }
+
+        static Platform SelectedPlatform = Platform.Windows;
+
+        public static string GetWindowsSlash()
+        {
+            return "\\";
+        }
+
+        public static string GetUbuntuSlash()
+        {
+            return "/";
+        }
+
+        public static string GetPlatformSlash()
+        {
+            if (SelectedPlatform == Platform.Windows)
+            {
+                return GetWindowsSlash();
+            }
+            else
+            {
+                return GetUbuntuSlash();
+            }
+        }
 
         public static string GetURL()
         {
-            return URL;
+            if (SelectedPlatform == Platform.Windows)
+            {
+                return WindowsURL;
+            }
+            else
+            {
+                return UbuntuURL;
+            }
+        }
+
+        public static string GetImageURL()
+        {
+            if (SelectedPlatform == Platform.Windows)
+            {
+                return WindowsURL + "/images/";
+            }
+            else
+            {
+                return UbuntuURL + "/images/";
+            }
         }
 
         public static string GetSignInURL()
@@ -25,98 +75,99 @@
 
         public static string GetPath()
         {
-            return Path;
+            if (SelectedPlatform == Platform.Windows)
+            {
+                return WindowsPath;
+            }
+            else
+            {
+                return UbuntuPath;
+            }
         }
 
         public static string GetResultsPath()
         {
-            return Path + "\\results";
+            return GetPath() + GetPlatformSlash() + "results";
         }
 
         public static string GetResultPath(string testNameIdentifier)
         {
-            return GetResultsPath() + "\\" + testNameIdentifier;
+            return GetResultsPath() + GetPlatformSlash() + testNameIdentifier;
         }
 
         public static string GetResultFilePath(string testNameIdentifier, string deliveryExecutionIdentifier)
         {
-            return GetResultPath(testNameIdentifier) + "\\delivery_execution_" + deliveryExecutionIdentifier + ".xml";
+            return GetResultPath(testNameIdentifier) + GetPlatformSlash() + "delivery_execution_" + deliveryExecutionIdentifier + ".xml";
         }
 
         public static string GetResultResultsDataPath(string testNameIdentifier, string deliveryExecutionIdentifier)
         {
-            return GetResultPath(testNameIdentifier) + "\\delivery_execution_" + deliveryExecutionIdentifier + "Results.txt";
+            return GetResultPath(testNameIdentifier) + GetPlatformSlash() + "delivery_execution_" + deliveryExecutionIdentifier + "Results.txt";
         }
 
         public static string GetStudentsPath()
         {
-            return Path + "\\testtakers";
+            return GetPath() + GetPlatformSlash() + "testtakers";
         }
 
         public static string GetStudentFilePath(string studentNumberIdentifier)
         {
-            return GetStudentsPath() + "\\" + studentNumberIdentifier + ".rdf";
+            return GetStudentsPath() + GetPlatformSlash() + studentNumberIdentifier + ".rdf";
         }
 
         public static string GetStudentLoginDataPath(string loginEmail)
         {
-            return GetStudentsPath() + "\\" + loginEmail + ".txt";
+            return GetStudentsPath() + GetPlatformSlash() + loginEmail + ".txt";
         }
 
         public static string GetTestsPath()
         {
-            return Path + "\\tests";
+            return GetPath() + GetPlatformSlash() + "tests";
         }
 
         public static string GetTestPath(string testNameIdentifier)
         {
-            return GetTestsPath() + "\\" + testNameIdentifier;
+            return GetTestsPath() + GetPlatformSlash() + testNameIdentifier;
         }
 
         public static string GetTestItemsPath(string testNameIdentifier)
         {
-            return GetTestPath(testNameIdentifier) + "\\items";
+            return GetTestPath(testNameIdentifier) + GetPlatformSlash() + "items";
         }
 
         public static string GetTestItemPath(string testNameIdentifier, string itemNumberIdentifier)
         {
-            return GetTestItemsPath(testNameIdentifier) + "\\" + itemNumberIdentifier;
+            return GetTestItemsPath(testNameIdentifier) + GetPlatformSlash() + itemNumberIdentifier;
         }
 
         public static string GetTestItemFilePath(string testNameIdentifier, string itemNumberIdentifier)
         {
-            return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + "\\qti.xml";
+            return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + GetPlatformSlash() + "qti.xml";
         }
 
         public static string GetTestItemPointsDataPath(string testNameIdentifier, string itemNumberIdentifier)
         {
-            return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + "\\Points.txt";
-        }
-
-        public static string GetTestItemImagePath(string testNameIdentifier, string itemNumberIdentifier, string imageFilePath)
-        {
-            //return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + "\\" + imageFilePath;
-            return ExternalPath + "/tests/" + testNameIdentifier + "/items/" + itemNumberIdentifier + "/" + imageFilePath;
+            return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + GetPlatformSlash() + "Points.txt";
         }
 
         public static string GetTestTestsPath(string testNameIdentifier)
         {
-            return GetTestPath(testNameIdentifier) + "\\tests";
+            return GetTestPath(testNameIdentifier) + GetPlatformSlash() + "tests";
         }
 
         public static string GetTestTestPath(string testNameIdentifier, string testNumberIdentifier)
         {
-            return GetTestTestsPath(testNameIdentifier) + "\\" + testNumberIdentifier;
+            return GetTestTestsPath(testNameIdentifier) + GetPlatformSlash() + testNumberIdentifier;
         }
 
         public static string GetTestTestFilePath(string testNameIdentifier, string testNumberIdentifier)
         {
-            return GetTestTestPath(testNameIdentifier, testNumberIdentifier) + "\\test.xml";
+            return GetTestTestPath(testNameIdentifier, testNumberIdentifier) + GetPlatformSlash() + "test.xml";
         }
 
         public static string GetTestTestNegativePointsDataPath(string testNameIdentifier, string testNumberIdentifier)
         {
-            return GetTestTestPath(testNameIdentifier, testNumberIdentifier) + "\\NegativePoints.txt";
+            return GetTestTestPath(testNameIdentifier, testNumberIdentifier) + GetPlatformSlash() + "NegativePoints.txt";
         }
     }
 }
