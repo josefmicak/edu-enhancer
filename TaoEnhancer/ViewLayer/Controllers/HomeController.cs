@@ -21,7 +21,7 @@ namespace ViewLayer.Controllers
 
         public int GetUserRole()
         {
-            if (Settings.Admin) { return 2; }
+            if (Settings.CustomRole > -2) { return Settings.CustomRole; }
 
             try
             {

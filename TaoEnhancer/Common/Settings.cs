@@ -1,4 +1,6 @@
-﻿namespace Common
+﻿using System.Text;
+
+namespace Common
 {
     public static class Settings
     {
@@ -10,40 +12,62 @@
 
         // Testing
         public static readonly bool Testing = false;
-        public static bool Admin
+        public static int CustomRole
         {
             get
             {
+                int role = -2;
+
                 if (Testing)
                 {
-                    return File.Exists(GetAdminDataPath());
+                    if (File.Exists(GetTestingDataPath()))
+                    {
+                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Read);
+                        using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                        {
+                            try
+                            {
+                                role = int.Parse(streamReader.ReadToEnd());
+                            }
+                            catch { }
+                        }
+                        fileStream.Close();
+                    }
+                    return role;
                 }
                 else
                 {
-                    if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
-                    return false;
+                    if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
+                    return role;
                 }
             }
             set
             {
                 if (Testing)
                 {
-                    if (value == true)
+                    if (value > -2)
                     {
-                        if (!File.Exists(GetAdminDataPath()))
+                        if (!File.Exists(GetTestingDataPath()))
                         {
-                            FileStream f = File.Create(GetAdminDataPath());
+                            FileStream f = File.Create(GetTestingDataPath());
                             f.Close();
                         }
+
+                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Write);
+                        using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
+                        {
+                            streamWriter.Write(value);
+                        }
+                        fileStream.Close();
                     }
                     else
                     {
-                        if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
+                        if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
                     }
                 }
                 else
                 {
-                    if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
+                    if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
                 }
             }
         }
@@ -96,9 +120,9 @@
             return Path[(int)SelectedPlatform];
         }
 
-        public static string GetAdminDataPath()
+        public static string GetTestingDataPath()
         {
-            return GetPath() + GetPathSeparator() + "Admin.txt";
+            return GetPath() + GetPathSeparator() + "Testing.txt";
         }
 
         public static string GetResultsPath()

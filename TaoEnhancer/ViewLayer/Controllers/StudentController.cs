@@ -10,7 +10,7 @@ namespace ViewLayer.Controllers
         public List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> LoadStudents()
         {
             List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> students = new List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)>();
-            
+
             if (Directory.Exists(Settings.GetStudentsPath()))
             {
                 foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
@@ -193,7 +193,7 @@ namespace ViewLayer.Controllers
                 if (System.IO.File.Exists(Settings.GetStudentLoginDataPath(loginEmail)))
                 {
                     string[] importedFileLines = System.IO.File.ReadAllLines(Settings.GetStudentLoginDataPath(loginEmail));
-                    if(importedFileLines.Length > 0)
+                    if (importedFileLines.Length > 0)
                     {
                         foreach (string importedFileLine in importedFileLines)
                         {
@@ -252,7 +252,7 @@ namespace ViewLayer.Controllers
 
         public int GetMyRole()
         {
-            if(Settings.Admin) { return 2; }
+            if (Settings.CustomRole > -2) { return Settings.CustomRole; }
 
             try
             {
