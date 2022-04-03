@@ -53,7 +53,7 @@ namespace Common
                             f.Close();
                         }
 
-                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Write);
+                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Truncate, FileAccess.Write);
                         using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
                         {
                             streamWriter.Write(value);
