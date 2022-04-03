@@ -9,7 +9,44 @@
         }
 
         // Testing
-        public static bool Admin = false;
+        public static readonly bool Testing = false;
+        public static bool Admin
+        {
+            get
+            {
+                if (Testing)
+                {
+                    return File.Exists(GetAdminDataPath());
+                }
+                else
+                {
+                    if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
+                    return false;
+                }
+            }
+            set
+            {
+                if (Testing)
+                {
+                    if (value == true)
+                    {
+                        if (!File.Exists(GetAdminDataPath()))
+                        {
+                            FileStream f = File.Create(GetAdminDataPath());
+                            f.Close();
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
+                    }
+                }
+                else
+                {
+                    if (File.Exists(GetAdminDataPath())) { File.Delete(GetAdminDataPath()); }
+                }
+            }
+        }
 
         // System (0 = Windows, 1 = Ubuntu)
         public static readonly Platform SelectedPlatform = Platform.Windows;
@@ -57,6 +94,11 @@
         public static string GetPath()
         {
             return Path[(int)SelectedPlatform];
+        }
+
+        public static string GetAdminDataPath()
+        {
+            return GetPath() + GetPathSeparator() + "Admin.txt";
         }
 
         public static string GetResultsPath()
