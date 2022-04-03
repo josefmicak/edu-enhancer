@@ -2,6 +2,9 @@
 {
     public static class Settings
     {
+        // Testing
+        public const bool Testing = true;
+
         // Server URL
         public const string WindowsURL = "https://localhost:7057";
         public const string UbuntuURL = "https://vsrvfeia0h-51.vsb.cz:5000";
