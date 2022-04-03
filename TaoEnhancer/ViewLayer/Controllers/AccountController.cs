@@ -69,16 +69,13 @@ namespace ViewLayer.Controllers
                                 {
                                     case 2:
                                         return RedirectToAction("AdminMenu", "Home");
-                                        break;
                                     case 1:
                                         return RedirectToAction("TeacherMenu", "Home");
-                                        break;
                                     default:
                                         return RedirectToAction("BrowseSolvedTestList", "Home", new { studentIdentifier = student.studentIdentifier });
-                                        break;
                                 }
                             }
-                            catch (Exception e)
+                            catch
                             {
                                 return RedirectToAction("Index", "Home", new { error = "user_not_found_exception" });
                             }
@@ -101,7 +98,10 @@ namespace ViewLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignOut()
         {
-            return Redirect("https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + Settings.GetURL());
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            
+            return RedirectToAction("Index", "Home");
+            //return Redirect("https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + Settings.GetURL());
         }
     }
 }

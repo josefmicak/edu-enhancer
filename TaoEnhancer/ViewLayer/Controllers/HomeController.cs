@@ -12,10 +12,7 @@ namespace ViewLayer.Controllers
         private StudentController studentController = new StudentController();
         private TestController testController = new TestController();
 
-        public HomeController()
-        {
-
-        }
+        public HomeController() { }
 
         public string GetUserLoginEmail()
         {
@@ -24,13 +21,11 @@ namespace ViewLayer.Controllers
 
         public int GetUserRole()
         {
-            if (Settings.Testing) { return 2; }
-
             try
             {
                 return studentController.LoadStudentByEmail(GetUserLoginEmail()).role;
             }
-            catch (Exception e) { return -1; }
+            catch { return -1; }
         }
 
         public bool HaveRequiredRole(int requiredRole)
@@ -44,12 +39,12 @@ namespace ViewLayer.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string error = "")
+        public IActionResult Index(string error="")
         {
             // Check if my role is higher or equal to required value
-            if (!HaveRequiredRole(-1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
+            if(!HaveRequiredRole(-1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
-
+            
             string text = "", textClass = "";
 
             switch (error)
@@ -79,8 +74,7 @@ namespace ViewLayer.Controllers
                     break;
             }
 
-            return View(new IndexModel
-            {
+            return View(new IndexModel {
                 Title = "Přihlášení",
                 UserRole = userRole,
                 Text = text,
@@ -103,7 +97,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpGet]
-        public IActionResult ManageUserList(string text = "")
+        public IActionResult ManageUserList(string text="")
         {
             // Check if my role is higher or equal to required value
             if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
@@ -112,22 +106,22 @@ namespace ViewLayer.Controllers
             List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
             List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
             string[] rolesTexts = new string[] { "Studenti", "Učitelé", "Správci" };
-            for (int i = 0; i < 3; i++)
+            for(int i = 0; i < 3; i++)
             {
                 studentsByRoles.Add((rolesTexts[i], new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>()));
             }
-            foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+            foreach((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
             {
                 studentsByRoles[student.role].students.Add(student);
             }
-
+            
             List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTao = studentController.LoadStudents();
             List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> studentsOfTaoPaired = new List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)>();
-            foreach ((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTao in studentsOfTao)
+            foreach((string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) studentOfTao in studentsOfTao)
             {
-                foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+                foreach((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
                 {
-                    if (studentOfTao.studentNumberIdentifier == student.studentNumberIdentifier)
+                    if(studentOfTao.studentNumberIdentifier == student.studentNumberIdentifier)
                     {
                         studentsOfTaoPaired.Add(studentOfTao);
                         break;
@@ -135,8 +129,7 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            ManageUserListModel model = new ManageUserListModel
-            {
+            ManageUserListModel model = new ManageUserListModel {
                 Title = "Správa uživatelů",
                 UserRole = userRole,
                 Students = students,
@@ -148,7 +141,7 @@ namespace ViewLayer.Controllers
                 Role = "",
                 StudentNumberIdentifier = ""
             };
-            switch (text)
+            switch(text)
             {
                 case "user_successfully_added":
                     model.Text = "Uživatel byl úspěšně přidán.";
@@ -168,7 +161,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public IActionResult ManageUserList(string loginEmail, string role, string studentNumberIdentifier = "")
+        public IActionResult ManageUserList(string loginEmail, string role, string studentNumberIdentifier="")
         {
             // Check if my role is higher or equal to required value
             if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
@@ -209,7 +202,7 @@ namespace ViewLayer.Controllers
                     textClass = "incorrect";
                     break;
                 }
-                else if (role == "0" && student.studentNumberIdentifier == studentNumberIdentifier)
+                else if(role == "0" && student.studentNumberIdentifier == studentNumberIdentifier)
                 {
                     text = "Tento student je již spárován s emailem: " + student.loginEmail;
                     textClass = "incorrect";
@@ -217,12 +210,12 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            if (role == "0" && studentNumberIdentifier == "")
+            if(role == "0" && studentNumberIdentifier == "")
             {
                 text = "Při výběru role student je nutné vybrat studenta.";
                 textClass = "incorrect";
             }
-            else if (textClass == "correct")
+            else if(textClass == "correct")
             {
                 try
                 {
@@ -237,7 +230,7 @@ namespace ViewLayer.Controllers
                     }
                     return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_added" });
                 }
-                catch (Exception e)
+                catch
                 {
                     text = "Email obsahuje nepovolené znaky.";
                     textClass = "partiallyCorrect";
@@ -268,7 +261,7 @@ namespace ViewLayer.Controllers
             if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
 
             int role = studentController.LoadStudentByEmail(loginEmail).role;
-            if (role >= 2)
+            if(role >= 2)
             {
                 List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
                 int adminCount = 0;
@@ -296,8 +289,7 @@ namespace ViewLayer.Controllers
             if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
 
-            return View(new PageModel
-            {
+            return View(new PageModel {
                 Title = "Učitel",
                 UserRole = userRole
             });
@@ -309,8 +301,7 @@ namespace ViewLayer.Controllers
             if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
 
-            return View(new TestTemplateListModel
-            {
+            return View(new TestTemplateListModel {
                 Title = "Správa zadání testů",
                 UserRole = userRole,
                 Tests = testController.LoadTests()
@@ -323,8 +314,7 @@ namespace ViewLayer.Controllers
             if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
 
-            return View(new ManageSolvedTestListModel
-            {
+            return View(new ManageSolvedTestListModel {
                 Title = "Správa vyřešených testů",
                 UserRole = userRole,
                 SolvedTests = testController.LoadSolvedTests()
@@ -366,7 +356,7 @@ namespace ViewLayer.Controllers
             int userRole = GetUserRole();
 
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
-
+            
             return View(new TestTemplateModel
             {
                 Title = "Správa zadání testu " + testNameIdentifier,
@@ -398,11 +388,10 @@ namespace ViewLayer.Controllers
                 textToWrite = "1";
             }
             System.IO.File.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), textToWrite);
-
+            
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
 
-            return View(new TestTemplateModel
-            {
+            return View(new TestTemplateModel {
                 Title = "Správa zadání testu " + testNameIdentifier,
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
@@ -718,8 +707,7 @@ namespace ViewLayer.Controllers
                     break;
             }
 
-            return View(new ManageSolvedItemModel
-            {
+            return View(new ManageSolvedItemModel {
                 Title = "Správa vyřešeného testu " + deliveryExecutionIdentifier + ", otázka " + itemNameIdentifier,
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
@@ -752,8 +740,7 @@ namespace ViewLayer.Controllers
             if (!HaveRequiredRole(0)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
 
-            return View(new BrowseSolvedTestListModel
-            {
+            return View(new BrowseSolvedTestListModel {
                 Title = "Seznam testů studenta",
                 UserRole = userRole,
                 StudentIdentifier = studentIdentifier,
@@ -777,8 +764,7 @@ namespace ViewLayer.Controllers
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
             (List<(double questionResultPoints, bool questionResultPointsDetermined)> studentsPoints, int errorMessageNumber) questionResultPoints = testController.GetQuestionResultPoints(itemParameters, testNameIdentifier, testNumberIdentifier, deliveryExecutionIdentifier);
 
-            return View(new BrowseSolvedTestModel
-            {
+            return View(new BrowseSolvedTestModel {
                 Title = "Prohlížení pokusu",
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
@@ -824,8 +810,7 @@ namespace ViewLayer.Controllers
                     break;
             }
 
-            return View(new BrowseSolvedItemModel
-            {
+            return View(new BrowseSolvedItemModel {
                 Title = "Prohlížení vyřešeného testu",
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,

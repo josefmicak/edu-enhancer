@@ -212,13 +212,13 @@ namespace ViewLayer.Controllers
                                     student.lastName = loadedStudent.lastName;
                                     student.email = loadedStudent.email;
                                 }
-                                catch(Exception e) { }
+                                catch { }
 
                                 try
                                 {
                                     student.role = int.Parse(splitImportedFileLineBySemicolon[1]);
                                 }
-                                catch (Exception e)
+                                catch
                                 {
                                     break;
                                 }
@@ -252,11 +252,13 @@ namespace ViewLayer.Controllers
 
         public int GetMyRole()
         {
+            if(Settings.Admin) { return 2; }
+
             try
             {
                 return LoadStudentByEmail(GetMyEmail()).role;
             }
-            catch(Exception e)
+            catch
             {
                 return -1;
             }

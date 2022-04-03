@@ -93,23 +93,17 @@ namespace ViewLayer.Controllers
 
         public List<(string, string, string, string, int, bool)> LoadItemInfo(string testNameIdentifier, string testNumberIdentifier)//Jiné než v původní appce, načte seznam parametrů všech itemů
         {
-            string title = "";
-            string label = "";
-            string itemNumberIdenfifier = "";
-            string itemNameIdenfifier = "";
             int i = 0;
             List<(string, string, string, string, int, bool)> itemParametersTemp = new List<(string, string, string, string, int, bool)>();
             List<(string, string, string, string)> questionList = LoadQuestions(testNameIdentifier, testNumberIdentifier);
-            bool testPointsDetermined = false;
-            int testPoints = 0;
-
+            
             if(Directory.Exists(Settings.GetTestItemsPath(testNameIdentifier)))
             {
                 foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
                     foreach (var file in Directory.GetFiles(directory))
                     {
-                        string[] fileSplitBySlash = file.Split(Settings.GetPlatformSlash());
+                        string[] fileSplitBySlash = file.Split(Settings.GetPathSeparator());
                         if (fileSplitBySlash[fileSplitBySlash.Length - 1] != "qti.xml")
                         {
                             continue;
@@ -127,10 +121,10 @@ namespace ViewLayer.Controllers
                                         {
                                             if (questionList[j].Item4 == xmlReader.GetAttribute("identifier"))
                                             {
-                                                itemNumberIdenfifier = questionList[j].Item4;
-                                                itemNameIdenfifier = questionList[j].Item3;
-                                                title = xmlReader.GetAttribute("title");
-                                                label = xmlReader.GetAttribute("label");
+                                                string itemNumberIdenfifier = questionList[j].Item4;
+                                                string itemNameIdenfifier = questionList[j].Item3;
+                                                string title = xmlReader.GetAttribute("title");
+                                                string label = xmlReader.GetAttribute("label");
                                                 (int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(testNameIdentifier, itemNumberIdenfifier);
 
                                                 itemParametersTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, questionPoints, questionPointsDetermined));
@@ -189,7 +183,7 @@ namespace ViewLayer.Controllers
                                             questionPoints += int.Parse(splitImportedFileLineBySemicolon[1]);
                                             questionPointsDetermined = true;
                                         }
-                                        catch (Exception e)
+                                        catch
                                         {
                                             questionPointsDetermined = false;
                                             break;
@@ -334,16 +328,16 @@ namespace ViewLayer.Controllers
 
             foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
             {
-                string[] splitDirectoryBySlash = directory.Split(Settings.GetPlatformSlash());
+                string[] splitDirectoryBySlash = directory.Split(Settings.GetPathSeparator());
                 string nameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
                 string title = "";
                 string numberidentifier = "";
 
                 try
                 {
-                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPlatformSlash() + "tests"))
+                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPathSeparator() + "tests"))
                     {
-                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPlatformSlash());
+                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPathSeparator());
                         numberidentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
                         subDirectory = directory_;
                     }
@@ -353,7 +347,7 @@ namespace ViewLayer.Controllers
                     continue;
                 }
 
-                XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPlatformSlash() + "test.xml");
+                XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
                 while (xmlReader.Read())
                 {
                     if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
@@ -407,11 +401,11 @@ namespace ViewLayer.Controllers
 
                         if (addTest)
                         {
-                            string[] fileSplitBySlash = file.Split(Settings.GetPlatformSlash());
+                            string[] fileSplitBySlash = file.Split(Settings.GetPathSeparator());
                             fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
                             string[] deliveryExecutionIdentifierSplitByUnderscore = fileSplitByDot[fileSplitByDot.Length - 2].Split("_");
                             string deliveryExecutionIdentifier = deliveryExecutionIdentifierSplitByUnderscore[2];
-                            fileSplitBySlash = directory.Split(Settings.GetPlatformSlash());
+                            fileSplitBySlash = directory.Split(Settings.GetPathSeparator());
                             string testNameIdentifier = fileSplitBySlash[fileSplitBySlash.Length - 1].ToString();
                             string testNumberIdentifier = GetTestNumberIdentifier(testNameIdentifier);
                             if (testNumberIdentifier != "")
@@ -455,13 +449,13 @@ namespace ViewLayer.Controllers
                             }
                         }
 
-                        string[] fileSplitBySlash = file.Split(Settings.GetPlatformSlash());
+                        string[] fileSplitBySlash = file.Split(Settings.GetPathSeparator());
                         fileSplitByDot = fileSplitBySlash[fileSplitBySlash.Length - 1].Split(@".");
                         string[] attemptIdentifierSplitByUnderscore = fileSplitByDot[fileSplitByDot.Length - 2].Split("_");
 
                         (string studentNumberIdentifier, string _, string login, string firstName, string lastName, string email) student = new StudentController().LoadStudentByIdentifier(testStudentIdentifier);
 
-                        fileSplitBySlash = directory.Split(Settings.GetPlatformSlash());
+                        fileSplitBySlash = directory.Split(Settings.GetPathSeparator());
 
                         string testNumberIdentifier = GetTestNumberIdentifier(fileSplitBySlash[fileSplitBySlash.Length - 1].ToString(), true);
                         if (testNumberIdentifier != "")
@@ -484,7 +478,7 @@ namespace ViewLayer.Controllers
                     {
                         foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
                         {
-                            string[] fileSplitBySlash = directory.Split(Settings.GetPlatformSlash());
+                            string[] fileSplitBySlash = directory.Split(Settings.GetPathSeparator());
                             return fileSplitBySlash[fileSplitBySlash.Length - 1];
                         }
                         return "Nastala neočekávaná chyba.";
@@ -493,14 +487,13 @@ namespace ViewLayer.Controllers
                     {
                         return "";
                     }
-                    break;
                 default:
                     if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
                     {
                         string testNumberIdentifier = "";
                         foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
                         {
-                            string[] fileSplitBySlash = directory.Split(Settings.GetPlatformSlash());
+                            string[] fileSplitBySlash = directory.Split(Settings.GetPathSeparator());
                             testNumberIdentifier = fileSplitBySlash[fileSplitBySlash.Length - 1];
                         }
                         return testNumberIdentifier;
@@ -509,7 +502,6 @@ namespace ViewLayer.Controllers
                     {
                         return "";
                     }
-                    break;
             }
         }
     }
