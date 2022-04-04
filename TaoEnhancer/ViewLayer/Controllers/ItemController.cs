@@ -17,7 +17,7 @@ namespace ViewLayer.Controllers
                 string itemNameIdentifier = itemParameters[i].Item2;
                 foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
                 {
-                    string[] directoryName = directory.Split(@"\");
+                    string[] directoryName = directory.Split(Settings.GetPathSeparator());
                     if (itemNumberIdentifier == directoryName[directoryName.Length - 1])
                     {
                         resultPointsToText += itemNameIdentifier;
@@ -528,10 +528,11 @@ namespace ViewLayer.Controllers
             int questionType = GetQuestionType(responseIdentifier, amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             (int subquestionPoints, bool subquestionPointsDetermined, double wrongChoicePoints) = GetSubquestionPoints(responseIdentifier, amountOfSubitems, questionType, testNameIdentifier, itemNumberIdentifier);
             List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
+            //TODO: Zde je odkaz na můj web, protože v ASP.NET nejde zobrazit obrázek z pevného disku. Ostatní soubory se zobrazují z pevního disku.
             string imageSource = "";
             if (SubitemImages(responseIdentifier, includesImage, testNameIdentifier, itemNumberIdentifier).Item3 != "")
             {
-                imageSource = Settings.GetImageURL() + testNameIdentifier + "/items/" + itemNumberIdentifier + "/" + SubitemImages(responseIdentifier, includesImage, testNameIdentifier, itemNumberIdentifier).Item3;
+                imageSource = Settings.GetImageURL(testNameIdentifier, itemNumberIdentifier, SubitemImages(responseIdentifier, includesImage, testNameIdentifier, itemNumberIdentifier).Item3);
             }
             string subitemText = "";
 

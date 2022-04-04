@@ -12,10 +12,7 @@ namespace ViewLayer.Controllers
         private StudentController studentController = new StudentController();
         private TestController testController = new TestController();
 
-        public HomeController()
-        {
-
-        }
+        public HomeController() { }
 
         public string GetUserLoginEmail()
         {
@@ -24,13 +21,13 @@ namespace ViewLayer.Controllers
 
         public int GetUserRole()
         {
-            if (Settings.Testing) { return 2; }
+            if (Settings.CustomRole > -2) { return Settings.CustomRole; }
 
             try
             {
                 return studentController.LoadStudentByEmail(GetUserLoginEmail()).role;
             }
-            catch (Exception e) { return -1; }
+            catch { return -1; }
         }
 
         public bool HaveRequiredRole(int requiredRole)
@@ -237,7 +234,7 @@ namespace ViewLayer.Controllers
                     }
                     return RedirectToAction("ManageUserList", "Home", new { text = "user_successfully_added" });
                 }
-                catch (Exception e)
+                catch
                 {
                     text = "Email obsahuje nepovolené znaky.";
                     textClass = "partiallyCorrect";
