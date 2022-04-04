@@ -1468,12 +1468,6 @@ namespace ViewLayer.Controllers
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
                     break;
             }
-            /* if (correctChoicePoints == Double.PositiveInfinity || correctChoicePoints == Double.NegativeInfinity)
-             {
-                 string errorMessage = "Chyba: otázka nemá pravděpodobně zadané žádné správné odpovědi.\nIdentifikátory otázky: " + @ViewBag.itemNameIdentifier + ", " + @ViewBag.itemNumberIdentifier;
-                 WriteMessageToUser(errorMessage);
-             }*/
-
             return Math.Round(correctChoicePoints, 2);
         }
 

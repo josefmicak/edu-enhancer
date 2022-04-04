@@ -455,11 +455,28 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints,
-            string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int questionType)
+            string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int correctChoiceArrayCount, int correctChoiceArrayCountAlternative, int questionType)
         {
             // Check if my role is higher or equal to required value
             if (!HaveRequiredRole(1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
+
+            if(questionType == 4 || questionType == 9)
+            {
+                correctChoiceArrayCount = correctChoiceArrayCountAlternative;
+            }
+            if (questionType == 4)
+            {
+                correctChoiceArrayCount *= 2;
+            }
+            if (correctChoiceArrayCount != correctChoiceArray.Count)
+            {
+                correctChoiceArray.Clear();
+                for(int i = 0; i < correctChoiceArrayCount; i++)
+                {
+                    correctChoiceArray.Add("");
+                }
+            }
 
             string errorText = "";
             if (subquestionPoints != null)
@@ -473,8 +490,10 @@ namespace ViewLayer.Controllers
                 {
                     if (wrongChoicePoints == "wrongChoicePoints_recommended")
                     {
-                        double recommendedWrongChoicePointsRecounted = itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) * (-1);
-                        wrongChoicePoints = recommendedWrongChoicePointsRecounted.ToString();
+                        recommendedWrongChoicePoints = recommendedWrongChoicePoints.Replace('.', ',');
+                        wrongChoicePoints = recommendedWrongChoicePoints;
+                        /*double recommendedWrongChoicePointsRecounted = itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) * (-1);
+                        wrongChoicePoints = recommendedWrongChoicePointsRecounted.ToString();*/
                     }
                     else
                     {
@@ -486,6 +505,7 @@ namespace ViewLayer.Controllers
                         wrongChoicePoints = (correctChoicePoints * (-1)).ToString();
                     }
 
+                    wrongChoicePoints = wrongChoicePoints.Replace(".", ",");
                     bool isWrongChoicePointsNumber = double.TryParse(wrongChoicePoints, out _);
 
                     if (!isWrongChoicePointsNumber)
@@ -534,6 +554,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
+            
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);
             (List<string> responseIdentifierArray, List<string> responseValueArray, int errorMessageNumber) responseIdentifiers = itemController.GetResponseIdentifiers(itemParameters.amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             string responseIdentifier = (itemParameters.amountOfSubitems == 1 || selectedSubitem == null ? responseIdentifiers.responseIdentifierArray[0] : selectedSubitem);
@@ -556,7 +577,7 @@ namespace ViewLayer.Controllers
             model.QuestionPoints = questionPoints;
             model.QuestionTypeText = itemController.GetQuestionTypeText(subitemParameters.questionType);
             model.IsSelectDisabled = (itemParameters.amountOfSubitems > 1 ? false : true);
-            model.CorrectChoicePoints = (subquestionPoints != null ? itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) : subitemParameters.subquestionPoints);
+            model.CorrectChoicePoints = (subquestionPoints != null ? double.Parse(recommendedWrongChoicePoints) * (-1) : subitemParameters.subquestionPoints);
             model.CorrectChoiceArray = correctChoiceArray;
             model.CorrectAnswerCount = (subitemParameters.questionType == 3 || subitemParameters.questionType == 4 ? subitemParameters.correctAnswerArray.Count / 2 : subitemParameters.correctAnswerArray.Count);
             if (wrongChoicePoints != null) { model.WrongChoicePoints = double.Parse(wrongChoicePoints); }
@@ -634,6 +655,7 @@ namespace ViewLayer.Controllers
             string errorText = "";
             if (studentsPoints != null)
             {
+                studentsPoints = studentsPoints.Replace(".", ",");
                 bool isDecimal = double.TryParse(studentsPoints, out _);
                 double studentsPointsToSave = double.Parse(studentsPoints);
 

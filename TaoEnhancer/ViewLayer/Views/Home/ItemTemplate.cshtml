@@ -124,7 +124,7 @@
                                             int i = 0;
                                             foreach(string _ in Model.ResponseIdentifiers.Item1)
                                             {
-                                                <option value="@Model.ResponseIdentifiers.Item1[@i]">@Model.ResponseIdentifiers.Item2[@i]</option>
+                                                <option id="subquestion-item-@(i+1)" value="@Model.ResponseIdentifiers.Item1[@i]">@Model.ResponseIdentifiers.Item2[@i]</option>
                                                 i++;
                                             }
                                         }
@@ -214,7 +214,7 @@
                         {
                             foreach(string possibleAnswer in Model.SubitemParameters.Item8)
                             {
-                                <tr><td colspan="2">@possibleAnswer</td></tr>
+                                <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
                             }
                         }
                     }
@@ -229,7 +229,7 @@
                         {
                             for(int answerNumber = 0; answerNumber < Model.SubitemParameters.Item11.Count; answerNumber+=2)
                             {
-                                <tr><td colspan="2">@Model.SubitemParameters.Item11[answerNumber] -> @Model.SubitemParameters.Item11[answerNumber + 1]</td></tr>
+                                <tr><td colspan="2" class="correct-answer-item">@Model.SubitemParameters.Item11[answerNumber] -> @Model.SubitemParameters.Item11[answerNumber + 1]</td></tr>
                             }
                         }
                         else if(Model.SubitemParameters.Item2 == 9)
@@ -237,7 +237,7 @@
                             int answerNumber = 1;
                             foreach (string answer in Model.SubitemParameters.Item11)
                             {
-                                <tr><td colspan="2">[@answerNumber] - @answer</td></tr>
+                                <tr><td colspan="2" class="correct-answer-item">[@answerNumber] - @answer</td></tr>
                                 answerNumber++;
                             }
                         }
@@ -245,7 +245,7 @@
                         {
                             foreach (string answer in Model.SubitemParameters.Item11)
                             {
-                                <tr><td colspan="2">@answer</td></tr>
+                                <tr><td colspan="2" class="correct-answer-item">@answer</td></tr>
                             }
                         }
                     }
@@ -263,6 +263,8 @@
                     <input type="hidden" value="@Model.ResponseIdentifier" name="selectedSubitem">
                     <input type="hidden" value="@Model.CorrectChoicePoints" name="correctChoicePoints">
                     <input type="hidden" value="@Model.CorrectChoiceArray" name="correctChoiceArray">
+                    <input type="hidden" value="@Model.SubitemParameters.Item8.Count" name="correctChoiceArrayCountAlternative">
+                    <input type="hidden" value="@Model.CorrectChoiceArray.Count" name="correctChoiceArrayCount">
                     <input type="hidden" value="@Model.SubitemParameters.Item2" name="questionType">
                     <table class="article-table">
                         @{
@@ -282,7 +284,7 @@
                             <th>Počet bodů za podotázku</th>
                             <td>
                                 <div class="input-wrapper">
-                                    <input class="input" type="number" min="0" id="subquestion-points" name="subquestionPoints" value="@Model.SubquestionPoints.ToString().Replace(",",".")" oninput="updatePointsInputs(@Model.CorrectAnswerCount)">
+                                    <input class="input" type="number" min="0" id="subquestion-points" name="subquestionPoints" value="@Model.SubquestionPoints.ToString().Replace(",",".")" oninput="updatePointsInputs(@Model.CorrectAnswerCount, '@Model.QuestionTypeText')">
                                 </div>
                             </td>
                         </tr>
@@ -327,7 +329,7 @@
                                 </td>
                                 <td>
                                     <div class="input-wrapper">
-                                        <input class="input" type="number" max="0" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                        <input class="input" type="number" max="0" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" step="any" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
                                     </div>
                                 </td>
                             </tr>

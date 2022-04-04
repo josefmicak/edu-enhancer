@@ -10,11 +10,14 @@
     document.getElementById("testtemplate-item-points").innerHTML = points;
 }
 
-function updatePointsInputs(correctAnswerCount) {
+function updatePointsInputs(correctAnswerCount, questionTypeText) {
+    if (questionTypeText === "Seřazení pojmů") {
+        correctAnswerCount = 1;
+    }
     const subquestionPoints = document.getElementById("subquestion-points").value;
     const subquestionPointsPerAnswer = subquestionPoints / (correctAnswerCount <= 0 ? 1 : correctAnswerCount);
-    document.getElementById("subquestion-correct-choice-points").value = subquestionPointsPerAnswer;
-    document.getElementById("wrongChoicePoints_recommended_points").value = subquestionPointsPerAnswer * (-1);
+    document.getElementById("subquestion-correct-choice-points").value = Math.round(subquestionPointsPerAnswer * 100) / 100;
+    document.getElementById("wrongChoicePoints_recommended_points").value = (Math.round(subquestionPointsPerAnswer * 100) / 100) * (-1);
 }
 
 function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {
