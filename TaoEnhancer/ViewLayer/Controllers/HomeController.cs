@@ -96,19 +96,6 @@ namespace ViewLayer.Controllers
             });
         }
 
-        public IActionResult AdminMenu()
-        {
-            // Check if my role is higher or equal to required value
-            if (!HaveRequiredRole(2)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
-            int userRole = GetUserRole();
-
-            return View(new PageModel
-            {
-                Title = "Správce",
-                UserRole = userRole
-            });
-        }
-
         [HttpGet]
         public IActionResult ManageUserList(string text = "")
         {
@@ -462,7 +449,7 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         public IActionResult ItemTemplate(string testNameIdentifier, string testNumberIdentifier, string itemNumberIdentifier, string itemNameIdentifier, string selectedSubitem, string subquestionPoints,
-            string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, int correctChoicePoints, List<string> correctChoiceArray, int correctChoiceArrayCount, int correctChoiceArrayCountAlternative, int questionType)
+            string wrongChoicePoints, string recommendedWrongChoicePoints, string selectedWrongChoicePoints, double correctChoicePoints, List<string> correctChoiceArray, int correctChoiceArrayCount, int correctChoiceArrayCountAlternative, int questionType)
         {
             // Check if my role is higher or equal to required value
             if (!HaveRequiredRole(1, 1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
