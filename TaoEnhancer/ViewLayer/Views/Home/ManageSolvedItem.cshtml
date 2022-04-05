@@ -297,7 +297,7 @@
                             <th>Počet bodů získaných studentem</th>
                             <td>
                                 <div class="input-wrapper">
-                                    <input class="input" type="number" id="studentsPointsLabel" name="studentsPoints" step="any" min="@(Model.SubitemParameters.Item3 * (-1))" max="@Model.SubitemParameters.Item3" value="@Model.StudentsSubitemPoints.ToString().Replace(",",".")">
+                                    <input class="input" type="number" id="studentsPointsLabel" name="studentsPoints" required step="any" min="@(Model.SubitemParameters.Item3 * (-1))" max="@Model.SubitemParameters.Item3" onchange="limitDecimalPlaces(this, 2)" value="@Model.StudentsSubitemPoints.ToString().Replace(",",".")">
                                 </div>
                             </td>
                         </tr>

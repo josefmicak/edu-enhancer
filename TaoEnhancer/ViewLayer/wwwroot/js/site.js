@@ -18,6 +18,14 @@ function updatePointsInputs(correctAnswerCount, questionTypeText) {
     const subquestionPointsPerAnswer = subquestionPoints / (correctAnswerCount <= 0 ? 1 : correctAnswerCount);
     document.getElementById("subquestion-correct-choice-points").value = Math.round(subquestionPointsPerAnswer * 100) / 100;
     document.getElementById("wrongChoicePoints_recommended_points").value = (Math.round(subquestionPointsPerAnswer * 100) / 100) * (-1);
+    document.getElementById("wrongChoicePoints_selected_points").min = subquestionPoints * (-1);
+}
+
+function limitDecimalPlaces(el, decimalPlacesCount) {
+    if (el.value) {
+        if (decimalPlacesCount <= 0) { el.value = Math.round(el.value); }
+        else { el.value = Math.round(parseFloat(el.value) * Math.pow(10, decimalPlacesCount)) / Math.pow(10, decimalPlacesCount); }
+    }
 }
 
 function loadSolvedTestDetails(studentName, studentLogin, studentEmail) {

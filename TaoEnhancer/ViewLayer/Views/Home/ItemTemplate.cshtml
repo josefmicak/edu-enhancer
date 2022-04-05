@@ -284,7 +284,7 @@
                             <th>Počet bodů za podotázku</th>
                             <td>
                                 <div class="input-wrapper">
-                                    <input class="input" type="number" min="0" id="subquestion-points" name="subquestionPoints" value="@Model.SubquestionPoints.ToString().Replace(",",".")" oninput="updatePointsInputs(@Model.CorrectAnswerCount, '@Model.QuestionTypeText')">
+                                    <input class="input" type="number" required min="0" onchange="limitDecimalPlaces(this, 0); updatePointsInputs(@Model.CorrectAnswerCount, '@Model.QuestionTypeText')" id="subquestion-points" name="subquestionPoints" value="@Model.SubquestionPoints.ToString().Replace(",",".")">
                                 </div>
                             </td>
                         </tr>
@@ -292,7 +292,7 @@
                             <th>Počet bodů za správnou volbu</th>
                             <td>
                                 <div class="input-wrapper">
-                                    <input class="input" type="number" min="0" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@Model.CorrectChoicePoints.ToString().Replace(",",".")">
+                                    <input class="input" type="number" required min="0" onchange="limitDecimalPlaces(this, 2)" id="subquestion-correct-choice-points" name="subquestion-correct-choice-points" readonly value="@Model.CorrectChoicePoints.ToString().Replace(",",".")">
                                 </div>
                             </td>
                         </tr>
@@ -319,7 +319,7 @@
                                 </td>
                                 <td>
                                     <div class="input-wrapper">
-                                        <input class="input" type="number" max="0" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints.ToString().Replace(",",".")">
+                                        <input class="input" type="number" required max="0" onchange="limitDecimalPlaces(this, 2)" id="wrongChoicePoints_recommended_points" name="recommendedWrongChoicePoints" readonly value="@recommendedWrongChoicePoints.ToString().Replace(",",".")">
                                     </div>
                                 </td>
                             </tr>
@@ -329,7 +329,7 @@
                                 </td>
                                 <td>
                                     <div class="input-wrapper">
-                                        <input class="input" type="number" max="0" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" step="any" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                        <input class="input" type="number" required step="any" min="-@Model.SubquestionPoints.ToString().Replace(",",".")" max="0" onchange="limitDecimalPlaces(this, 2)" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
                                     </div>
                                 </td>
                             </tr>

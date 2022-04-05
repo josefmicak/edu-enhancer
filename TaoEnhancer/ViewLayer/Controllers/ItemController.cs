@@ -694,7 +694,7 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                if(possibleAnswerArray.Count == 0)
+                if (possibleAnswerArray.Count == 0)
                 {
                     xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                     while (xmlReaderInlineChoice.Read())
@@ -891,7 +891,7 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                if(correctAnswerArray.Count == 0)
+                if (correctAnswerArray.Count == 0)
                 {
                     xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
                     while (xmlReaderInlineChoice.Read())
@@ -1534,6 +1534,7 @@ namespace ViewLayer.Controllers
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Count / 2);
                     break;
             }
+
             return Math.Round(correctChoicePoints, 2);
         }
 

@@ -264,9 +264,18 @@ namespace ViewLayer.Controllers
             }
         }
 
-        public bool HaveRequiredRole(int role)
+        public bool HaveRequiredRole(int minRequiredRole, int maxRequiredRole)
         {
-            if (GetMyRole() >= role)
+            if (GetMyRole() >= minRequiredRole && GetMyRole() <= maxRequiredRole)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool HaveRequiredRole(int minRequiredRole)
+        {
+            if (GetMyRole() >= minRequiredRole)
             {
                 return true;
             }

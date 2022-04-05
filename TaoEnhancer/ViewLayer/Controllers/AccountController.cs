@@ -68,7 +68,7 @@ namespace ViewLayer.Controllers
                                 switch (student.role)
                                 {
                                     case 2:
-                                        return RedirectToAction("AdminMenu", "Home");
+                                        return RedirectToAction("ManageUserList", "Home");
                                     case 1:
                                         return RedirectToAction("TeacherMenu", "Home");
                                     default:
@@ -83,7 +83,7 @@ namespace ViewLayer.Controllers
                         else
                         {
                             studentController.EditUser(claimsIdentity.Claims.ToList()[2].Value, "", 2);
-                            return RedirectToAction("AdminMenu", "Home");
+                            return RedirectToAction("ManageUserList", "Home");
                         }
                     }
                 }
