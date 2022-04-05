@@ -24,4 +24,5 @@
       </assessmentItemRef>
     </assessmentSection>
   </testPart>
+  <outcomeProcessing/>
 </assessmentTest>

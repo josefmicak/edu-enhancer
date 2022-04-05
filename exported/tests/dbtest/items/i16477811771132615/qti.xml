@@ -44,7 +44,7 @@
       </div>
     </div>
     <div class="grid-row">
-      <div class="col-12">Jedním z nejznámějších příkladů procedurálních rozšiření jazyka SQL je jazyk <inlineChoiceInteraction responseIdentifier="RESPONSE_1" shuffle="false" required="false"><inlineChoice identifier="choice_6" fixed="false" showHide="show">MariaDB</inlineChoice><inlineChoice identifier="choice_7" fixed="false" showHide="show">T-SQL</inlineChoice><inlineChoice identifier="choice_8" fixed="false" showHide="show">NoSQL</inlineChoice><inlineChoice identifier="choice_9" fixed="false" showHide="show">MSSQL</inlineChoice></inlineChoiceInteraction> . </div>
+      <div class="col-12">Jedním z nejznámějších příkladů procedurálních rozšiření jazyka SQL je jazyk <inlineChoiceInteraction responseIdentifier="RESPONSE_1" shuffle="false" required="false"><inlineChoice identifier="choice_6" fixed="false" showHide="show">MariaDB</inlineChoice><inlineChoice identifier="choice_7" fixed="false" showHide="show">T-SQL</inlineChoice><inlineChoice identifier="choice_8" fixed="false" showHide="show">NoSQL</inlineChoice><inlineChoice identifier="choice_9" fixed="false" showHide="show">MSSQL</inlineChoice></inlineChoiceInteraction> </div>
     </div>
     <div class="grid-row">
       <div class="col-12">

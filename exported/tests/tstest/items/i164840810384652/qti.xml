@@ -19,7 +19,7 @@
     <div class="grid-row">
       <div class="col-12">
         <extendedTextInteraction responseIdentifier="RESPONSE" base="10" minStrings="0" format="plain">
-          <prompt>Porovnejte generace transportních sítí PDH (Plesiochronous Digital Hierarchy) a SHD (Synchronous Digital Hierarchy)</prompt>
+          <prompt>Porovnejte generace transportních sítí PDH (Plesiochronous Digital Hierarchy) a SDH (Synchronous Digital Hierarchy)</prompt>
         </extendedTextInteraction>
       </div>
     </div>

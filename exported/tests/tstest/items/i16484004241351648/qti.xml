@@ -9,11 +9,15 @@
       <value><![CDATA[choice_5]]></value>
     </correctResponse>
   </responseDeclaration>
-  <responseDeclaration identifier="RESPONSE_1" cardinality="single" baseType="identifier"/>
-  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="1"/>
+  <responseDeclaration identifier="RESPONSE_1" cardinality="single" baseType="identifier">
+    <correctResponse>
+      <value><![CDATA[choice_6]]></value>
+    </correctResponse>
+  </responseDeclaration>
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float" normalMaximum="2"/>
   <outcomeDeclaration identifier="MAXSCORE" cardinality="single" baseType="float">
     <defaultValue>
-      <value>1</value>
+      <value>2</value>
     </defaultValue>
   </outcomeDeclaration>
   <stylesheet href="style/custom/tao-user-styles.css" type="text/css" media="all" title=""/>

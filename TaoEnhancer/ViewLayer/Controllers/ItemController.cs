@@ -528,7 +528,6 @@ namespace ViewLayer.Controllers
             int questionType = GetQuestionType(responseIdentifier, amountOfSubitems, testNameIdentifier, itemNumberIdentifier);
             (int subquestionPoints, bool subquestionPointsDetermined, double wrongChoicePoints) = GetSubquestionPoints(responseIdentifier, amountOfSubitems, questionType, testNameIdentifier, itemNumberIdentifier);
             List<(bool, string, string)> includesImage = new List<(bool, string, string)>();
-            //TODO: Zde je odkaz na můj web, protože v ASP.NET nejde zobrazit obrázek z pevného disku. Ostatní soubory se zobrazují z pevního disku.
             string imageSource = "";
             if (SubitemImages(responseIdentifier, includesImage, testNameIdentifier, itemNumberIdentifier).Item3 != "")
             {
@@ -663,7 +662,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-
+            //TODO: Vyřešit responseIdentifiery - co když je více otázek typu 7?
             if (questionType == 7)
             {
                 XmlReader xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
@@ -680,9 +679,41 @@ namespace ViewLayer.Controllers
                                 {
                                     using (var innerReaderNext = innerReader.ReadSubtree())
                                     {
+                                        if (innerReader.GetAttribute("responseIdentifier") != selectedResponseIdentifier)
+                                        {
+                                            innerReader.Skip();
+                                        }
                                         while (innerReaderNext.ReadToFollowing("inlineChoice"))
                                         {
                                             possibleAnswerArray.Add(innerReaderNext.ReadString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(possibleAnswerArray.Count == 0)
+                {
+                    xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
+                    while (xmlReaderInlineChoice.Read())
+                    {
+                        if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                        {
+                            var name = xmlReaderInlineChoice.Name;
+                            if (name == "div" && xmlReaderInlineChoice.GetAttribute("class") == "col-12" && xmlReaderInlineChoice.NodeType != XmlNodeType.EndElement)
+                            {
+                                using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                                {
+                                    while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                                    {
+                                        using (var innerReaderNext = innerReader.ReadSubtree())
+                                        {
+                                            while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                            {
+                                                possibleAnswerArray.Add(innerReaderNext.ReadString());
+                                            }
                                         }
                                     }
                                 }
@@ -850,6 +881,40 @@ namespace ViewLayer.Controllers
                                                 if (innerReaderNext.GetAttribute("identifier") == correctChoiceArray[i])
                                                 {
                                                     correctAnswerArray.Add(innerReaderNext.ReadString());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(correctAnswerArray.Count == 0)
+                {
+                    xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));
+                    while (xmlReaderInlineChoice.Read())
+                    {
+                        if (xmlReaderInlineChoice.NodeType == XmlNodeType.Element)
+                        {
+                            var name = xmlReaderInlineChoice.Name;
+                            if (name == "div" && xmlReaderInlineChoice.GetAttribute("class") == "col-12" && xmlReaderInlineChoice.NodeType != XmlNodeType.EndElement)
+                            {
+                                using (var innerReader = xmlReaderInlineChoice.ReadSubtree())
+                                {
+                                    while (innerReader.ReadToFollowing("inlineChoiceInteraction"))
+                                    {
+                                        using (var innerReaderNext = innerReader.ReadSubtree())
+                                        {
+                                            while (innerReaderNext.ReadToFollowing("inlineChoice"))
+                                            {
+                                                for (int i = 0; i < correctChoiceArray.Count; i++)
+                                                {
+                                                    if (innerReaderNext.GetAttribute("identifier") == correctChoiceArray[i])
+                                                    {
+                                                        correctAnswerArray.Add(innerReaderNext.ReadString());
+                                                    }
                                                 }
                                             }
                                         }

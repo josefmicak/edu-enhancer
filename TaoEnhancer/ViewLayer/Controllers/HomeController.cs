@@ -485,12 +485,10 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
+                    recommendedWrongChoicePoints = recommendedWrongChoicePoints.Replace('.', ',');
                     if (wrongChoicePoints == "wrongChoicePoints_recommended")
                     {
-                        recommendedWrongChoicePoints = recommendedWrongChoicePoints.Replace('.', ',');
                         wrongChoicePoints = recommendedWrongChoicePoints;
-                        /*double recommendedWrongChoicePointsRecounted = itemController.GetCorrectChoicePoints(int.Parse(subquestionPoints), correctChoiceArray, questionType) * (-1);
-                        wrongChoicePoints = recommendedWrongChoicePointsRecounted.ToString();*/
                     }
                     else
                     {
