@@ -625,7 +625,7 @@ namespace ViewLayer.Controllers
 
             return View(new ManageSolvedItemModel
             {
-                Title = "Správa vyřešeného testu " + deliveryExecutionIdentifier + ", otázka " + itemNameIdentifier,
+                Title = "Správa vyřešené otázky " + deliveryExecutionIdentifier + " / " + itemNameIdentifier,
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -746,7 +746,7 @@ namespace ViewLayer.Controllers
 
             return View(new ManageSolvedItemModel
             {
-                Title = "Správa vyřešeného testu " + deliveryExecutionIdentifier + ", otázka " + itemNameIdentifier,
+                Title = "Správa vyřešené otázky " + deliveryExecutionIdentifier + " / " + itemNameIdentifier,
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -780,7 +780,7 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedTestListModel
             {
-                Title = "Seznam testů studenta",
+                Title = "Seznam testů",
                 UserRole = userRole,
                 StudentIdentifier = studentIdentifier,
                 Student = studentController.LoadStudentByIdentifier(studentIdentifier),
@@ -805,7 +805,7 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedTestModel
             {
-                Title = "Prohlížení pokusu",
+                Title = "Prohlížení testu",
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -852,7 +852,7 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedItemModel
             {
-                Title = "Prohlížení vyřešeného testu",
+                Title = "Prohlížení otázky",
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -906,7 +906,7 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedItemModel
             {
-                Title = "Prohlížení vyřešeného testu",
+                Title = "Prohlížení otázky",
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,

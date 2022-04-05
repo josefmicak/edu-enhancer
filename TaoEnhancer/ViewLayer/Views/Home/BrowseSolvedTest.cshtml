@@ -78,7 +78,7 @@
                         <th>Číselný identifikátor otázky</th>
                         <th>Počet bodů</th>
                         <th>Detaily otázky</th>
-                        <th>Správa otázky</th>
+                        <th>Zobrazení otázky</th>
                     </tr>
                     @{
                         int i = 0;
@@ -100,13 +100,13 @@
                                 <td>@question.Item4</td>
                                 <td>@points</td>
                                 <td><button class="button" title="Detaily otázky" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.QuestionResultPoints.Item1[i].Item1 / @Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
-                                <td><a class="button" id="browseSolvedItemBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="BrowseSolvedItem"
+                                <td><a class="button" id="browseSolvedItemBtn_@i" title="Zobrazení otázky" asp-area="" asp-controller="Home" asp-action="BrowseSolvedItem"
                                 asp-route-testNameIdentifier="@Model.TestNameIdentifier"
                                 asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
                                 asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
                                 asp-route-itemNameIdentifier="@Model.ItemParameters[i].Item2"
                                 asp-route-deliveryExecutionIdentifier="@Model.DeliveryExecutionIdentifier"
-                                asp-route-studentIdentifier="@Model.StudentIdentifier">Správa otázky</a></td>
+                                asp-route-studentIdentifier="@Model.StudentIdentifier">Zobrazení otázky</a></td>
                             </tr>
                             i++;
                         }
