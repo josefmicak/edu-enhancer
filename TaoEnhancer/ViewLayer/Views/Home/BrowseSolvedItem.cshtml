@@ -68,7 +68,7 @@
                         @{
                             if(@Model.QuestionPoints.Item4)
                             {
-                                <td>@Model.StudentsSubitemPointsListSum / @Model.QuestionPoints.Item3</td>
+                                <td>@Math.Round(Model.StudentsSubitemPointsListSum, 2) / @Model.QuestionPoints.Item3</td>
                             }
                             else
                             {

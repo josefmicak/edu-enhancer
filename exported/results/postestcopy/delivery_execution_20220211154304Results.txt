@@ -1,7 +1,0 @@
-item-1;9
-item-2;9
-item-3;4;4
-item-4;3
-item-6;10
-item-5;7;8
-item-7;3

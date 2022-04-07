@@ -2,8 +2,8 @@
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p2" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p2 http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd" identifier="i16477849936019619" title="Proceduralni rozsireni" label="Proceduralni rozsireni" xml:lang="en-US" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="3.3.0-RC02">
   <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="pair">
     <correctResponse>
-      <value><![CDATA[choice_1 choice_3]]></value>
-      <value><![CDATA[choice_2 choice_4]]></value>
+      <value><![CDATA[choice_4 choice_1]]></value>
+      <value><![CDATA[choice_2 choice_3]]></value>
     </correctResponse>
   </responseDeclaration>
   <responseDeclaration identifier="RESPONSE_1" cardinality="multiple" baseType="directedPair">

@@ -648,7 +648,12 @@ namespace ViewLayer.Controllers
             {
                 studentsPoints = studentsPoints.Replace(".", ",");
                 bool isDecimal = double.TryParse(studentsPoints, out _);
-                double studentsPointsToSave = double.Parse(studentsPoints);
+                Console.WriteLine(studentsPoints);
+                double studentsPointsToSave = 0;
+                if (isDecimal)
+                {
+                    studentsPointsToSave = double.Parse(studentsPoints);
+                }
 
                 if (!isDecimal)
                 {

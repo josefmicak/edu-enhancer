@@ -56,7 +56,7 @@
                         @{
                             if(@Model.TestPoints.Item2)
                             {
-                                <td>@Model.TotalStudentsPoints / @Model.TestPoints.Item1</td>
+                                <td>@Math.Round(Model.TotalStudentsPoints, 2) / @Model.TestPoints.Item1</td>
                             }
                             else
                             {
@@ -91,7 +91,7 @@
                             }
                             else
                             {
-                                points = @Model.QuestionResultPoints.Item1[i].Item1 + "/" + @Model.ItemParameters[i].Item5.ToString();
+                                points = @Math.Round(Model.QuestionResultPoints.Item1[i].Item1, 2) + "/" + @Model.ItemParameters[i].Item5.ToString();
                             }
                             <tr>
                                 <td>@question.Item1</td>

@@ -1,0 +1,6 @@
+item-1;0;0
+item-2;0
+item-3;0
+item-4;0;0
+item-5;0;0
+item-6;6
