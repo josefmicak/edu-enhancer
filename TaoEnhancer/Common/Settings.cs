@@ -12,66 +12,64 @@ namespace Common
 
         // Testing
         public static readonly bool Testing = false;
-        public static int CustomRole
+        public static (string loginEmail, int role) TestingUser
         {
             get
             {
+                string loginEmail = "";
                 int role = -2;
 
-                if (Testing)
+                if(File.Exists(GetTestingDataPath()))
                 {
-                    if (File.Exists(GetTestingDataPath()))
+                    if(Testing)
                     {
                         var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Read);
-                        using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                        try
                         {
-                            try
+                            using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
                             {
-                                role = int.Parse(streamReader.ReadToEnd());
+                                string[] userData = (streamReader.ReadToEnd()).Split(';');
+                                loginEmail = userData[0];
+                                role = int.Parse(userData[1]);
                             }
-                            catch { }
                         }
-                        fileStream.Close();
+                        catch
+                        {
+                            loginEmail = "";
+                            role = -2;
+                        }
+                        finally { fileStream.Close(); }
                     }
-                    return role;
+                    else { File.Delete(GetTestingDataPath()); }
                 }
-                else
-                {
-                    if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
-                    return role;
-                }
+                
+                return (loginEmail, role);
             }
             set
             {
-                if (Testing)
+                if(Testing && value.role > -2)
                 {
-                    if (value > -2)
+                    if (!File.Exists(GetTestingDataPath()))
                     {
-                        if (!File.Exists(GetTestingDataPath()))
-                        {
-                            FileStream f = File.Create(GetTestingDataPath());
-                            f.Close();
-                        }
+                        FileStream f = File.Create(GetTestingDataPath());
+                        f.Close();
+                    }
 
-                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Truncate, FileAccess.Write);
+                    var fileStream = new FileStream(GetTestingDataPath(), FileMode.Truncate, FileAccess.Write);
+                    try
+                    {
                         using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
                         {
-                            streamWriter.Write(value);
+                            streamWriter.Write(value.loginEmail + ";" + value.role);
                         }
-                        fileStream.Close();
                     }
-                    else
-                    {
-                        if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
-                    }
+                    catch { }
+                    finally { fileStream.Close(); }
                 }
-                else
-                {
-                    if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
-                }
+                else if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
             }
         }
-
+        
         // System (0 = Windows, 1 = Ubuntu)
         public static readonly Platform SelectedPlatform = Platform.Windows;
 

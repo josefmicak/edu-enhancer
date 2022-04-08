@@ -1,6 +1,5 @@
 ﻿using Common;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Xml;
 
 namespace ViewLayer.Controllers
@@ -243,43 +242,6 @@ namespace ViewLayer.Controllers
         public void DeleteUser(string loginEmail)
         {
             System.IO.File.Delete(Settings.GetStudentLoginDataPath(loginEmail));
-        }
-
-        public string GetMyEmail()
-        {
-            return (User != null ? ((ClaimsIdentity)User.Identity).Claims.ToList()[2].Value : "");
-        }
-
-        public int GetMyRole()
-        {
-            if (Settings.CustomRole > -2) { return Settings.CustomRole; }
-
-            try
-            {
-                return LoadStudentByEmail(GetMyEmail()).role;
-            }
-            catch
-            {
-                return -1;
-            }
-        }
-
-        public bool HaveRequiredRole(int minRequiredRole, int maxRequiredRole)
-        {
-            if (GetMyRole() >= minRequiredRole && GetMyRole() <= maxRequiredRole)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public bool HaveRequiredRole(int minRequiredRole)
-        {
-            if (GetMyRole() >= minRequiredRole)
-            {
-                return true;
-            }
-            return false;
         }
     }
 }

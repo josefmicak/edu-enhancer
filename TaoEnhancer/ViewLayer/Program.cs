@@ -18,7 +18,7 @@ builder.Services
 });
 
 // Reset custom role on startup
-Settings.CustomRole = -2;
+Settings.TestingUser = ("", -2);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
