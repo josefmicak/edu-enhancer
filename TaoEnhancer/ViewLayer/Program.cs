@@ -1,7 +1,6 @@
 using Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,10 +17,8 @@ builder.Services
     options.ClientSecret = Settings.GoogleSignInClientSecret;
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("MustHaveEmail", policy => policy.RequireClaim(ClaimTypes.Email));
-});
+// Reset custom role on startup
+Settings.CustomRole = -2;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -4,6 +4,7 @@
 #NUnit test project
 NUnitTests/
 chromedriver.exe
+AutomatedTests.cs
 
 # User-specific files
 *.suo
@@ -55,6 +56,9 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+
+# Visual Studio cache/options directory
+.vs/
 
 # Visual Studio profiler
 *.psess

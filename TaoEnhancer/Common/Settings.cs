@@ -11,7 +11,7 @@ namespace Common
         }
 
         // Testing
-        public static readonly bool Testing = true;
+        public static readonly bool Testing = false;
         public static int CustomRole
         {
             get

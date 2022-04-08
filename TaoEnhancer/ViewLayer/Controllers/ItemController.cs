@@ -38,7 +38,7 @@ namespace ViewLayer.Controllers
                             double correctChoicePoints = GetCorrectChoicePoints(subquestionPoints, correctChoiceArray, questionType);
                             (bool recommendedWrongChoicePoints, double selectedWrongChoicePoints, int questionPoints, bool questionPointsDetermined) = LoadQuestionPoints(testNameIdentifier, itemNumberIdentifier, responseIdentifier, amountOfSubitems, correctChoicePoints);
                             (double studentsSubitemPoints, _, _, _) = LoadDeliveryExecutionInfo(testNameIdentifier, testNumberIdentifier, itemNumberIdentifier, itemNameIdentifier, responseIdentifier, deliveryExecutionIdentifier, correctAnswerArray, correctChoiceArray, subquestionPoints, recommendedWrongChoicePoints, selectedWrongChoicePoints, false, GetCurrentSubitemIndex(responseIdentifier, responseIdentifierArray));
-                            if(studentsSubitemPoints < (questionPoints * (-1)))
+                            if (studentsSubitemPoints < (questionPoints * (-1)))
                             {
                                 studentsSubitemPoints = questionPoints * (-1);
                             }
@@ -1191,6 +1191,7 @@ namespace ViewLayer.Controllers
                         }
                     }
                 }
+
                 if (amountOfSubitems > 1)
                 {
                     studentsReceivedPoints = importedReceivedPointsArray[currentSubitemIndex];
@@ -1251,33 +1252,17 @@ namespace ViewLayer.Controllers
                         break;
                     case int n when (n == 3 || n == 4 || n == 9):
                         studentsCorrectAnswers = 0;
-                        //TODO: Chyba 1
-                        /*for (int i = 0; i < studentsAnswers.Count; i++)
-                        {
-                            for (int j = 0; j < correctChoiceArray.Count; j++)
-                            {
-                                if (i % 2 == 0 && j % 2 == 0 && (i == studentsAnswers.Count || j == correctChoiceArray.Count))//TODO: Chyba1
-                                {
-                                    if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
-                                        (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
-                                    {
-                                        studentsCorrectAnswers += 2;
-                                        studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count) * 2;
-                                    }
-                                }
-                            }
-                        }*/
 
                         for (int i = 0; i < studentsAnswers.Count; i++)
                         {
-                            if(i % 2 == 0)
+                            if (i % 2 == 0)
                             {
                                 for (int j = 0; j < correctChoiceArray.Count; j++)
                                 {
                                     if (j % 2 == 0)
                                     {
                                         if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
-         (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
+                                            (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
                                         {
                                             studentsCorrectAnswers += 2;
                                             studentsReceivedPoints += ((double)subquestionPoints / (double)correctChoiceArray.Count) * 2;
@@ -1365,21 +1350,6 @@ namespace ViewLayer.Controllers
                 case int n when (n == 3 || n == 4 || n == 9):
                     studentsCorrectAnswers = 0;
 
-                    /*for (int i = 0; i < studentsAnswers.Count; i++)
-                    {
-                        for (int j = 0; j < correctChoiceArray.Count; j++)
-                        {
-                            if (i % 2 == 0 && j % 2 == 0 && (i == studentsAnswers.Count || j == correctChoiceArray.Count))//TODO: Chyba 1
-                            {
-                                if ((studentsAnswers[i] == correctChoiceArray[j] && studentsAnswers[i + 1] == correctChoiceArray[j + 1]) ||
-                                    (studentsAnswers[i + 1] == correctChoiceArray[j] && studentsAnswers[i] == correctChoiceArray[j + 1]))
-                                {
-                                    studentsCorrectAnswers += 2;
-                                }
-                            }
-                        }
-                    }*/
-
                     for (int i = 0; i < studentsAnswers.Count; i++)
                     {
                         if (i % 2 == 0)
@@ -1445,7 +1415,7 @@ namespace ViewLayer.Controllers
                     studentsAnswerCorrectLabel = "Otevřená odpověď, body budou přiděleny manuálně";
                     break;
             }
-
+            
             if ((studentsReceivedPoints < 0 && !NegativePoints(testNameIdentifier, testNumberIdentifier)) || (studentsAnswers.Count > 0 && studentsAnswers[0] == ""))
             {
                 studentsReceivedPoints = 0;
