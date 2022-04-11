@@ -1,6 +1,6 @@
 namespace ViewLayer.Models
 {
-    public class ErrorViewModel
+    public class ErrorViewModel : PageModel
     {
         public string? RequestId { get; set; }
 

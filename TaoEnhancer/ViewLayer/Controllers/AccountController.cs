@@ -101,7 +101,6 @@ namespace ViewLayer.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             
             return RedirectToAction("Index", "Home");
-            //return Redirect("https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + Settings.GetURL());
         }
     }
 }

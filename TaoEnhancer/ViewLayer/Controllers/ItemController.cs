@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Xml;
+﻿using System.Xml;
 using Common;
 
 namespace ViewLayer.Controllers
@@ -665,7 +664,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            //TODO: Vyřešit responseIdentifiery - co když je více otázek typu 7?
+            
             if (questionType == 7)
             {
                 XmlReader xmlReaderInlineChoice = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, itemNumberIdentifier));

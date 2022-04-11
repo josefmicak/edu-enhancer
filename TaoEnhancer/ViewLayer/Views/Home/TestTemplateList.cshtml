@@ -3,16 +3,6 @@
 <header class="header">
     <div class="header-content content-width">
         <div class="header-left">
-            @{
-                /*if(@Model.UserRole >= 2)
-                {
-                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="AdminMenu">arrow_back</a>
-                }
-                else
-                {
-                    <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
-                }*/
-            }
             <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>

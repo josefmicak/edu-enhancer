@@ -91,7 +91,7 @@ namespace ViewLayer.Controllers
             return questionList;
         }
 
-        public List<(string, string, string, string, int, bool)> LoadItemInfo(string testNameIdentifier, string testNumberIdentifier)//Jiné než v původní appce, načte seznam parametrů všech itemů
+        public List<(string, string, string, string, int, bool)> LoadItemInfo(string testNameIdentifier, string testNumberIdentifier)//Načte seznam parametrů všech itemů
         {
             int i = 0;
             List<(string, string, string, string, int, bool)> itemParametersTemp = new List<(string, string, string, string, int, bool)>();
