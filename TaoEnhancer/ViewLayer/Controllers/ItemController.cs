@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using System.Globalization;
 using Common;
 
 namespace ViewLayer.Controllers
@@ -1185,8 +1186,8 @@ namespace ViewLayer.Controllers
                     {
                         for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
                         {
-                            importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
-                            totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[j]);
+                            importedReceivedPointsArray.Add(double.Parse(splitResultsFileLineBySemicolon[j], CultureInfo.InvariantCulture));
+                            totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[j], CultureInfo.InvariantCulture);
                         }
                     }
                 }
@@ -1643,7 +1644,7 @@ namespace ViewLayer.Controllers
                 {
                     for (int j = 1; j < splitResultsFileLineBySemicolon.Length; j++)
                     {
-                        studentsSubitemPoints.Add(double.Parse(splitResultsFileLineBySemicolon[j]));
+                        studentsSubitemPoints.Add(double.Parse(splitResultsFileLineBySemicolon[j], CultureInfo.InvariantCulture));
                     }
                 }
             }

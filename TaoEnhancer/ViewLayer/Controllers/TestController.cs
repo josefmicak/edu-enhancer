@@ -1,4 +1,5 @@
 ﻿using Common;
+using System.Globalization;
 using System.Xml;
 
 namespace ViewLayer.Controllers
@@ -256,7 +257,7 @@ namespace ViewLayer.Controllers
                     {
                         for (int k = 1; k < splitResultsFileLineBySemicolon.Length; k++)
                         {
-                            totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[k]);
+                            totalReceivedPoints += double.Parse(splitResultsFileLineBySemicolon[k], CultureInfo.InvariantCulture);
                         }
                         studentsAnswerPoints.Add((totalReceivedPoints, true));
                     }

@@ -1,6 +1,7 @@
 ﻿using Common;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Claims;
 using ViewLayer.Models;
 
@@ -665,12 +666,11 @@ namespace ViewLayer.Controllers
             string errorText = "";
             if (studentsPoints != null)
             {
-                studentsPoints = studentsPoints.Replace(".", ",");
-                bool isDecimal = double.TryParse(studentsPoints, out _);
+                bool isDecimal = double.TryParse(studentsPoints, NumberStyles.Number, CultureInfo.InvariantCulture, out _);
                 double studentsPointsToSave = 0;
                 if (isDecimal)
                 {
-                    studentsPointsToSave = double.Parse(studentsPoints);
+                    studentsPointsToSave = double.Parse(studentsPoints, CultureInfo.InvariantCulture);
                 }
 
                 if (!isDecimal)
