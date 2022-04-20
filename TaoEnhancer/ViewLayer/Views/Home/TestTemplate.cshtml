@@ -18,9 +18,18 @@
 }
 
 <header class="header">
+    @{
+        if(@Model.HeaderMessageData.message.Length > 0)
+        {
+            <div class="header-message @Model.HeaderMessageData.messageClass">
+                <div class="header-center header-message-text title" title="@Model.HeaderMessageData.message">@Model.HeaderMessageData.message</div>
+            </div>
+        }
+    }
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TestTemplateList">arrow_back</a>
+            <button class="header-button button button-transparent material-icons" id="themeBtn" title="Přepnout do tmavého režimu" onclick="changeTheme(this)">dark_mode</button>
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
@@ -28,9 +37,12 @@
         </div>
     </div>
 </header>
-<main class="main content-width">
-    <section class="section">
-        <article class="article">
+@{
+    string mainHeaderMessagePadding = (Model.HeaderMessageData.message.Length > 0 ? "main-header-message-padding" : "");
+}
+<main class="main max-content-width @mainHeaderMessagePadding">
+    <section class="section content-width">
+        <article class="article flex">
             <h2 class="article-title title" title="Parametry testu">Parametry testu</h2>
             <div class="article-content">
                 <table class="article-table">
@@ -66,80 +78,7 @@
                 </table>
             </div>
         </article>
-        <article class="article">
-            <h2 class="article-title title" title="Seznam otázek">Seznam otázek</h2>
-            <div class="article-content">
-                <table class="article-table">
-                    <tr>
-                        <th>Část testu</th>
-                        <th>Sekce testu</th>
-                        <th>Jmenný identifikátor otázky</th>
-                        <th>Číselný identifikátor otázky</th>
-                        <th>Počet bodů</th>
-                        <th>Detaily otázky</th>
-                        <th>Správa otázky</th>
-                    </tr>
-                    @{
-                        int i = 0;
-                        foreach ((string, string, string, string) question in Model.QuestionList)
-                        {
-                            string points = "";
-                            if(!(@Model.ItemParameters[i].Item6))
-                            {
-                                points = "N/A";
-                            }
-                            else
-                            {
-                                points = @Model.ItemParameters[i].Item5.ToString();
-                            }
-
-                            <tr>
-                                <td>@question.Item1</td>
-                                <td>@question.Item2</td>
-                                <td>@question.Item3</td>
-                                <td>@question.Item4</td>
-                                <td>@points</td>
-                                <td><button class="button" title="Detaily otázky" onclick="loadQuestionInfo('@Model.ItemParameters[i].Item1', '@Model.ItemParameters[i].Item2', '@Model.ItemParameters[i].Item3', '@Model.ItemParameters[i].Item4', '@Model.ItemParameters[i].Item5', '@Model.ItemParameters[i].Item6')">Detaily otázky</button></td>
-                                <td><a class="button" id="itemTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
-                                asp-route-testNameIdentifier="@Model.TestNameIdentifier"
-                                asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
-                                asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
-                                asp-route-itemNameIdentifier="@Model.ItemParameters[i].Item2">Správa otázky</a></td>
-                            </tr>
-                            i++;
-                        }
-                    }
-                </table>
-            </div>
-        </article>
-        <article class="article">
-            <h2 class="article-title title" title="Parametry otázky">Parametry otázky</h2>
-            <div class="article-content">
-                <table class="article-table">
-                    <tr>
-                        <th>Číselný identifikátor otázky</th>
-                        <td id="testtemplate-item-itemnumberidentifier"></td>
-                    </tr>
-                    <tr>
-                        <th>Jmenný identifikátor otázky</th>
-                        <td id="testtemplate-item-itemnameidentifier"></td>
-                    </tr>
-                    <tr>
-                        <th>Nadpis otázky</th>
-                        <td id="testtemplate-item-title"></td>
-                    </tr>
-                    <tr>
-                        <th>Označení otázky</th>
-                        <td id="testtemplate-item-label"></td>
-                    </tr>
-                    <tr>
-                        <th>Počet bodů za otázku</th>
-                        <td id="testtemplate-item-points"></td>
-                    </tr>
-                </table>
-            </div>
-        </article>
-        <article class="article">
+        <article class="article flex">
             <h2 class="article-title title">Záporné body</h2>
             <div class="article-content">
                 <form method="POST">
@@ -179,6 +118,50 @@
                         </tr>
                     </table>
                 </form>
+            </div>
+        </article>
+    </section>
+    <section class="section content-width">
+        <article class="article flex">
+            <h2 class="article-title title" title="Seznam otázek">Seznam otázek</h2>
+            <div class="article-content">
+                <table class="article-table">
+                    <tr>
+                        <th>Jmenný identifikátor otázky</th>
+                        <th>Číselný identifikátor otázky</th>
+                        <th>Nadpis</th>
+                        <th>Počet bodů</th>
+                        <th>Správa otázky</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                        foreach ((string, string, string, string) question in Model.QuestionList)
+                        {
+                            string points = "";
+                            if(!(@Model.ItemParameters[i].Item6))
+                            {
+                                points = "N/A";
+                            }
+                            else
+                            {
+                                points = @Model.ItemParameters[i].Item5.ToString();
+                            }
+
+                            <tr>
+                                <td>@question.Item3</td>
+                                <td>@question.Item4</td>
+                                <td>@Model.ItemParameters[i].Item3</td>
+                                <td>@points</td>
+                                <td><a class="button" id="itemTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ItemTemplate"
+                                asp-route-testNameIdentifier="@Model.TestNameIdentifier"
+                                asp-route-testNumberIdentifier="@Model.TestNumberIdentifier"
+                                asp-route-itemNumberIdentifier="@Model.ItemParameters[i].Item1"
+                                asp-route-itemNameIdentifier="@Model.ItemParameters[i].Item2">Správa otázky</a></td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </table>
             </div>
         </article>
     </section>

@@ -348,19 +348,25 @@ namespace ViewLayer.Controllers
                     continue;
                 }
 
-                XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
-                while (xmlReader.Read())
+                try
                 {
-                    if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                    XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
+                    while (xmlReader.Read())
                     {
-                        if (xmlReader.HasAttributes)
+                        if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
                         {
-                            title = xmlReader.GetAttribute("title");
-                            testIdentifiers.Add((nameIdentifier, numberidentifier, title));
+                            if (xmlReader.HasAttributes)
+                            {
+                                title = xmlReader.GetAttribute("title");
+                                testIdentifiers.Add((nameIdentifier, numberidentifier, title));
+                            }
                         }
                     }
                 }
-
+                catch
+                {
+                    continue;
+                }
             }
 
             return testIdentifiers;

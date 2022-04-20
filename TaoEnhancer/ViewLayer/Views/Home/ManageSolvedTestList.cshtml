@@ -1,9 +1,18 @@
 ﻿@model ViewLayer.Models.ManageSolvedTestListModel
 
 <header class="header">
+    @{
+        if(@Model.HeaderMessageData.message.Length > 0)
+        {
+            <div class="header-message @Model.HeaderMessageData.messageClass">
+                <div class="header-center header-message-text title" title="@Model.HeaderMessageData.message">@Model.HeaderMessageData.message</div>
+            </div>
+        }
+    }
     <div class="header-content content-width">
         <div class="header-left">
             <a class="header-button button button-transparent material-icons" id="backBtn" title="Zpět" asp-area="" asp-controller="Home" asp-action="TeacherMenu">arrow_back</a>
+            <button class="header-button button button-transparent material-icons" id="themeBtn" title="Přepnout do tmavého režimu" onclick="changeTheme(this)">dark_mode</button>
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
@@ -11,18 +20,20 @@
         </div>
     </div>
 </header>
-<main class="main content-width">
-    <section class="section">
-        <article class="article">
-            <h2 class="article-title title" title="Student">Student</h2>
+@{
+    string mainHeaderMessagePadding = (Model.HeaderMessageData.message.Length > 0 ? "main-header-message-padding" : "");
+}
+<main class="main max-content-width @mainHeaderMessagePadding">
+    <section class="section content-width">
+        <article class="article flex">
             <div class="article-content">
                 <table class="article-table">
                     <tr>
                         <th>Jmenný identifikátor testu</th>
-                        <th>Časová známka</th>
+                        <th>Datum</th>
                         <th>Identifikátor pokusu</th>
+                        <th>Jméno studenta</th>
                         <th>Login studenta</th>
-                        <th>Detaily</th>
                         <th>Správa testu</th>
                     </tr>
                     @{
@@ -31,10 +42,10 @@
                         {
                             <tr>
                                 <td>@solvedTest.Item2</td>
-                                <td>@solvedTest.Item3</td>
+                                <td>@DateTime.Parse(solvedTest.Item3, null, System.Globalization.DateTimeStyles.RoundtripKind)</td>
                                 <td>@solvedTest.Item4</td>
+                                <td>@solvedTest.Item6</td>
                                 <td>@solvedTest.Item5</td>
-                                <td><button class="button" title="Detaily" onclick="loadSolvedTestDetails('@solvedTest.Item6', '@solvedTest.Item5', '@solvedTest.Item7')">Detaily</button></td>
                                 <td><a class="button" id="manageSolvedTestBtn_@i" title="Správa testu"
                                     asp-area="" 
                                     asp-controller="Home" 
@@ -47,25 +58,6 @@
                             i++;
                         }
                     }
-                </table>
-            </div>
-        </article>
-        <article class="article">
-            <h2 class="article-title title" title="Student">Student</h2>
-            <div class="article-content">
-                <table class="article-table">
-                    <tr>
-                        <th>Jméno studenta</th>
-                        <td id="managesolvedtestlist-student-name"></td>
-                    </tr>
-                    <tr>
-                        <th>Login studenta</th>
-                        <td id="managesolvedtestlist-student-login"></td>
-                    </tr>
-                    <tr>
-                        <th>Email studenta</th>
-                        <td id="managesolvedtestlist-student-email"></td>
-                    </tr>
                 </table>
             </div>
         </article>

@@ -6,6 +6,7 @@ namespace ViewLayer.Controllers
 {
     public class StudentController : Controller
     {
+        // Load all students from TAO
         public List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> LoadStudents()
         {
             List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)> students = new List<(string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email)>();
@@ -57,6 +58,7 @@ namespace ViewLayer.Controllers
             return students;
         }
 
+        // Load student from TAO by number identifier
         public (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) LoadStudentByNumberIdentifier(string studentNumberIdentifier)
         {
             (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) student = (studentNumberIdentifier, "", "", "", "", "");
@@ -101,6 +103,7 @@ namespace ViewLayer.Controllers
             return student;
         }
 
+        // Load student from TAO by identifier
         public (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) LoadStudentByIdentifier(string studentIdentifier)
         {
             (string studentNumberIdentifier, string studentIdentifier, string login, string firstName, string lastName, string email) student = ("", studentIdentifier, "", "", "", "");
@@ -162,6 +165,7 @@ namespace ViewLayer.Controllers
             return student;
         }
 
+        // Load users by email
         public List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> LoadStudentsByEmail()
         {
             List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>();
@@ -183,6 +187,7 @@ namespace ViewLayer.Controllers
             return students;
         }
 
+        // Load user by email
         public (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) LoadStudentByEmail(string loginEmail)
         {
             (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = (loginEmail, "", -1, "", "", "", "", "");
@@ -234,11 +239,13 @@ namespace ViewLayer.Controllers
             return student;
         }
 
+        // Add / Edit user
         public void EditUser(string loginEmail, string studentNumberIdentifier, int role)
         {
             System.IO.File.WriteAllText(Settings.GetStudentLoginDataPath(loginEmail), studentNumberIdentifier + ";" + role);
         }
 
+        // Delete user
         public void DeleteUser(string loginEmail)
         {
             System.IO.File.Delete(Settings.GetStudentLoginDataPath(loginEmail));

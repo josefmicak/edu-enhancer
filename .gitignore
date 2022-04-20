@@ -4,7 +4,10 @@
 #NUnit test project
 NUnitTests/
 chromedriver.exe
+msedgedriver.exe
 AutomatedTests.cs
+FilePathManager.cs
+IFilePathManager.cs
 
 # User-specific files
 *.suo

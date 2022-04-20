@@ -23,15 +23,13 @@ namespace Common
                 {
                     if(Testing)
                     {
-                        var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Read);
+                        using var fileStream = new FileStream(GetTestingDataPath(), FileMode.Open, FileAccess.Read);
                         try
                         {
-                            using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
-                            {
-                                string[] userData = (streamReader.ReadToEnd()).Split(';');
-                                loginEmail = userData[0];
-                                role = int.Parse(userData[1]);
-                            }
+                            using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
+                            string[] userData = (streamReader.ReadToEnd()).Split(';');
+                            loginEmail = userData[0];
+                            role = int.Parse(userData[1]);
                         }
                         catch
                         {
@@ -55,13 +53,11 @@ namespace Common
                         f.Close();
                     }
 
-                    var fileStream = new FileStream(GetTestingDataPath(), FileMode.Truncate, FileAccess.Write);
+                    using var fileStream = new FileStream(GetTestingDataPath(), FileMode.Truncate, FileAccess.Write);
                     try
                     {
-                        using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
-                        {
-                            streamWriter.Write(value.loginEmail + ";" + value.role);
-                        }
+                        using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+                        streamWriter.Write(value.loginEmail + ";" + value.role);
                     }
                     catch { }
                     finally { fileStream.Close(); }

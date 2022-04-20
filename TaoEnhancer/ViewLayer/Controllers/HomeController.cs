@@ -70,6 +70,20 @@ namespace ViewLayer.Controllers
             return false;
         }
 
+        public (string message, string messageClass) GetHeaderMessageData()
+        {
+            (string message, string messageClass) headerMessageData = ("", "");
+
+            // Testing header message
+            if (Settings.Testing)
+            {
+                headerMessageData.message = "Aktuálně je nastaven režim pro testování.";
+                headerMessageData.messageClass = "info";
+            }
+
+            return headerMessageData;
+        }
+
         [HttpGet]
         public IActionResult Index(string error = "")
         {
@@ -109,6 +123,7 @@ namespace ViewLayer.Controllers
             return View(new IndexModel
             {
                 Title = "Přihlášení",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 Text = text,
                 TextClass = textClass,
@@ -152,6 +167,7 @@ namespace ViewLayer.Controllers
             ManageUserListModel model = new ManageUserListModel
             {
                 Title = "Správa uživatelů",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 Students = students,
                 StudentsByRoles = studentsByRoles,
@@ -261,6 +277,7 @@ namespace ViewLayer.Controllers
             return View(new ManageUserListModel
             {
                 Title = "Správa uživatelů",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 Students = students,
                 StudentsByRoles = studentsByRoles,
@@ -313,6 +330,7 @@ namespace ViewLayer.Controllers
             return View(new PageModel
             {
                 Title = "Učitel",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole
             });
         }
@@ -326,6 +344,7 @@ namespace ViewLayer.Controllers
             return View(new TestTemplateListModel
             {
                 Title = "Správa zadání testů",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 Tests = testController.LoadTests()
             });
@@ -340,6 +359,7 @@ namespace ViewLayer.Controllers
             return View(new ManageSolvedTestListModel
             {
                 Title = "Správa vyřešených testů",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 SolvedTests = testController.LoadSolvedTests()
             });
@@ -356,7 +376,8 @@ namespace ViewLayer.Controllers
 
             return View(new ManageSolvedTestModel
             {
-                Title = "Správa vyřešeného testu " + deliveryExecutionIdentifier,
+                Title = "Správa vyřešeného testu",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -383,7 +404,8 @@ namespace ViewLayer.Controllers
 
             return View(new TestTemplateModel
             {
-                Title = "Správa zadání testu " + testNameIdentifier,
+                Title = "Správa zadání testu",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -417,7 +439,8 @@ namespace ViewLayer.Controllers
 
             return View(new TestTemplateModel
             {
-                Title = "Správa zadání testu " + testNameIdentifier,
+                Title = "Správa zadání testu",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -446,7 +469,8 @@ namespace ViewLayer.Controllers
 
             return View(new ItemTemplateModel
             {
-                Title = "Správa zadání otázky " + itemNumberIdentifier + " / " + itemNameIdentifier,
+                Title = "Správa zadání otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -574,7 +598,8 @@ namespace ViewLayer.Controllers
 
             ItemTemplateModel model = new ItemTemplateModel()
             {
-                Title = "Správa zadání otázky " + itemNumberIdentifier + " / " + itemNameIdentifier,
+                Title = "Správa zadání otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -632,7 +657,8 @@ namespace ViewLayer.Controllers
 
             return View(new ManageSolvedItemModel
             {
-                Title = "Správa vyřešené otázky " + deliveryExecutionIdentifier + " / " + itemNameIdentifier,
+                Title = "Správa vyřešené otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -756,7 +782,8 @@ namespace ViewLayer.Controllers
 
             return View(new ManageSolvedItemModel
             {
-                Title = "Správa vyřešené otázky " + deliveryExecutionIdentifier + " / " + itemNameIdentifier,
+                Title = "Správa vyřešené otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -790,7 +817,8 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedTestListModel
             {
-                Title = "Seznam testů",
+                Title = "Prohlížení vyřešených testů",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 StudentIdentifier = studentIdentifier,
                 Student = studentController.LoadStudentByIdentifier(studentIdentifier),
@@ -809,7 +837,8 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedTestModel
             {
-                Title = "Prohlížení testu",
+                Title = "Prohlížení vyřešeného testu",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -856,7 +885,8 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedItemModel
             {
-                Title = "Prohlížení otázky",
+                Title = "Prohlížení vyřešené otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -910,7 +940,8 @@ namespace ViewLayer.Controllers
 
             return View(new BrowseSolvedItemModel
             {
-                Title = "Prohlížení otázky",
+                Title = "Prohlížení vyřešené otázky",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,
@@ -941,6 +972,7 @@ namespace ViewLayer.Controllers
             return View(new ErrorViewModel
             {
                 Title = "Error",
+                HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             });
