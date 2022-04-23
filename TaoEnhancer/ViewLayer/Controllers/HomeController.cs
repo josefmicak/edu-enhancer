@@ -613,7 +613,7 @@ namespace ViewLayer.Controllers
             model.QuestionPoints = questionPoints;
             model.QuestionTypeText = itemController.GetQuestionTypeText(subitemParameters.questionType);
             model.IsSelectDisabled = (itemParameters.amountOfSubitems > 1 ? false : true);
-            model.CorrectChoicePoints = (subquestionPoints != null ? double.Parse(recommendedWrongChoicePoints) * (-1) : subitemParameters.subquestionPoints);
+            model.CorrectChoicePoints = itemController.GetCorrectChoicePoints(subitemParameters.subquestionPoints, subitemParameters.correctChoiceArray, subitemParameters.questionType);
             model.CorrectChoiceArray = correctChoiceArray;
             model.CorrectAnswerCount = (subitemParameters.questionType == 3 || subitemParameters.questionType == 4 ? subitemParameters.correctAnswerArray.Count / 2 : subitemParameters.correctAnswerArray.Count);
             if (wrongChoicePoints != null) { model.WrongChoicePoints = double.Parse(wrongChoicePoints); }
