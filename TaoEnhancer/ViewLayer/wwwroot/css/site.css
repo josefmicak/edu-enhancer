@@ -1,75 +1,14 @@
 /* Variables */
 :root {
-    --color: #000;
-    --background: #FFF;
     --content-width: 64rem;
     --content-padding-inline: 0.75rem;
-    --header-background: #EEEE;
     --header-height: 4rem;
     --header-message-height: 2rem;
-    --article-table-border-color: #DDD;
-    --article-table-hover-border-color: #CCC;
-    --article-table-odd-background: #F8F8F8;
-    --article-table-th-color: #111;
-    --article-table-th-correct-color: #002F18;
-    --article-table-th-partiallyCorrect-color: #2F1800;
-    --article-table-th-incorrect-color: #2F0000;
-    --article-table-th-info-color: #00182F;
-    --article-table-th-background: #EEE;
-    --article-table-th-correct-background: #D0FFE8;
-    --article-table-th-partiallyCorrect-background: #FFE8D0;
-    --article-table-th-incorrect-background: #FFD0D0;
-    --article-table-th-info-background: #D0E8FF;
-    --article-table-th-colspan-color: #222;
-    --article-table-th-colspan-correct-color: #103F28;
-    --article-table-th-colspan-partiallyCorrect-color: #3F2810;
-    --article-table-th-colspan-incorrect-color: #3F1010;
-    --article-table-th-colspan-info-color: #10283F;
-    --article-table-th-colspan-background: #DDD;
-    --article-table-th-colspan-correct-background: #C0EFD8;
-    --article-table-th-colspan-partiallyCorrect-background: #EFD8C0;
-    --article-table-th-colspan-incorrect-background: #EFC0C0;
-    --article-table-th-colspan-info-background: #C0D8EF;
-    --article-table-td-color: #000;
-    --article-table-td-correct-color: #000F08;
-    --article-table-td-partiallyCorrect-color: #0F0800;
-    --article-table-td-incorrect-color: #0F0000;
-    --article-table-td-info-color: #00080F;
-    --article-table-td-background: #FFF;
-    --article-table-td-correct-background: #F0FFF8;
-    --article-table-td-partiallyCorrect-background: #FFF8F0;
-    --article-table-td-incorrect-background: #FFF0F0;
-    --article-table-td-info-background: #F0F8FF;
     --box-shadow: 0 0.1em 0.4em -0.2em;
-    --box-shadow-color: #888;
-    --button-color: #333;
-    --button-hover-color: #000;
-    --button-disabled-color: #555;
-    --button-background: #EEE;
-    --button-hover-background: #DDD;
-    --button-disabled-background: #CCC;
-    --button-box-shadow-color: var(--box-shadow-color);
-    --button-hover-box-shadow-color: #666;
-    --button-disabled-box-shadow-color: #AAA;
-    --input-color: #000;
-    --input-hover-color: var(--input-color);
-    --input-disabled-color: #555;
-    --input-background: #FFF;
-    --input-hover-background: var(--input-background);
-    --input-disabled-background: #EEE;
-    --input-border-color: #DDD;
-    --input-hover-border-color: #CCC;
-    --input-disabled-border-color: #EEE;
-    --input-box-shadow-color: #AAA;
-    --input-hover-box-shadow-color: #888;
-    --input-disabled-box-shadow-color: #CCC;
-    --radio-checked-background: #08F;
-    --radio-disabled-checked-background: #888;
-    --radio-checked-border-color: #08F;
-    --radio-disabled-checked-border-color: #888;
 }
 
-:root.dark-theme {
+/* Dark theme */
+:root {
     --color: #FFF;
     --background: #000;
     --header-background: #111E;
@@ -106,7 +45,7 @@
     --article-table-td-partiallyCorrect-background: #0F0800;
     --article-table-td-incorrect-background: #0F0000;
     --article-table-td-info-background: #00080F;
-    --box-shadow-color: #222;
+    --box-shadow-color: #333;
     --button-color: #CCC;
     --button-hover-color: #FFF;
     --button-disabled-color: #AAA;
@@ -114,8 +53,8 @@
     --button-hover-background: #222;
     --button-disabled-background: #333;
     --button-box-shadow-color: var(--box-shadow-color);
-    --button-hover-box-shadow-color: #000;
-    --button-disabled-box-shadow-color: #444;
+    --button-hover-box-shadow-color: #444;
+    --button-disabled-box-shadow-color: #555;
     --input-color: #FFF;
     --input-hover-color: var(--input-color);
     --input-disabled-color: #AAA;
@@ -125,12 +64,78 @@
     --input-border-color: #222;
     --input-hover-border-color: #333;
     --input-disabled-border-color: #111;
-    --input-box-shadow-color: #444;
+    --input-box-shadow-color: #111;
     --input-hover-box-shadow-color: #222;
-    --input-disabled-box-shadow-color: #666;
-    --radio-checked-background: #08F;
+    --input-disabled-box-shadow-color: #333;
+    --radio-checked-background: #90C8FF;
     --radio-disabled-checked-background: #888;
-    --radio-checked-border-color: #08F;
+    --radio-checked-border-color: #90C8FF;
+    --radio-disabled-checked-border-color: #888;
+}
+
+/* Light theme */
+:root.light-theme {
+    --color: #000;
+    --background: #FFF;
+    --header-background: #EEEE;
+    --article-table-border-color: #DDD;
+    --article-table-hover-border-color: #CCC;
+    --article-table-odd-background: #F8F8F8;
+    --article-table-th-color: #111;
+    --article-table-th-correct-color: #002F18;
+    --article-table-th-partiallyCorrect-color: #2F1800;
+    --article-table-th-incorrect-color: #2F0000;
+    --article-table-th-info-color: #00182F;
+    --article-table-th-background: #EEE;
+    --article-table-th-correct-background: #D0FFE8;
+    --article-table-th-partiallyCorrect-background: #FFE8D0;
+    --article-table-th-incorrect-background: #FFD0D0;
+    --article-table-th-info-background: #D0E8FF;
+    --article-table-th-colspan-color: #222;
+    --article-table-th-colspan-correct-color: #103F28;
+    --article-table-th-colspan-partiallyCorrect-color: #3F2810;
+    --article-table-th-colspan-incorrect-color: #3F1010;
+    --article-table-th-colspan-info-color: #10283F;
+    --article-table-th-colspan-background: #DDD;
+    --article-table-th-colspan-correct-background: #C0EFD8;
+    --article-table-th-colspan-partiallyCorrect-background: #EFD8C0;
+    --article-table-th-colspan-incorrect-background: #EFC0C0;
+    --article-table-th-colspan-info-background: #C0D8EF;
+    --article-table-td-color: #000;
+    --article-table-td-correct-color: #000F08;
+    --article-table-td-partiallyCorrect-color: #0F0800;
+    --article-table-td-incorrect-color: #0F0000;
+    --article-table-td-info-color: #00080F;
+    --article-table-td-background: #FFF;
+    --article-table-td-correct-background: #F0FFF8;
+    --article-table-td-partiallyCorrect-background: #FFF8F0;
+    --article-table-td-incorrect-background: #FFF0F0;
+    --article-table-td-info-background: #F0F8FF;
+    --box-shadow-color: #CCC;
+    --button-color: #333;
+    --button-hover-color: #000;
+    --button-disabled-color: #555;
+    --button-background: #EEE;
+    --button-hover-background: #DDD;
+    --button-disabled-background: #CCC;
+    --button-box-shadow-color: var(--box-shadow-color);
+    --button-hover-box-shadow-color: #BBB;
+    --button-disabled-box-shadow-color: #AAA;
+    --input-color: #000;
+    --input-hover-color: var(--input-color);
+    --input-disabled-color: #555;
+    --input-background: #FFF;
+    --input-hover-background: var(--input-background);
+    --input-disabled-background: #EEE;
+    --input-border-color: #DDD;
+    --input-hover-border-color: #CCC;
+    --input-disabled-border-color: #EEE;
+    --input-box-shadow-color: #EEE;
+    --input-hover-box-shadow-color: #DDD;
+    --input-disabled-box-shadow-color: #CCC;
+    --radio-checked-background: #00386F;
+    --radio-disabled-checked-background: #888;
+    --radio-checked-border-color: #00386F;
     --radio-disabled-checked-border-color: #888;
 }
 
@@ -141,7 +146,9 @@ html, body {
     font: 16px Arial, Helvetica, open-sans;
     min-width: 100%;
     height: 100%;
+    min-height: 100%;
     margin: 0;
+    transition: color 0.25s, background-color 0.25s;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -194,21 +201,24 @@ button {
 
 .button, .input {
     cursor: pointer;
-    border-radius: 0.75em;
+    font-size: inherit;
+    border: 1px solid transparent;
+    border-radius: 1em;
     padding-block: 0.75em;
     margin: 0;
     display: inline-block;
     text-decoration: none;
     vertical-align: middle;
-    transition: color 0.25s, background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    box-sizing: border-box;
 }
 
 .button {
     color: var(--button-color);
     background: var(--button-background);
     border: 1px solid transparent;
-    padding-inline: 1em;
     box-shadow: var(--box-shadow) var(--button-box-shadow-color);
+    padding-inline: 1em;
+    transition: color 0.25s, background-color 0.25s, box-shadow 0.25s;
 }
 .button:hover {
     color: var(--button-hover-color);
@@ -235,8 +245,9 @@ button {
     color: var(--input-color);
     background: var(--input-background);
     border: 1px solid var(--input-border-color);
-    padding-inline: 0.75em;
     box-shadow: var(--box-shadow) var(--input-box-shadow-color);
+    padding-inline: 0.75em;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
 }
 .input:hover {
     color: var(--input-hover-color);
@@ -251,11 +262,15 @@ button {
     border-color: var(--input-disabled-border-color);
     box-shadow: 0 0.1em 0.4em -0.2em var(--input-disabled-box-shadow-color);
 }
+select.input {
+    padding-left: 0.5em;
+}
 
 .radio {
     appearance: none;
     position: relative;
     border-radius: 50%;
+    padding: 0.5em;
 }
 .radio:checked {
     border-color: var(--radio-checked-border-color);
@@ -267,9 +282,10 @@ button {
     left: 50%;
     background: var(--radio-checked-background);
     border-radius: 50%;
-    width: 75%;
-    height: 75%;
+    width: calc(100% * 2 / 3);
+    height: calc(100% * 2 / 3);
     transform: translate(-50%, -50%);
+    transition: background-color 0.25s, border-color 0.25s;
 }
 .radio:disabled:checked {
     border-color: var(--radio-disabled-checked-border-color);
@@ -297,6 +313,7 @@ button {
     background: var(--header-background);
     box-shadow: var(--box-shadow) var(--box-shadow-color);
     backdrop-filter: blur(0.25rem);
+    transition: background-color 0.25s, box-shadow 0.25s;
 }
 
 .header-content, .header-message {
@@ -312,6 +329,7 @@ button {
 
 .header-message {
     line-height: var(--header-message-height);
+    transition: color 0.25s, background-color 0.25s;
 }
 
 .header-left, .header-center, .header-right {
@@ -332,7 +350,9 @@ button {
 }
 
 .header-button {
+    font-size: 1.5rem;
     border-radius: 1.5rem;
+    width: calc(3rem + 2px);
     line-height: 3rem;
     padding-inline: 0.5em;
     padding-block: 0;
@@ -358,6 +378,7 @@ button {
 }
 
 .main {
+    border-bottom: 1px solid transparent;
     padding-top: var(--header-height);
 }
 .main.main-header-message-padding {
@@ -365,19 +386,19 @@ button {
 }
 
 .section {
-    margin-block: 1rem 2rem;
+    margin-block: 0.5rem;
     display: flex;
     flex-wrap: wrap;
-    grid-gap: 0 0.5rem;
     justify-content: space-evenly;
 }
 
 .article {
     padding-inline: var(--content-padding-inline);
-    margin-block: 0.5rem 1rem;
+    margin-block: 0.25rem;
     overflow: hidden;
 }
 .article.flex {
+    min-width: 50%;
     flex: 1;
 }
 
@@ -387,7 +408,7 @@ button {
 }
 
 .article-content {
-    margin-block: 0.25rem 0.5rem;
+    margin-block: 0.125rem;
 }
 
 .article-table {
@@ -405,6 +426,7 @@ button {
 
 .article-table tr:nth-child(odd) {
     background: var(--article-table-odd-background);
+    transition: background-color 0.25s;
 }
 
 .article-table th, .article-table td {
@@ -413,6 +435,7 @@ button {
     padding: 0.5rem;
     text-align: left;
     word-break: break-word;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s;
 }
 .article-table th[align="center"], .article-table td[align="center"] {
     text-align: center;
@@ -510,4 +533,22 @@ button {
 /* Specific values */
 .justify-content-center {
     justify-content: center;
+}
+
+/* Media */
+@media screen and (min-width: 64rem) {
+    .section {
+        margin-block: 1rem;
+    }
+
+    .article {
+        margin-block: 0.5rem;
+    }
+    .article.flex {
+        min-width: initial;
+    }
+
+    .article-content {
+        margin-block: 0.25rem;
+    }
 }

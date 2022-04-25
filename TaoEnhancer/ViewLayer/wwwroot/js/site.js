@@ -33,29 +33,14 @@ function updateUserInputsWithStudentNumberIdentifier(value) {
     }
 }
 
-// Default theme
-let theme = sessionStorage.getItem("theme");
-
 // Prefered color scheme
 function handlePreferedColorSchemeChange(e) {
     if (e.matches) {
-        setTheme("dark");
-        
-    }
-    else {
         setTheme("light");
     }
-}
-
-const preferedColorScheme = window.matchMedia("(prefers-color-scheme: dark)");
-if (theme == null) {
-    preferedColorScheme.addEventListener("change", (e) => {
-        handlePreferedColorSchemeChange(preferedColorScheme);
-    });
-    handlePreferedColorSchemeChange(preferedColorScheme);
-}
-else {
-    setTheme(theme);
+    else {
+        setTheme("dark");
+    }
 }
 
 // Change theme
@@ -71,11 +56,14 @@ function changeTheme(el) {
 // Set theme
 function setTheme(toTheme, saveTheme=false) {
     theme = toTheme;
-    if (saveTheme) { sessionStorage.setItem("theme", toTheme); }
+    if (saveTheme) { localStorage.setItem("theme", toTheme); }
 
     if (toTheme == "dark") {
         if (document.documentElement) {
-            document.documentElement.classList.add("dark-theme");
+            document.documentElement.classList.remove("light-theme");
+        }
+        if (document.querySelector('meta[name="theme-color"]')) {
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#111111');
         }
         if (document.getElementsByClassName("g_id_signin")[0]) {
             document.getElementsByClassName("g_id_signin")[0].dataset.theme = "filled_blue";
@@ -87,7 +75,10 @@ function setTheme(toTheme, saveTheme=false) {
     }
     else {
         if (document.documentElement) {
-            document.documentElement.classList.remove("dark-theme");
+            document.documentElement.classList.add("light-theme");
+        }
+        if (document.querySelector('meta[name="theme-color"]')) {
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#EEEEEE');
         }
         if (document.getElementsByClassName("g_id_signin")[0]) {
             document.getElementsByClassName("g_id_signin")[0].dataset.theme = "outline";
@@ -98,3 +89,27 @@ function setTheme(toTheme, saveTheme=false) {
         }
     }
 }
+
+// Start
+let theme = localStorage.getItem("theme");
+const preferedColorScheme = window.matchMedia("(prefers-color-scheme: light)");
+
+if (theme == null) {
+    preferedColorScheme.addEventListener("change", (e) => {
+        handlePreferedColorSchemeChange(preferedColorScheme);
+    });
+    handlePreferedColorSchemeChange(preferedColorScheme);
+}
+else {
+    setTheme(theme);
+}
+
+// Document loaded
+window.addEventListener("DOMContentLoaded", () => {
+    if (theme == null) {
+        handlePreferedColorSchemeChange(preferedColorScheme);
+    }
+    else {
+        setTheme(theme);
+    }
+});
