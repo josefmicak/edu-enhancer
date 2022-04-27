@@ -27,7 +27,7 @@
         <article class="article flex">
             <h2 class="article-title title" title="Přihlášení">Přihlášení</h2>
             <div class="article-content">
-                <form asp-controller="Account" asp-action="TestingSignIn" method="GET">
+                <form asp-controller="Account" asp-action="TestingSignIn" method="POST">
                     <table class="article-table">
                         @{
                             if(@Model.Text != "")

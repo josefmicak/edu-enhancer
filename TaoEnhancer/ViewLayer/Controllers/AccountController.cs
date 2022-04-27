@@ -109,7 +109,7 @@ namespace ViewLayer.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> TestingSignIn(string loginEmail)
         {
