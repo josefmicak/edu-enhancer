@@ -91,6 +91,18 @@ namespace ViewLayer.Controllers
             if (!CanUserAccessPage("", -1)) { return RedirectToAction("Index", "Home", new { error = "access_denied" }); }
             int userRole = GetUserRole();
 
+            List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+            List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)> studentsByRoles = new List<(string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students)>();
+            string[] rolesTexts = new string[] { "Studenti", "Učitelé", "Správci" };
+            for (int i = 0; i < 3; i++)
+            {
+                studentsByRoles.Add((rolesTexts[i], new List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)>()));
+            }
+            foreach ((string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student in students)
+            {
+                studentsByRoles[student.role].students.Add(student);
+            }
+
             string text = "", textClass = "";
 
             switch (error)
@@ -109,8 +121,12 @@ namespace ViewLayer.Controllers
                         "Požádejte prosím správce systému, aby tento email spároval s vaším uživatelským účtem.";
                     textClass = "partiallyCorrect";
                     break;
+                case "testing_disabled_exception":
+                    text = "Přihlášení pomocí testovacího uživatele nebylo možné dokončit.\n" +
+                        "Pro přihlášení pomocí testovacího uživatele je nejprve potřeba nastavit režim pro testování.";
+                    textClass = "incorrect";
+                    break;
                 default:
-                    List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
                     if (students.Count == 0)
                     {
                         text = "Systém dosud neobsahuje žádného uživatele.\n" +
@@ -125,6 +141,7 @@ namespace ViewLayer.Controllers
                 Title = "Přihlášení",
                 HeaderMessageData = GetHeaderMessageData(),
                 UserRole = userRole,
+                StudentsByRoles = studentsByRoles,
                 Text = text,
                 TextClass = textClass,
                 SignInURL = Settings.GetSignInURL()

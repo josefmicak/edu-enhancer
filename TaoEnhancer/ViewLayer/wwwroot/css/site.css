@@ -12,6 +12,11 @@
     --color: #FFF;
     --background: #000;
     --header-background: #111E;
+    --header-text-color: #CCC;
+    --header-text-background: #222;
+    --header-text-border-color: #222;
+    --header-text-hover-color: #FFF;
+    --header-text-hover-border-color: #333;
     --article-table-border-color: #222;
     --article-table-hover-border-color: #333;
     --article-table-odd-background: #080808;
@@ -78,6 +83,11 @@
     --color: #000;
     --background: #FFF;
     --header-background: #EEEE;
+    --header-text-color: #333;
+    --header-text-background: #DDD;
+    --header-text-border-color: #DDD;
+    --header-text-hover-color: #000;
+    --header-text-hover-border-color: #CCC;
     --article-table-border-color: #DDD;
     --article-table-hover-border-color: #CCC;
     --article-table-odd-background: #F8F8F8;
@@ -324,6 +334,7 @@ select.input {
 }
 
 .header-content {
+    height: var(--header-height);
     line-height: var(--header-height);
 }
 
@@ -335,6 +346,10 @@ select.input {
 .header-left, .header-center, .header-right {
     white-space: nowrap;
     align-self: center;
+}
+
+.header-left, .header-right {
+    display: flex;
 }
 
 .header-left {
@@ -356,7 +371,29 @@ select.input {
     line-height: 3rem;
     padding-inline: 0.5em;
     padding-block: 0;
+    text-align: center;
     vertical-align: middle;
+}
+
+.header-text {
+    cursor: pointer;
+    color: var(--header-text-color);
+    font: 1.5rem monospace;
+    background: var(--header-text-background);
+    border: 1px solid var(--header-text-border-color);
+    border-radius: 1em;
+    width: calc(3rem + 2px);
+    line-height: 3rem;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    vertical-align: middle;
+    box-sizing: border-box;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+}
+.header-text:hover {
+    color: var(--header-text-hover-color);
+    border-color: var(--header-text-hover-border-color);
 }
 
 .header-title, .header-message-text {

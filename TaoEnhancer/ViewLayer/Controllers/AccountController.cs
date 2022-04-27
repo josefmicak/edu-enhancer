@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Common;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
@@ -35,7 +36,7 @@ namespace ViewLayer.Controllers
             //Check authentication response as mentioned on startup file as o.DefaultSignInScheme = "External"
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
-                return BadRequest(); // TODO: Handle this better.
+                return BadRequest();
             //Check if the redirection has been done via google or any other links
             if (authenticateResult.Principal.Identities.ToList()[0].AuthenticationType.ToLower() == "google")
             {
@@ -56,34 +57,7 @@ namespace ViewLayer.Controllers
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                         // Redirect after login
-                        StudentController studentController = new StudentController();
-                        List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
-                        if(students.Count > 0)
-                        {
-                            try
-                            {
-                                (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = studentController.LoadStudentByEmail(claimsIdentity.Claims.ToList()[2].Value);
-
-                                switch (student.role)
-                                {
-                                    case 2:
-                                        return RedirectToAction("ManageUserList", "Home");
-                                    case 1:
-                                        return RedirectToAction("TeacherMenu", "Home");
-                                    default:
-                                        return RedirectToAction("BrowseSolvedTestList", "Home", new { studentIdentifier = student.studentIdentifier });
-                                }
-                            }
-                            catch
-                            {
-                                return RedirectToAction("Index", "Home", new { error = "user_not_found_exception" });
-                            }
-                        }
-                        else
-                        {
-                            studentController.EditUser(claimsIdentity.Claims.ToList()[2].Value, "", 2);
-                            return RedirectToAction("ManageUserList", "Home");
-                        }
+                        return AfterSignInRedirect(claimsIdentity);
                     }
                 }
             }
@@ -100,6 +74,60 @@ namespace ViewLayer.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             
             return RedirectToAction("Index", "Home");
+        }
+
+        [AllowAnonymous]
+        public IActionResult AfterSignInRedirect(ClaimsIdentity claimsIdentity)
+        {
+            StudentController studentController = new StudentController();
+            List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students = studentController.LoadStudentsByEmail();
+            if (students.Count > 0)
+            {
+                try
+                {
+                    (string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email) student = studentController.LoadStudentByEmail(claimsIdentity.Claims.ToList()[2].Value);
+
+                    switch (student.role)
+                    {
+                        case 2:
+                            return RedirectToAction("ManageUserList", "Home");
+                        case 1:
+                            return RedirectToAction("TeacherMenu", "Home");
+                        default:
+                            return RedirectToAction("BrowseSolvedTestList", "Home", new { studentIdentifier = student.studentIdentifier });
+                    }
+                }
+                catch
+                {
+                    return RedirectToAction("Index", "Home", new { error = "user_not_found_exception" });
+                }
+            }
+            else
+            {
+                studentController.EditUser(claimsIdentity.Claims.ToList()[2].Value, "", 2);
+                return RedirectToAction("ManageUserList", "Home");
+            }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestingSignIn(string loginEmail)
+        {
+            if(Settings.Testing)
+            {
+                var claimsIdentity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "TestingUser")); // Unique ID Of The User
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, "Testing User")); // Full Name Of The User
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, loginEmail)); // Email Address of The User
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+                // Redirect after login
+                return AfterSignInRedirect(claimsIdentity);
+            }
+            else
+            {
+                return RedirectToAction("Index", "Home", new { error = "testing_disabled_exception" });
+            }
         }
     }
 }

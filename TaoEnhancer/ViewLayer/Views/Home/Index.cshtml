@@ -1,6 +1,8 @@
 ﻿@using Common
 @model ViewLayer.Models.IndexModel
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <header class="header">
     @{
         if(@Model.HeaderMessageData.message.Length > 0)
@@ -15,7 +17,6 @@
             <button class="header-button button button-transparent material-icons" id="themeBtn" title="Přepnout do světlého režimu" onclick="changeTheme(this)">light_mode</button>
         </div>
         <img class="header-center header-logo" title="@Model.Solution" src="~/logo.ico">
-        <!--<h1 class="header-center header-title title" title="@Model.Solution">@Model.Solution</h1>-->
     </div>
 </header>
 @{
@@ -26,45 +27,111 @@
         <article class="article flex">
             <h2 class="article-title title" title="Přihlášení">Přihlášení</h2>
             <div class="article-content">
-                <table class="article-table">
-                    @{
-                        if(@Model.Text != "")
-                        {
-                            string[] textRowSplit = @Model.Text.Split("\n");
-                            if(textRowSplit.Length > 0)
+                <form asp-controller="Account" asp-action="TestingSignIn" method="GET">
+                    <table class="article-table">
+                        @{
+                            if(@Model.Text != "")
                             {
-                                <tr>
-                                    <th class="@Model.TextClass" align="center">@textRowSplit[0]</th>
-                                </tr>
-                                for(int i = 1; i < textRowSplit.Length; i++)
+                                string[] textRowSplit = @Model.Text.Split("\n");
+                                if(textRowSplit.Length > 0)
                                 {
                                     <tr>
-                                        <td class="@Model.TextClass" align="center">@textRowSplit[1]</td>
+                                        <th class="@Model.TextClass" align="center">@textRowSplit[0]</th>
                                     </tr>
+                                    for(int i = 1; i < textRowSplit.Length; i++)
+                                    {
+                                        <tr>
+                                            <td class="@Model.TextClass" align="center">@textRowSplit[1]</td>
+                                        </tr>
+                                    }
                                 }
                             }
+
+                            if(Settings.Testing)
+                            {
+                                <tr>
+                                    <th align="center">Testovací přihlášení</th>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <div class="input-wrapper">
+                                            <select class="input" id="testingUser" name="loginEmail">
+                                                @{
+                                                    int k = 0;
+                                                    for(int i = Model.StudentsByRoles.Count - 1; i >= 0; i--)
+                                                    {
+                                                        (string roleText, List<(string loginEmail, string studentNumberIdentifier, int role, string studentIdentifier, string login, string firstName, string lastName, string email)> students) studentsByRole = Model.StudentsByRoles[i];
+                                                        if(studentsByRole.students.Count > 0)
+                                                        {
+                                                            <optgroup label="@studentsByRole.roleText (@studentsByRole.students.Count)">
+                                                                @{
+                                                                    if(i >= 1) {
+                                                                        for(int j = 0; j < studentsByRole.students.Count; j++)
+                                                                        {
+                                                                            <option value="@studentsByRole.students[j].loginEmail">Email: @studentsByRole.students[j].loginEmail</option>
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        for(int j = 0; j < studentsByRole.students.Count; j++)
+                                                                        {
+                                                                            <option value="@studentsByRole.students[j].loginEmail">Email: @studentsByRole.students[j].loginEmail, Login: @studentsByRole.students[j].login</option>
+                                                                        }
+                                                                    }
+                                                                }
+                                                            </optgroup>
+                                                            k++;
+                                                        }
+                                                    }
+                                                    if(k == 0)
+                                                    {
+                                                        <option value="">Systém dosud neobsahuje žádného uživatele.</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <input class="button" id="testingSignInBtn" title="Přihlásit se" type="submit" value="Přihlásit se">
+                                        @{
+                                            if(k == 0)
+                                            {
+                                                <script>
+                                                document.getElementById("testingUser").disabled = true;
+                                                document.getElementById("testingSignInBtn").disabled = true;
+                                                document.getElementById("testingSignInBtn").title = "Systém dosud neobsahuje žádného uživatele.";
+                                                </script>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th align="center">Přihlášení Google</th>
+                                </tr>
+                            }
                         }
-                    }
-                    <tr>
-                        <td align="center">
-                            <div id="g_id_onload"
-                                data-client_id="@Settings.GoogleSignInClientId"
-                                data-context="signin"
-                                data-ux_mode="redirect"
-                                data-login_uri="@Model.SignInURL"
-                                data-auto_prompt="false">
-                            </div>
-                            <div id="g_id_signin" class="g_id_signin"
-                                data-type="standard"
-                                data-shape="rectangular"
-                                data-theme="filled_blue"
-                                data-text="signin_with"
-                                data-size="large"
-                                data-logo_alignment="left">
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+                        <tr>
+                            <td align="center">
+                                <div id="g_id_onload"
+                                    data-client_id="@Settings.GoogleSignInClientId"
+                                    data-context="signin"
+                                    data-ux_mode="redirect"
+                                    data-login_uri="@Model.SignInURL"
+                                    data-auto_prompt="false">
+                                </div>
+                                <div id="g_id_signin" class="g_id_signin"
+                                    data-type="standard"
+                                    data-shape="rectangular"
+                                    data-theme="filled_blue"
+                                    data-text="signin_with"
+                                    data-size="large"
+                                    data-logo_alignment="left">
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
             </div>
         </article>
     </section>
