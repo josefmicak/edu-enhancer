@@ -38,7 +38,7 @@ namespace Common
                         }
                         finally { fileStream.Close(); }
                     }
-                    else { File.Delete(GetTestingDataPath()); }
+                    else { FileIO.Delete(GetTestingDataPath()); }
                 }
                 
                 return (loginEmail, role);
@@ -62,7 +62,7 @@ namespace Common
                     catch { }
                     finally { fileStream.Close(); }
                 }
-                else if (File.Exists(GetTestingDataPath())) { File.Delete(GetTestingDataPath()); }
+                else if (File.Exists(GetTestingDataPath())) { FileIO.Delete(GetTestingDataPath()); }
             }
         }
         

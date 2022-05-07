@@ -196,7 +196,7 @@ namespace ViewLayer.Controllers
             {
                 if (System.IO.File.Exists(Settings.GetStudentLoginDataPath(loginEmail)))
                 {
-                    string[] importedFileLines = System.IO.File.ReadAllLines(Settings.GetStudentLoginDataPath(loginEmail));
+                    string[] importedFileLines = FileIO.ReadAllLines(Settings.GetStudentLoginDataPath(loginEmail));
                     if (importedFileLines.Length > 0)
                     {
                         foreach (string importedFileLine in importedFileLines)
@@ -242,13 +242,13 @@ namespace ViewLayer.Controllers
         // Add / Edit user
         public void EditUser(string loginEmail, string studentNumberIdentifier, int role)
         {
-            System.IO.File.WriteAllText(Settings.GetStudentLoginDataPath(loginEmail), studentNumberIdentifier + ";" + role);
+            FileIO.WriteAllText(Settings.GetStudentLoginDataPath(loginEmail), studentNumberIdentifier + ";" + role);
         }
 
         // Delete user
         public void DeleteUser(string loginEmail)
         {
-            System.IO.File.Delete(Settings.GetStudentLoginDataPath(loginEmail));
+            FileIO.Delete(Settings.GetStudentLoginDataPath(loginEmail));
         }
     }
 }

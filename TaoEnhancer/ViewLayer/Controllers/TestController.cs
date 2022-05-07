@@ -170,7 +170,7 @@ namespace ViewLayer.Controllers
                     {
                         if (File.Exists(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdenfifier)))
                         {
-                            string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdenfifier));
+                            string[] importedFileLines = FileIO.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdenfifier));
                             foreach (string importedFileLine in importedFileLines)
                             {
                                 if (importedFileLine.Contains(';'))
@@ -249,7 +249,7 @@ namespace ViewLayer.Controllers
             {
                 string itemNameIdentifier = itemParameters[i].Item2;
                 double totalReceivedPoints = 0;
-                string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
+                string[] resultsFileLines = FileIO.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                 for (int j = 0; j < resultsFileLines.Length; j++)
                 {
                     string[] splitResultsFileLineBySemicolon = resultsFileLines[j].Split(";");
@@ -304,7 +304,7 @@ namespace ViewLayer.Controllers
             if(File.Exists(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier)))
             {
                 fileExists = true;
-                string[] negativePointsFileLines = File.ReadAllLines(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier));
+                string[] negativePointsFileLines = FileIO.ReadAllLines(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier));
                 for (int i = 0; i < negativePointsFileLines.Length; i++)
                 {
                     if (negativePointsFileLines[0] == "1")
@@ -316,7 +316,7 @@ namespace ViewLayer.Controllers
 
             if (!fileExists)
             {
-                File.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), "0");
+                FileIO.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), "0");
             }
 
             return negativePointsInTest;

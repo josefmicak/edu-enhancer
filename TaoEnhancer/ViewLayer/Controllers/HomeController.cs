@@ -450,7 +450,7 @@ namespace ViewLayer.Controllers
             {
                 textToWrite = "1";
             }
-            System.IO.File.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), textToWrite);
+            FileIO.WriteAllText(Settings.GetTestTestNegativePointsDataPath(testNameIdentifier, testNumberIdentifier), textToWrite);
 
             List<(string, string, string, string, int, bool)> itemParameters = testController.LoadItemInfo(testNameIdentifier, testNumberIdentifier);
 
@@ -591,7 +591,7 @@ namespace ViewLayer.Controllers
 
                         if (performSave)
                         {
-                            string[] importedFileLines = System.IO.File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
+                            string[] importedFileLines = FileIO.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                             string fileLinesToExport = "";
                             for (int i = 0; i < importedFileLines.Length; i++)
                             {
@@ -602,7 +602,7 @@ namespace ViewLayer.Controllers
                                 }
                                 fileLinesToExport += importedFileLines[i] + "\n";
                             }
-                            System.IO.File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), fileLinesToExport);
+                            FileIO.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), fileLinesToExport);
                         }
                     }
                 }
@@ -734,7 +734,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    string[] resultsFileLines = System.IO.File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
+                    string[] resultsFileLines = FileIO.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                     string resultsToFile = "";
 
                     for (int i = 0; i < resultsFileLines.Length; i++)
@@ -772,7 +772,7 @@ namespace ViewLayer.Controllers
                         }
                     }
 
-                    System.IO.File.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultsToFile);
+                    FileIO.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultsToFile);
                 }
             }
             (string, string, string title, string label, int amountOfSubitems) itemParameters = itemController.LoadItemParameters(testNameIdentifier, itemNameIdentifier, itemNumberIdentifier);

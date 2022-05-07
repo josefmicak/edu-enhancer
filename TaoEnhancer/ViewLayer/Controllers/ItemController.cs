@@ -48,7 +48,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            File.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultPointsToText);
+            FileIO.WriteAllText(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier), resultPointsToText);
             return errorMessageNumber;
         }
 
@@ -577,11 +577,11 @@ namespace ViewLayer.Controllers
             {
                 subquestionPointsDetermined = false;
                 string itemPointsText = responseIdentifier + ";N/A;N/A" + Environment.NewLine;
-                File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
+                FileIO.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
             }
             else
             {
-                string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
+                string[] importedFileLines = FileIO.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
@@ -1178,7 +1178,7 @@ namespace ViewLayer.Controllers
             {
                 List<double> importedReceivedPointsArray = new List<double>();
                 double totalReceivedPoints = 0;
-                string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
+                string[] resultsFileLines = FileIO.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
                 for (int i = 0; i < resultsFileLines.Length; i++)
                 {
                     string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
@@ -1467,11 +1467,11 @@ namespace ViewLayer.Controllers
             if (!fileExists)
             {
                 string itemPointsText = subitemIdentifier + ";N/A;N/A" + Environment.NewLine;
-                File.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
+                FileIO.WriteAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
             }
             else
             {
-                string[] importedFileLines = File.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
+                string[] importedFileLines = FileIO.ReadAllLines(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier));
                 for (int i = 0; i < importedFileLines.Length; i++)
                 {
                     string[] splitImportedFileLineBySemicolon = importedFileLines[i].Split(";");
@@ -1507,7 +1507,7 @@ namespace ViewLayer.Controllers
                 if (!itemRecordExists)
                 {
                     string itemPointsText = subitemIdentifier + ";N/A" + Environment.NewLine;
-                    File.AppendAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
+                    FileIO.AppendAllText(Settings.GetTestItemPointsDataPath(testNameIdentifier, itemNumberIdentifier), itemPointsText);
                 }
             }
 
@@ -1636,7 +1636,7 @@ namespace ViewLayer.Controllers
         public List<double> GetStudentsSubitemPointsList(string testNameIdentifier, string itemNameIdentifier, string deliveryExecutionIdentifier)
         {
             List<double> studentsSubitemPoints = new List<double>();
-            string[] resultsFileLines = File.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
+            string[] resultsFileLines = FileIO.ReadAllLines(Settings.GetResultResultsDataPath(testNameIdentifier, deliveryExecutionIdentifier));
             for (int i = 0; i < resultsFileLines.Length; i++)
             {
                 string[] splitResultsFileLineBySemicolon = resultsFileLines[i].Split(";");
@@ -1697,7 +1697,7 @@ namespace ViewLayer.Controllers
             {
                 if (Path.GetFileName(file) == "NegativePoints.txt")
                 {
-                    string[] negativePointsFileLines = File.ReadAllLines(file);
+                    string[] negativePointsFileLines = FileIO.ReadAllLines(file);
                     for (int i = 0; i < negativePointsFileLines.Length; i++)
                     {
                         if (negativePointsFileLines[0] == "1")
