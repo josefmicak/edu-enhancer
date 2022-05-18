@@ -42,7 +42,16 @@
         </div>
         <h1 class="header-center header-title title" title="@Model.Title">@Model.Title</h1>
         <div class="header-right">
-            <a class="header-text" id="userNameText" title="@User.Claims.ToList()[1].Value">@User.Claims.ToList()[1].Value.Split(" ")[0][0]@User.Claims.ToList()[1].Value.Split(" ")[1][0]</a>
+            @{
+                if(User.Claims.ToList().Count > 1 && User.Claims.ToList()[1].Value.Contains(" "))
+                {
+                    <a class="header-text" id="userNameText" title="@User.Claims.ToList()[1].Value" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList" asp-route-studentIdentifier="@Model.StudentIdentifier">@User.Claims.ToList()[1].Value.Split(" ")[0][0]@User.Claims.ToList()[1].Value.Split(" ")[1][0]</a>
+                }
+                else
+                {
+                    <a class="header-text" id="userNameText" title="Testing User" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList" asp-route-studentIdentifier="@Model.StudentIdentifier">TU</a>
+                }
+            }
             <a class="header-button button button-transparent material-icons g_id_signout" id="signOutBtn" title="Odhlásit se" asp-area="" asp-controller="Account" asp-action="SignOut">logout</a>
         </div>
     </div>

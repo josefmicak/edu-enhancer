@@ -2,6 +2,7 @@ using Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Net.Http.Headers;
 using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,13 +55,21 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
+app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.Lax });
 
 // Compression
 app.UseResponseCompression();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        const int durationInSeconds = 60 * 60 * 24 * 30; // 30 day cache
+        ctx.Context.Response.Headers[HeaderNames.CacheControl] =
+            "public,max-age=" + durationInSeconds;
+    }
+});
 
 // Routing
 app.UseRouting();

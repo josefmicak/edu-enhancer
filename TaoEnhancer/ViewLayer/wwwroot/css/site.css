@@ -158,6 +158,8 @@ html, body {
     height: 100%;
     min-height: 100%;
     margin: 0;
+    -webkit-transition: color 0.25s, background-color 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s;
     transition: color 0.25s, background-color 0.25s;
 }
 
@@ -178,18 +180,23 @@ button {
     font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
+    -o-text-overflow: ellipsis;
     text-overflow: ellipsis;
 }
 
 .content-width {
     max-width: var(--content-width);
     margin: 0 auto;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
 .max-content-width {
+    max-width: -webkit-max-content;
+    max-width: -moz-max-content;
     max-width: max-content;
     margin: 0 auto;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -201,6 +208,8 @@ button {
 }
 
 .input-wrapper {
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
     max-width: 100%;
 }
@@ -219,6 +228,7 @@ button {
     display: inline-block;
     text-decoration: none;
     vertical-align: middle;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -226,28 +236,40 @@ button {
     color: var(--button-color);
     background: var(--button-background);
     border: 1px solid transparent;
+    -webkit-box-shadow: var(--box-shadow) var(--button-box-shadow-color);
     box-shadow: var(--box-shadow) var(--button-box-shadow-color);
     padding-inline: 1em;
+    -webkit-transition: color 0.25s, background-color 0.25s, -webkit-box-shadow 0.25s;
+    transition: color 0.25s, background-color 0.25s, -webkit-box-shadow 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s, box-shadow 0.25s;
     transition: color 0.25s, background-color 0.25s, box-shadow 0.25s;
+    transition: color 0.25s, background-color 0.25s, box-shadow 0.25s, -webkit-box-shadow 0.25s;
 }
+
 .button:hover {
     color: var(--button-hover-color);
     background: var(--button-hover-background);
+    -webkit-box-shadow: 0 0.1em 0.4em -0.2em var(--button-hover-box-shadow-color);
     box-shadow: 0 0.1em 0.4em -0.2em var(--button-hover-box-shadow-color);
 }
+
 .button:disabled {
     cursor: default;
     color: var(--button-disabled-color);
     background: var(--button-disabled-background);
+    -webkit-box-shadow: 0 0.1em 0.4em -0.2em var(--button-disabled-box-shadow-color);
     box-shadow: 0 0.1em 0.4em -0.2em var(--button-disabled-box-shadow-color);
 }
+
 .button-transparent {
     background: transparent;
+    -webkit-box-shadow: var(--box-shadow) transparent;
     box-shadow: var(--box-shadow) transparent;
 }
 
 .button-box-sizing {
     width: 100%;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -255,36 +277,50 @@ button {
     color: var(--input-color);
     background: var(--input-background);
     border: 1px solid var(--input-border-color);
+    -webkit-box-shadow: var(--box-shadow) var(--input-box-shadow-color);
     box-shadow: var(--box-shadow) var(--input-box-shadow-color);
     padding-inline: 0.75em;
+    -webkit-transition: color 0.25s, background-color 0.25s, border-color 0.25s, -webkit-box-shadow 0.25s;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s, -webkit-box-shadow 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
     transition: color 0.25s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+    transition: color 0.25s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s, -webkit-box-shadow 0.25s;
 }
+
 .input:hover {
     color: var(--input-hover-color);
     background: var(--input-hover-background);
     border-color: var(--input-hover-border-color);
+    -webkit-box-shadow: 0 0.1em 0.4em -0.2em var(--input-hover-box-shadow-color);
     box-shadow: 0 0.1em 0.4em -0.2em var(--input-hover-box-shadow-color);
 }
+
 .input:disabled, .input[readonly] {
     cursor: default;
     color: var(--input-disabled-color);
     background: var(--input-disabled-background);
     border-color: var(--input-disabled-border-color);
+    -webkit-box-shadow: 0 0.1em 0.4em -0.2em var(--input-disabled-box-shadow-color);
     box-shadow: 0 0.1em 0.4em -0.2em var(--input-disabled-box-shadow-color);
 }
+
 select.input {
     padding-left: 0.5em;
 }
 
 .radio {
+    -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
     position: relative;
     border-radius: 50%;
     padding: 0.5em;
 }
+
 .radio:checked {
     border-color: var(--radio-checked-border-color);
 }
+
 .radio:checked:after {
     content: "";
     position: absolute;
@@ -294,12 +330,18 @@ select.input {
     border-radius: 50%;
     width: calc(100% * 2 / 3);
     height: calc(100% * 2 / 3);
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    -webkit-transition: background-color 0.25s, border-color 0.25s;
+    -o-transition: background-color 0.25s, border-color 0.25s;
     transition: background-color 0.25s, border-color 0.25s;
 }
+
 .radio:disabled:checked {
     border-color: var(--radio-disabled-checked-border-color);
 }
+
 .radio:disabled:checked:after {
     background: var(--radio-disabled-checked-background);
 }
@@ -321,15 +363,23 @@ select.input {
     right: 0;
     z-index: 1;
     background: var(--header-background);
+    -webkit-box-shadow: var(--box-shadow) var(--box-shadow-color);
     box-shadow: var(--box-shadow) var(--box-shadow-color);
+    -webkit-backdrop-filter: blur(0.25rem);
     backdrop-filter: blur(0.25rem);
+    -webkit-transition: background-color 0.25s, -webkit-box-shadow 0.25s;
+    transition: background-color 0.25s, -webkit-box-shadow 0.25s;
+    -o-transition: background-color 0.25s, box-shadow 0.25s;
     transition: background-color 0.25s, box-shadow 0.25s;
+    transition: background-color 0.25s, box-shadow 0.25s, -webkit-box-shadow 0.25s;
 }
 
 .header-content, .header-message {
     padding-inline: var(--content-padding-inline);
+    display: -ms-grid;
     display: grid;
     grid-template-areas: "left center right";
+    -ms-grid-columns: 1fr auto 1fr;
     grid-template-columns: 1fr auto 1fr;
 }
 
@@ -340,27 +390,43 @@ select.input {
 
 .header-message {
     line-height: var(--header-message-height);
+    -webkit-transition: color 0.25s, background-color 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s;
     transition: color 0.25s, background-color 0.25s;
 }
 
 .header-left, .header-center, .header-right {
     white-space: nowrap;
+    -ms-flex-item-align: center;
+    -ms-grid-row-align: center;
     align-self: center;
 }
 
 .header-left, .header-right {
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
 }
 
 .header-left {
+    -ms-grid-row: 1;
+    -ms-grid-column: 1;
     grid-area: left;
+    -ms-grid-column-align: start;
     justify-self: start;
 }
+
 .header-center {
+    -ms-grid-row: 1;
+    -ms-grid-column: 2;
     grid-area: center;
 }
+
 .header-right {
+    -ms-grid-row: 1;
+    -ms-grid-column: 3;
     grid-area: right;
+    -ms-grid-column-align: end;
     justify-self: end;
 }
 
@@ -388,9 +454,13 @@ select.input {
     text-decoration: none;
     text-align: center;
     vertical-align: middle;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
+    -webkit-transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s, border-color 0.25s;
     transition: color 0.25s, background-color 0.25s, border-color 0.25s;
 }
+
 .header-text:hover {
     color: var(--header-text-hover-color);
     border-color: var(--header-text-hover-border-color);
@@ -418,14 +488,20 @@ select.input {
     border-bottom: 1px solid transparent;
     padding-top: var(--header-height);
 }
+
 .main.main-header-message-padding {
     padding-top: calc(var(--header-height) + var(--header-message-height));
 }
 
 .section {
     margin-block: 0.5rem;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
+    -webkit-box-pack: space-evenly;
+    -ms-flex-pack: space-evenly;
     justify-content: space-evenly;
 }
 
@@ -434,8 +510,11 @@ select.input {
     margin-block: 0.25rem;
     overflow: hidden;
 }
+
 .article.flex {
     min-width: 50%;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
     flex: 1;
 }
 
@@ -455,14 +534,19 @@ select.input {
     border-spacing: 0;
     width: 100%;
     overflow: hidden;
+    -webkit-transition: border-color 0.25s;
+    -o-transition: border-color 0.25s;
     transition: border-color 0.25s;
 }
+
 .article-table:hover {
     border-color: var(--article-table-hover-border-color);
 }
 
 .article-table tr:nth-child(odd) {
     background: var(--article-table-odd-background);
+    -webkit-transition: background-color 0.25s;
+    -o-transition: background-color 0.25s;
     transition: background-color 0.25s;
 }
 
@@ -472,17 +556,23 @@ select.input {
     padding: 0.5rem;
     text-align: left;
     word-break: break-word;
+    -webkit-transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+    -o-transition: color 0.25s, background-color 0.25s, border-color 0.25s;
     transition: color 0.25s, background-color 0.25s, border-color 0.25s;
 }
+
 .article-table th[align="center"], .article-table td[align="center"] {
     text-align: center;
 }
+
 .article-table th[align="right"], .article-table td[align="right"] {
     text-align: right;
 }
+
 .article-table tr:first-child th, .article-table tr:first-child td {
     border-top-width: 0;
 }
+
 .article-table tr th:first-child, .article-table tr td:first-child {
     border-left-width: 0;
 }
@@ -492,38 +582,47 @@ select.input {
     background: var(--article-table-th-background);
     font-weight: 400;
 }
+
 .article-table th.correct, .header-message.correct {
     color: var(--article-table-th-correct-color);
     background: var(--article-table-th-correct-background);
 }
+
 .article-table th.partiallyCorrect, .header-message.partiallyCorrect {
     color: var(--article-table-th-partiallyCorrect-color);
     background: var(--article-table-th-partiallyCorrect-background);
 }
+
 .article-table th.incorrect, .header-message.incorrect {
     color: var(--article-table-th-incorrect-color);
     background: var(--article-table-th-incorrect-background);
 }
+
 .article-table th.info, .header-message.info {
     color: var(--article-table-th-info-color);
     background: var(--article-table-th-info-background);
 }
+
 .article-table th[colspan] {
     color: var(--article-table-th-colspan-color);
     background: var(--article-table-th-colspan-background);
 }
+
 .article-table th[colspan].correct {
     color: var(--article-table-th-colspan-correct-color);
     background: var(--article-table-th-colspan-correct-background);
 }
+
 .article-table th[colspan].partiallyCorrect {
     color: var(--article-table-th-colspan-partiallyCorrect-color);
     background: var(--article-table-th-colspan-partiallyCorrect-background);
 }
+
 .article-table th[colspan].incorrect {
     color: var(--article-table-th-colspan-incorrect-color);
     background: var(--article-table-th-colspan-incorrect-background);
 }
+
 .article-table th[colspan].info {
     color: var(--article-table-th-colspan-info-color);
     background: var(--article-table-th-colspan-info-background);
@@ -533,18 +632,22 @@ select.input {
     color: var(--article-table-td-color);
     background: var(--article-table-td-background);
 }
+
 .article-table td.correct {
     color: var(--article-table-td-correct-color);
     background: var(--article-table-td-correct-background);
 }
+
 .article-table td.partiallyCorrect {
     color: var(--article-table-td-partiallyCorrect-color);
     background: var(--article-table-td-partiallyCorrect-background);
 }
+
 .article-table td.incorrect {
     color: var(--article-table-td-incorrect-color);
     background: var(--article-table-td-incorrect-background);
 }
+
 .article-table td.info {
     color: var(--article-table-td-info-color);
     background: var(--article-table-td-info-background);
@@ -557,9 +660,14 @@ select.input {
 .nav ul {
     padding-left: 0;
     margin-bottom: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     grid-gap: 1rem;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
 }
 
@@ -569,6 +677,8 @@ select.input {
 
 /* Specific values */
 .justify-content-center {
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
 }
 
@@ -581,6 +691,7 @@ select.input {
     .article {
         margin-block: 0.5rem;
     }
+
     .article.flex {
         min-width: initial;
     }
