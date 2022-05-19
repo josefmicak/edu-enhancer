@@ -337,7 +337,7 @@
 
                             <tr>
                                 <td>
-                                    <input class="radio input" title="Doporučený" type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked"><label class="radio-label" title="Doporučený" for="wrongChoicePoints_recommended">Doporučený</label>
+                                    <input class="radio input" title="Doporučený" type="radio" id="wrongChoicePoints_recommended" value="wrongChoicePoints_recommended" name="wrongChoicePoints" checked="@recommendedWrongChoicePointsChecked" onchange="wrongChoicePointsRadio(this)"><label class="radio-label" title="Doporučený" for="wrongChoicePoints_recommended">Doporučený</label>
                                 </td>
                                 <td>
                                     <div class="input-wrapper">
@@ -347,11 +347,20 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_selected">Vlastní</label>
+                                    <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_selected" value="wrongChoicePoints_selected" name="wrongChoicePoints" checked="@(!recommendedWrongChoicePointsChecked)" onchange="wrongChoicePointsRadio(this)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_selected">Vlastní</label>
                                 </td>
                                 <td>
                                     <div class="input-wrapper">
-                                        <input class="input" type="number" required step="any" min="-@Model.SubquestionPoints.ToString().Replace(",",".")" max="0" onchange="limitDecimalPlaces(this, 2)" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                        @{
+                                            if(recommendedWrongChoicePointsChecked)
+                                            {
+                                                <input class="input" type="number" required step="any" min="-@Model.SubquestionPoints.ToString().Replace(",",".")" max="0" onchange="limitDecimalPlaces(this, 2)" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")" readonly>
+                                            }
+                                            else
+                                            {
+                                                <input class="input" type="number" required step="any" min="-@Model.SubquestionPoints.ToString().Replace(",",".")" max="0" onchange="limitDecimalPlaces(this, 2)" id="wrongChoicePoints_selected_points" name="selectedWrongChoicePoints" value="@selectedWrongChoicePoints.ToString().Replace(",",".")">
+                                            }
+                                        }
                                     </div>
                                 </td>
                             </tr>

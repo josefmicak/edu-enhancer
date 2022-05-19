@@ -1,4 +1,13 @@
-﻿function updatePointsInputs(correctAnswerCount, questionTypeText) {
+﻿function wrongChoicePointsRadio(el) {
+    if (el.value == "wrongChoicePoints_recommended") {
+        document.getElementById("wrongChoicePoints_selected_points").readOnly = true;
+    }
+    else {
+        document.getElementById("wrongChoicePoints_selected_points").readOnly = false;
+    }
+}
+
+function updatePointsInputs(correctAnswerCount, questionTypeText) {
     if (questionTypeText === "Seřazení pojmů") {
         correctAnswerCount = 1;
     }
