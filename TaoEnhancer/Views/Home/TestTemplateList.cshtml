@@ -1,0 +1,44 @@
+﻿@model ViewLayer.Models.TestTemplateListModel
+@using DomainModel;
+
+@{
+    ViewData["Title"] = "Správa zadání testů";
+}
+
+<div class="text-center">
+    <h1>Správa zadání testů</h1>
+    <div id="test-template-list">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor testu</th>
+                <th>Číselný identifikátor testu</th>
+                <th>Nadpis</th>
+          <!--     <th>Správa</th>--> 
+            </tr>
+            @{
+                int i = 0;
+                foreach (TestTemplate testTemplate in @Model.TestTemplates)
+                {
+                    <tr>
+                        <td>@testTemplate.testNameIdentifier</td>
+                        <td>@testTemplate.testNumberIdentifier</td>
+                        <td>@testTemplate.title</td>
+                 <!--       <td><a class="button" id="testTemplateBtn_i" title="Správa testu"
+                            asp-area="" 
+                            asp-controller="Home" 
+                            asp-action="TestTemplate" 
+                            asp-route-testNameIdentifier="testIdentifiers.Item1" 
+                            asp-route-testNumberIdentifier="testIdentifiers.Item2">Správa testu</a></td> -->
+                    </tr>
+                    i++;
+                }
+            }
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="TeacherMenu">Zpět</a>
+    </div>
+</footer>
