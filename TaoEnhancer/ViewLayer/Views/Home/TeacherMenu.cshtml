@@ -1,9 +1,11 @@
-﻿@{
-    ViewData["Title"] = "Učitel";
+﻿@model ViewLayer.Models.PageModel
+
+@{
+    ViewData["Title"] = @Model.Title;
 }
 
 <div class="text-center">
-    <h1>Učitel</h1>
+    <h1>@Model.Title</h1>
     <br>
     <a asp-action="TestTemplateList">Správa zadání testů</a>
     <br>

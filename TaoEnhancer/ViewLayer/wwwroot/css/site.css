@@ -27,10 +27,64 @@ table, th, td {
     border: 1px solid;
 }
 
+select {
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+select option {
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+img {
+    max-width: 300px;
+    max-height: 300px;
+}
+
 /*TestTemplateList.cshtml*/
 
 #test-template-list {
     position: absolute;
     left: 30%;
     top: 20%;
+}
+
+/*TestTemplate.cshtml*/
+
+#test-template {
+    position: absolute;
+    left: 20%;
+    top: 20%;
+}
+
+#question-template-list {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+}
+
+/*QuestionTemplate.cshtml*/
+
+#question-template {
+    position: absolute;
+    left: 20%;
+    top: 20%;
+}
+
+#subquestion-template {
+    position: absolute;
+    left: 45%;
+    top: 30%;
+}
+
+#subquestion-selection {
+    position: absolute;
+    left: 45%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+    width: 600px;
 }

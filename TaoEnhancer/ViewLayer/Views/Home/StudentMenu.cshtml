@@ -1,9 +1,11 @@
-﻿@{
-    ViewData["Title"] = "Student";
+﻿@model ViewLayer.Models.PageModel
+
+@{
+    ViewData["Title"] = @Model.Title;
 }
 
 <div class="text-center">
-    <h1>Student</h1>
+    <h1>@Model.Title</h1>
 </div>
 
 <footer>

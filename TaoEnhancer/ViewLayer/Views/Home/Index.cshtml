@@ -1,9 +1,11 @@
-﻿@{
-    ViewData["Title"] = "Hlavní menu";
+﻿@model ViewLayer.Models.PageModel
+
+@{
+    ViewData["Title"] = @Model.Title;
 }
 
 <div class="text-center">
-    <h1>Hlavní menu</h1>
+    <h1>@Model.Title</h1>
     <br>
     <a asp-action="TeacherMenu">Jsem učitel</a>
     <br>

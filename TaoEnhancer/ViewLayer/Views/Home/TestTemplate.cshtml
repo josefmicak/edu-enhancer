@@ -1,0 +1,66 @@
+﻿@model ViewLayer.Models.TestTemplateModel
+
+@using DomainModel;
+
+@{
+    ViewData["Title"] = @Model.Title;
+}
+
+<div class="text-center">
+    <h1>@Model.Title</h1>
+
+    <div id="test-template">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor testu</th>
+                <td>@Model.SelectedTestTemplate.TestNameIdentifier</td>
+            </tr>
+            <tr>
+                <th>Číselný identifikátor testu</th>
+                <td>@Model.SelectedTestTemplate.TestNumberIdentifier</td>
+            </tr>
+            <tr>
+                <th>Nadpis</th>
+                <td>@Model.SelectedTestTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Počet otázek</th>
+                <td>@Model.SelectedTestTemplate.QuestionTemplateList.Count</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="question-template-list">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor otázky</th>
+                <th>Číselný identifikátor otázky</th>
+                <th>Nadpis</th>
+               <th>Správa otázky</th>
+            </tr>
+            @{
+                int i = 0;
+                foreach (QuestionTemplate questionTemplate in @Model.SelectedTestTemplate.QuestionTemplateList)
+                {
+                    <tr>
+                        <td>@questionTemplate.QuestionNameIdentifier</td>
+                        <td>@questionTemplate.QuestionNumberIdentifier</td>
+                        <td>@questionTemplate.Title</td>
+                        <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
+                        asp-route-testNameIdentifier="@Model.SelectedTestTemplate.TestNameIdentifier"
+                        asp-route-testNumberIdentifier="@Model.SelectedTestTemplate.TestNumberIdentifier"
+                        asp-route-questionNameIdentifier="@Model.SelectedTestTemplate.QuestionTemplateList[i].QuestionNameIdentifier"
+                        asp-route-questionNumberIdentifier="@Model.SelectedTestTemplate.QuestionTemplateList[i].QuestionNumberIdentifier">Správa otázky</a></td>
+                    </tr>
+                    i++;
+                }
+            }
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="TestTemplateList">Zpět</a>
+    </div>
+</footer>

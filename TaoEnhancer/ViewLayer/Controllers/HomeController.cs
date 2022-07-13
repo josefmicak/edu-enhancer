@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using ViewLayer.Models;
+using DomainModel;
 
 namespace ViewLayer.Controllers
 {
     public class HomeController : Controller
     {
-        // private ItemController itemController = new ItemController();
+        private QuestionController questionController = new QuestionController();
         // private StudentController studentController = new StudentController();
         private TestController testController = new TestController();
 
@@ -19,17 +20,26 @@ namespace ViewLayer.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return View(new PageModel
+            {
+                Title = "Hlavní menu"
+            });
         }
 
         public IActionResult TeacherMenu()
         {
-            return View();
+            return View(new PageModel
+            {
+                Title = "Učitel"
+            });
         }
 
         public IActionResult StudentMenu()
         {
-            return View();
+            return View(new PageModel
+            {
+                Title = "Student"
+            });
         }
 
         public IActionResult ManageSolvedTestList()
@@ -41,7 +51,44 @@ namespace ViewLayer.Controllers
         {
             return View(new TestTemplateListModel
             {
+                Title = "Správa zadání testů",
                 TestTemplates = testController.LoadTestTemplates()
+            });
+        }
+
+        public IActionResult TestTemplate(string testNameIdentifier, string testNumberIdentifier)
+        {
+            return View(new TestTemplateModel
+            {
+                Title = "Správa zadání testu " + testNameIdentifier,
+                SelectedTestTemplate = testController.LoadTestTemplate(testNameIdentifier, testNumberIdentifier)
+            });
+        }
+
+        [HttpGet]
+        public IActionResult QuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier)
+        {
+            return View(new QuestionTemplateModel
+            {
+                Title = "Správa zadání otázky " + questionNameIdentifier,
+                SelectedQuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
+                TestNameIdentifier = testNameIdentifier,
+                TestNumberIdentifier = testNumberIdentifier,
+                SubquestionTypeTextArray = questionController.SubquestionTypeTextArray
+            });
+        }
+
+        [HttpPost]
+        public IActionResult QuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            return View(new QuestionTemplateModel
+            {
+                Title = "Správa zadání otázky " + questionNameIdentifier,
+                SelectedQuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
+                TestNameIdentifier = testNameIdentifier,
+                TestNumberIdentifier = testNumberIdentifier,
+                SubquestionTypeTextArray = questionController.SubquestionTypeTextArray,
+                SelectedSubquestionTemplate = questionController.LoadSubquestionTemplate(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier)
             });
         }
 

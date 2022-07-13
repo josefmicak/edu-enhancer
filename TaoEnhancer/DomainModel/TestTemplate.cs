@@ -2,8 +2,9 @@
 {
     public class TestTemplate
     {
-        public string testNameIdentifier { get; set; }
-        public string testNumberIdentifier { get; set; }
-        public string title { get; set; }
+        public string TestNameIdentifier { get; set; }
+        public string TestNumberIdentifier { get; set; }
+        public string Title { get; set; }
+        public List<QuestionTemplate> QuestionTemplateList { get; set; }
     }
 }

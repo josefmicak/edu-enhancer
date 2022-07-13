@@ -1,0 +1,155 @@
+﻿@model ViewLayer.Models.QuestionTemplateModel
+@using DomainModel;
+
+@{
+    ViewData["Title"] = @Model.Title;
+
+    //Model.SelectedSubquestionTemplate is null in case the user has just opened the question template without selecting the subquestion
+    //therefore we set Model.SelectedSubquestionTemplate to the first subquestion template from the list of subquestions
+    SubquestionTemplate defaultSubquestionTemplate = Model.SelectedQuestionTemplate.SubquestionTemplateList[0];
+    if(Model.SelectedSubquestionTemplate == null)
+    {
+        Model.SelectedSubquestionTemplate = defaultSubquestionTemplate;
+    }
+
+    bool singleSubquestion = true;
+    if(Model.SelectedQuestionTemplate.SubquestionTemplateList.Count > 1)
+    {
+        singleSubquestion = false;
+    }
+}
+
+<div class="text-center">
+    <h1>@Model.Title</h1>
+
+    <div id="question-template">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor otázky</th>
+                <td>@Model.SelectedQuestionTemplate.QuestionNameIdentifier</td>
+            </tr>
+            <tr>
+                <th>Číselný identifikátor otázky</th>
+                <td>@Model.SelectedQuestionTemplate.QuestionNumberIdentifier</td>
+            </tr>
+            <tr>
+                <th>Nadpis</th>
+                <td>@Model.SelectedQuestionTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Počet podotázek</th>
+                <td>@Model.SelectedQuestionTemplate.SubquestionTemplateList.Count</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="subquestion-template">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor podotázky</th>
+                <td>@Model.SelectedSubquestionTemplate.SubquestionIdentifier</td>
+            </tr>
+            <tr>
+                <th>Typ podotázky</th>
+                <td>@Model.SubquestionTypeTextArray[@Model.SelectedSubquestionTemplate.SubquestionType]</td>
+            </tr>
+            @{
+                if(@Model.SelectedSubquestionTemplate.ImageSource != "")
+                {
+                    <tr><td colspan="2"><img class="image" src="@Model.SelectedSubquestionTemplate.ImageSource"></td></tr>
+                }
+            }
+            <tr>
+                <th>Text podotázky</th>
+                <td>@Model.SelectedSubquestionTemplate.SubquestionText</td>
+            </tr>
+            <tr>
+                <th colspan="2">Možné odpovědi</th>
+            </tr>
+            @{
+                if(@Model.SelectedSubquestionTemplate.SubquestionType == 5)
+                {
+                    <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
+                }
+                else if (@Model.SelectedSubquestionTemplate.SubquestionType == 8)
+                {
+                    <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                }
+                else
+                {
+                    foreach(string possibleAnswer in @Model.SelectedSubquestionTemplate.PossibleAnswerList)
+                    {
+                        <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
+                    }
+                }
+            }
+            @{
+                if(@Model.SelectedSubquestionTemplate.CorrectAnswerList.Count > 0)
+                {
+                    <tr>
+                        <th colspan="2">Správné odpovědi</th>
+                    </tr>
+            
+                    foreach(string correctAnswer in @Model.SelectedSubquestionTemplate.CorrectAnswerList)
+                    {
+                        <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                    }
+                }
+            }
+        </table>
+    </div>
+
+    <div id="subquestion-selection">
+        <form method="POST">
+
+            <input type="hidden" value="@Model.TestNameIdentifier" name="testNameIdentifier">
+            <input type="hidden" value="@Model.TestNumberIdentifier" name="testNumberIdentifier">
+            <input type="hidden" value="@Model.SelectedQuestionTemplate.QuestionNameIdentifier" name="questionNameIdentifier">
+            <input type="hidden" value="@Model.SelectedQuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+
+            @{
+                string subquestionLabel = "";
+                if(Model.SelectedQuestionTemplate.SubquestionTemplateList.Count > 1)
+                {
+                    subquestionLabel = "Vyberte podotázku ze seznamu";
+                }
+                else
+                {
+                    subquestionLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+                }
+                <p>@subquestionLabel</p>
+            }
+
+            <select class="input" name="subquestionIdentifier" id="subquestionIdentifier" disabled="@singleSubquestion">
+                @{
+                    int i = 0;
+                    foreach(SubquestionTemplate subquestionTemplate in Model.SelectedQuestionTemplate.SubquestionTemplateList)
+                    {
+                        string shorterSubquestionText = "";
+                        if(@subquestionTemplate.SubquestionText.Length > 60)
+                        {
+                            <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@(subquestionTemplate.SubquestionText.Substring(0,60) + " ...")</option>
+                        }
+                        else
+                        {
+                            <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@subquestionTemplate.SubquestionText</option>
+                        }
+                    i++;
+                }
+            }
+            </select>
+
+            <input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat" disabled="@singleSubquestion">
+
+
+        </form>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="TestTemplate"
+        asp-route-testNameIdentifier="@Model.TestNameIdentifier" 
+        asp-route-testNumberIdentifier="@Model.TestNumberIdentifier">Zpět</a>
+    </div>
+</footer>
