@@ -2,6 +2,7 @@
 using DomainModel;
 using Common;
 using System.Xml;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace ViewLayer.Controllers
@@ -190,7 +191,7 @@ namespace ViewLayer.Controllers
             while (xmlReader.Read())
             {
                 string subquestionIdentifier = xmlReader.GetAttribute("identifier");
-                if(selectedSubquestionIdentifier == subquestionIdentifier)
+                if (selectedSubquestionIdentifier == subquestionIdentifier)
                 {
                     subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
 
@@ -227,7 +228,7 @@ namespace ViewLayer.Controllers
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
                     string subquestionIdentifier = xmlReader.GetAttribute("identifier");
-                    
+
                     //skip other subquestions
                     if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
                     {
@@ -337,7 +338,7 @@ namespace ViewLayer.Controllers
             }
         }
 
-        public string[] SubquestionTypeTextArray = { 
+        public string[] SubquestionTypeTextArray = {
         "Neznámý nebo nepodporovaný typ otázky!",
         "Seřazení pojmů",
         "Výběr z více možností; více možných správných odpovědí",
@@ -374,7 +375,7 @@ namespace ViewLayer.Controllers
             while (xmlReader.Read())
             {
                 nodeCount++;
-                if(xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
+                if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
                 {
                     var name = xmlReader.Name;
                     if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" ||
@@ -407,10 +408,10 @@ namespace ViewLayer.Controllers
                 //in subquestion types 7 and 8 it's impossible to read their identifiers before reading (at least a part) of their text
                 if (subquestionType == 7 || subquestionType == 8 || subquestionType == 9)
                 {
-                    if(xmlReader.Name == "p" && xmlReader.NodeType == XmlNodeType.Element)
+                    if (xmlReader.Name == "p" && xmlReader.NodeType == XmlNodeType.Element)
                     {
                         pTagVisited = true;
-                        if(subquestionType == 7 || subquestionType == 8)
+                        if (subquestionType == 7 || subquestionType == 8)
                         {
                             subquestionTextTemporary = xmlReader.ReadString() + "(DOPLŇTE)";
                             oldNodeCount = nodeCount;
@@ -430,7 +431,7 @@ namespace ViewLayer.Controllers
                         identifierCheck = true;
                     }
 
-                    if(identifierCheck)
+                    if (identifierCheck)
                     {
                         if (pTagVisited)
                         {
@@ -461,7 +462,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    if(xmlReader.Name == "prompt")
+                    if (xmlReader.Name == "prompt")
                     {
                         //using ReadSubtree ensures that every part of subquestion text is properly read and added
                         using (var innerReader = xmlReader.ReadSubtree())
@@ -481,7 +482,7 @@ namespace ViewLayer.Controllers
                             simpleMatchSetCounter++;
                         }
 
-                        if(simpleMatchSetCounter == 2 && xmlReader.Name == "simpleMatchSet")
+                        if (simpleMatchSetCounter == 2 && xmlReader.Name == "simpleMatchSet")
                         {
                             subquestionText += "(";
                         }
@@ -595,7 +596,7 @@ namespace ViewLayer.Controllers
 
                 if (xmlReader.Name == "img")
                 {
-                    imageSource = "https://localhost:7026/images/" + testNameIdentifier + "/items/" + questionNumberIdentifier  + "/" + xmlReader.GetAttribute("src");
+                    imageSource = "https://localhost:7026/images/" + testNameIdentifier + "/items/" + questionNumberIdentifier + "/" + xmlReader.GetAttribute("src");
                     return imageSource;
                 }
             }
@@ -642,7 +643,7 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                if(subquestionType != 4)
+                if (subquestionType != 4)
                 {
                     if (name == "simpleAssociableChoice" || name == "gapText" || name == "simpleChoice" || name == "inlineChoice")
                     {
@@ -658,7 +659,7 @@ namespace ViewLayer.Controllers
                         simpleMatchSetCounter++;
                     }
 
-                    if(name == "simpleAssociableChoice" && simpleMatchSetCounter == 1)
+                    if (name == "simpleAssociableChoice" && simpleMatchSetCounter == 1)
                     {
                         string possibleAnswer = xmlReader.ReadString();
                         possibleAnswerList.Add(possibleAnswer);
@@ -727,7 +728,7 @@ namespace ViewLayer.Controllers
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
                     string subquestionIdentifier = xmlReader.GetAttribute("identifier");
-                    if(subquestionIdentifier != selectedSubquestionIdentifier)
+                    if (subquestionIdentifier != selectedSubquestionIdentifier)
                     {
                         xmlReader.Skip();
                     }
@@ -738,7 +739,7 @@ namespace ViewLayer.Controllers
                 }
 
                 //skips the <value> tag that's not relevant to correct answers
-                if(xmlReader.Name == "outcomeDeclaration")
+                if (xmlReader.Name == "outcomeDeclaration")
                 {
                     xmlReader.Skip();
                 }
@@ -752,13 +753,13 @@ namespace ViewLayer.Controllers
 
             for (int i = 0; i < correctIdentifierList.Count; i++)
             {
-                for(int j = 0; j < answerIdentifiers.Count; j++)
+                for (int j = 0; j < answerIdentifiers.Count; j++)
                 {
                     //correct answers of these subquestion types consist of doubles (such as matching two terms)
-                    if(subquestionType == 3 || subquestionType == 4)
+                    if (subquestionType == 3 || subquestionType == 4)
                     {
                         string[] splitIdentifiersBySpace = correctIdentifierList[i].Split(" ");
-                        if(splitIdentifiersBySpace[0] == answerIdentifiers[j].Item1)
+                        if (splitIdentifiersBySpace[0] == answerIdentifiers[j].Item1)
                         {
                             if (correctAnswerList.Count <= i)
                             {
@@ -782,7 +783,7 @@ namespace ViewLayer.Controllers
                         }
                     }
                     //correct answers of this type of subquestion are entered into gaps
-                    else if(subquestionType == 9)
+                    else if (subquestionType == 9)
                     {
                         string[] splitIdentifiersBySpace = correctIdentifierList[i].Split(" ");
                         if (splitIdentifiersBySpace[0] == answerIdentifiers[j].Item1)
@@ -800,6 +801,139 @@ namespace ViewLayer.Controllers
                 }
             }
             return correctAnswerList;
+        }
+
+        /// <summary>
+        /// Returns the selected question result
+        /// </summary>
+        /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
+        /// <param name="questionTemplate">Question template of the selected question result</param>
+        /// <param name="testResultIdentifier">Identifier of the test result that the question result belongs to</param>
+        /// <param name="subquestionIdentifier">Subquestion identifier of the selected subquestion</param>
+        /// <returns>the selected question result</returns>
+        public QuestionResult LoadQuestionResult(string testNameIdentifier, QuestionTemplate questionTemplate, string testResultIdentifier, string subquestionIdentifier)
+        {
+            QuestionResult questionResult = new QuestionResult();
+            List<string> studentsAnswers = new List<string>();
+            SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+            List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
+
+            for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
+            {
+                if(subquestionIdentifier == questionTemplate.SubquestionTemplateList[i].SubquestionIdentifier)
+                {
+                    subquestionTemplate = questionTemplate.SubquestionTemplateList[i];
+                }
+            }
+
+            XmlReader xmlReader = XmlReader.Create(Settings.GetResultPath(testNameIdentifier, testResultIdentifier));
+            int gapCount = 0;
+            while (xmlReader.Read())
+            {
+                //skip other question results
+                if (xmlReader.Name == "itemResult")
+                {
+                    if (xmlReader.GetAttribute("identifier") != questionTemplate.QuestionNameIdentifier && xmlReader.GetAttribute("identifier") != null)
+                    {
+                        xmlReader.Skip();
+                    }
+
+                    if (xmlReader.NodeType == XmlNodeType.EndElement)
+                    {
+                        SubquestionResult subquestionResult = new SubquestionResult();
+                        subquestionResult.SubquestionTemplateIdentifier = subquestionIdentifier;
+                        subquestionResult.StudentsAnswerList = studentsAnswers;
+                        subquestionResults.Add(subquestionResult);
+                    }
+                }
+
+                //skip these two tags, because they include a <value> child-tag that we don't want to read
+                if (xmlReader.Name == "responseVariable")
+                {
+                    if (xmlReader.GetAttribute("identifier") != subquestionIdentifier && xmlReader.GetAttribute("identifier") != null)
+                    {
+                        xmlReader.Skip();
+                    }
+                }
+                if (xmlReader.Name == "outcomeVariable")
+                {
+                    xmlReader.Skip();
+                }
+
+                if (xmlReader.Name == "value")
+                {
+                    string studentsAnswer = xmlReader.ReadString();//this may read only the answer's identifier instead of the answer itself
+
+                    //some of the strings may include invalid characters that must be removed
+                    Regex regEx = new Regex("['<>]");
+                    studentsAnswer = regEx.Replace(studentsAnswer, "");
+                    if (studentsAnswer[0] == ' ')
+                    {
+                        studentsAnswer = studentsAnswer.Remove(0, 1);
+                    }
+
+                    if (subquestionTemplate.SubquestionType == 1 || subquestionTemplate.SubquestionType == 2 || subquestionTemplate.SubquestionType == 6 || subquestionTemplate.SubquestionType == 7)
+                    {
+                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswer);
+                    }
+                    else if(subquestionTemplate.SubquestionType == 3)
+                    {
+                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0])
+                            + " -> " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[1]);
+                    }
+                    else if (subquestionTemplate.SubquestionType == 4)
+                    {
+                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[1])
+                            + " -> " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0]);
+                    }
+                    else if (subquestionTemplate.SubquestionType == 9)
+                    {
+                        gapCount++;
+                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                        studentsAnswer = "[" + gapCount + "] - " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0]);
+                    }
+
+                    studentsAnswers.Add(studentsAnswer);
+                }
+            }
+
+            questionResult.SubquestionResultList = subquestionResults;
+
+            return questionResult;
+        }
+
+        /// <summary>
+        /// Returns the selected question result
+        /// </summary>
+        /// <returns>the selected question result</returns>
+        /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
+        /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
+        /// <param name="subquestionIdentifier">Subquestion identifier of the selected subquestion</param>
+        /// <param name="studentsAnswer">String containing identifier of student's answer</param>
+        string GetStudentsAnswerText(string testNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier, string studentsAnswer)
+        {
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            while (xmlReader.Read())
+            {
+                var name = xmlReader.Name;
+                if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" ||
+                    name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction" || name == "inlineChoiceInteraction")
+                {
+                    //skip other subquestions
+                    if (xmlReader.GetAttribute("responseIdentifier") != subquestionIdentifier)
+                    {
+                        xmlReader.Skip();
+                    }
+                }
+
+                if ((name == "simpleChoice" || name == "simpleAssociableChoice" || name == "inlineChoice" || name == "gapText") && xmlReader.GetAttribute("identifier") == studentsAnswer)
+                {
+                    return xmlReader.ReadString();
+                }
+            }
+            return null;//todo: throw exception
         }
     }
 }

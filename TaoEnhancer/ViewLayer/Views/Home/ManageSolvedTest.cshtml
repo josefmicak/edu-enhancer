@@ -1,4 +1,4 @@
-﻿@model ViewLayer.Models.TestTemplateModel
+﻿@model ViewLayer.Models.ManageSolvedTestModel
 
 @using DomainModel;
 
@@ -30,7 +30,7 @@
         </table>
     </div>
 
-    <div id="question-template-list">
+    <div id="question-result-list">
         <table>
             <tr>
                 <th>Jmenný identifikátor otázky</th>
@@ -46,21 +46,39 @@
                         <td>@questionTemplate.QuestionNameIdentifier</td>
                         <td>@questionTemplate.QuestionNumberIdentifier</td>
                         <td>@questionTemplate.Title</td>
-                        <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
+                        <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
                         asp-route-testNameIdentifier="@Model.TestTemplate.TestNameIdentifier"
                         asp-route-testNumberIdentifier="@Model.TestTemplate.TestNumberIdentifier"
                         asp-route-questionNameIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNameIdentifier"
-                        asp-route-questionNumberIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNumberIdentifier">Správa otázky</a></td>
+                        asp-route-questionNumberIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNumberIdentifier"
+                        asp-route-testResultIdentifier="@Model.TestResult.TestResultIdentifier">Správa otázky</a></td>
                     </tr>
                     i++;
                 }
             }
         </table>
     </div>
+
+    <div id="test-result">
+        <table>
+            <tr>
+                <th>Identifikátor pokusu</th>
+                <td>@Model.TestResult.TestResultIdentifier</td>
+            </tr>
+            <tr>
+                <th>Datum</th>
+                <td>@Model.TestResult.TimeStamp</td>
+            </tr>
+            <tr>
+                <th>Identifikátor studenta</th>
+                <td>@Model.TestResult.StudentIdentifier</td>
+            </tr>
+        </table>
+    </div>
 </div>
 
 <footer>
     <div class="container">
-        <a asp-action="TestTemplateList">Zpět</a>
+        <a asp-action="ManageSolvedTestList">Zpět</a>
     </div>
 </footer>

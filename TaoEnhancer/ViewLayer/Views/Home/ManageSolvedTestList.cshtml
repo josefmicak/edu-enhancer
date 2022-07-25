@@ -1,9 +1,40 @@
-﻿@{
-    ViewData["Title"] = "Správa vyřešených testů";
+﻿@model ViewLayer.Models.ManageSolvedTestListModel
+@using DomainModel;
+
+@{
+    ViewData["Title"] = @Model.Title;
 }
 
 <div class="text-center">
-    <h1>Správa vyřešených testů</h1>
+    <h1>@Model.Title</h1>
+    <div id="test-result-list">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor testu</th>
+                <th>Datum</th>
+                <th>Identifikátor pokusu</th>
+                <th>Správa</th>
+            </tr>
+            @{
+                int i = 0;
+                foreach (TestResult testResult in @Model.TestResults)
+                {
+                    <tr>
+                        <td>@testResult.TestNameIdentifier</td>
+                        <td>@testResult.TimeStamp</td>
+                        <td>@testResult.TestResultIdentifier</td>
+                        <td><a class="button" id="testResultBtn_i" title="Správa testu"
+                            asp-area="" 
+                            asp-controller="Home" 
+                            asp-action="ManageSolvedTest" 
+                            asp-route-testNameIdentifier="@testResult.TestNameIdentifier" 
+                            asp-route-testResultIdentifier="@testResult.TestResultIdentifier">Správa testu</a></td>
+                    </tr>
+                    i++;
+                }
+            }
+        </table>
+    </div>
 </div>
 
 <footer>

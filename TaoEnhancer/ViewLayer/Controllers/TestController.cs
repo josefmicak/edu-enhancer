@@ -2,6 +2,7 @@
 using DomainModel;
 using Common;
 using System.Xml;
+using System.Diagnostics;
 
 namespace ViewLayer.Controllers
 {
@@ -51,7 +52,6 @@ namespace ViewLayer.Controllers
                                 testTemplate.TestNameIdentifier = testNameIdentifier;
                                 testTemplate.TestNumberIdentifier = testNumberIdentifier;
                                 testTemplate.Title = xmlReader.GetAttribute("title");
-                                //TODO: Mozna uncomment
                                 //testTemplate.questionTemplateList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier);
                                 testTemplates.Add(testTemplate);
                             }
@@ -115,8 +115,6 @@ namespace ViewLayer.Controllers
                                     testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier);
                                     return testTemplate;
                                 }
-                                //TODO: Mozna uncomment
-                                //testTemplate.questionTemplateList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier);
                             }
                         }
                     }
@@ -126,7 +124,109 @@ namespace ViewLayer.Controllers
                     continue;
                 }
             }
-            return null;
+            return null;//todo: throw exception
+        }
+
+        /// <summary>
+        /// Returns the list of test results
+        /// </summary>
+        /// <returns>the list of test results</returns>
+        public List<TestResult> LoadTestResults()
+        {
+            List<TestResult> testResults = new List<TestResult>();
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    if (Path.GetExtension(file) == ".xml")
+                    {
+                        string timeStamp = "";
+                        string testStudentIdentifier = "";
+
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.Name == "context")
+                            {
+                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                            }
+
+                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            {
+                                timeStamp = xmlReader.GetAttribute("datestamp");
+                            }
+                        }
+                        string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                        TestResult testResult = new TestResult();
+                        testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
+                        testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
+                        testResult.StudentIdentifier = testStudentIdentifier;
+                        testResult.TimeStamp = timeStamp;
+                        testResults.Add(testResult);
+                    }
+                }
+            }
+            return testResults;
+        }
+
+        /// <summary>
+        /// Returns the selected test result
+        /// </summary>
+        /// <returns>the selected test result</returns>
+        public TestResult LoadTestResult(string testNameIdentifier, string testResultIdentifier)
+        {
+            foreach (var file in Directory.GetFiles(Settings.GetTestResultsPath(testNameIdentifier)))
+            {
+                if(Path.GetFileName(file) == "delivery_execution_" + testResultIdentifier + ".xml")
+                {
+                    string timeStamp = "";
+                    string testStudentIdentifier = "";
+
+                    XmlReader xmlReader = XmlReader.Create(file);
+                    while (xmlReader.Read())
+                    {
+                        if (xmlReader.Name == "context")
+                        {
+                            testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                        }
+
+                        if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                        {
+                            timeStamp = xmlReader.GetAttribute("datestamp");
+                        }
+                    }
+                    string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                    TestResult testResult = new TestResult();
+                    testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
+                    testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
+                    testResult.StudentIdentifier = testStudentIdentifier;
+                    testResult.TimeStamp = timeStamp;
+                    return testResult;
+                }
+            }
+            return null;//todo: throw exception
+        }
+
+        /// <summary>
+        /// Returns test number identifier based on selected test name identifier
+        /// </summary>
+        /// <returns>the test number identifier</returns>
+        public string GetTestNumberIdentifier(string testNameIdentifier)
+        {
+            if (Directory.Exists(Settings.GetTestPath(testNameIdentifier)))
+            {
+                string testNumberIdentifier = "";
+                foreach (var directory in Directory.GetDirectories(Settings.GetTestTestsPath(testNameIdentifier)))
+                {
+                    testNumberIdentifier = Path.GetFileName(directory);
+                }
+                return testNumberIdentifier;
+            }
+            else
+            {
+                return "";//todo: throw exception
+            }
         }
     }
 }

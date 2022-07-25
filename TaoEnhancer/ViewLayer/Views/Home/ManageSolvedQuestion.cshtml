@@ -1,4 +1,5 @@
-﻿@model ViewLayer.Models.QuestionTemplateModel
+﻿@model ViewLayer.Models.ManageSolvedQuestionModel
+
 @using DomainModel;
 
 @{
@@ -56,7 +57,7 @@
             @{
                 if(@Model.SubquestionTemplate.ImageSource != "")
                 {
-                        <tr><td colspan="2"><img class="image" src="@Model.SubquestionTemplate.ImageSource"></td></tr>
+                    <tr><td colspan="2"><img class="image" src="@Model.SubquestionTemplate.ImageSource"></td></tr>
                 }
             }
             <tr>
@@ -69,30 +70,30 @@
             @{
                 if(@Model.SubquestionTemplate.SubquestionType == 5)
                 {
-                        <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
+                    <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
                 }
                 else if (@Model.SubquestionTemplate.SubquestionType == 8)
                 {
-                        <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                    <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
                 }
                 else
                 {
                     foreach(string possibleAnswer in @Model.SubquestionTemplate.PossibleAnswerList)
                     {
-                            <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
+                        <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
                     }
                 }
             }
             @{
                 if(@Model.SubquestionTemplate.CorrectAnswerList.Count > 0)
                 {
-                        <tr>
-                            <th colspan="2">Správné odpovědi</th>
-                        </tr>
+                    <tr>
+                        <th colspan="2">Správné odpovědi</th>
+                    </tr>
             
                     foreach(string correctAnswer in @Model.SubquestionTemplate.CorrectAnswerList)
                     {
-                            <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                        <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
                     }
                 }
             }
@@ -106,6 +107,7 @@
             <input type="hidden" value="@Model.TestNumberIdentifier" name="testNumberIdentifier">
             <input type="hidden" value="@Model.QuestionTemplate.QuestionNameIdentifier" name="questionNameIdentifier">
             <input type="hidden" value="@Model.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+            <input type="hidden" value="@Model.TestResultIdentifier" name="testResultIdentifier">
 
             @{
                 string subquestionLabel = "";
@@ -117,7 +119,7 @@
                 {
                     subquestionLabel = "Tato otázka obsahuje pouze jednu podotázku.";
                 }
-                    <p>@subquestionLabel</p>
+                <p>@subquestionLabel</p>
             }
 
             <select class="input" name="subquestionIdentifier" id="subquestionIdentifier" disabled="@singleSubquestion">
@@ -127,11 +129,11 @@
                     {
                         if(@subquestionTemplate.SubquestionText.Length > 60)
                         {
-                                <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@(subquestionTemplate.SubquestionText.Substring(0,60) + " ...")</option>
+                            <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@(subquestionTemplate.SubquestionText.Substring(0,60) + " ...")</option>
                         }
                         else
                         {
-                                <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@subquestionTemplate.SubquestionText</option>
+                            <option id="subquestion-item-@(i+1)" value="@subquestionTemplate.SubquestionIdentifier">@subquestionTemplate.SubquestionText</option>
                         }
                     i++;
                 }
@@ -143,12 +145,33 @@
 
         </form>
     </div>
+
+    <div id="subquestion-result">
+        <p><b>Studentova odpověď</b></p>
+        @{
+            for(int j = 0; j < Model.QuestionResult.SubquestionResultList.Count; j++)
+            {
+                if(Model.QuestionResult.SubquestionResultList[j].SubquestionTemplateIdentifier == Model.SubquestionTemplate.SubquestionIdentifier)
+                {
+                    for(int k = 0; k < Model.QuestionResult.SubquestionResultList[j].StudentsAnswerList.Count; k++)
+                    {
+                        <p>@Model.QuestionResult.SubquestionResultList[j].StudentsAnswerList[k]</p>
+                    }
+                }
+            }
+
+            /*for(int j = 0; j < Model.QuestionResult.SubquestionResultList[0].StudentsAnswerList.Count; j++)
+            {
+                <p>@Model.QuestionResult.SubquestionResultList[0].StudentsAnswerList[j]</p>
+            }*/
+        }
+    </div>
 </div>
 
 <footer>
     <div class="container">
-        <a asp-action="TestTemplate"
+        <a asp-action="ManageSolvedTest"
         asp-route-testNameIdentifier="@Model.TestNameIdentifier" 
-        asp-route-testNumberIdentifier="@Model.TestNumberIdentifier">Zpět</a>
+        asp-route-testResultIdentifier="@Model.TestResultIdentifier">Zpět</a>
     </div>
 </footer>

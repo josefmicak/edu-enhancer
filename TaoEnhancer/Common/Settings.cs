@@ -22,6 +22,16 @@
             return GetPath() + GetPathSeparator() + "results";
         }
 
+        public static string GetTestResultsPath(string testNameIdentifier)
+        {
+            return GetResultsPath() + GetPathSeparator() + testNameIdentifier;
+        }
+
+        public static string GetResultPath(string testNameIdentifier, string testResultIdentifier)
+        {
+            return GetTestResultsPath(testNameIdentifier) + GetPathSeparator() + "delivery_execution_" + testResultIdentifier + ".xml";
+        }
+
         public static string GetTestPath(string testNameIdentifier)
         {
             return GetTestsPath() + GetPathSeparator() + testNameIdentifier;

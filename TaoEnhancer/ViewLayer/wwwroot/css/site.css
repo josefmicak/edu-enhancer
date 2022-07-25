@@ -88,3 +88,35 @@ img {
     border-style: solid;
     width: 600px;
 }
+
+/*ManageSolvedTestList.cshtml*/
+
+#test-result-list {
+    position: absolute;
+    left: 30%;
+    top: 20%;
+}
+
+/*ManageSolvedTest.cshtml*/
+
+#test-result {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+}
+
+#question-result-list {
+    position: absolute;
+    left: 20%;
+    top: 40%;
+}
+
+/*ManageSolvedQuestion.cshtml*/
+
+#subquestion-result {
+    position: absolute;
+    left: 20%;
+    top: 35%;
+    border: 1px;
+    border-style: solid;
+}
