@@ -9,6 +9,7 @@ namespace ViewLayer.Controllers
     public class TestController : Controller
     {
         private QuestionController questionController = new QuestionController();
+        private StudentController studentController = new StudentController();
 
         /// <summary>
         /// Returns the list of test templates
@@ -161,9 +162,52 @@ namespace ViewLayer.Controllers
                         TestResult testResult = new TestResult();
                         testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
                         testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
-                        testResult.StudentIdentifier = testStudentIdentifier;
+                        //testResult.StudentIdentifier = testStudentIdentifier;
+                        testResult.Student = studentController.LoadStudent(testStudentIdentifier);
                         testResult.TimeStamp = timeStamp;
                         testResults.Add(testResult);
+                    }
+                }
+            }
+            return testResults;
+        }
+
+        public List<TestResult> LoadTestResults(string studentIdentifier)
+        {
+            List<TestResult> testResults = new List<TestResult>();
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
+            {
+                foreach (var file in Directory.GetFiles(directory))
+                {
+                    if (Path.GetExtension(file) == ".xml")
+                    {
+                        string timeStamp = "";
+                        string testStudentIdentifier = "";
+
+                        XmlReader xmlReader = XmlReader.Create(file);
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.Name == "context")
+                            {
+                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                            }
+
+                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            {
+                                timeStamp = xmlReader.GetAttribute("datestamp");
+                            }
+                        }
+                        if(testStudentIdentifier == studentIdentifier)
+                        {
+                            string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                            TestResult testResult = new TestResult();
+                            testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
+                            testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
+                            testResult.Student = studentController.LoadStudent(testStudentIdentifier);
+                            testResult.TimeStamp = timeStamp;
+                            testResults.Add(testResult);
+                        }
                     }
                 }
             }
@@ -200,7 +244,8 @@ namespace ViewLayer.Controllers
                     TestResult testResult = new TestResult();
                     testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
                     testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
-                    testResult.StudentIdentifier = testStudentIdentifier;
+                    //testResult.StudentIdentifier = testStudentIdentifier;
+                    testResult.Student = studentController.LoadStudent(testStudentIdentifier);
                     testResult.TimeStamp = timeStamp;
                     return testResult;
                 }

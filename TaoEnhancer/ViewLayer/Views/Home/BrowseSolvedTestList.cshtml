@@ -1,0 +1,65 @@
+﻿@model ViewLayer.Models.BrowseSolvedTestListModel
+
+@using DomainModel;
+
+@{
+    ViewData["Title"] = @Model.Title;
+}
+
+<div class="text-center">
+    <h1>@Model.Title</h1>
+    <div id="test-result-list">
+        <table>
+            <tr>
+                <th>Jmenný identifikátor testu</th>
+                <th>Datum</th>
+                <th>Správa</th>
+            </tr>
+            @{
+                int i = 0;
+                foreach (TestResult testResult in @Model.TestResults)
+                {
+                    <tr>
+                        <td>@testResult.TestNameIdentifier</td>
+                        <td>@testResult.TimeStamp</td>
+                        <td><a class="button" id="testResultBtn_i" title="Zobrazit test"
+                            asp-area="" 
+                            asp-controller="Home" 
+                            asp-action="BrowseSolvedTest" 
+                            asp-route-testNameIdentifier="@testResult.TestNameIdentifier" 
+                            asp-route-testResultIdentifier="@testResult.TestResultIdentifier"
+                            asp-route-studentIdentifier="@Model.Student.StudentIdentifier">Zobrazit test</a></td>
+                    </tr>
+                    i++;
+                }
+            }
+        </table>
+    </div>
+
+    <div id="student-information">
+        <table>
+            <tr>
+                <th>Jméno</th>
+                <td>@Model.Student.FirstName @Model.Student.LastName</td>
+            </tr>
+            <tr>
+                <th>Login</th>
+                <td>@Model.Student.Login</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>@Model.Student.Email</td>
+            </tr>
+            <tr>
+                <th>Počet vyplněných testů</th>
+                <td>@Model.TestResults.Count</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="Index">Zpět</a>
+    </div>
+</footer>

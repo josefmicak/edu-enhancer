@@ -1,4 +1,6 @@
-﻿@model ViewLayer.Models.PageModel
+﻿@model ViewLayer.Models.StudentMenuModel
+
+@using DomainModel;
 
 @{
     ViewData["Title"] = @Model.Title;
@@ -6,6 +8,32 @@
 
 <div class="text-center">
     <h1>@Model.Title</h1>
+
+    <div id="student-list">
+        <table>
+            <tr>
+                <th>Jméno</th>
+                <th>Login</th>
+                <th>Identifikátor</th>
+                <th>Zvolit</th>
+            </tr>
+            @{
+                int i = 0;
+                foreach (Student student in @Model.Students)
+                {
+                    <tr>
+                        <td>@student.FirstName @student.LastName</td>
+                        <td>@student.Login</td>
+                        <td>@student.StudentIdentifier</td>
+                        <td><a class="button" id="selectStudentBtn_@i" title="Zvolit studenta" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
+                        asp-route-studentIdentifier="@student.StudentIdentifier">Zvolit studenta</a></td> 
+                    </tr>
+                    i++;
+                }
+            }
+        </table>
+    </div>
+
 </div>
 
 <footer>

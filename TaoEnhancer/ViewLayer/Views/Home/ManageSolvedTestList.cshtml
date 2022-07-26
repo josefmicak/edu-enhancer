@@ -13,6 +13,8 @@
                 <th>Jmenný identifikátor testu</th>
                 <th>Datum</th>
                 <th>Identifikátor pokusu</th>
+                <th>Jméno studenta</th>
+                <th>Login studenta</th>
                 <th>Správa</th>
             </tr>
             @{
@@ -23,6 +25,8 @@
                         <td>@testResult.TestNameIdentifier</td>
                         <td>@testResult.TimeStamp</td>
                         <td>@testResult.TestResultIdentifier</td>
+                        <td>@testResult.Student.FirstName @testResult.Student.LastName</td>
+                        <td>@testResult.Student.Login</td>
                         <td><a class="button" id="testResultBtn_i" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 

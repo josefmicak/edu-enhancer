@@ -120,3 +120,23 @@ img {
     border: 1px;
     border-style: solid;
 }
+
+/*StudentMenu.cshtml*/
+
+#student-list {
+    position: absolute;
+    left: 40%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*BrowseSolvedTestList.cshtml*/
+
+#student-information {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}

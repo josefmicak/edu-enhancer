@@ -8,7 +8,7 @@ namespace ViewLayer.Controllers
     public class HomeController : Controller
     {
         private QuestionController questionController = new QuestionController();
-        private UserController userController = new UserController();
+        private StudentController studentController = new StudentController();
         private TestController testController = new TestController();
 
         private readonly ILogger<HomeController> _logger;
@@ -31,14 +31,6 @@ namespace ViewLayer.Controllers
             return View(new PageModel
             {
                 Title = "Učitel"
-            });
-        }
-
-        public IActionResult StudentMenu()
-        {
-            return View(new PageModel
-            {
-                Title = "Student"
             });
         }
 
@@ -131,6 +123,69 @@ namespace ViewLayer.Controllers
                 Title = "Správa vyřešeného testu " + testResultIdentifier + ", otázka " + questionNumberIdentifier,
                 QuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
                 QuestionResult = questionController.LoadQuestionResult(testNameIdentifier, 
+                questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier), testResultIdentifier, subquestionIdentifier),
+                TestNameIdentifier = testNameIdentifier,
+                TestNumberIdentifier = testNumberIdentifier,
+                TestResultIdentifier = testResultIdentifier,
+                SubquestionTypeTextArray = questionController.SubquestionTypeTextArray,
+                SubquestionTemplate = questionController.LoadSubquestionTemplate(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier)
+            });
+        }
+
+        public IActionResult StudentMenu()
+        {
+            return View(new StudentMenuModel
+            {
+                Title = "Student",
+                Students = studentController.LoadStudents()
+            });
+        }
+
+        public IActionResult BrowseSolvedTestList(string studentIdentifier)
+        {
+            return View(new BrowseSolvedTestListModel
+            {
+                Title = "Prohlížení vyřešených testů",
+                TestResults = testController.LoadTestResults(studentIdentifier),
+                Student = studentController.LoadStudent(studentIdentifier)
+            });
+        }
+
+        public IActionResult BrowseSolvedTest(string testNameIdentifier, string testResultIdentifier, string studentIdentifier)
+        {
+            return View(new BrowseSolvedTestModel
+            {
+                Title = "Prohlížení vyřešeného testu " + testResultIdentifier,
+                TestResult = testController.LoadTestResult(testNameIdentifier, testResultIdentifier),
+                TestTemplate = testController.LoadTestTemplate(testNameIdentifier, testController.GetTestNumberIdentifier(testNameIdentifier))
+            });
+        }
+
+        [HttpGet]
+        public IActionResult BrowseSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier)
+        {
+            return View(new BrowseSolvedQuestionModel
+            {
+                Title = "Prohlížení vyřešeného testu " + testResultIdentifier + ", otázka " + questionNumberIdentifier,
+                QuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
+                QuestionResult = questionController.LoadQuestionResult(testNameIdentifier,
+                questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier), testResultIdentifier,
+                questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier).SubquestionTemplateList[0].SubquestionIdentifier),
+                TestNameIdentifier = testNameIdentifier,
+                TestNumberIdentifier = testNumberIdentifier,
+                TestResultIdentifier = testResultIdentifier,
+                SubquestionTypeTextArray = questionController.SubquestionTypeTextArray
+            });
+        }
+
+        [HttpPost]
+        public IActionResult BrowseSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier)
+        {
+            return View(new BrowseSolvedQuestionModel
+            {
+                Title = "Prohlížení vyřešeného testu " + testResultIdentifier + ", otázka " + questionNumberIdentifier,
+                QuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
+                QuestionResult = questionController.LoadQuestionResult(testNameIdentifier,
                 questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier), testResultIdentifier, subquestionIdentifier),
                 TestNameIdentifier = testNameIdentifier,
                 TestNumberIdentifier = testNumberIdentifier,

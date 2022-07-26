@@ -65,5 +65,10 @@
         {
             return GetTestItemPath(testNameIdentifier, itemNumberIdentifier) + GetPathSeparator() + "qti.xml";
         }
+
+        public static string GetStudentsPath()
+        {
+            return GetPath() + GetPathSeparator() + "testtakers";
+        }
     }
 }

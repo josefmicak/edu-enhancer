@@ -1,4 +1,4 @@
-﻿@model ViewLayer.Models.ManageSolvedTestModel
+﻿@model ViewLayer.Models.BrowseSolvedTestModel
 
 @using DomainModel;
 
@@ -46,12 +46,12 @@
                         <td>@questionTemplate.QuestionNameIdentifier</td>
                         <td>@questionTemplate.QuestionNumberIdentifier</td>
                         <td>@questionTemplate.Title</td>
-                        <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
+                        <td><a class="button" id="questionTemplateBtn_@i" title="Zobrazení otázky" asp-area="" asp-controller="Home" asp-action="BrowseSolvedQuestion"
                         asp-route-testNameIdentifier="@Model.TestTemplate.TestNameIdentifier"
                         asp-route-testNumberIdentifier="@Model.TestTemplate.TestNumberIdentifier"
                         asp-route-questionNameIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNameIdentifier"
                         asp-route-questionNumberIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNumberIdentifier"
-                        asp-route-testResultIdentifier="@Model.TestResult.TestResultIdentifier">Správa otázky</a></td>
+                        asp-route-testResultIdentifier="@Model.TestResult.TestResultIdentifier">Zobrazení otázky</a></td>
                     </tr>
                     i++;
                 }
