@@ -55,7 +55,7 @@ namespace ViewLayer.Controllers
         /// <param name="testNameIdentifier">Name identifier of the selected test</param>
         /// <param name="testNumberIdentifier">Number identifier of the selected test</param>
         /// <returns>the list of questions with all their parameters</returns>
-        public List<QuestionTemplate> LoadQuestionTemplates(string testNameIdentifier, string testNumberIdentifier)
+        public List<QuestionTemplate> LoadQuestionTemplates(TestTemplate testTemplate)
         {
             int i = 0;
 
@@ -63,11 +63,11 @@ namespace ViewLayer.Controllers
             List<QuestionTemplate> questionTemplatesTemp = new List<QuestionTemplate>();
 
             //a separate function LoadQuestionParameters is used here because some of the question parameters are located in the test.xml file, while others are in the qti.xml file
-            List<(string, string, string, string)> questionParameters = LoadQuestionParameters(testNameIdentifier, testNumberIdentifier);
+            List<(string, string, string, string)> questionParameters = LoadQuestionParameters(testTemplate.TestNameIdentifier, testTemplate.TestNumberIdentifier);
 
-            if (Directory.Exists(Settings.GetTestItemsPath(testNameIdentifier)))
+            if (Directory.Exists(Settings.GetTestItemsPath(testTemplate.TestNameIdentifier)))
             {
-                foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testNameIdentifier)))
+                foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testTemplate.TestNameIdentifier)))
                 {
                     foreach (var file in Directory.GetFiles(directory))
                     {
@@ -95,7 +95,8 @@ namespace ViewLayer.Controllers
                                                 questionTemplate.QuestionNameIdentifier = questionParameters[j].Item3;
                                                 questionTemplate.QuestionNumberIdentifier = questionParameters[j].Item4;
                                                 questionTemplate.Title = xmlReader.GetAttribute("title");
-                                                questionTemplate.Label = xmlReader.GetAttribute(" label");
+                                                questionTemplate.Label = xmlReader.GetAttribute("label");
+                                                questionTemplate.TestTemplate = testTemplate;
                                                 questionTemplatesTemp.Add(questionTemplate);
                                                 i++;
                                             }
@@ -135,7 +136,8 @@ namespace ViewLayer.Controllers
         /// <returns>the selected question template</returns>
         public QuestionTemplate LoadQuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier)
         {
-            List<QuestionTemplate> questionTemplatesList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier);
+            //List<QuestionTemplate> questionTemplatesList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier, null);
+            /*List<QuestionTemplate> questionTemplatesList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier, null);
 
             for (int i = 0; i < questionTemplatesList.Count; i++)
             {
@@ -145,7 +147,7 @@ namespace ViewLayer.Controllers
                     questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testNameIdentifier, questionNumberIdentifier);
                     return questionTemplate;
                 }
-            }
+            }*/
             return null;
         }
 
@@ -155,10 +157,10 @@ namespace ViewLayer.Controllers
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <returns>the list of all subquestion templates (by question template)</returns>
-        public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, string questionNumberIdentifier)
+        public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, QuestionTemplate questionTemplate)
         {
             List<SubquestionTemplate> subquestionTemplates = new List<SubquestionTemplate>();
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionTemplate.QuestionNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -167,16 +169,20 @@ namespace ViewLayer.Controllers
                     string subquestionIdentifier = xmlReader.GetAttribute("identifier");
                     subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
 
-                    int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier);
+                    int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
                     subquestionTemplate.SubquestionType = subquestionType;
 
-                    subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier);
+                    subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
 
-                    subquestionTemplate.PossibleAnswerList = GetPossibleAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
+                    subquestionTemplate.PossibleAnswerList = GetPossibleAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
 
-                    subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
+                    subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
 
-                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Count);
+                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
+
+                    subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                    
+                    subquestionTemplate.QuestionTemplate = questionTemplate;
 
                     subquestionTemplates.Add(subquestionTemplate);
                 }
@@ -204,7 +210,7 @@ namespace ViewLayer.Controllers
 
                     subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
 
-                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Count);
+                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
                 }
             }
             return subquestionTemplate;
@@ -612,7 +618,7 @@ namespace ViewLayer.Controllers
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the list of possible answers</returns>
-        public List<string> GetPossibleAnswerList(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
+        public string[] GetPossibleAnswerList(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
         {
             List<string> possibleAnswerList = new List<string>();
             int simpleMatchSetCounter = 0;//for subquestionType 4
@@ -667,7 +673,7 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            return possibleAnswerList;
+            return possibleAnswerList.ToArray();
         }
 
         /// <summary>
@@ -716,7 +722,7 @@ namespace ViewLayer.Controllers
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the list of correct answers</returns>
-        public List<string> GetCorrectAnswerList(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
+        public string[] GetCorrectAnswerList(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
         {
             List<string> correctIdentifierList = new List<string>();//identifiers of correct choices
             List<string> correctAnswerList = new List<string>();//text of correct choices
@@ -800,7 +806,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            return correctAnswerList;
+            return correctAnswerList.ToArray();
         }
 
         /// <summary>
@@ -818,13 +824,13 @@ namespace ViewLayer.Controllers
             SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
             List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
 
-            for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
+            /*for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
             {
                 if(subquestionIdentifier == questionTemplate.SubquestionTemplateList[i].SubquestionIdentifier)
                 {
                     subquestionTemplate = questionTemplate.SubquestionTemplateList[i];
                 }
-            }
+            }*/
 
             XmlReader xmlReader = XmlReader.Create(Settings.GetResultPath(testNameIdentifier, testResultIdentifier));
             int gapCount = 0;

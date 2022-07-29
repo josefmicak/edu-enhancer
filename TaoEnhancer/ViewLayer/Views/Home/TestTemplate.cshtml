@@ -1,31 +1,31 @@
-﻿@model ViewLayer.Models.TestTemplateModel
+﻿@model IEnumerable<DomainModel.QuestionTemplate>
 
 @using DomainModel;
 
 @{
-    ViewData["Title"] = @Model.Title;
+    ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
 
 <div class="text-center">
-    <h1>@Model.Title</h1>
+    <h1>Správa zadání testu @Model.First().TestTemplate.TestNameIdentifier</h1>
 
     <div id="test-template">
         <table>
             <tr>
                 <th>Jmenný identifikátor testu</th>
-                <td>@Model.TestTemplate.TestNameIdentifier</td>
+                <td>@Model.First().TestTemplate.TestNameIdentifier</td>
             </tr>
             <tr>
                 <th>Číselný identifikátor testu</th>
-                <td>@Model.TestTemplate.TestNumberIdentifier</td>
+                <td>@Model.First().TestTemplate.TestNumberIdentifier</td>
             </tr>
             <tr>
                 <th>Nadpis</th>
-                <td>@Model.TestTemplate.Title</td>
+                <td>@Model.First().TestTemplate.Title</td>
             </tr>
             <tr>
                 <th>Počet otázek</th>
-                <td>@Model.TestTemplate.QuestionTemplateList.Count</td>
+                <td>@Model.Count()</td>
             </tr>
         </table>
     </div>
@@ -33,26 +33,25 @@
     <div id="question-template-list">
         <table>
             <tr>
-                <th>Jmenný identifikátor otázky</th>
-                <th>Číselný identifikátor otázky</th>
-                <th>Nadpis</th>
+               <th>Jmenný identifikátor otázky</th>
+               <th>Číselný identifikátor otázky</th>
+               <th>Nadpis</th>
                <th>Správa otázky</th>
             </tr>
             @{
                 int i = 0;
-                foreach (QuestionTemplate questionTemplate in @Model.TestTemplate.QuestionTemplateList)
+                foreach (var item in Model)
                 {
                     <tr>
-                        <td>@questionTemplate.QuestionNameIdentifier</td>
-                        <td>@questionTemplate.QuestionNumberIdentifier</td>
-                        <td>@questionTemplate.Title</td>
+                        <td>@Html.DisplayFor(modelItem => item.QuestionNameIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.QuestionNumberIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                        asp-route-testNameIdentifier="@Model.TestTemplate.TestNameIdentifier"
-                        asp-route-testNumberIdentifier="@Model.TestTemplate.TestNumberIdentifier"
-                        asp-route-questionNameIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNameIdentifier"
-                        asp-route-questionNumberIdentifier="@Model.TestTemplate.QuestionTemplateList[i].QuestionNumberIdentifier">Správa otázky</a></td>
+                        asp-route-testNameIdentifier="@item.TestTemplate.TestNameIdentifier"
+                        asp-route-testNumberIdentifier="@item.TestTemplate.TestNumberIdentifier"
+                        asp-route-questionNameIdentifier="@item.QuestionNameIdentifier"
+                        asp-route-questionNumberIdentifier="@item.QuestionNumberIdentifier">Správa otázky</a></td>
                     </tr>
-                    i++;
                 }
             }
         </table>

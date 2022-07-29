@@ -1,12 +1,12 @@
-﻿@model ViewLayer.Models.TestTemplateListModel
-@using DomainModel;
+﻿@model IEnumerable<DomainModel.TestTemplate>
 
 @{
-    ViewData["Title"] = @Model.Title;
+    ViewData["Title"] = "Správa zadání testů";
 }
 
 <div class="text-center">
-    <h1>@Model.Title</h1>
+    <h1>Správa zadání testů</h1>
+
     <div id="test-template-list">
         <table>
             <tr>
@@ -17,24 +17,35 @@
             </tr>
             @{
                 int i = 0;
-                foreach (TestTemplate testTemplate in @Model.TestTemplates)
+                foreach (var item in Model)
                 {
                     <tr>
-                        <td>@testTemplate.TestNameIdentifier</td>
-                        <td>@testTemplate.TestNumberIdentifier</td>
-                        <td>@testTemplate.Title</td>
-                        <td><a class="button" id="testTemplateBtn_i" title="Správa testu"
+                        <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TestNumberIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td><a class="button" id="testTemplateBtn_@i" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="TestTemplate" 
-                            asp-route-testNameIdentifier="@testTemplate.TestNameIdentifier" 
-                            asp-route-testNumberIdentifier="@testTemplate.TestNumberIdentifier">Správa testu</a></td>
+                            asp-route-testNameIdentifier="@item.TestNameIdentifier" 
+                            asp-route-testNumberIdentifier="@item.TestNumberIdentifier">Správa testu</a></td>
                     </tr>
-                    i++;
                 }
             }
         </table>
     </div>
+
+    <p>@ViewBag.Message</p>
+
+    <form method="POST">
+        <input type="submit" value="Načíst testy" class="btn btn-primary" />
+        <input type="hidden" value="add" name="action">
+    </form>
+
+    <form method="POST">
+        <input type="submit" value="Smazat testy" class="btn btn-primary" />
+        <input type="hidden" value="delete" name="action">
+    </form>
 </div>
 
 <footer>

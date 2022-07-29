@@ -113,7 +113,6 @@ namespace ViewLayer.Controllers
                                     testTemplate.TestNameIdentifier = testNameIdentifier;
                                     testTemplate.TestNumberIdentifier = testNumberIdentifier;
                                     testTemplate.Title = xmlReader.GetAttribute("title");
-                                    testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier);
                                     return testTemplate;
                                 }
                             }
