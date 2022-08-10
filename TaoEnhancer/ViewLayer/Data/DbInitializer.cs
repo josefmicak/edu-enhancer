@@ -26,6 +26,26 @@ namespace ViewLayer.Data
                 return;   // DB has been seeded
             }
 
+            if (context.Students.Any())
+            {
+                return;   // DB has been seeded
+            }
+
+            if (context.TestResults.Any())
+            {
+                return;   // DB has been seeded
+            }
+
+            if (context.QuestionResults.Any())
+            {
+                return;   // DB has been seeded
+            }
+
+            if (context.SubquestionResults.Any())
+            {
+                return;   // DB has been seeded
+            }
+
             /*var testTemplates = new TestTemplate[]
             {
             new TestTemplate{TestNameIdentifier="One",TestNumberIdentifier="Two",Title="Three",QuestionTemplateList=null},

@@ -1,12 +1,12 @@
-﻿@model ViewLayer.Models.ManageSolvedTestListModel
-@using DomainModel;
+﻿@model IEnumerable<DomainModel.TestResult>
 
 @{
-    ViewData["Title"] = @Model.Title;
+    ViewData["Title"] = "Správa vyřešených testů";
 }
 
 <div class="text-center">
-    <h1>@Model.Title</h1>
+    <h1>Správa vyřešených testů</h1>
+
     <div id="test-result-list">
         <table>
             <tr>
@@ -19,26 +19,37 @@
             </tr>
             @{
                 int i = 0;
-                foreach (TestResult testResult in @Model.TestResults)
+                foreach (var item in Model)
                 {
+                    string fullName = item.Student.FullName();
                     <tr>
-                        <td>@testResult.TestNameIdentifier</td>
-                        <td>@testResult.TimeStamp</td>
-                        <td>@testResult.TestResultIdentifier</td>
-                        <td>@testResult.Student.FirstName @testResult.Student.LastName</td>
-                        <td>@testResult.Student.Login</td>
-                        <td><a class="button" id="testResultBtn_i" title="Správa testu"
+                        <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TestResultIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Student.StudentIdentifier)</td>
+                        <td><a class="button" id="manageSolvedTestBtn_@i" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="ManageSolvedTest" 
-                            asp-route-testNameIdentifier="@testResult.TestNameIdentifier" 
-                            asp-route-testResultIdentifier="@testResult.TestResultIdentifier">Správa testu</a></td>
+                            asp-route-testResultIdentifier="@item.TestResultIdentifier">Správa testu</a></td>
                     </tr>
-                    i++;
                 }
             }
         </table>
     </div>
+
+    <p>@ViewBag.Message</p>
+
+    <form method="POST">
+        <input type="submit" value="Načíst testy" class="btn btn-primary" />
+        <input type="hidden" value="add" name="action">
+    </form>
+
+    <form method="POST">
+        <input type="submit" value="Smazat testy" class="btn btn-primary" />
+        <input type="hidden" value="delete" name="action">
+    </form>
 </div>
 
 <footer>

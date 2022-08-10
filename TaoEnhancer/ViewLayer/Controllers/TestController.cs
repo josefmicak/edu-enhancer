@@ -3,13 +3,21 @@ using DomainModel;
 using Common;
 using System.Xml;
 using System.Diagnostics;
+using ViewLayer.Data;
 
 namespace ViewLayer.Controllers
 {
     public class TestController : Controller
     {
-        private QuestionController questionController = new QuestionController();
+        private readonly CourseContext _context;
+        private QuestionController questionController;
         private StudentController studentController = new StudentController();
+
+        public TestController(CourseContext context)
+        {
+            _context = context;
+            questionController = new QuestionController(context);
+        }
 
         /// <summary>
         /// Returns the list of test templates
@@ -127,6 +135,59 @@ namespace ViewLayer.Controllers
             return null;//todo: throw exception
         }
 
+        public TestTemplate LoadTestTemplate(string selectedTestNameIdentifier)
+        {
+            string subDirectory = "";
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
+            {
+                string[] splitDirectoryBySlash = directory.Split(Settings.GetPathSeparator());
+                string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+                string testNumberIdentifier = "";
+
+                try
+                {
+                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPathSeparator() + "tests"))
+                    {
+                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPathSeparator());
+                        testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                        subDirectory = directory_;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+
+                try
+                {
+                    XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
+                    while (xmlReader.Read())
+                    {
+                        if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                        {
+                            if (xmlReader.HasAttributes)
+                            {
+                                if (selectedTestNameIdentifier == testNameIdentifier)
+                                {
+                                    TestTemplate testTemplate = new TestTemplate();
+                                    testTemplate.TestNameIdentifier = testNameIdentifier;
+                                    testTemplate.TestNumberIdentifier = testNumberIdentifier;
+                                    testTemplate.Title = xmlReader.GetAttribute("title");
+                                    return testTemplate;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+            return null;//todo: throw exception
+        }
+
         /// <summary>
         /// Returns the list of test results
         /// </summary>
@@ -161,9 +222,10 @@ namespace ViewLayer.Controllers
                         TestResult testResult = new TestResult();
                         testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
                         testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
-                        //testResult.StudentIdentifier = testStudentIdentifier;
+                        testResult.TestTemplate = LoadTestTemplate(Path.GetFileName(Path.GetDirectoryName(file)));
                         testResult.Student = studentController.LoadStudent(testStudentIdentifier);
                         testResult.TimeStamp = timeStamp;
+                        //testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, LoadTestTemplate(testResult.TestNameIdentifier));
                         testResults.Add(testResult);
                     }
                 }
@@ -205,6 +267,7 @@ namespace ViewLayer.Controllers
                             testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
                             testResult.Student = studentController.LoadStudent(testStudentIdentifier);
                             testResult.TimeStamp = timeStamp;
+                           // testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, LoadTestTemplate(testResult.TestNameIdentifier));
                             testResults.Add(testResult);
                         }
                     }

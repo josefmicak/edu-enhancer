@@ -1,0 +1,92 @@
+﻿@model IEnumerable<DomainModel.QuestionResult>
+
+@{
+    ViewData["Title"] = "Správa řešení testu " + Model.First().TestResult.TestResultIdentifier;
+}
+
+<div class="text-center">
+    <h1>Správa zadání testu @Model.First().TestResult.TestResultIdentifier</h1>
+
+    <div id="test-template">
+        <h2>Parametry testu</h2>
+        <table>
+            <tr>
+                <th>Jmenný identifikátor testu</th>
+                <td>@Model.First().QuestionTemplate.TestTemplate.TestNameIdentifier</td>
+            </tr>
+            <tr>
+                <th>Číselný identifikátor testu</th>
+                <td>@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier</td>
+            </tr>
+            <tr>
+                <th>Nadpis</th>
+                <td>@Model.First().QuestionTemplate.TestTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Počet otázek</th>
+                <td>@Model.Count()</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="test-result">
+        <h2>Parametry pokusu</h2>
+        <table>
+            <tr>
+                <th>Identifikátor pokusu</th>
+                <td>@Model.First().TestResult.TestResultIdentifier</td>
+            </tr>
+            <tr>
+                <th>Číselný identifikátor testu</th>
+                <td>@Model.First().TestResult.TimeStamp</td>
+            </tr>
+            <tr>
+                <th>Jméno studenta</th>
+                <td>@Model.First().TestResult.Student.FullName()</td>
+            </tr>
+            <tr>
+                <th>Login studenta</th>
+                <td>@Model.First().TestResult.Student.Login</td>
+            </tr>
+            <tr>
+                <th>Identifikátor studenta</th>
+                <td>@Model.First().TestResult.Student.StudentIdentifier</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="question-result-list">
+        <h2>Seznam otázek</h2>
+        <table>
+            <tr>
+               <th>Jmenný identifikátor otázky</th>
+               <th>Číselný identifikátor otázky</th>
+               <th>Nadpis</th>
+               <th>Správa otázky</th>
+            </tr>
+            @{
+                int i = 0;
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNameIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNumberIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
+                        <td><a class="button" id="questionResultBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
+                        asp-route-testNameIdentifier="@item.QuestionTemplate.TestTemplate.TestNameIdentifier"
+                        asp-route-testNumberIdentifier="@item.QuestionTemplate.TestTemplate.TestNumberIdentifier"
+                        asp-route-questionNameIdentifier="@item.QuestionTemplate.QuestionNameIdentifier"
+                        asp-route-questionNumberIdentifier="@item.QuestionTemplate.QuestionNumberIdentifier"
+                        asp-route-testResultIdentifier="@Model.First().TestResult.TestResultIdentifier">Správa otázky</a></td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="ManageSolvedTestList">Zpět</a>
+    </div>
+</footer>

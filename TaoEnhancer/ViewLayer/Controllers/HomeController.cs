@@ -10,15 +10,18 @@ namespace ViewLayer.Controllers
     public class HomeController : Controller
     {
         private readonly CourseContext _context;
-        private QuestionController questionController = new QuestionController();
+        //private QuestionController questionController = new QuestionController();
+        private QuestionController questionController;
         private StudentController studentController = new StudentController();
-        private TestController testController = new TestController();
+        private TestController testController;
 
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(CourseContext context)
         {
             _context = context;
+            questionController = new QuestionController(context);
+            testController = new TestController(context);
         }
 
         public IActionResult Index()
@@ -57,40 +60,92 @@ namespace ViewLayer.Controllers
                 List<TestTemplate> testTemplates = testController.LoadTestTemplates();
                 int successCount = 0;
                 int errorCount = 0;
+
                 for (int i = 0; i < testTemplates.Count; i++)
                 {
                     try
                     {
                         TestTemplate testTemplate = testTemplates[i];
-                        _context.Add(testTemplate);
+                        _context.ChangeTracker.Clear();
+                        _context.TestTemplates.Add(testTemplate);
                         await _context.SaveChangesAsync();
-                        List<QuestionTemplate> questionTemplates = questionController.LoadQuestionTemplates(testTemplate);
-                        for (int j = 0; j < questionTemplates.Count; j++)
-                        {
-                            QuestionTemplate questionTemplate = questionTemplates[j];
-                            _context.Add(questionTemplate);
-                            await _context.SaveChangesAsync();
-                            List<SubquestionTemplate> subquestionTemplates = questionController.LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate);
-                            for (int k = 0; k < subquestionTemplates.Count; k++)
-                            {
-                                SubquestionTemplate subquestionTemplate = subquestionTemplates[k];
-                                _context.Add(subquestionTemplate);
-                                await _context.SaveChangesAsync();
-                            }
-                        }
                         successCount++;
                     }
-                    catch//todo: error log
+                    catch (Exception ex)
                     {
+                        Debug.WriteLine(ex.Message);
                         errorCount++;
                     }
                 }
-                TempData["Message"] = "Přidáno " + successCount + "testů (" + errorCount + " duplikátů nebo chyb).";
+
+                TempData["Message"] = "Přidáno " + successCount + " šablon testů (" + errorCount + " duplikátů nebo chyb).";
+                successCount = 0;
+                errorCount = 0;
+
+                for (int i = 0; i < testTemplates.Count; i++)
+                {
+                    TestTemplate testTemplate = testTemplates[i];
+                    List<QuestionTemplate> questionTemplates = questionController.LoadQuestionTemplates(testTemplate);
+                    for (int j = 0; j < questionTemplates.Count; j++)
+                    {
+                        try
+                        {
+                            QuestionTemplate questionTemplate = questionTemplates[j];
+                            _context.ChangeTracker.Clear();
+                            _context.TestTemplates.Attach(testTemplate);
+                            _context.QuestionTemplates.Add(questionTemplate);
+                            await _context.SaveChangesAsync();
+                            successCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.Message);
+                            errorCount++;
+                        }
+                    }
+                }
+
+                TempData["Message"] += "Přidáno " + successCount + " šablon otázek (" + errorCount + " duplikátů nebo chyb).";
+                successCount = 0;
+                errorCount = 0;
+
+                for (int i = 0; i < testTemplates.Count; i++)
+                {
+                    TestTemplate testTemplate = testTemplates[i];
+                    List<QuestionTemplate> questionTemplates = questionController.LoadQuestionTemplates(testTemplate);
+                    for (int j = 0; j < questionTemplates.Count; j++)
+                    {
+                        QuestionTemplate questionTemplate = questionTemplates[j];
+                        List<SubquestionTemplate> subquestionTemplates = questionController.LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate);
+                        for (int k = 0; k < subquestionTemplates.Count; k++)
+                        {
+                            try
+                            {
+                                SubquestionTemplate subquestionTemplate = subquestionTemplates[k];
+                                _context.ChangeTracker.Clear();
+                                _context.TestTemplates.Attach(testTemplate);
+                                _context.QuestionTemplates.Attach(questionTemplate);
+                                _context.SubquestionTemplates.Add(subquestionTemplate);
+                                await _context.SaveChangesAsync();
+                                successCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                errorCount++;
+                            }
+                        }
+                    }
+                }
+
+                TempData["Message"] += "Přidáno " + successCount + " šablon podotázek (" + errorCount + " duplikátů nebo chyb).";
             }
             else
             {
+                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplate");
+                _context.Database.ExecuteSqlRaw("delete from QuestionTemplate");
                 _context.Database.ExecuteSqlRaw("delete from TestTemplate");
-                TempData["Message"] = "Byly odebrány všechny existující testy.";
+                TempData["Message"] = "Byly smazány všechny existující testy.";
             }
             return RedirectToAction(nameof(TestTemplateList));
         }
@@ -101,7 +156,6 @@ namespace ViewLayer.Controllers
             View(await _context.QuestionTemplates
                 .Include(q => q.TestTemplate)
                 .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier).ToListAsync()) :
-            //View(await _context.QuestionTemplates.ToListAsync()) :
             Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
         }
 
@@ -129,53 +183,214 @@ namespace ViewLayer.Controllers
             Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
         }
 
-        /*   [HttpGet]
-           public IActionResult QuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier)
-           {
-               return View(new QuestionTemplateModel
-               {
-                   Title = "Správa zadání otázky " + questionNameIdentifier,
-                   QuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
-                   TestNameIdentifier = testNameIdentifier,
-                   TestNumberIdentifier = testNumberIdentifier,
-                   SubquestionTypeTextArray = questionController.SubquestionTypeTextArray
-               });
-           }
-
-           [HttpPost]
-           public IActionResult QuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
-           {
-               return View(new QuestionTemplateModel
-               {
-                   Title = "Správa zadání otázky " + questionNameIdentifier,
-                   QuestionTemplate = questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier),
-                   TestNameIdentifier = testNameIdentifier,
-                   TestNumberIdentifier = testNumberIdentifier,
-                   SubquestionTypeTextArray = questionController.SubquestionTypeTextArray,
-                   SubquestionTemplate = questionController.LoadSubquestionTemplate(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier)
-               });
-           }*/
-
-        public IActionResult ManageSolvedTestList()
+        public async Task<IActionResult> ManageStudentList()
         {
-            return View(new ManageSolvedTestListModel
+            if (TempData["Message"] != null)
             {
-                Title = "Správa vyřešených testů",
-                TestResults = testController.LoadTestResults()
-            });
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            return _context.Students != null ?
+            View(await _context.Students.ToListAsync()) :
+            Problem("Entity set 'CourseContext.Students'  is null.");
         }
 
-        public IActionResult ManageSolvedTest(string testNameIdentifier, string testResultIdentifier)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageStudentList(string action)
         {
-            return View(new ManageSolvedTestModel
+            if (action == "add")
             {
-                Title = "Správa vyřešeného testu " + testResultIdentifier,
-                TestResult = testController.LoadTestResult(testNameIdentifier, testResultIdentifier),
-                TestTemplate = testController.LoadTestTemplate(testNameIdentifier, testController.GetTestNumberIdentifier(testNameIdentifier))
-            });
+                List<Student> students = studentController.LoadStudents();
+
+                int successCount = 0;
+                int errorCount = 0;
+                for (int i = 0; i < students.Count; i++)
+                {
+                    try
+                    {
+                        Student student = students[i];
+                        _context.Add(student);
+                        await _context.SaveChangesAsync();
+                        successCount++;
+                    }
+                    catch(Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        errorCount++;
+                    }
+                }
+                TempData["Message"] = "Přidáno " + successCount + "studentů (" + errorCount + " duplikátů nebo chyb).";
+            }
+            else
+            {
+                _context.Database.ExecuteSqlRaw("delete from Student");
+                TempData["Message"] = "Byly smazáni všichni existující studenti.";
+            }
+            return RedirectToAction(nameof(ManageStudentList));
         }
 
-        [HttpGet]
+        public async Task<IActionResult> ManageSolvedTestList()
+        {
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            return _context.TestResults != null ?
+            View(await _context.TestResults.
+                Include(s => s.Student).
+                Include(t => t.TestTemplate).ToListAsync()) :
+            Problem("Entity set 'CourseContext.TestResults'  is null.");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageSolvedTestList(string action)
+        {
+            if (action == "add")
+            {
+                List<TestResult> testResults = testController.LoadTestResults();
+                int successCount = 0;
+                int errorCount = 0;
+                for (int i = 0; i < testResults.Count; i++)
+                {
+                    try
+                    {
+                        TestResult testResult = testResults[i];
+                        _context.ChangeTracker.Clear();
+                        _context.Students.Attach(testResult.Student);
+                        _context.TestTemplates.Attach(testResult.TestTemplate);
+                        _context.TestResults.Add(testResult);
+                        await _context.SaveChangesAsync();
+                        successCount++;
+                    }
+                    catch(Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        errorCount++;
+                    }
+                }
+
+                TempData["Message"] = "Přidáno " + successCount + " řešení testů (" + errorCount + " duplikátů nebo chyb).";
+                successCount = 0;
+                errorCount = 0;
+
+                for (int i = 0; i < testResults.Count; i++)
+                {
+                    TestResult testResult = testResults[i];
+                    List<QuestionResult> questionResults = questionController.LoadQuestionResults(testResult, testResult.TestTemplate);
+                    for (int j = 0; j < questionResults.Count; j++)
+                    {
+                        try
+                        {
+                            QuestionResult questionResult = questionResults[j];
+                            _context.ChangeTracker.Clear();
+                            _context.Students.Attach(testResult.Student);
+                            _context.QuestionTemplates.Attach(questionResult.QuestionTemplate);
+                            _context.TestResults.Attach(testResult);
+                            _context.QuestionResults.Add(questionResult);
+                            await _context.SaveChangesAsync();
+                            successCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.Message);
+                            errorCount++;
+                        }
+                    }
+                }
+
+                TempData["Message"] += "\nPřidáno " + successCount + " řešení otázek (" + errorCount + " duplikátů nebo chyb).";
+                successCount = 0;
+                errorCount = 0;
+
+                for (int i = 0; i < testResults.Count; i++)
+                {
+                    try
+                    {
+                        TestResult testResult = testResults[i];
+                        List<QuestionResult> questionResults = questionController.LoadQuestionResults(testResult, testResult.TestTemplate);
+                        for (int j = 0; j < questionResults.Count; j++)
+                        {
+                            QuestionResult questionResult = questionResults[j];
+                            List<SubquestionResult> subquestionResults = questionController.LoadSubquestionResults(questionResult);
+                            for (int k = 0; k < subquestionResults.Count; k++)
+                            {
+                                SubquestionResult subquestionResult = subquestionResults[k];
+                                _context.ChangeTracker.Clear();
+                                _context.Students.Attach(testResult.Student);
+                                _context.TestResults.Attach(testResult);
+                                _context.QuestionResults.Attach(questionResult);
+                                _context.QuestionTemplates.Attach(questionResult.QuestionTemplate);
+                                _context.SubquestionTemplates.Attach(subquestionResult.SubquestionTemplate);
+                                _context.SubquestionResults.Add(subquestionResult);
+                                await _context.SaveChangesAsync();
+                                successCount++;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        errorCount++;
+                    }
+                }
+
+                TempData["Message"] += "\nPřidáno " + successCount + " řešení podotázek (" + errorCount + " duplikátů nebo chyb).";
+            }
+            else
+            {
+                _context.Database.ExecuteSqlRaw("delete from SubquestionResult");
+                _context.Database.ExecuteSqlRaw("delete from QuestionResult");
+                _context.Database.ExecuteSqlRaw("delete from TestResult");
+                TempData["Message"] = "Byly smazány všechna existující řešení testů.";
+            }
+            return RedirectToAction(nameof(ManageSolvedTestList));
+        }
+
+        public async Task<IActionResult> ManageSolvedTest(string testResultIdentifier)
+        {
+            return _context.QuestionResults != null ?
+            View(await _context.QuestionResults
+                .Include(t => t.TestResult)
+                .Include(q => q.QuestionTemplate)
+                .Include(q => q.QuestionTemplate.TestTemplate)
+                .Include(s => s.TestResult.Student)
+                .Where(t => t.TestResultIdentifier == testResultIdentifier).ToListAsync()) :
+            Problem("Entity set 'CourseContext.QuestionResults'  is null.");
+        }
+
+        public async Task<IActionResult> ManageSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier)
+        {
+            ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
+            return _context.SubquestionResults != null ?
+            View(await _context.SubquestionResults
+                .Include(s => s.SubquestionTemplate)
+                .Include(s => s.QuestionResult)
+                .Include(s => s.QuestionResult.QuestionTemplate)
+                .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
+                //.Include(s => s.QuestionResult.TestResult)//todo: include mozna odebrat?
+                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
+            Problem("Entity set 'CourseContext.SubquestionResults' is null.");
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier)
+        {
+            ViewBag.subquestionIdentifier = subquestionIdentifier;
+            ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
+            return _context.SubquestionResults != null ?
+            View(await _context.SubquestionResults
+                .Include(s => s.SubquestionTemplate)
+                .Include(s => s.QuestionResult)
+                .Include(s => s.QuestionResult.QuestionTemplate)
+                .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
+                //.Include(s => s.QuestionResult.TestResult)//todo: include mozna odebrat?
+                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
+            Problem("Entity set 'CourseContext.SubquestionTemplates' is null.");
+        }
+
+        /*[HttpGet]
         public IActionResult ManageSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier)
         {
             return View(new ManageSolvedQuestionModel
@@ -185,13 +400,13 @@ namespace ViewLayer.Controllers
                 /*QuestionResult = questionController.LoadQuestionResult(testNameIdentifier, 
                 questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier), testResultIdentifier,
                 questionController.LoadQuestionTemplate(testNameIdentifier, testNumberIdentifier, questionNameIdentifier, questionNumberIdentifier).SubquestionTemplateList[0].SubquestionIdentifier),*/
-                TestNameIdentifier = testNameIdentifier,
-                TestNumberIdentifier = testNumberIdentifier,
-                TestResultIdentifier = testResultIdentifier,
-                SubquestionTypeTextArray = questionController.SubquestionTypeTextArray
-            });
-        }
-
+        /*  TestNameIdentifier = testNameIdentifier,
+          TestNumberIdentifier = testNumberIdentifier,
+          TestResultIdentifier = testResultIdentifier,
+          SubquestionTypeTextArray = questionController.SubquestionTypeTextArray
+      });
+  }*/
+        /*
         [HttpPost]
         public IActionResult ManageSolvedQuestion(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier)
         {
@@ -207,7 +422,7 @@ namespace ViewLayer.Controllers
                 SubquestionTypeTextArray = questionController.SubquestionTypeTextArray,
                 SubquestionTemplate = questionController.LoadSubquestionTemplate(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier)
             });
-        }
+        }*/
 
         public IActionResult StudentMenu()
         {

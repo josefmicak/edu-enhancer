@@ -4,11 +4,20 @@ using Common;
 using System.Xml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using ViewLayer.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ViewLayer.Controllers
 {
     public class QuestionController : Controller
     {
+        private readonly CourseContext _context;
+
+        public QuestionController(CourseContext context)
+        {
+            _context = context;
+        }
+
         /// <summary>
         /// Returns the list of questions with certain parameters - name/number identifiers, and test part/section they belong to from the test.xml file
         /// </summary>
@@ -211,6 +220,10 @@ namespace ViewLayer.Controllers
                     subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
 
                     subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
+
+                    subquestionTemplate.QuestionNumberIdentifier = questionNumberIdentifier;
+
+                    //subquestionTemplate.QuestionTemplate = Loa
                 }
             }
             return subquestionTemplate;
@@ -847,8 +860,8 @@ namespace ViewLayer.Controllers
                     if (xmlReader.NodeType == XmlNodeType.EndElement)
                     {
                         SubquestionResult subquestionResult = new SubquestionResult();
-                        subquestionResult.SubquestionTemplateIdentifier = subquestionIdentifier;
-                        subquestionResult.StudentsAnswerList = studentsAnswers;
+                        //subquestionResult.SubquestionTemplateIdentifier = subquestionIdentifier;
+                        subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
                         subquestionResults.Add(subquestionResult);
                     }
                 }
@@ -905,9 +918,184 @@ namespace ViewLayer.Controllers
                 }
             }
 
-            questionResult.SubquestionResultList = subquestionResults;
-
             return questionResult;
+        }
+
+        public List<SubquestionResult> LoadSubquestionResults(QuestionResult questionResult)
+        {
+            List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
+            QuestionTemplate questionTemplate = questionResult.QuestionTemplate;
+            TestTemplate testTemplate = questionTemplate.TestTemplate;
+            XmlReader xmlReader;
+            int gapCount = 0;
+
+            var subquestionTemplateList = _context.SubquestionTemplates
+                .Where(s => s.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier)
+                .Select(s => s)
+                .ToList();
+
+            for(int i = 0; i < subquestionTemplateList.Count; i++)
+            {
+                SubquestionTemplate subquestionTemplate = subquestionTemplateList[i];
+                List<string> studentsAnswers = new List<string>();
+                xmlReader = XmlReader.Create(Settings.GetResultPath(testTemplate.TestNameIdentifier, questionResult.TestResultIdentifier));
+                while (xmlReader.Read())
+                {
+                    //skip other question results
+                    if (xmlReader.Name == "itemResult")
+                    {
+                        if (xmlReader.GetAttribute("identifier") != questionTemplate.QuestionNameIdentifier && xmlReader.GetAttribute("identifier") != null)
+                        {
+                            xmlReader.Skip();
+                        }
+                    }
+
+                    if (xmlReader.Name == "responseVariable")
+                    {
+                        //skip these two tags, because they include a <value> child-tag that we don't want to read
+                        if (xmlReader.GetAttribute("identifier") != subquestionTemplate.SubquestionIdentifier && xmlReader.GetAttribute("identifier") != null)
+                        {
+                            xmlReader.Skip();
+                        }
+
+                        if (xmlReader.NodeType == XmlNodeType.EndElement)
+                        {
+                            SubquestionResult subquestionResult = new SubquestionResult();
+                            subquestionResult.TestResultIdentifier = questionResult.TestResultIdentifier;
+                            subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
+                            subquestionResult.QuestionResult = questionResult;
+                            subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                            subquestionResult.SubquestionTemplate = subquestionTemplate;
+                            subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
+                            subquestionResults.Add(subquestionResult);
+                        }
+                    }
+
+                    if (xmlReader.Name == "outcomeVariable")
+                    {
+                        xmlReader.Skip();
+                    }
+
+                    if (xmlReader.Name == "value")
+                    {
+                        string studentsAnswer = xmlReader.ReadString();//this may read only the answer's identifier instead of the answer itself
+
+                        if(studentsAnswer.Length == 0)
+                        {
+                            studentsAnswer = "Nevyplněno";
+                        }
+                        else
+                        {
+                            //some of the strings may include invalid characters that must be removed
+                            Regex regEx = new Regex("['<>]");
+                            studentsAnswer = regEx.Replace(studentsAnswer, "");
+                            if (studentsAnswer.Length > 0)
+                            {
+                                if (studentsAnswer[0] == ' ')
+                                {
+                                    studentsAnswer = studentsAnswer.Remove(0, 1);
+                                }
+                            }
+
+                            if (subquestionTemplate.SubquestionType == 1 || subquestionTemplate.SubquestionType == 2 || subquestionTemplate.SubquestionType == 6 || subquestionTemplate.SubquestionType == 7)
+                            {
+                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswer);
+                            }
+                            else if (subquestionTemplate.SubquestionType == 3)
+                            {
+                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0])
+                                    + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1]);
+                            }
+                            else if (subquestionTemplate.SubquestionType == 4)
+                            {
+                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1])
+                                    + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0]);
+                            }
+                            else if (subquestionTemplate.SubquestionType == 9)
+                            {
+                                gapCount++;
+                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
+                                studentsAnswer = "[" + gapCount + "] - " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0]);
+                            }
+                        }
+
+                        studentsAnswers.Add(studentsAnswer);
+                    }
+                }
+            }
+
+            return subquestionResults;
+        }
+
+        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate)
+        {
+            List<QuestionResult> questionResults = new List<QuestionResult>();
+            List<QuestionTemplate> questionTemplates = LoadQuestionTemplates(testTemplate);//todo: upravit po zmene datoveho modelu (sablon)
+            foreach (QuestionTemplate questionTemplate in questionTemplates)
+            {
+                QuestionResult questionResult = new QuestionResult();
+                questionResult.TestResult = testResult;
+                questionResult.QuestionTemplate = questionTemplate;
+                questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
+                questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                questionResults.Add(questionResult);
+            }
+            return questionResults;
+        }
+
+        public TestTemplate LoadTestTemplate(string selectedTestNameIdentifier)
+        {
+            string subDirectory = "";
+
+            foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
+            {
+                string[] splitDirectoryBySlash = directory.Split(Settings.GetPathSeparator());
+                string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+                string testNumberIdentifier = "";
+
+                try
+                {
+                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPathSeparator() + "tests"))
+                    {
+                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPathSeparator());
+                        testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                        subDirectory = directory_;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+
+                try
+                {
+                    XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
+                    while (xmlReader.Read())
+                    {
+                        if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                        {
+                            if (xmlReader.HasAttributes)
+                            {
+                                if (selectedTestNameIdentifier == testNameIdentifier)
+                                {
+                                    TestTemplate testTemplate = new TestTemplate();
+                                    testTemplate.TestNameIdentifier = testNameIdentifier;
+                                    testTemplate.TestNumberIdentifier = testNumberIdentifier;
+                                    testTemplate.Title = xmlReader.GetAttribute("title");
+                                    return testTemplate;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+            return null;//todo: throw exception
         }
 
         /// <summary>

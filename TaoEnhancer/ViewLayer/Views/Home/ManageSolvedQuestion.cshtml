@@ -1,1 +1,178 @@
-﻿
+﻿@model IEnumerable<DomainModel.SubquestionResult>
+
+@using DomainModel;
+
+@{
+    SubquestionResult subquestionResult = new SubquestionResult();
+    if(ViewBag.subquestionIdentifier == null)
+    {
+        subquestionResult = @Model.First();
+    }
+    else
+    {
+        foreach (var item in Model)
+        {
+            if(item.SubquestionIdentifier == ViewBag.subquestionIdentifier)
+            {
+                subquestionResult = item;
+                break;
+            }
+        }
+        //todo: throw exception (podotazka nenalezena)
+    }
+    SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+
+    ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionNumberIdentifier;
+
+    bool singleSubquestion = true;
+    if(Model.Count() > 1)
+    {
+        singleSubquestion = false;
+    }
+}
+
+<div class="text-center">
+    <h1>Správa vyřešené otázky @subquestionResult.QuestionNumberIdentifier</h1>
+
+    <div id="question-template">
+        <h2>Parametry otázky</h2>
+        <table>
+            <tr>
+                <th>Jmenný identifikátor otázky</th>
+                <td>@Model.First().QuestionResult.QuestionTemplate.QuestionNameIdentifier</td>
+            </tr>
+            <tr>
+                <th>Číselný identifikátor otázky</th>
+                <td>@Model.First().QuestionResult.QuestionTemplate.QuestionNumberIdentifier</td>
+            </tr>
+            <tr>
+                <th>Nadpis</th>
+                <td>@Model.First().QuestionResult.QuestionTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Počet podotázek</th>
+                <td>@Model.Count()</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="subquestion-template">
+        <h2>Parametry podotázky</h2>
+        <table>
+            <tr>
+                <th>Jmenný identifikátor podotázky</th>
+                <td>@subquestionTemplate.SubquestionIdentifier</td>
+            </tr>
+            <tr>
+                <th>Typ podotázky</th>
+                <td>@ViewBag.SubquestionTypeTextArray[@subquestionTemplate.SubquestionType]</td>
+            </tr>
+            @{
+                if(subquestionTemplate.ImageSource != "")
+                {
+                    <tr><td colspan="2"><img class="image" src="@subquestionTemplate.ImageSource"></td></tr>
+                }
+            }
+            <tr>
+                <th>Text podotázky</th>
+                <td>@subquestionTemplate.SubquestionText</td>
+            </tr>
+            <tr>
+                <th colspan="2">Možné odpovědi</th>
+            </tr>
+            @{
+                if(@subquestionTemplate.SubquestionType == 5)
+                {
+                    <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
+                }
+                else if (@subquestionTemplate.SubquestionType == 8)
+                {
+                    <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                }
+                else
+                {
+                    foreach(string possibleAnswer in @subquestionTemplate.PossibleAnswerList)
+                    {
+                        <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
+                    }
+                }
+            }
+            @{
+                if(@subquestionTemplate.CorrectAnswerList.Length > 0)
+                {
+                    <tr>
+                        <th colspan="2">Správné odpovědi</th>
+                    </tr>
+            
+                    foreach(string correctAnswer in @subquestionTemplate.CorrectAnswerList)
+                    {
+                        <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                    }
+                }
+            }
+        </table>
+    </div>
+
+    <div id="subquestion-selection">
+        <h2>Výběr podotázky</h2>
+        <form method="POST">
+            <!--todo: mozna neni nutne posilat vsechny tyto hodnoty-->
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.TestTemplate.TestNameIdentifier" name="testNameIdentifier">
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNameIdentifier" name="questionNameIdentifier">
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+
+            @{
+                string subquestionLabel = "";
+                if(Model.Count() > 1)
+                {
+                    subquestionLabel = "Vyberte podotázku ze seznamu";
+                }
+                else
+                {
+                    subquestionLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+                }
+                <p>@subquestionLabel</p>
+            }
+
+            <select class="input" name="subquestionIdentifier" id="subquestionIdentifier" disabled="@singleSubquestion">
+                @{
+                    int i = 0;
+                    foreach (var item in Model)
+                    {
+                        if(item.SubquestionTemplate.SubquestionText.Length > 60)
+                        {
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@(item.SubquestionTemplate.SubquestionText.Substring(0,60) + " ...")</option>
+                        }
+                        else
+                        {
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@item.SubquestionTemplate.SubquestionText</option>
+                        }
+                        i++;
+                    }
+                }
+            }
+            </select>
+
+            <input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat" disabled="@singleSubquestion">
+
+        </form>
+    </div>
+
+    <div id="subquestion-result">
+        <h2>Studentova odpověď</h2>
+        @{
+            foreach(var answer in subquestionResult.StudentsAnswerList)
+            {
+                <p>@answer</p>
+            }
+        }
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="ManageSolvedTest"
+        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a>
+    </div>
+</footer>

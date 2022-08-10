@@ -2,7 +2,11 @@
 {
     public class SubquestionResult
     {
-        public string SubquestionTemplateIdentifier { get; set; }
-        public List<string> StudentsAnswerList { get; set; }
+        public string TestResultIdentifier { get; set; }
+        public string QuestionNumberIdentifier { get; set; }
+        public string SubquestionIdentifier { get; set; }
+        public SubquestionTemplate SubquestionTemplate { get; set; }
+        public QuestionResult QuestionResult { get; set; }
+        public string[] StudentsAnswerList { get; set; }
     }
 }
