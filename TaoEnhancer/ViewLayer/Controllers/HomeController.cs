@@ -101,6 +101,28 @@ namespace ViewLayer.Controllers
             Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> TestTemplate(string testNumberIdentifier, string negativePoints)
+        {
+            string? message = null;
+            //the teacher is changing negative points setting for the test template
+            var testTemplate = _context.TestTemplates.FirstOrDefault(t => t.TestNumberIdentifier == testNumberIdentifier);
+            if(testTemplate != null)
+            {
+                testTemplate.NegativePoints = negativePoints;
+                message = "Změny úspěšně uloženy.";
+                await _context.SaveChangesAsync();
+            }
+
+            ViewBag.Message = message;
+            return _context.QuestionTemplates != null ?
+            View(await _context.QuestionTemplates
+                .Include(q => q.TestTemplate)
+                .Include(q => q.SubquestionTemplateList)
+                .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier).ToListAsync()) :
+            Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
+        }
+
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier)
         {
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
@@ -123,7 +145,7 @@ namespace ViewLayer.Controllers
             //the teacher is changing points of the subquestion
             if (subquestionPoints != null)
             {
-                var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(item => item.QuestionNumberIdentifier == questionNumberIdentifier && item.SubquestionIdentifier == subquestionIdentifier);
+                var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier);
                 if(subquestionTemplate != null)
                 {
                     if (subquestionPoints == null)
@@ -286,7 +308,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string studentsPoints, string subquestionPoints)
+        public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string studentsPoints, string subquestionPoints, string negativePoints)
         {
             if(studentsPoints != null)
             {
@@ -319,6 +341,10 @@ namespace ViewLayer.Controllers
                     else if (Convert.ToDouble(studentsPoints) < Convert.ToDouble(subquestionPoints) * (-1))
                     {
                         message = "Chyba: příliš nízký počet bodů. Nejnížší počet bodů, které může za tuto podotázku student obdržet, je -" + subquestionPoints + ".";
+                    }
+                    else if(negativePoints == "negativePoints_no" && (Convert.ToDouble(studentsPoints) < 0))
+                    {
+                        message = "Chyba: v tomto testu nemůže student za podotázku obdržet záporný počet bodů. Změnu je možné provést v nastavení šablony testu.";
                     }
                     else
                     {

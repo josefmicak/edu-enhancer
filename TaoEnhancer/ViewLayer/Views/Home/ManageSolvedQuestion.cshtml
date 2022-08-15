@@ -21,6 +21,7 @@
         //todo: throw exception (podotazka nenalezena)
     }
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+    string negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 
     ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionNumberIdentifier;
 
@@ -71,6 +72,10 @@
         {
             studentsQuestionPoints += item.StudentsPoints;
         }
+    }
+    if(negativePoints == "enabledForQuestion" && studentsQuestionPoints < 0)
+    {
+        studentsQuestionPoints = 0;
     }
     if(!studentsQuestionPointsDetermined)
     {
@@ -231,6 +236,7 @@
             <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionPoints" name="subquestionPoints">
+            <input type="hidden" value="@negativePoints" name="negativePoints">
 
             <p>Počet bodů získaných studentem: <input class="input" id="students-points" required name="studentsPoints" onchange="limitDecimalPlaces(this, 2)" value="@subquestionResult.StudentsPoints.ToString()"></p>
             <input class="button" id="setStudentsPointsBtn" title="Uložit" type="submit" value="Uložit">

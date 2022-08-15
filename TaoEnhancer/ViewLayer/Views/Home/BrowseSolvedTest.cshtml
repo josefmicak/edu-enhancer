@@ -6,6 +6,7 @@
     bool studentsTestPointsDetermined = true;
     double? studentsTestPoints = 0;
     string studentsTestPointsString = "";
+    string negativePoints = Model.First().QuestionTemplate.TestTemplate.NegativePoints;
 
     double? testPoints = 0;
 
@@ -83,6 +84,10 @@
                     }
                     else
                     {
+                        if(negativePoints == "enabledForQuestion" && studentsQuestionPoints < 0)
+                        {
+                            studentsQuestionPoints = 0;
+                        }
                         studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
                     }
 
@@ -107,6 +112,10 @@
         }
         else
         {
+            if(negativePoints == "enabledForQuestion" && studentsTestPoints < 0)
+            {
+                studentsTestPoints = 0;
+            }
             studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
         }
     }

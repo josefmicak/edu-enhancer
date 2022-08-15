@@ -8,6 +8,7 @@ namespace DomainModel
         [Key]
         public string TestNumberIdentifier { get; set; }
         public string Title { get; set; }
+        public string NegativePoints { get; set; } = "disabled";
         public ICollection<QuestionTemplate> QuestionTemplateList { get; set; }
     }
 }

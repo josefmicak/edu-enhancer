@@ -6,11 +6,24 @@
     bool testPointsDetermined = true;
     double? testPoints = 0;
     string testPointsString = "";
+
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
 
 <div class="text-center">
     <h1>Správa zadání testu @Model.First().TestTemplate.TestNameIdentifier</h1>
+
+    <div id="negative-points">
+        <h2>Záporné body</h2>
+        <form method="POST">
+            <p>@ViewBag.Message</p>
+            <input type="hidden" value="@Model.First().TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
+            <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="disabled" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
+            <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="enabledForQuestion" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
+            <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="enabled" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
+            <p><input class="button" id="setNegativePointsBtn" title="Uložit" type="submit" value="Uložit"></p>
+        </form>
+    </div>
 
     <div id="question-template-list">
         <h2>Seznam otázek</h2>
@@ -70,6 +83,26 @@
     else
     {
         testPointsString = testPoints.ToString();
+    }
+
+    string negativePoints = Model.First().TestTemplate.NegativePoints;
+    if(negativePoints == "enabled")
+    {
+        <script>
+        document.getElementById("negativePointsEnabled").checked = true;
+        </script>
+    }
+    else if(negativePoints == "enabledForQuestion")
+    {
+        <script>
+        document.getElementById("negativePointsEnabledForQuestion").checked = true;
+        </script>
+    }
+    else if(negativePoints == "disabled")
+    {
+        <script>
+        document.getElementById("negativePointsDisabled").checked = true;
+        </script>
     }
 }
 
