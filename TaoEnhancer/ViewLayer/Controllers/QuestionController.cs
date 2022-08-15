@@ -106,6 +106,7 @@ namespace ViewLayer.Controllers
                                                 questionTemplate.Title = xmlReader.GetAttribute("title");
                                                 questionTemplate.Label = xmlReader.GetAttribute("label");
                                                 questionTemplate.TestTemplate = testTemplate;
+                                                questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate);
                                                 questionTemplatesTemp.Add(questionTemplate);
                                                 i++;
                                             }
@@ -136,35 +137,9 @@ namespace ViewLayer.Controllers
         }
 
         /// <summary>
-        /// Returns the selected question template
-        /// </summary>
-        /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
-        /// <param name="testNumberIdentifier">Number identifier of the test that the selected question belongs to</param>
-        /// <param name="questionNameIdentifier">Name identifier of the selected question</param>
-        /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
-        /// <returns>the selected question template</returns>
-        public QuestionTemplate LoadQuestionTemplate(string testNameIdentifier, string testNumberIdentifier, string questionNameIdentifier, string questionNumberIdentifier)
-        {
-            //List<QuestionTemplate> questionTemplatesList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier, null);
-            /*List<QuestionTemplate> questionTemplatesList = LoadQuestionTemplates(testNameIdentifier, testNumberIdentifier, null);
-
-            for (int i = 0; i < questionTemplatesList.Count; i++)
-            {
-                QuestionTemplate questionTemplate = questionTemplatesList[i];
-                if (questionNameIdentifier == questionTemplate.QuestionNameIdentifier && questionNumberIdentifier == questionTemplate.QuestionNumberIdentifier)
-                {
-                    questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testNameIdentifier, questionNumberIdentifier);
-                    return questionTemplate;
-                }
-            }*/
-            return null;
-        }
-
-        /// <summary>
         /// Returns the list of all subquestion templates that are included in the selected question
         /// </summary>
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
-        /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <returns>the list of all subquestion templates (by question template)</returns>
         public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, QuestionTemplate questionTemplate)
         {
@@ -197,36 +172,6 @@ namespace ViewLayer.Controllers
                 }
             }
             return subquestionTemplates;
-        }
-
-        public SubquestionTemplate LoadSubquestionTemplate(string testNameIdentifier, string questionNumberIdentifier, string selectedSubquestionIdentifier)
-        {
-            SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
-            while (xmlReader.Read())
-            {
-                string subquestionIdentifier = xmlReader.GetAttribute("identifier");
-                if (selectedSubquestionIdentifier == subquestionIdentifier)
-                {
-                    subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
-
-                    int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier);
-                    subquestionTemplate.SubquestionType = subquestionType;
-
-                    subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier);
-
-                    subquestionTemplate.PossibleAnswerList = GetPossibleAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
-
-                    subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType);
-
-                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
-
-                    subquestionTemplate.QuestionNumberIdentifier = questionNumberIdentifier;
-
-                    //subquestionTemplate.QuestionTemplate = Loa
-                }
-            }
-            return subquestionTemplate;
         }
 
         /// <summary>
@@ -822,105 +767,6 @@ namespace ViewLayer.Controllers
             return correctAnswerList.ToArray();
         }
 
-        /// <summary>
-        /// Returns the selected question result
-        /// </summary>
-        /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
-        /// <param name="questionTemplate">Question template of the selected question result</param>
-        /// <param name="testResultIdentifier">Identifier of the test result that the question result belongs to</param>
-        /// <param name="subquestionIdentifier">Subquestion identifier of the selected subquestion</param>
-        /// <returns>the selected question result</returns>
-        public QuestionResult LoadQuestionResult(string testNameIdentifier, QuestionTemplate questionTemplate, string testResultIdentifier, string subquestionIdentifier)
-        {
-            QuestionResult questionResult = new QuestionResult();
-            List<string> studentsAnswers = new List<string>();
-            SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-            List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
-
-            /*for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
-            {
-                if(subquestionIdentifier == questionTemplate.SubquestionTemplateList[i].SubquestionIdentifier)
-                {
-                    subquestionTemplate = questionTemplate.SubquestionTemplateList[i];
-                }
-            }*/
-
-            XmlReader xmlReader = XmlReader.Create(Settings.GetResultPath(testNameIdentifier, testResultIdentifier));
-            int gapCount = 0;
-            while (xmlReader.Read())
-            {
-                //skip other question results
-                if (xmlReader.Name == "itemResult")
-                {
-                    if (xmlReader.GetAttribute("identifier") != questionTemplate.QuestionNameIdentifier && xmlReader.GetAttribute("identifier") != null)
-                    {
-                        xmlReader.Skip();
-                    }
-
-                    if (xmlReader.NodeType == XmlNodeType.EndElement)
-                    {
-                        SubquestionResult subquestionResult = new SubquestionResult();
-                        //subquestionResult.SubquestionTemplateIdentifier = subquestionIdentifier;
-                        subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
-                        subquestionResults.Add(subquestionResult);
-                    }
-                }
-
-                //skip these two tags, because they include a <value> child-tag that we don't want to read
-                if (xmlReader.Name == "responseVariable")
-                {
-                    if (xmlReader.GetAttribute("identifier") != subquestionIdentifier && xmlReader.GetAttribute("identifier") != null)
-                    {
-                        xmlReader.Skip();
-                    }
-                }
-                if (xmlReader.Name == "outcomeVariable")
-                {
-                    xmlReader.Skip();
-                }
-
-                if (xmlReader.Name == "value")
-                {
-                    string studentsAnswer = xmlReader.ReadString();//this may read only the answer's identifier instead of the answer itself
-
-                    //some of the strings may include invalid characters that must be removed
-                    Regex regEx = new Regex("['<>]");
-                    studentsAnswer = regEx.Replace(studentsAnswer, "");
-                    if (studentsAnswer[0] == ' ')
-                    {
-                        studentsAnswer = studentsAnswer.Remove(0, 1);
-                    }
-
-                    if (subquestionTemplate.SubquestionType == 1 || subquestionTemplate.SubquestionType == 2 || subquestionTemplate.SubquestionType == 6 || subquestionTemplate.SubquestionType == 7)
-                    {
-                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswer);
-                    }
-                    else if(subquestionTemplate.SubquestionType == 3)
-                    {
-                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0])
-                            + " -> " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[1]);
-                    }
-                    else if (subquestionTemplate.SubquestionType == 4)
-                    {
-                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                        studentsAnswer = GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[1])
-                            + " -> " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0]);
-                    }
-                    else if (subquestionTemplate.SubquestionType == 9)
-                    {
-                        gapCount++;
-                        string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                        studentsAnswer = "[" + gapCount + "] - " + GetStudentsAnswerText(testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionIdentifier, studentsAnswerSplitBySpace[0]);
-                    }
-
-                    studentsAnswers.Add(studentsAnswer);
-                }
-            }
-
-            return questionResult;
-        }
-
         public List<SubquestionResult> LoadSubquestionResults(QuestionResult questionResult)
         {
             List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
@@ -929,14 +775,9 @@ namespace ViewLayer.Controllers
             XmlReader xmlReader;
             int gapCount = 0;
 
-            var subquestionTemplateList = _context.SubquestionTemplates
-                .Where(s => s.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier)
-                .Select(s => s)
-                .ToList();
-
-            for(int i = 0; i < subquestionTemplateList.Count; i++)
+            ICollection<SubquestionTemplate> subquestionTemplateList = questionResult.QuestionTemplate.SubquestionTemplateList;
+            foreach(SubquestionTemplate subquestionTemplate in subquestionTemplateList)
             {
-                SubquestionTemplate subquestionTemplate = subquestionTemplateList[i];
                 List<string> studentsAnswers = new List<string>();
                 xmlReader = XmlReader.Create(Settings.GetResultPath(testTemplate.TestNameIdentifier, questionResult.TestResultIdentifier));
                 while (xmlReader.Read())
@@ -965,7 +806,8 @@ namespace ViewLayer.Controllers
                             subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
                             subquestionResult.QuestionResult = questionResult;
                             subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
-                            subquestionResult.SubquestionTemplate = subquestionTemplate;
+                            subquestionResult.SubquestionTemplate = subquestionTemplate; //subquestionTemplate
+                            //_context.SubquestionTemplates.Attach(subquestionTemplate);
                             subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
                             subquestionResults.Add(subquestionResult);
                         }
@@ -980,7 +822,7 @@ namespace ViewLayer.Controllers
                     {
                         string studentsAnswer = xmlReader.ReadString();//this may read only the answer's identifier instead of the answer itself
 
-                        if(studentsAnswer.Length == 0)
+                        if (studentsAnswer.Length == 0)
                         {
                             studentsAnswer = "Nevyplněno";
                         }
@@ -1029,73 +871,21 @@ namespace ViewLayer.Controllers
             return subquestionResults;
         }
 
-        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate)
+        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate)//todo: odebrat testtemplate?
         {
             List<QuestionResult> questionResults = new List<QuestionResult>();
-            List<QuestionTemplate> questionTemplates = LoadQuestionTemplates(testTemplate);//todo: upravit po zmene datoveho modelu (sablon)
+            ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
             foreach (QuestionTemplate questionTemplate in questionTemplates)
             {
                 QuestionResult questionResult = new QuestionResult();
                 questionResult.TestResult = testResult;
-                questionResult.QuestionTemplate = questionTemplate;
+                questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList).FirstOrDefault(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier);
                 questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
                 questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                questionResult.SubquestionResultList = LoadSubquestionResults(questionResult);
                 questionResults.Add(questionResult);
             }
             return questionResults;
-        }
-
-        public TestTemplate LoadTestTemplate(string selectedTestNameIdentifier)
-        {
-            string subDirectory = "";
-
-            foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
-            {
-                string[] splitDirectoryBySlash = directory.Split(Settings.GetPathSeparator());
-                string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
-                string testNumberIdentifier = "";
-
-                try
-                {
-                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPathSeparator() + "tests"))
-                    {
-                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPathSeparator());
-                        testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
-                        subDirectory = directory_;
-                    }
-                }
-                catch
-                {
-                    continue;
-                }
-
-                try
-                {
-                    XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
-                    while (xmlReader.Read())
-                    {
-                        if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
-                        {
-                            if (xmlReader.HasAttributes)
-                            {
-                                if (selectedTestNameIdentifier == testNameIdentifier)
-                                {
-                                    TestTemplate testTemplate = new TestTemplate();
-                                    testTemplate.TestNameIdentifier = testNameIdentifier;
-                                    testTemplate.TestNumberIdentifier = testNumberIdentifier;
-                                    testTemplate.Title = xmlReader.GetAttribute("title");
-                                    return testTemplate;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    continue;
-                }
-            }
-            return null;//todo: throw exception
         }
 
         /// <summary>

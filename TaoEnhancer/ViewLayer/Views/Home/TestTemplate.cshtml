@@ -3,33 +3,14 @@
 @using DomainModel;
 
 @{
+    bool testPointsDetermined = true;
+    double? testPoints = 0;
+    string testPointsString = "";
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
 
 <div class="text-center">
     <h1>Správa zadání testu @Model.First().TestTemplate.TestNameIdentifier</h1>
-
-    <div id="test-template">
-        <h2>Parametry testu</h2>
-        <table>
-            <tr>
-                <th>Jmenný identifikátor testu</th>
-                <td>@Model.First().TestTemplate.TestNameIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor testu</th>
-                <td>@Model.First().TestTemplate.TestNumberIdentifier</td>
-            </tr>
-            <tr>
-                <th>Nadpis</th>
-                <td>@Model.First().TestTemplate.Title</td>
-            </tr>
-            <tr>
-                <th>Počet otázek</th>
-                <td>@Model.Count()</td>
-            </tr>
-        </table>
-    </div>
 
     <div id="question-template-list">
         <h2>Seznam otázek</h2>
@@ -38,26 +19,84 @@
                <th>Jmenný identifikátor otázky</th>
                <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
+               <th>Počet bodů</th>
                <th>Správa otázky</th>
             </tr>
             @{
                 int i = 0;
                 foreach (var item in Model)
                 {
+                    bool questionPointsDetermined = true;
+                    double? questionPoints = 0;
+                    foreach(SubquestionTemplate subquestionTemplate in item.SubquestionTemplateList)
+                    {
+                        if(subquestionTemplate.SubquestionPoints == null)
+                        {
+                            testPointsDetermined = false;
+                            questionPointsDetermined = false;
+                            break;
+                        }
+                        questionPoints += subquestionTemplate.SubquestionPoints;
+                    }
+                    testPoints += questionPoints;
+                    string questionPointsString = "";
+                    if(!questionPointsDetermined)
+                    {
+                        questionPointsString = "N/A";
+                    }
+                    else
+                    {
+                        questionPointsString = questionPoints.ToString();
+                    }
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.QuestionNameIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td>@questionPointsString</td>
                         <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                        asp-route-testNameIdentifier="@item.TestTemplate.TestNameIdentifier"
-                        asp-route-testNumberIdentifier="@item.TestTemplate.TestNumberIdentifier"
-                        asp-route-questionNameIdentifier="@item.QuestionNameIdentifier"
                         asp-route-questionNumberIdentifier="@item.QuestionNumberIdentifier">Správa otázky</a></td>
                     </tr>
                 }
             }
         </table>
     </div>
+</div>
+
+@{
+    if(!testPointsDetermined)
+    {
+        testPointsString = "N/A";
+    }
+    else
+    {
+        testPointsString = testPoints.ToString();
+    }
+}
+
+<div id="test-template">
+    <h2>Parametry testu</h2>
+    <table>
+        <tr>
+            <th>Jmenný identifikátor testu</th>
+            <td>@Model.First().TestTemplate.TestNameIdentifier</td>
+        </tr>
+        <tr>
+            <th>Číselný identifikátor testu</th>
+            <td>@Model.First().TestTemplate.TestNumberIdentifier</td>
+        </tr>
+        <tr>
+            <th>Nadpis</th>
+            <td>@Model.First().TestTemplate.Title</td>
+        </tr>
+        <tr>
+            <th>Počet otázek</th>
+            <td>@Model.Count()</td>
+        </tr>
+        <tr>
+            <th>Počet bodů</th>
+            <td>@testPointsString</td>
+        </tr>
+    </table>
 </div>
 
 <footer>

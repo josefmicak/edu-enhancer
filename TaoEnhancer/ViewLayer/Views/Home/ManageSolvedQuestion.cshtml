@@ -29,6 +29,57 @@
     {
         singleSubquestion = false;
     }
+
+    double? questionPoints = 0;
+    foreach(var item in Model.First().QuestionResult.QuestionTemplate.SubquestionTemplateList)
+    {
+        if(item.SubquestionPoints == null)
+        {
+            break;
+        }
+        questionPoints += item.SubquestionPoints;
+    }
+
+    string studentsSubquestionPoints = "";
+    if(subquestionResult.StudentsPoints == null)
+    {
+        if(subquestionTemplate.SubquestionPoints == null)
+        {
+            studentsSubquestionPoints = "N/A";
+        }
+        else
+        {
+            studentsSubquestionPoints = "? / " + subquestionTemplate.SubquestionPoints;
+        }
+    }
+    else
+    {
+        studentsSubquestionPoints = subquestionResult.StudentsPoints.ToString() + " / " + subquestionTemplate.SubquestionPoints;
+    }
+
+    double? studentsQuestionPoints = 0;
+    bool studentsQuestionPointsDetermined = true;
+    string studentsQuestionPointsString = "";
+    foreach(var item in Model)
+    {
+        if(item.StudentsPoints == null)
+        {
+            studentsQuestionPointsDetermined = false;
+            break;
+        }
+        else
+        {
+            studentsQuestionPoints += item.StudentsPoints;
+        }
+    }
+    if(!studentsQuestionPointsDetermined)
+    {
+        studentsQuestionPointsString = "N/A";
+    }
+    else
+    {
+        studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
+    }
 }
 
 <div class="text-center">
@@ -53,6 +104,10 @@
                 <th>Počet podotázek</th>
                 <td>@Model.Count()</td>
             </tr>
+            <tr>
+                <th>Počet bodů získaných studentem</th>
+                <td>@studentsQuestionPointsString</td>
+            </tr>
         </table>
     </div>
 
@@ -66,6 +121,10 @@
             <tr>
                 <th>Typ podotázky</th>
                 <td>@ViewBag.SubquestionTypeTextArray[@subquestionTemplate.SubquestionType]</td>
+            </tr>
+            <tr>
+                <th>Počet bodů za podotázku</th>
+                <td>@studentsSubquestionPoints</td>
             </tr>
             @{
                 if(subquestionTemplate.ImageSource != "")
@@ -116,10 +175,6 @@
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
         <form method="POST">
-            <!--todo: mozna neni nutne posilat vsechny tyto hodnoty-->
-            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.TestTemplate.TestNameIdentifier" name="testNameIdentifier">
-            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
-            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNameIdentifier" name="questionNameIdentifier">
             <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
 
             @{
@@ -167,6 +222,19 @@
                 <p>@answer</p>
             }
         }
+    </div>
+
+    <div id="subquestion-result-points">
+        <h2>Upravit body</h2>
+        <p>@ViewBag.Message</p>
+        <form method="POST">
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+            <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+            <input type="hidden" value="@subquestionTemplate.SubquestionPoints" name="subquestionPoints">
+
+            <p>Počet bodů získaných studentem: <input class="input" id="students-points" required name="studentsPoints" onchange="limitDecimalPlaces(this, 2)" value="@subquestionResult.StudentsPoints.ToString()"></p>
+            <input class="button" id="setStudentsPointsBtn" title="Uložit" type="submit" value="Uložit">
+        </form>
     </div>
 </div>
 

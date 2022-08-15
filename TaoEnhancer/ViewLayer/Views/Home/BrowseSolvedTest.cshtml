@@ -9,11 +9,11 @@
 
     double? testPoints = 0;
 
-    ViewData["Title"] = "Správa řešení testu " + Model.First().TestResult.TestResultIdentifier;
+    ViewData["Title"] = "Prohlížení vyřešeného testu " + Model.First().TestResultIdentifier;
 }
 
 <div class="text-center">
-    <h1>Správa řešení testu @Model.First().TestResult.TestResultIdentifier</h1>
+    <h1>Prohlížení vyřešeného testu</h1>
 
     <div id="test-result">
         <h2>Parametry pokusu</h2>
@@ -49,7 +49,7 @@
                <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
                <th>Počet bodů</th>
-               <th>Správa otázky</th>
+               <th>Prohlížení</th>
             </tr>
             @{
                 int i = 0;
@@ -91,7 +91,7 @@
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
                         <td>@studentsQuestionPointsString</td>
-                        <td><a class="button" id="questionResultBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
+                        <td><a class="button" id="questionResultBtn_@i" title="Zobrazit otázku" asp-area="" asp-controller="Home" asp-action="BrowseSolvedQuestion"
                         asp-route-questionNumberIdentifier="@item.QuestionTemplate.QuestionNumberIdentifier"
                         asp-route-testResultIdentifier="@Model.First().TestResult.TestResultIdentifier">Správa otázky</a></td>
                     </tr>
@@ -110,7 +110,6 @@
             studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
         }
     }
-
 
     <div id="test-template">
         <h2>Parametry testu</h2>
@@ -141,6 +140,7 @@
 
 <footer>
     <div class="container">
-        <a asp-action="ManageSolvedTestList">Zpět</a>
+        <a asp-action="BrowseSolvedTestList"
+        asp-route-studentIdentifier="@Model.First().TestResult.Student.StudentIdentifier">Zpět</a>
     </div>
 </footer>

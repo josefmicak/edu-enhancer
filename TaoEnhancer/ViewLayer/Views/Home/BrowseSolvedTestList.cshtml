@@ -1,36 +1,32 @@
-﻿@model ViewLayer.Models.BrowseSolvedTestListModel
-
-@using DomainModel;
+﻿@model IEnumerable<DomainModel.TestResult>
 
 @{
-    ViewData["Title"] = @Model.Title;
+    ViewData["Title"] = "Prohlížení vyřešených testů";
 }
 
 <div class="text-center">
-    <h1>@Model.Title</h1>
+    <h1>Prohlížení vyřešených testů</h1>
+
     <div id="test-result-list">
         <table>
             <tr>
                 <th>Jmenný identifikátor testu</th>
                 <th>Datum</th>
-                <th>Správa</th>
+                <th>Prohlížení</th>
             </tr>
             @{
                 int i = 0;
-                foreach (TestResult testResult in @Model.TestResults)
+                foreach(var item in Model)
                 {
                     <tr>
-                        <td>@testResult.TestNameIdentifier</td>
-                        <td>@testResult.TimeStamp</td>
+                        <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
                         <td><a class="button" id="testResultBtn_i" title="Zobrazit test"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="BrowseSolvedTest" 
-                            asp-route-testNameIdentifier="@testResult.TestNameIdentifier" 
-                            asp-route-testResultIdentifier="@testResult.TestResultIdentifier"
-                            asp-route-studentIdentifier="@Model.Student.StudentIdentifier">Zobrazit test</a></td>
+                            asp-route-testResultIdentifier="@item.TestResultIdentifier">Zobrazit test</a></td>
                     </tr>
-                    i++;
                 }
             }
         </table>
@@ -40,19 +36,19 @@
         <table>
             <tr>
                 <th>Jméno</th>
-                <td>@Model.Student.FirstName @Model.Student.LastName</td>
+                <td>@Model.First().Student.FullName()</td>
             </tr>
             <tr>
                 <th>Login</th>
-                <td>@Model.Student.Login</td>
+                <td>@Model.First().Student.Login</td>
             </tr>
             <tr>
                 <th>Email</th>
-                <td>@Model.Student.Email</td>
+                <td>@Model.First().Student.Email</td>
             </tr>
             <tr>
                 <th>Počet vyplněných testů</th>
-                <td>@Model.TestResults.Count</td>
+                <td>@Model.Count()</td>
             </tr>
         </table>
     </div>
@@ -60,6 +56,6 @@
 
 <footer>
     <div class="container">
-        <a asp-action="Index">Zpět</a>
+        <a asp-action="StudentMenu">Zpět</a>
     </div>
 </footer>

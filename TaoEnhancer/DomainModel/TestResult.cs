@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DomainModel
 {
@@ -11,6 +10,6 @@ namespace DomainModel
         public TestTemplate TestTemplate { get; set; }
         public string TimeStamp { get; set; }
         public Student Student { get; set; }
-        //public IList<QuestionResult> QuestionResultList { get; set; }
+        public ICollection<QuestionResult> QuestionResultList { get; set; }
     }
 }

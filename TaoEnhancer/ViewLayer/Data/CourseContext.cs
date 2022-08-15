@@ -33,8 +33,6 @@ namespace ViewLayer.Data
             modelBuilder.Entity<TestTemplate>().ToTable("TestTemplate");
             modelBuilder.Entity<QuestionTemplate>().ToTable("QuestionTemplate");
             modelBuilder.Entity<SubquestionTemplate>().ToTable("SubquestionTemplate");
-            //todo: mozna predelat, namisto s.QuestionNumberIdentifier pouzit s.QuestionTemplate.QuestionNumberIdentifier
-            //modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionIdentifier, s.QuestionTemplate.QuestionNumberIdentifier });
             modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionIdentifier, s.QuestionNumberIdentifier });
             modelBuilder.Entity<Student>().ToTable("Student");
             modelBuilder.Entity<TestResult>().ToTable("TestResult");

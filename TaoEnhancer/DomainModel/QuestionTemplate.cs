@@ -10,5 +10,6 @@ namespace DomainModel
         public string Title { get; set; }
         public string Label { get; set; }
         public TestTemplate TestTemplate { get; set; }
+        public ICollection<SubquestionTemplate> SubquestionTemplateList { get; set; }
     }
 }

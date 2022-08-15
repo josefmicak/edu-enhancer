@@ -89,8 +89,15 @@ img {
     width: 600px;
 }
 
-/*ManageSolvedTestList.cshtml*/
+#subquestion-template-points {
+    position: absolute;
+    left: 20%;
+    top: 60%;
+    border: 1px;
+    border-style: solid;
+}
 
+/*ManageSolvedTestList.cshtml*/
 #test-result-list {
     position: absolute;
     left: 30%;
@@ -121,6 +128,14 @@ img {
     border-style: solid;
 }
 
+#subquestion-result-points {
+    position: absolute;
+    left: 20%;
+    top: 65%;
+    border: 1px;
+    border-style: solid;
+}
+
 /*StudentMenu.cshtml*/
 
 #student-list {
@@ -135,7 +150,7 @@ img {
 
 #student-information {
     position: absolute;
-    left: 50%;
+    left: 60%;
     top: 20%;
     border: 1px;
     border-style: solid;

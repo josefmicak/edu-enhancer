@@ -8,5 +8,6 @@
         public SubquestionTemplate SubquestionTemplate { get; set; }
         public QuestionResult QuestionResult { get; set; }
         public string[] StudentsAnswerList { get; set; }
+        public double? StudentsPoints { get; set; }
     }
 }

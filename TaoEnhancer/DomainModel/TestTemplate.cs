@@ -8,5 +8,6 @@ namespace DomainModel
         [Key]
         public string TestNumberIdentifier { get; set; }
         public string Title { get; set; }
+        public ICollection<QuestionTemplate> QuestionTemplateList { get; set; }
     }
 }
