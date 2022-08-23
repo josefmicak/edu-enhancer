@@ -1,0 +1,55 @@
+﻿@model IEnumerable<DomainModel.UserRegistration>
+
+@{
+    ViewData["Title"] = "Registrace";
+}
+
+<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+
+<div class="text-center">
+    <h1>Registrace</h1>
+
+    <div id="user-registration">
+        <h2>Vaše registrace:</h2>
+        @{
+            if(Model.Count() == 0)
+            {
+                <p>Zatím jste se nezaregistroval</p>
+            }
+            else
+            {
+                <table>
+                    <tr>
+                        <th>Jméno</th>
+                        <th>Příjmení</th>
+                        <th>Login</th>
+                        <th>Email</th>
+                    </tr>
+                    <tr>
+                        <td>@Model.First().FirstName</td>
+                        <td>@Model.First().LastName</td>
+                        <td>@Model.First().Login</td>
+                        <td>@Model.First().Email</td>
+                    </tr>
+                </table>
+            }
+        }
+    </div>
+</div>
+
+<div id="registration-form">
+    <p>@ViewBag.message</p>
+    <form method="POST">
+
+        <label for="firstName">Jméno:</label>
+        <input type="text" id="firstName" name="firstName" value="@ViewBag.firstName"><br><br>
+        <label for="lastName">Příjmení:</label>
+        <input type="text" id="lastName" name="lastName" value="@ViewBag.lastName"><br><br>
+        <label for="login">Login:</label>
+        <input type="text" id="login" name="login"><br>
+        Použijte stejný login jaký používáte u vašeho účtu na platformě TAO Core.<br><br>
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" value="@ViewBag.email" readonly><br><br>
+        <input type="submit" value="Zaregistrovat se">
+    </form>
+</div>

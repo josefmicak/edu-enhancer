@@ -1,4 +1,4 @@
-﻿@model IEnumerable<DomainModel.Student>
+﻿@model IEnumerable<DomainModel.User>
 
 @using DomainModel;
 
@@ -33,7 +33,7 @@
                 {
                     string fullName = item.FullName();
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.StudentIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.UserIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => fullName)</td>
                         <td>@Html.DisplayFor(modelItem => item.Login)</td>
                         <td>@Html.DisplayFor(modelItem => item.Email)</td>

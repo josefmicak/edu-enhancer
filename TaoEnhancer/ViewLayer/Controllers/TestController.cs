@@ -12,7 +12,7 @@ namespace ViewLayer.Controllers
     {
         private readonly CourseContext _context;
         private QuestionController questionController;
-        private StudentController studentController = new StudentController();
+        private UserController userController = new UserController();
 
         public TestController(CourseContext context)
         {
@@ -113,7 +113,7 @@ namespace ViewLayer.Controllers
                         testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
                         testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList).FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier);
                         _context.TestTemplates.Attach(testResult.TestTemplate);
-                        testResult.Student = studentController.LoadStudent(testStudentIdentifier);
+                        testResult.Student = userController.LoadStudent(testStudentIdentifier);
                         testResult.TimeStamp = timeStamp;
                         testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, testResult.TestTemplate);
                         testResults.Add(testResult);

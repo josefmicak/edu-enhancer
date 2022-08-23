@@ -4,14 +4,22 @@ using ViewLayer.Models;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using ViewLayer.Data;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ViewLayer.Controllers
 {
+    //[Authorize] todo: uncomment
     public class HomeController : Controller
     {
         private readonly CourseContext _context;
         private QuestionController questionController;
-        private StudentController studentController = new StudentController();
+        //private StudentController studentController = new StudentController();
+        private UserController userController = new UserController();
         private TestController testController;
 
         private readonly ILogger<HomeController> _logger;
@@ -23,6 +31,7 @@ namespace ViewLayer.Controllers
             testController = new TestController(context);
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View(new PageModel
@@ -185,9 +194,9 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = TempData["Message"].ToString();
             }
-            return _context.Students != null ?
-            View(await _context.Students.ToListAsync()) :
-            Problem("Entity set 'CourseContext.Students'  is null.");
+            return _context.Users != null ?
+            View(await _context.Users.ToListAsync()) :
+            Problem("Entity set 'CourseContext.Users'  is null.");
         }
 
         [HttpPost]
@@ -196,7 +205,7 @@ namespace ViewLayer.Controllers
         {
             if (action == "add")
             {
-                List<Student> students = studentController.LoadStudents();
+                List<User> students = userController.LoadStudents();
 
                 int successCount = 0;
                 int errorCount = 0;
@@ -204,22 +213,27 @@ namespace ViewLayer.Controllers
                 {
                     try
                     {
-                        Student student = students[i];
-                        _context.Add(student);
+                        User student = students[i];
+                        _context.Users.Add(student);
+                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == 1);
+                        foreach(UserRegistration userRegistration in userRegistrationList)
+                        {
+                            userRegistration.User = student;
+                        }
                         await _context.SaveChangesAsync();
                         successCount++;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Debug.WriteLine(ex.Message);
                         errorCount++;
                     }
                 }
-                TempData["Message"] = "Přidáno " + successCount + "studentů (" + errorCount + " duplikátů nebo chyb).";
+                TempData["Message"] = "Přidáno " + successCount + " studentů (" + errorCount + " duplikátů nebo chyb).";
             }
             else
             {
-                _context.Database.ExecuteSqlRaw("delete from Student");
+                _context.Database.ExecuteSqlRaw("delete from [User] where role = 1");
                 TempData["Message"] = "Byly smazáni všichni existující studenti.";
             }
             return RedirectToAction(nameof(ManageStudentList));
@@ -253,7 +267,7 @@ namespace ViewLayer.Controllers
                     {
                         TestResult testResult = testResults[i];
                         _context.ChangeTracker.Clear();
-                        _context.Students.Attach(testResult.Student);
+                        _context.Users.Attach(testResult.Student);
                         _context.TestTemplates.Attach(testResult.TestTemplate);
                         _context.TestResults.Add(testResult);
                         await _context.SaveChangesAsync();
@@ -372,7 +386,7 @@ namespace ViewLayer.Controllers
             return View(new StudentMenuModel
             {
                 Title = "Student",
-                Students = studentController.LoadStudents()
+                Students = userController.LoadStudents()
             });
         }
 
@@ -381,7 +395,7 @@ namespace ViewLayer.Controllers
             return _context.TestResults != null ?
             View(await _context.TestResults
                 .Include(t => t.Student)
-                .Where(t => t.Student.StudentIdentifier == studentIdentifier).ToListAsync()) :
+                .Where(t => t.Student.UserIdentifier == studentIdentifier).ToListAsync()) :
             Problem("Entity set 'CourseContext.TestResults'  is null.");
         }
 
@@ -425,6 +439,137 @@ namespace ViewLayer.Controllers
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
                 .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
             Problem("Entity set 'CourseContext.SubquestionResults' is null.");
+        }
+
+        public async Task<IActionResult> UserRegistration()
+        {
+            ViewBag.firstName = Config.Application["firstName"];
+            ViewBag.lastName = Config.Application["lastName"];
+            ViewBag.email = Config.Application["email"];
+            ViewBag.message = TempData["message"];
+            return _context.UserRegistrations != null ?
+            View(await _context.UserRegistrations
+                .Where(u => u.Email == Config.Application["email"]).ToListAsync()) :
+            Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UserRegistration(string? firstName, string? lastName, string? login)
+        {
+            string email = Config.Application["email"];
+            var user = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+            if(user != null)
+            {
+                TempData["Message"] = "Chyba: již jste zaregistrován. Nyní je nutné vyčkat na potvrzení registrace správcem.";
+            }
+            else if(firstName == null || lastName == null || login == null || email == null)
+            {
+                TempData["Message"] = "Chyba: všechny položky musí být vyplněny.";
+            }
+            else
+            {
+                try
+                {
+                    UserRegistration userRegistration = new UserRegistration();
+                    userRegistration.FirstName = firstName;
+                    userRegistration.LastName = lastName;
+                    userRegistration.Login = login;
+                    userRegistration.Email = email;
+                    userRegistration.State = 1;
+                    var importedStudent = _context.Users.FirstOrDefault(u => u.Login == login);
+                    if(importedStudent != null)
+                    {
+                        userRegistration.User = importedStudent;
+                    }
+
+                    _context.UserRegistrations.Add(userRegistration);
+                    await _context.SaveChangesAsync();
+                    TempData["Message"] = "Registrace úspěšně provedena. Nyní je nutné vyčkat na potvrzení registrace správcem.";
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    TempData["Message"] = "Při registraci nastala chyba.";
+                }
+            }
+            return RedirectToAction(nameof(UserRegistration));
+        }
+
+        public async Task<IActionResult> ManageUserRegistrationList()
+        {
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            return _context.UserRegistrations != null ?
+            View(await _context.UserRegistrations
+                .Include(u => u.User)
+                .Where(u => u.State == 1).ToListAsync()) :
+            Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageUserRegistrationList(string login, string email, string firstName, string lastName, string action)
+        {
+            string? message = null;
+            if(action == "accept")
+            {
+                var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (userByLogin != null)
+                {
+                    if (userByLogin.Email != null)
+                    {
+                        message = "Chyba: uživatele nelze přidat. V databází je již aktivní účet používající tento login.";
+                    }
+                    else
+                    {
+                        var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                        if (userByEmail != null)
+                        {
+                            message = "Chyba: uživatele nelze přidat. V databázi je již jiný účet používající tento email.";
+                        }
+                        else
+                        {
+                            userByLogin.Email = email;
+                            userByLogin.FirstName = firstName;
+                            userByLogin.LastName = lastName;
+
+                            var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                            if(userRegistration != null)
+                            {
+                                userRegistration.State = 2;
+                                await _context.SaveChangesAsync();
+                                message = "Registrace úspěšně schválena.";
+                            }
+                            else
+                            {
+                                message = "Chyba: registrace nebyla nalezena";
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    message = "Chyba: uživatel nebyl nalezen.";
+                }
+            }
+            else
+            {
+                var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                if (userRegistration != null)
+                {
+                    userRegistration.State = 3;
+                    await _context.SaveChangesAsync();
+                    message = "Registrace úspěšně odmítnuta.";
+                }
+                else
+                {
+                    message = "Chyba: registrace nebyla nalezena";
+                }
+            }
+            TempData["Message"] = message;
+            return RedirectToAction(nameof(ManageUserRegistrationList));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

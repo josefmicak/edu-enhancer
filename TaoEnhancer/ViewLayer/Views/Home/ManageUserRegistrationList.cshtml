@@ -1,0 +1,75 @@
+﻿@model IEnumerable<DomainModel.UserRegistration>
+
+@{
+    ViewData["Title"] = "Správa registrací";
+}
+
+<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+
+<div class="text-center">
+    <h1>Správa registrací</h1>
+    <p>@ViewBag.Message</p>
+    <div id="user-registration-list">
+        
+            <table>
+                <tr>
+                    <th>Jméno</th>
+                    <th>Login</th>
+                    <th>Email</th>
+                    <th>Importovaný student s tímto loginem</th>
+                    <th>Schválení</th>
+                    <th>Odmítnutí</th>
+                </tr>
+                @{
+                    foreach(var item in Model)
+                    {
+                        string fullName = item.FullName();
+                        string? studentData = null;
+                        if(item.User != null)
+                        {
+                            studentData = "Identifikátor: " + item.User.UserIdentifier + ", jméno: " + item.User.FullName() + ", login: " + item.User.Login;
+                        }
+                        else
+                        {
+                            studentData = "Student s tímto loginem nebyl nalezen.";
+                        }
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => fullName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                            <td>@Html.DisplayFor(modelItem => studentData)</td>
+                            @{
+                                if(@item.User != null)
+                                {
+                                    <form method="POST">
+                                    <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
+                                    <input type="hidden" value="@item.Email" name="email">
+                                    <input type="hidden" value="@item.Login" name="login">
+                                    <input type="hidden" value="@item.FirstName" name="firstName">
+                                    <input type="hidden" value="@item.LastName" name="lastName">
+                                    <input type="hidden" value="accept" name="action">
+                                    </form>
+                                }
+                                else
+                                {
+                                    <td>Registraci nelze schválit.</td>
+                                }
+                            }
+                            <form method="POST">
+                            <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" />
+                            <input type="hidden" value="@item.Email" name="email">
+                            <input type="hidden" value="refuse" name="action"></td>
+                            </form>
+                        </tr>
+                    }
+                }
+            </table>
+        
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <a asp-action="TeacherMenu">Zpět</a>
+    </div>
+</footer>

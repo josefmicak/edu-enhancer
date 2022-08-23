@@ -4,6 +4,8 @@
     ViewData["Title"] = "Prohlížení vyřešených testů";
 }
 
+<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+
 <div class="text-center">
     <h1>Prohlížení vyřešených testů</h1>
 
@@ -15,7 +17,6 @@
                 <th>Prohlížení</th>
             </tr>
             @{
-                int i = 0;
                 foreach(var item in Model)
                 {
                     <tr>

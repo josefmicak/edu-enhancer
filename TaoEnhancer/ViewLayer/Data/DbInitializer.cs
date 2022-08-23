@@ -26,11 +26,6 @@ namespace ViewLayer.Data
                 return;   // DB has been seeded
             }
 
-            if (context.Students.Any())
-            {
-                return;   // DB has been seeded
-            }
-
             if (context.TestResults.Any())
             {
                 return;   // DB has been seeded
@@ -46,15 +41,16 @@ namespace ViewLayer.Data
                 return;   // DB has been seeded
             }
 
-            /*var testTemplates = new TestTemplate[]
+            if (context.Users.Any())
             {
-            new TestTemplate{TestNameIdentifier="One",TestNumberIdentifier="Two",Title="Three",QuestionTemplateList=null},
-            new TestTemplate{TestNameIdentifier="Four",TestNumberIdentifier="Five",Title="Six",QuestionTemplateList=null}
-            };
-            foreach (TestTemplate testTemplate in testTemplates)
+                return;   // DB has been seeded
+            }
+
+            if (context.UserRegistrations.Any())
             {
-                context.TestTemplates.Add(testTemplate);
-            }*/
+                return;   // DB has been seeded
+            }
+
             context.SaveChanges();
         }
     }

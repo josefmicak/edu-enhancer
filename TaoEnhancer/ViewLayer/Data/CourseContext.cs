@@ -12,10 +12,11 @@ namespace ViewLayer.Data
         public DbSet<TestTemplate> TestTemplates { get; set; }
         public DbSet<QuestionTemplate> QuestionTemplates { get; set; }
         public DbSet<SubquestionTemplate> SubquestionTemplates { get; set; }
-        public DbSet<Student> Students { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
         public DbSet<QuestionResult> QuestionResults { get; set; }
         public DbSet<SubquestionResult> SubquestionResults { get; set; }
+        public DbSet<UserRegistration> UserRegistrations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,7 +35,7 @@ namespace ViewLayer.Data
             modelBuilder.Entity<QuestionTemplate>().ToTable("QuestionTemplate");
             modelBuilder.Entity<SubquestionTemplate>().ToTable("SubquestionTemplate");
             modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionIdentifier, s.QuestionNumberIdentifier });
-            modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<User>().ToTable("User");
             modelBuilder.Entity<TestResult>().ToTable("TestResult");
             modelBuilder.Entity<QuestionResult>().ToTable("QuestionResult");
             modelBuilder.Entity<QuestionResult>()
@@ -55,6 +56,7 @@ namespace ViewLayer.Data
                         .HasConversion(
                         v => string.Join(',', v),
                         v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            modelBuilder.Entity<UserRegistration>().ToTable("UserRegistration");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

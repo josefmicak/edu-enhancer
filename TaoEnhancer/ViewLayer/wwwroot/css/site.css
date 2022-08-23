@@ -44,6 +44,21 @@ img {
     max-height: 300px;
 }
 
+#signOutBtn {
+    position: absolute;
+    left: 90%;
+    top: 5%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*Index.cshtml*/
+#emailField {
+    position: absolute;
+    left: 30%;
+    top: 20%;
+}
+
 /*TestTemplateList.cshtml*/
 
 #test-template-list {
@@ -159,6 +174,34 @@ img {
 #student-information {
     position: absolute;
     left: 60%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*UserRegistration.cshtml*/
+
+#user-registration {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+#registration-form {
+    position: absolute;
+    left: 20%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*ManageUserRegistrationList.cshtml*/
+
+#user-registration-list {
+    position: absolute;
+    left: 20%;
     top: 20%;
     border: 1px;
     border-style: solid;

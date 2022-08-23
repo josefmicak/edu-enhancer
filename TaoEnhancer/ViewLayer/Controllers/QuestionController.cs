@@ -806,8 +806,7 @@ namespace ViewLayer.Controllers
                             subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
                             subquestionResult.QuestionResult = questionResult;
                             subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
-                            subquestionResult.SubquestionTemplate = subquestionTemplate; //subquestionTemplate
-                            //_context.SubquestionTemplates.Attach(subquestionTemplate);
+                            subquestionResult.SubquestionTemplate = subquestionTemplate;
                             subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
                             subquestionResults.Add(subquestionResult);
                         }

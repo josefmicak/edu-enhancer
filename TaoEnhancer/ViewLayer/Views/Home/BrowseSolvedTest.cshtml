@@ -13,6 +13,8 @@
     ViewData["Title"] = "Prohlížení vyřešeného testu " + Model.First().TestResultIdentifier;
 }
 
+<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+
 <div class="text-center">
     <h1>Prohlížení vyřešeného testu</h1>
 
@@ -37,7 +39,7 @@
             </tr>
             <tr>
                 <th>Identifikátor studenta</th>
-                <td>@Model.First().TestResult.Student.StudentIdentifier</td>
+                <td>@Model.First().TestResult.Student.UserIdentifier</td>
             </tr>
         </table>
     </div>
@@ -150,6 +152,6 @@
 <footer>
     <div class="container">
         <a asp-action="BrowseSolvedTestList"
-        asp-route-studentIdentifier="@Model.First().TestResult.Student.StudentIdentifier">Zpět</a>
+        asp-route-studentIdentifier="@Model.First().TestResult.Student.UserIdentifier">Zpět</a>
     </div>
 </footer>

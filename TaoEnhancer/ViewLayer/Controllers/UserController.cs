@@ -3,27 +3,26 @@ using DomainModel;
 using Common;
 using System.Xml;
 
-
 namespace ViewLayer.Controllers
 {
-    public class StudentController
+    public class UserController : Controller
     {
-        public List<Student> LoadStudents()
+        public List<User> LoadStudents()
         {
-            List<Student> students = new List<Student>();
+            List<User> students = new List<User>();
             if (Directory.Exists(Settings.GetStudentsPath()))
             {
                 foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
                 {
                     if (new FileInfo(studentFile).Extension == ".rdf")
                     {
-                        Student student = new Student();
+                        User student = new User();
                         XmlReader xmlReader = XmlReader.Create(studentFile);
                         while (xmlReader.Read())
                         {
                             if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
                             {
-                                student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
+                                student.UserIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
                             }
 
                             if (xmlReader.Name == "ns0:login" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -41,10 +40,7 @@ namespace ViewLayer.Controllers
                                 student.LastName = xmlReader.ReadInnerXml();
                             }
 
-                            if (xmlReader.Name == "ns0:userMail" && xmlReader.NodeType != XmlNodeType.EndElement)
-                            {
-                                student.Email = xmlReader.ReadInnerXml();
-                            }
+                            student.Role = 1;
                         }
                         students.Add(student);
                     }
@@ -59,9 +55,9 @@ namespace ViewLayer.Controllers
         /// </summary>
         /// <param name="studentIdentifier">Identifier of the selected student</param>
         /// <returns>the selected test student</returns>
-        public Student LoadStudent(string studentIdentifier)
+        public User LoadStudent(string studentIdentifier)
         {
-            Student student = new Student();
+            User student = new User();
 
             if (Directory.Exists(Settings.GetStudentsPath()))
             {
@@ -74,9 +70,9 @@ namespace ViewLayer.Controllers
                         {
                             if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
                             {
-                                if(studentIdentifier == xmlReader.GetAttribute("rdf:about").Split("#")[1])
+                                if (studentIdentifier == xmlReader.GetAttribute("rdf:about").Split("#")[1])
                                 {
-                                    student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
+                                    student.UserIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
                                 }
                                 else
                                 {

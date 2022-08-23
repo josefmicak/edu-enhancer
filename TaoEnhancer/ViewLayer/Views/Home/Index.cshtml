@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = @Model.Title;
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 }
 
 <div class="text-center">
@@ -10,6 +12,23 @@
     <a asp-action="TeacherMenu">Jsem učitel</a>
     <br>
     <a asp-action="StudentMenu">Jsem student</a>
-    <!-- <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>-->
 </div>
+
+<div id="g_id_onload"
+    data-client_id="1005767738241-1gerk4e7lkbva1lre1hq3i0jrsbrs2rh.apps.googleusercontent.com"
+    data-context="signin"
+    data-ux_mode="redirect"
+    data-login_uri="https://localhost:7026/Account/SignIn"
+    data-auto_prompt="false">
+</div>
+<div class="g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="sign_in_with"
+    data-shape="rectangular"
+    data-logo_alignment="left">
+</div>
+
+<!--div id="buttonDiv"></div> 
+<input type="text" id="emailField" value="Mickey">--->
