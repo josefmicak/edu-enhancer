@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+var services = builder.Services;
 
-builder.Services.AddDbContext<CourseContext>(options =>
+services.AddDbContext<CourseContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services
+services
 .AddAuthentication((options) =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -22,8 +23,10 @@ builder.Services
      options.ClientSecret = configuration["Authentication:Google:ClientSecret"];
  });
 
+services.AddServerSideBlazor();
+
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -46,6 +49,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints => endpoints.MapBlazorHub());
 
 app.MapControllerRoute(
     name: "default",

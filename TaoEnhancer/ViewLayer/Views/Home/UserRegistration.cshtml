@@ -24,12 +24,41 @@
                         <th>Příjmení</th>
                         <th>Login</th>
                         <th>Email</th>
+                        <th>Role</th>
+                        <th>Stav</th>
                     </tr>
                     <tr>
                         <td>@Model.First().FirstName</td>
                         <td>@Model.First().LastName</td>
                         <td>@Model.First().Login</td>
                         <td>@Model.First().Email</td>
+                        @{
+                            string role = "";
+                            if(Model.First().Role == 1)
+                            {
+                                role = "Student";
+                            }
+                            else if(Model.First().Role == 2)
+                            {
+                                role = "Učitel";
+                            }
+                            else if(Model.First().Role == 3)
+                            {
+                                role = "Správce";
+                            }
+                            <td>@role</td>
+
+                            string state = "";
+                            if(Model.First().State == 1)
+                            {
+                                state = "Čekající";
+                            }
+                            else if(Model.First().State == 3)
+                            {
+                                state = "Zamítnuta";
+                            }
+                            <td>@state</td>
+                        }
                     </tr>
                 </table>
             }
@@ -40,7 +69,6 @@
 <div id="registration-form">
     <p>@ViewBag.message</p>
     <form method="POST">
-
         <label for="firstName">Jméno:</label>
         <input type="text" id="firstName" name="firstName" value="@ViewBag.firstName"><br><br>
         <label for="lastName">Příjmení:</label>
@@ -50,6 +78,12 @@
         Použijte stejný login jaký používáte u vašeho účtu na platformě TAO Core.<br><br>
         <label for="email">Email:</label>
         <input type="text" id="email" name="email" value="@ViewBag.email" readonly><br><br>
+        <label for="role">Role:</label>
+        <select name="role" id="role">
+            <option value="1">Student</option>
+            <option value="2">Učitel</option>
+            <option value="3">Správce</option>
+        </select><br><br>
         <input type="submit" value="Zaregistrovat se">
     </form>
 </div>

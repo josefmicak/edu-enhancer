@@ -1,6 +1,13 @@
 ﻿@model IEnumerable<DomainModel.UserRegistration>
 
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage LocalStorage
+
 @{
+    string waitingString = "Čekající";
+    string acceptedString = "Schválena";
+    string rejectedString = "Zamítnuta";
+
     ViewData["Title"] = "Správa registrací";
 }
 
@@ -9,64 +16,222 @@
 <div class="text-center">
     <h1>Správa registrací</h1>
     <p>@ViewBag.Message</p>
-    <div id="user-registration-list">
-        
-            <table>
-                <tr>
-                    <th>Jméno</th>
-                    <th>Login</th>
-                    <th>Email</th>
-                    <th>Importovaný student s tímto loginem</th>
-                    <th>Schválení</th>
-                    <th>Odmítnutí</th>
-                </tr>
-                @{
-                    foreach(var item in Model)
+
+    <div id="student-registration-list">
+        <h2>Registrace studentů</h2>    
+        <table>
+            <tr>
+                <th>Jméno</th>
+                <th>Login</th>
+                <th>Email</th>
+                <th>Importovaný student s tímto loginem</th>
+                <th>Schválení</th>
+                <th>Zamítnutí</th>
+                <th>Stav</th>
+            </tr>
+            @{
+                foreach(var item in Model)
+                {
+                    if(item.Role != 1)
                     {
-                        string fullName = item.FullName();
-                        string? studentData = null;
-                        if(item.User != null)
-                        {
-                            studentData = "Identifikátor: " + item.User.UserIdentifier + ", jméno: " + item.User.FullName() + ", login: " + item.User.Login;
-                        }
-                        else
-                        {
-                            studentData = "Student s tímto loginem nebyl nalezen.";
-                        }
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td>@Html.DisplayFor(modelItem => studentData)</td>
-                            @{
-                                if(@item.User != null)
-                                {
-                                    <form method="POST">
+                        continue;
+                    }
+                    string fullName = item.FullName();
+                    string? studentData = null;
+                    if(item.User != null)
+                    {
+                        studentData = "Identifikátor: " + item.User.UserIdentifier + ", jméno: " + item.User.FullName() + ", login: " + item.User.Login;
+                    }
+                    else
+                    {
+                        studentData = "Student s tímto loginem nebyl nalezen.";
+                    }
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>@Html.DisplayFor(modelItem => studentData)</td>
+                        @{
+                            if(item.User != null && item.State == 1)
+                            {
+                                <form method="POST">
                                     <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
                                     <input type="hidden" value="@item.Email" name="email">
                                     <input type="hidden" value="@item.Login" name="login">
                                     <input type="hidden" value="@item.FirstName" name="firstName">
                                     <input type="hidden" value="@item.LastName" name="lastName">
+                                    <input type="hidden" value="@item.Role" name="role">
                                     <input type="hidden" value="accept" name="action">
-                                    </form>
-                                }
-                                else
-                                {
-                                    <td>Registraci nelze schválit.</td>
-                                }
+                                </form>
                             }
-                            <form method="POST">
-                            <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" />
-                            <input type="hidden" value="@item.Email" name="email">
-                            <input type="hidden" value="refuse" name="action"></td>
-                            </form>
-                        </tr>
-                    }
+                            else
+                            {
+                                <td>Registraci nelze schválit.</td>
+                            }
+
+                            if(item.State == 1)
+                            {
+                                <form method="POST">
+                                    <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" /></td>
+                                    <input type="hidden" value="@item.Email" name="email">
+                                    <input type="hidden" value="refuse" name="action">
+                                </form>
+                            }
+                            else
+                            {
+                                <td>Registraci nelze zamítnout.</td>
+                            }
+
+                            string state = "";
+                            if(item.State == 1)
+                            {
+                                state = waitingString;
+                            }
+                            else if(item.State == 2)
+                            {
+                                state = acceptedString;
+                            }
+                            else if(item.State == 3)
+                            {
+                                state = rejectedString;
+                            }
+                            <td>@Html.DisplayFor(modelItem => state)</td>
+                        }
+                    </tr>
                 }
-            </table>
-        
+            }
+        </table>
+    </div>
+
+    <div id="staff-registration-list">
+        <h2>Registrace učitelů a administrátorů</h2>  
+        <table>
+            <tr>
+                <th>Jméno</th>
+                <th>Login</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Schválení</th>
+                <th>Zamítnutí</th>
+                <th>Stav</th>
+            </tr>
+            @{
+                foreach(var item in Model)
+                {
+                    if(item.Role != 2 && item.Role != 3)
+                    {
+                        continue;
+                    }
+                    string fullName = item.FullName();
+                    string role = "";
+                    if(item.Role == 2)
+                    {
+                        role = "Učitel";
+                    }
+                    else if(item.Role == 3)
+                    {
+                        role = "Správce";
+                    }
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>@Html.DisplayFor(modelItem => role)</td>
+                        @{
+                            if(item.State == 1)
+                            {
+                                <form method="POST">
+                                    <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
+                                    <input type="hidden" value="@item.Email" name="email">
+                                    <input type="hidden" value="@item.Login" name="login">
+                                    <input type="hidden" value="@item.FirstName" name="firstName">
+                                    <input type="hidden" value="@item.LastName" name="lastName">
+                                    <input type="hidden" value="@item.Role" name="role">
+                                    <input type="hidden" value="accept" name="action">
+                                </form>
+                            }
+                            else
+                            {
+                                <td>Registraci nelze schválit.</td>
+                            }
+
+                            if(item.State == 1)
+                            {
+                                <form method="POST">
+                                    <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" /></td>
+                                    <input type="hidden" value="@item.Email" name="email">
+                                    <input type="hidden" value="refuse" name="action">
+                                </form>
+                            }
+                            else
+                            {
+                                <td>Registraci nelze zamítnout.</td>
+                            }
+
+                            string state = "";
+                            if(item.State == 1)
+                            {
+                                state = waitingString;
+                            }
+                            else if(item.State == 2)
+                            {
+                                state = acceptedString;
+                            }
+                            else if(item.State == 3)
+                            {
+                                state = rejectedString;
+                            }
+                            <td>@Html.DisplayFor(modelItem => state)</td>
+                        }
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+
+    <div id="registration-visibility">
+        <p id="visibility-text"></p>
+        @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>
 </div>
+
+<script>
+    window.updateVisibility = function (accepted, rejected, text) {
+        if(accepted == false){
+            document.querySelectorAll('tr').forEach(tr => {
+                if(tr.children[6].textContent === "Schválena"){
+                    tr.style.display = 'none';
+                }
+            });
+        }
+        else{
+            document.querySelectorAll('tr').forEach(tr => {
+                if(tr.children[6].textContent === "Schválena"){
+                    tr.style.display = '';
+                }
+            });
+        }
+
+        if(rejected == false){
+            document.querySelectorAll('tr').forEach(tr => {
+                if(tr.children[6].textContent === "Zamítnuta"){
+                    tr.style.display = 'none';
+                }
+            });
+        }
+        else{
+            document.querySelectorAll('tr').forEach(tr => {
+                if(tr.children[6].textContent === "Zamítnuta"){
+                    tr.style.display = '';
+                }
+            });
+        }
+
+        if(text == true){
+            document.getElementById('visibility-text').innerHTML = 'Změny úspěšně uloženy.';
+        }
+    }
+</script>
 
 <footer>
     <div class="container">

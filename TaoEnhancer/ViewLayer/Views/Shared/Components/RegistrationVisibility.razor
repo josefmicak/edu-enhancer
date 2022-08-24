@@ -1,0 +1,60 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage LocalStorage
+@inject IJSRuntime JSRuntime
+
+<input type="checkbox" @onchange="@ChangeVisibilityAccepted" checked="@accepted">
+<label> Zobrazit schválené registrace</label><br>
+<input type="checkbox" @onchange="@ChangeVisibilityRejected" checked="@rejected">
+<label> Zobrazit zamítnuté registrace</label><br>
+<button class="btn btn-primary" @onclick="UpdateVisibility">Uložit</button>
+
+@code {
+    private bool accepted;
+    private bool rejected;
+
+    /// <summary>
+    /// Sets value of the "accepted" variable which is later used in the UpdateVisibility function
+    /// </summary>
+    /// <param name="args">Value of checkbox for accepted registrations</param>
+    private void ChangeVisibilityAccepted(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        accepted = (bool)args.Value;
+    }
+
+    /// <summary>
+    /// Sets value of the "rejected" variable which is later used in the UpdateVisibility function
+    /// </summary>
+    /// <param name="args">Value of checkbox for rejected registrations</param>
+    private void ChangeVisibilityRejected(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        rejected = (bool)args.Value;
+    }
+
+    /// <summary>
+    /// Invoked after clicking the button in the component
+    /// Sets values in the localStorage, calls function updateVisibility which makes changes to the webpage view
+    /// </summary>
+    public async Task UpdateVisibility()
+    {
+        await LocalStorage.SetAsync("visibilityAccepted", accepted);
+        await LocalStorage.SetAsync("visibilityRejected", rejected);
+        await JSRuntime.InvokeVoidAsync("updateVisibility", accepted, rejected, true);
+    }
+
+    /// <summary>
+    /// Invoked after the page is fully loaded
+    /// Gets values from the localStorage, calls function updateVisibility which makes changes to the webpage view
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var acceptedResult = await LocalStorage.GetAsync<bool>("visibilityAccepted");
+            accepted = acceptedResult.Success ? acceptedResult.Value : false;
+            var rejectedResult = await LocalStorage.GetAsync<bool>("visibilityRejected");
+            rejected = rejectedResult.Success ? rejectedResult.Value : false;
+            await JSRuntime.InvokeVoidAsync("updateVisibility", accepted, rejected, false);
+            StateHasChanged();
+        }
+    }
+}

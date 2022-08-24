@@ -30,7 +30,7 @@ namespace ViewLayer.Controllers
             questionController = new QuestionController(context);
             testController = new TestController(context);
         }
-
+        
         [AllowAnonymous]
         public IActionResult Index()
         {
@@ -454,7 +454,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UserRegistration(string? firstName, string? lastName, string? login)
+        public async Task<IActionResult> UserRegistration(string? firstName, string? lastName, string? login, string role)
         {
             string email = Config.Application["email"];
             var user = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
@@ -476,6 +476,7 @@ namespace ViewLayer.Controllers
                     userRegistration.Login = login;
                     userRegistration.Email = email;
                     userRegistration.State = 1;
+                    userRegistration.Role = Convert.ToInt32(role);
                     var importedStudent = _context.Users.FirstOrDefault(u => u.Login == login);
                     if(importedStudent != null)
                     {
@@ -503,55 +504,87 @@ namespace ViewLayer.Controllers
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
-                .Include(u => u.User)
-                .Where(u => u.State == 1).ToListAsync()) :
+                .Include(u => u.User).ToListAsync()) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ManageUserRegistrationList(string login, string email, string firstName, string lastName, string action)
+        public async Task<IActionResult> ManageUserRegistrationList(string login, string email, string firstName, string lastName, string role, string action)
         {
             string? message = null;
             if(action == "accept")
             {
-                var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (userByLogin != null)
+                //for students, the entry has to already exist in the database (just without the email), for staff members it does not
+                if(role == "1")
                 {
-                    if (userByLogin.Email != null)
+                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                    if (userByLogin != null)
                     {
-                        message = "Chyba: uživatele nelze přidat. V databází je již aktivní účet používající tento login.";
-                    }
-                    else
-                    {
-                        var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
-                        if (userByEmail != null)
+                        if (userByLogin.Email != null)
                         {
-                            message = "Chyba: uživatele nelze přidat. V databázi je již jiný účet používající tento email.";
+                            message = "Chyba: uživatele nelze přidat. V databází je již aktivní účet používající tento login.";
                         }
                         else
                         {
-                            userByLogin.Email = email;
-                            userByLogin.FirstName = firstName;
-                            userByLogin.LastName = lastName;
-
-                            var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
-                            if(userRegistration != null)
+                            var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                            if (userByEmail != null)
                             {
-                                userRegistration.State = 2;
-                                await _context.SaveChangesAsync();
-                                message = "Registrace úspěšně schválena.";
+                                message = "Chyba: uživatele nelze přidat. V databázi je již jiný účet používající tento email.";
                             }
                             else
                             {
-                                message = "Chyba: registrace nebyla nalezena";
+                                userByLogin.Email = email;
+                                userByLogin.FirstName = firstName;
+                                userByLogin.LastName = lastName;
+
+                                var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                                if (userRegistration != null)
+                                {
+                                    userRegistration.State = 2;
+                                    await _context.SaveChangesAsync();
+                                    message = "Registrace úspěšně schválena.";
+                                }
+                                else
+                                {
+                                    message = "Chyba: registrace nebyla nalezena";
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        message = "Chyba: uživatel nebyl nalezen.";
                     }
                 }
                 else
                 {
-                    message = "Chyba: uživatel nebyl nalezen.";
+                    var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (userByEmail != null)
+                    {
+                        message = "Chyba: uživatele nelze přidat. V databázi je již jiný účet používající tento email.";
+                    }
+                    else
+                    {
+                        User user = new User();
+                        user.Email = email;
+                        user.FirstName = firstName;
+                        user.LastName = lastName;
+                        user.Login = login;
+                        user.Role = Convert.ToInt32(role);
+                        _context.Users.Add(user);
+                        var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                        if (userRegistration != null)
+                        {
+                            userRegistration.State = 2;
+                            await _context.SaveChangesAsync();
+                            message = "Registrace úspěšně schválena.";
+                        }
+                        else
+                        {
+                            message = "Chyba: registrace nebyla nalezena";
+                        }
+                    }
                 }
             }
             else
@@ -561,7 +594,7 @@ namespace ViewLayer.Controllers
                 {
                     userRegistration.State = 3;
                     await _context.SaveChangesAsync();
-                    message = "Registrace úspěšně odmítnuta.";
+                    message = "Registrace úspěšně zamítnuta.";
                 }
                 else
                 {

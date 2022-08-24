@@ -199,10 +199,26 @@ img {
 
 /*ManageUserRegistrationList.cshtml*/
 
-#user-registration-list {
+#student-registration-list {
     position: absolute;
-    left: 20%;
+    left: 30%;
     top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+#staff-registration-list {
+    position: absolute;
+    left: 30%;
+    top: 50%;
+    border: 1px;
+    border-style: solid;
+}
+
+#registration-visibility {
+    position: absolute;
+    left: 15%;
+    top: 30%;
     border: 1px;
     border-style: solid;
 }
