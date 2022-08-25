@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ViewLayer.Data;
+using DataLayer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 

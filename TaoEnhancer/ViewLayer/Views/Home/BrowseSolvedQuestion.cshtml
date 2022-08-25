@@ -84,8 +84,6 @@
     }
 }
 
-<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
-
 <div class="text-center">
     <h1>Prohlížení vyřešené otázky @subquestionResult.QuestionNumberIdentifier</h1>
 
@@ -229,9 +227,7 @@
     </div>
 </div>
 
-<footer>
-    <div class="container">
-        <a asp-action="BrowseSolvedTest"
-        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a>
-    </div>
-</footer>
+<div id="backBtn"><a asp-action="BrowseSolvedTest"
+        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

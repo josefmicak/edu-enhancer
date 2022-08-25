@@ -1,0 +1,190 @@
+﻿@model IEnumerable<DomainModel.User>
+
+@using DomainModel;
+
+@{
+    ViewData["Title"] = "Správa uživatelů";
+}
+
+<div class="text-center">
+    <h1>Správa uživatelů</h1>
+    <div id="student-management">
+        <h2>Správa studentů</h2>
+
+        <p>@ViewBag.StudentMessage</p>
+        <form method="POST">
+            <input type="submit" value="Načíst studenty" class="btn btn-primary" />
+            <input type="hidden" value="addStudents" name="action">
+        </form>
+
+        <form method="POST">
+            <input type="submit" value="Smazat studenty" class="btn btn-primary" />
+            <input type="hidden" value="deleteStudents" name="action">
+        </form>
+
+        <div id="student-list">
+            <h3>Seznam studentů</h3>
+            <table id="student-table">
+                <tr>
+                    <th>Identifikátor</th>
+                    <th>Jméno</th>
+                    <th>Login</th>
+                    <th>Email</th>
+                </tr>
+                @{
+                    int i = 1;
+                    foreach (var item in Model)
+                    {
+                        if(item.Role != 1)
+                        {
+                            continue;
+                        }
+                        string fullName = item.FullName();
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.UserIdentifier)</td>
+                            <td>@Html.DisplayFor(modelItem => fullName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                            @{
+                                if(item.Email == null)
+                                {
+                                    <td><button type="button" class="btn btn-primary" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
+                                }
+                                else
+                                {
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                }
+                            }
+                        </tr>
+                        i++;
+                    }
+                }
+            </table>
+        </div>
+
+        <div id="add-student">
+            <h3>Přidat studenta</h3>
+            <form method="POST">
+                <label for="studentIdentifier">Identifikátor:</label>
+                <input type="text" required readonly id="studentIdentifier" name="studentIdentifier"><br><br>
+                <label for="studentFirstName">Jméno:</label>
+                <input type="text" required readonly id="studentFirstName" name="firstName"><br><br>
+                <label for="studentLastName">Příjmení:</label>
+                <input type="text" required readonly id="studentLastName" name="lastName"><br><br>
+                <label for="studentLogin">Login:</label>
+                <input type="text" required readonly id="studentLogin" name="login"><br><br>
+                <label for="studentEmail">Email:</label>
+                <input type="text" required id="studentEmail" name="email"><br><br>
+                <input type="hidden" value="addStudent" name="action">
+                <input type="submit" value="Uložit">
+            </form>
+        </div>
+    </div>
+
+    <div id="teacher-management">
+        <h2>Správa učitelů</h2>
+        <p>@ViewBag.TeacherMessage</p>
+        <h3>Seznam učitelů</h3>
+        <div id="teacher-list">
+            <table>
+                <tr>
+                    <th>Jméno</th>
+                    <th>Login</th>
+                    <th>Email</th>
+                </tr>
+                @{
+                    foreach (var item in Model)
+                    {
+                        if(item.Role != 2)
+                        {
+                            continue;
+                        }
+                        string fullName = item.FullName();
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => fullName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+
+        <div id="add-teacher">
+            <h3>Přidat učitele</h3>
+            <form method="POST">
+                <label for="teacherFirstName">Jméno:</label>
+                <input type="text" required id="teacherFirstName" name="firstName"><br><br>
+                <label for="teacherLastName">Příjmení:</label>
+                <input type="text" required id="teacherLastName" name="lastName"><br><br>
+                <label for="teacherLogin">Login:</label>
+                <input type="text" required id="teacherLogin" name="login"><br><br>
+                <label for="teacherEmail">Email:</label>
+                <input type="text" required id="teacherEmail" name="email"><br><br>
+                <input type="hidden" value="addTeacher" name="action">
+                <input type="submit" value="Uložit">
+            </form>
+        </div>
+        
+    </div>
+
+    <div id="admin-management">
+        <h2>Správa správců</h2>
+        <p>@ViewBag.AdminMessage</p>
+        <div id="admin-list">
+            <table>
+                <tr>
+                    <th>Jméno</th>
+                    <th>Login</th>
+                    <th>Email</th>
+                    <th>Typ</th>
+                </tr>
+                @{
+                    foreach (var item in Model)
+                    {
+                        if(item.Role != 3 && item.Role != 4)
+                        {
+                            continue;
+                        }
+                        string fullName = item.FullName();
+
+                        string type = "";
+                        if(item.Role == 3)
+                        {
+                            type = "Správce";
+                        }
+                        else
+                        {
+                            type = "Hlavní administrátor";
+                        }
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => fullName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                            <td>@Html.DisplayFor(modelItem => type)</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+
+        <div id="add-admin">
+            <h3>Přidat správce</h3>
+            <form method="POST">
+                <label for="adminFirstName">Jméno:</label>
+                <input type="text" required id="adminFirstName" name="firstName"><br><br>
+                <label for="adminLastName">Příjmení:</label>
+                <input type="text" required id="adminLastName" name="lastName"><br><br>
+                <label for="adminLogin">Login:</label>
+                <input type="text" required id="adminLogin" name="login"><br><br>
+                <label for="adminEmail">Email:</label>
+                <input type="text" required id="adminEmail" name="email"><br><br>
+                <input type="hidden" value="addAdmin" name="action">
+                <input type="submit" value="Uložit">
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="backBtn"><a asp-action="TeacherMenu">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

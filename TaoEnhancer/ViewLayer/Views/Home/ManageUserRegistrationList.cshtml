@@ -11,7 +11,7 @@
     ViewData["Title"] = "Správa registrací";
 }
 
-<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
 
 <div class="text-center">
     <h1>Správa registrací</h1>
@@ -189,52 +189,12 @@
         </table>
     </div>
 
-    <div id="registration-visibility">
+<div id="registration-visibility">
         <p id="visibility-text"></p>
         @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>
 </div>
 
-<script>
-    window.updateVisibility = function (accepted, rejected, text) {
-        if(accepted == false){
-            document.querySelectorAll('tr').forEach(tr => {
-                if(tr.children[6].textContent === "Schválena"){
-                    tr.style.display = 'none';
-                }
-            });
-        }
-        else{
-            document.querySelectorAll('tr').forEach(tr => {
-                if(tr.children[6].textContent === "Schválena"){
-                    tr.style.display = '';
-                }
-            });
-        }
+<div id="backBtn"><a asp-action="TeacherMenu">Zpět</a></div>
 
-        if(rejected == false){
-            document.querySelectorAll('tr').forEach(tr => {
-                if(tr.children[6].textContent === "Zamítnuta"){
-                    tr.style.display = 'none';
-                }
-            });
-        }
-        else{
-            document.querySelectorAll('tr').forEach(tr => {
-                if(tr.children[6].textContent === "Zamítnuta"){
-                    tr.style.display = '';
-                }
-            });
-        }
-
-        if(text == true){
-            document.getElementById('visibility-text').innerHTML = 'Změny úspěšně uloženy.';
-        }
-    }
-</script>
-
-<footer>
-    <div class="container">
-        <a asp-action="TeacherMenu">Zpět</a>
-    </div>
-</footer>
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

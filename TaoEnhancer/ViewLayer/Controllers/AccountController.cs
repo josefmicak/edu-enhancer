@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using DomainModel;
-using ViewLayer.Data;
-using Microsoft.AspNetCore.Identity;
+using DataLayer;
 
 namespace ViewLayer.Controllers
 {
@@ -18,11 +17,6 @@ namespace ViewLayer.Controllers
         public AccountController(CourseContext context)
         {
             _context = context;
-        }
-
-        public IActionResult Index()
-        {
-            return View();
         }
 
         /// <summary>
@@ -86,14 +80,14 @@ namespace ViewLayer.Controllers
             {
                 string fullName = claimsIdentity.Claims.ToList()[1].Value;
                 string[] fullNameSplitBySpace = fullName.Split(" ");
-                Config.Application["firstName"] = fullNameSplitBySpace[0];
-                Config.Application["lastName"] = fullNameSplitBySpace[1];
-                Config.Application["email"] = claimsIdentity.Claims.ToList()[2].Value;
+                Common.Config.Application["firstName"] = fullNameSplitBySpace[0];
+                Common.Config.Application["lastName"] = fullNameSplitBySpace[1];
+                Common.Config.Application["email"] = claimsIdentity.Claims.ToList()[2].Value;
                 return RedirectToAction("UserRegistration", "Home");
             }
             else
             {
-                return RedirectToAction("BrowseSolvedTestList", "Home", new { userIdentifier = user.UserIdentifier });
+                return RedirectToAction("BrowseSolvedTestList", "Home", new { login = user.Login });
             }
         }
 
@@ -102,7 +96,7 @@ namespace ViewLayer.Controllers
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]
-        public async Task<IActionResult> SignOut()
+        public async Task<IActionResult> GoogleSignOut()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 

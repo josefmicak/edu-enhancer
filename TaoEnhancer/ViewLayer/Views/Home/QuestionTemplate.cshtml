@@ -206,10 +206,8 @@
     </div>
 </div>
 
-<footer>
-    <div class="container">
-        <a asp-action="TestTemplate"
+<div id="backBtn"><a asp-action="TestTemplate"
         asp-route-testNameIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNameIdentifier" 
-        asp-route-testNumberIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier">Zpět</a>
-    </div>
-</footer>
+        asp-route-testNumberIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

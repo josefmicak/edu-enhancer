@@ -244,9 +244,7 @@
     </div>
 </div>
 
-<footer>
-    <div class="container">
-        <a asp-action="ManageSolvedTest"
-        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a>
-    </div>
-</footer>
+<div id="backBtn"><a asp-action="ManageSolvedTest"
+        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

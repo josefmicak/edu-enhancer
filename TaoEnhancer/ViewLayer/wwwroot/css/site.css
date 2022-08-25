@@ -44,6 +44,14 @@ img {
     max-height: 300px;
 }
 
+#backBtn {
+    position: absolute;
+    left: 10%;
+    top: 5%;
+    border: 1px;
+    border-style: solid;
+}
+
 #signOutBtn {
     position: absolute;
     left: 90%;
@@ -53,6 +61,7 @@ img {
 }
 
 /*Index.cshtml*/
+
 #emailField {
     position: absolute;
     left: 30%;
@@ -121,6 +130,7 @@ img {
 }
 
 /*ManageSolvedTestList.cshtml*/
+
 #test-result-list {
     position: absolute;
     left: 30%;
@@ -161,13 +171,13 @@ img {
 
 /*StudentMenu.cshtml*/
 
-#student-list {
+/*#student-list {
     position: absolute;
     left: 40%;
     top: 20%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*BrowseSolvedTestList.cshtml*/
 
@@ -219,6 +229,32 @@ img {
     position: absolute;
     left: 15%;
     top: 30%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*ManageUserList.cshtml*/
+
+#student-management {
+    position: absolute;
+    left: 15%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+#teacher-management {
+    position: absolute;
+    left: 40%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+#admin-management {
+    position: absolute;
+    left: 60%;
+    top: 20%;
     border: 1px;
     border-style: solid;
 }

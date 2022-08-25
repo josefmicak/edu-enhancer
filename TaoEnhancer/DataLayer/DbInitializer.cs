@@ -2,7 +2,7 @@
 using System.Linq;
 using DomainModel;
 
-namespace ViewLayer.Data
+namespace DataLayer
 {
     public class DbInitializer
     {

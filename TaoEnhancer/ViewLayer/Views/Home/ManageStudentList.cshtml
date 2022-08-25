@@ -9,7 +9,7 @@
 <div class="text-center">
     <h1>Správa studentů</h1>
 
-    <p>@ViewBag.Message</p>
+    <p>@ViewBag.StudentMessage</p>
     <form method="POST">
         <input type="submit" value="Načíst studenty" class="btn btn-primary" />
         <input type="hidden" value="add" name="action">
@@ -44,8 +44,6 @@
     </div>
 </div>
 
-<footer>
-    <div class="container">
-        <a asp-action="TeacherMenu">Zpět</a>
-    </div>
-</footer>
+<div id="backBtn"><a asp-action="TeacherMenu">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

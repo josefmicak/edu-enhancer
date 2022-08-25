@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DomainModel;
 
-namespace ViewLayer.Data
+namespace DataLayer
 {
     public class CourseContext : DbContext
     {
