@@ -87,7 +87,24 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                return RedirectToAction("BrowseSolvedTestList", "Home", new { login = user.Login });
+                switch(user.Role)
+                {
+                    case 1:
+                        Common.Config.Application["login"] = user.Login;
+                        return RedirectToAction("BrowseSolvedTestList", "Home");
+                    case 2:
+                        Common.Config.Application["login"] = user.Login;
+                        return RedirectToAction("TeacherMenu", "Home");
+                    case 3:
+                        Common.Config.Application["login"] = user.Login;
+                        return RedirectToAction("AdminMenu", "Home");
+                    case 4:
+                        return RedirectToAction("MainAdminMenu", "Home");
+                    default:
+                        //todo: throw exception - invalid role
+                        return RedirectToAction("Index", "Home");
+                }
+                
             }
         }
 

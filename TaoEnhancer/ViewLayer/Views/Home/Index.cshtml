@@ -1,13 +1,12 @@
-﻿@model ViewLayer.Models.PageModel
-
-@{
-    ViewData["Title"] = @Model.Title;
+﻿@{
+    ViewData["Title"] = "TaoEnhancer";
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 }
 
 <div class="text-center">
-    <h1>@Model.Title</h1>
+    <h1>TaoEnhancer</h1>
+    <p>@ViewBag.Message</p>
     <br>
     <a asp-action="TeacherMenu">Jsem učitel</a>
     <br>

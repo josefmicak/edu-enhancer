@@ -1,4 +1,6 @@
-﻿@model IEnumerable<DomainModel.TestResult>
+﻿@model dynamic
+
+@using DomainModel
 
 @{
     ViewData["Title"] = "Prohlížení vyřešených testů";
@@ -15,7 +17,7 @@
                 <th>Prohlížení</th>
             </tr>
             @{
-                foreach(var item in Model)
+                foreach(TestResult item in Model.TestResults)
                 {
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
@@ -35,24 +37,24 @@
         <table>
             <tr>
                 <th>Jméno</th>
-                <td>@Model.First().Student.FullName()</td>
+                <td>@Model.Student.FullName()</td>
             </tr>
             <tr>
                 <th>Login</th>
-                <td>@Model.First().Student.Login</td>
+                <td>@Model.Student.Login</td>
             </tr>
             <tr>
                 <th>Email</th>
-                <td>@Model.First().Student.Email</td>
+                <td>@Model.Student.Email</td>
             </tr>
             <tr>
                 <th>Počet vyplněných testů</th>
-                <td>@Model.Count()</td>
+                <td>@Model.TestResults.Count</td>
             </tr>
         </table>
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="StudentMenu">Zpět</a></div>
+<div id="backBtn"><a asp-action="Index">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

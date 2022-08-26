@@ -138,7 +138,7 @@
                         <td>@Html.DisplayFor(modelItem => item.Email)</td>
                         <td>@Html.DisplayFor(modelItem => role)</td>
                         @{
-                            if(item.State == 1)
+                            if(item.State == 1 && item.Role == 2)
                             {
                                 <form method="POST">
                                     <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
@@ -155,7 +155,7 @@
                                 <td>Registraci nelze schválit.</td>
                             }
 
-                            if(item.State == 1)
+                            if(item.State == 1 && item.Role == 2)
                             {
                                 <form method="POST">
                                     <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" /></td>
@@ -195,6 +195,6 @@
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="MainAdminMenu">Zpět</a></div>
+<div id="backBtn"><a asp-action="AdminMenu">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

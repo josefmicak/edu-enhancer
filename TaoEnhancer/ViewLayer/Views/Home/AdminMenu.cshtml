@@ -1,17 +1,21 @@
 ﻿@model DomainModel.User
 
 @{
-    ViewData["Title"] = "Učitel";
+    ViewData["Title"] = "Správce";
 }
 
 <div class="text-center">
-    <h1>Učitel</h1>
+    <h1>Správce</h1>
     <br>
     <a asp-action="TestTemplateList">Správa zadání testů</a>
     <br>
     <a asp-action="ManageSolvedTestList">Správa vyřešených testů</a>
+    <br>
+    <a asp-action="ManageUserListForAdmin">Správa uživatelů</a>
+    <br>
+    <a asp-action="ManageUserRegistrationListForAdmin">Správa registrací</a>
 
-        <div id="user-information">
+    <div id="user-information">
         <table>
             <tr>
                 <th>Jméno</th>

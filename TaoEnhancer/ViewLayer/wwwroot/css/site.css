@@ -169,16 +169,6 @@ img {
     border-style: solid;
 }
 
-/*StudentMenu.cshtml*/
-
-/*#student-list {
-    position: absolute;
-    left: 40%;
-    top: 20%;
-    border: 1px;
-    border-style: solid;
-}*/
-
 /*BrowseSolvedTestList.cshtml*/
 
 #student-information {
@@ -252,6 +242,16 @@ img {
 }
 
 #admin-management {
+    position: absolute;
+    left: 60%;
+    top: 20%;
+    border: 1px;
+    border-style: solid;
+}
+
+/*AdminMenu.cshtml*/
+
+#user-information {
     position: absolute;
     left: 60%;
     top: 20%;
