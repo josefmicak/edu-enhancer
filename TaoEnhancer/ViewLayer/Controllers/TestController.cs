@@ -12,7 +12,7 @@ namespace ViewLayer.Controllers
     {
         private readonly CourseContext _context;
         private QuestionController questionController;
-        private UserController userController = new UserController();
+        private StudentController studentController = new StudentController();
 
         public TestController(CourseContext context)
         {
@@ -24,7 +24,7 @@ namespace ViewLayer.Controllers
         /// Returns the list of test templates
         /// </summary>
         /// <returns>the list of test templates</returns>
-        public List<TestTemplate> LoadTestTemplates()
+        public List<TestTemplate> LoadTestTemplates(string login)
         {
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             string subDirectory = "";
@@ -62,7 +62,9 @@ namespace ViewLayer.Controllers
                                 testTemplate.TestNameIdentifier = testNameIdentifier;
                                 testTemplate.TestNumberIdentifier = testNumberIdentifier;
                                 testTemplate.Title = xmlReader.GetAttribute("title");
-                                testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testTemplate);
+                                testTemplate.OwnerLogin = login;
+                                testTemplate.Owner = _context.Users.FirstOrDefault(u => u.Login == login);
+                                testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testTemplate, login);
                                 testTemplates.Add(testTemplate);
                             }
                         }
@@ -81,7 +83,7 @@ namespace ViewLayer.Controllers
         /// Returns the list of test results
         /// </summary>
         /// <returns>the list of test results</returns>
-        public List<TestResult> LoadTestResults()
+        public List<TestResult> LoadTestResults(string login)
         {
             List<TestResult> testResults = new List<TestResult>();
 
@@ -112,10 +114,12 @@ namespace ViewLayer.Controllers
                         testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
                         testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
                         testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList).FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier);
-                        _context.TestTemplates.Attach(testResult.TestTemplate);
-                        testResult.Student = userController.LoadStudent(testStudentIdentifier);
+                        testResult.TestNumberIdentifier = testResult.TestTemplate.TestNumberIdentifier;
+                        testResult.Student = studentController.LoadStudent(testStudentIdentifier);//todo: predelat na context?
+                        testResult.StudentLogin = testResult.Student.Login;
+                        testResult.OwnerLogin = login;
                         testResult.TimeStamp = timeStamp;
-                        testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, testResult.TestTemplate);
+                        testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, testResult.TestTemplate, login);
                         testResults.Add(testResult);
                     }
                 }

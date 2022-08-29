@@ -4,8 +4,8 @@ namespace ViewLayer.Models
 {
     public class StudentMenuModel : PageModel
     {
-        private List<User> students;
+        private List<Student> students;
 
-        public List<User> Students { get { return students; } set { students = value; } }
+        public List<Student> Students { get { return students; } set { students = value; } }
     }
 }

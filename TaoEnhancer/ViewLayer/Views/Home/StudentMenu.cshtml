@@ -19,14 +19,14 @@
             </tr>
             @{
                 int i = 0;
-                foreach (User student in @Model.Students)
+                foreach (Student student in @Model.Students)
                 {
                     <tr>
                         <td>@student.FirstName @student.LastName</td>
                         <td>@student.Login</td>
-                        <td>@student.UserIdentifier</td>
+                        <td>@student.StudentIdentifier</td>
                         <td><a class="button" id="selectStudentBtn_@i" title="Zvolit studenta" asp-area="" asp-controller="Home" asp-action="BrowseSolvedTestList"
-                        asp-route-studentIdentifier="@student.UserIdentifier">Zvolit studenta</a></td> 
+                        asp-route-studentIdentifier="@student.StudentIdentifier">Zvolit studenta</a></td> 
                     </tr>
                     i++;
                 }

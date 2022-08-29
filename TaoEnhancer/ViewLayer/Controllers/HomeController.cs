@@ -20,7 +20,7 @@ namespace ViewLayer.Controllers
     {
         private readonly CourseContext _context;
         private QuestionController questionController;
-        private UserController userController = new UserController();
+        private StudentController studentController = new StudentController();
         private TestController testController;
 
         private readonly ILogger<HomeController> _logger;
@@ -68,26 +68,30 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"].ToString();
             }
             return _context.TestTemplates != null ?
-            View(await _context.TestTemplates.ToListAsync()) :
+            View(await _context.TestTemplates
+                .Where(t => t.OwnerLogin == login).ToListAsync()) :
             Problem("Entity set 'CourseContext.TestTemplates'  is null.");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TestTemplateList(string action)
+        public async Task<IActionResult> TestTemplateList(string action, string testNumberIdentifier)
         {
-            if(action == "add")
+            string login = Common.Config.Application["login"];
+            if (action == "add")
             {
-                List<TestTemplate> testTemplates = testController.LoadTestTemplates();
+                List<TestTemplate> testTemplates = testController.LoadTestTemplates(login);
                 int successCount = 0;
                 int errorCount = 0;
 
                 for (int i = 0; i < testTemplates.Count; i++)
                 {
+                    _context.ChangeTracker.Clear();
                     try
                     {
                         TestTemplate testTemplate = testTemplates[i];
                         _context.ChangeTracker.Clear();
+                        _context.Users.Attach(testTemplate.Owner);
                         _context.TestTemplates.Add(testTemplate);
                         await _context.SaveChangesAsync();
                         successCount++;
@@ -103,12 +107,25 @@ namespace ViewLayer.Controllers
                 successCount = 0;
                 errorCount = 0;
             }
-            else
+            else if(action == "deleteAllTemplates")
             {
-                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplate");
-                _context.Database.ExecuteSqlRaw("delete from QuestionTemplate");
-                _context.Database.ExecuteSqlRaw("delete from TestTemplate");
-                TempData["Message"] = "Byly smazány všechny existující testy.";
+                var testTemplateList = _context.TestTemplates.Where(t => t.OwnerLogin == login);
+                foreach(TestTemplate testTemplate in testTemplateList)
+                {
+                    _context.TestTemplates.Remove(testTemplate);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Byly smazány všechny vaše testy.";
+            }
+            else if(action == "deleteTemplate")
+            {
+                var testTemplateList = _context.TestTemplates.Where(t => t.OwnerLogin == login && t.TestNumberIdentifier == testNumberIdentifier);
+                foreach (TestTemplate testTemplate in testTemplateList)
+                {
+                    _context.TestTemplates.Remove(testTemplate);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Test byl úspěšně smazán.";
             }
             return RedirectToAction(nameof(TestTemplateList));
         }
@@ -224,26 +241,29 @@ namespace ViewLayer.Controllers
             return _context.TestResults != null ?
             View(await _context.TestResults.
                 Include(s => s.Student).
-                Include(t => t.TestTemplate).ToListAsync()) :
+                Include(t => t.TestTemplate)
+                .Where(t => t.TestTemplate.OwnerLogin == login).ToListAsync()) :
             Problem("Entity set 'CourseContext.TestResults'  is null.");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ManageSolvedTestList(string action)
+        public async Task<IActionResult> ManageSolvedTestList(string action, string testResultIdentifier)
         {
+            string login = Common.Config.Application["login"];
             if (action == "add")
             {
-                List<TestResult> testResults = testController.LoadTestResults();
+                List<TestResult> testResults = testController.LoadTestResults(login);
                 int successCount = 0;
                 int errorCount = 0;
                 for (int i = 0; i < testResults.Count; i++)
                 {
+                    _context.ChangeTracker.Clear();
                     try
                     {
                         TestResult testResult = testResults[i];
                         _context.ChangeTracker.Clear();
-                        _context.Users.Attach(testResult.Student);
+                        _context.Students.Attach(testResult.Student);
                         _context.TestTemplates.Attach(testResult.TestTemplate);
                         _context.TestResults.Add(testResult);
                         await _context.SaveChangesAsync();
@@ -260,12 +280,25 @@ namespace ViewLayer.Controllers
                 successCount = 0;
                 errorCount = 0;
             }
-            else
+            else if(action == "deleteAllResults")
             {
-                _context.Database.ExecuteSqlRaw("delete from SubquestionResult");
-                _context.Database.ExecuteSqlRaw("delete from QuestionResult");
-                _context.Database.ExecuteSqlRaw("delete from TestResult");
-                TempData["Message"] = "Byly smazány všechna existující řešení testů.";
+                var testResultList = _context.TestResults.Where(t => t.TestTemplate.OwnerLogin == login);
+                foreach (TestResult testResult in testResultList)
+                {
+                    _context.TestResults.Remove(testResult);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Byly smazány všechna vaše řešení testů.";
+            }
+            else if(action == "deleteResult")
+            {
+                var testResultList = _context.TestResults.Where(t => t.TestTemplate.OwnerLogin == login && t.TestResultIdentifier == testResultIdentifier);
+                foreach (TestResult testResult in testResultList)
+                {
+                    _context.TestResults.Remove(testResult);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Test byl úspěšně smazán.";
             }
             return RedirectToAction(nameof(ManageSolvedTestList));
         }
@@ -359,11 +392,12 @@ namespace ViewLayer.Controllers
 
         public IActionResult StudentMenu()
         {
-            return View(new StudentMenuModel
+            return View();
+            /*return View(new StudentMenuModel
             {
                 Title = "Student",
-                Students = userController.LoadStudents()
-            });
+                Students = studentController.LoadStudents()
+            });*/
         }
 
         public async Task<IActionResult> BrowseSolvedTestList()
@@ -373,12 +407,7 @@ namespace ViewLayer.Controllers
             model.TestResults = await _context.TestResults
                 .Include(t => t.Student)
                 .Where(t => t.Student.Login == login).ToListAsync();
-            model.Student = _context.Users.FirstOrDefault(u => u.Login == login);
-            /*return _context.TestResults != null ?
-            View(await _context.TestResults
-                .Include(t => t.Student)
-                .Where(t => t.Student.Login == login).ToListAsync()) :
-            Problem("Entity set 'CourseContext.TestResults'  is null.");*/
+            model.Student = _context.Students.FirstOrDefault(s => s.Login == login);
             return _context.TestResults != null ?
                 View(model) :
             Problem("Entity set 'CourseContext.TestResults'  is null.");
@@ -461,6 +490,7 @@ namespace ViewLayer.Controllers
                     mainAdmin.Email = email;
                     mainAdmin.Login = login;
                     mainAdmin.Role = 4;
+                    Common.Config.Application["login"] = login;
                     _context.Users.Add(mainAdmin);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(MainAdminMenu));
@@ -488,10 +518,10 @@ namespace ViewLayer.Controllers
                         userRegistration.Email = email;
                         userRegistration.State = 1;
                         userRegistration.Role = Convert.ToInt32(role);
-                        var importedStudent = _context.Users.FirstOrDefault(u => u.Login == login);
+                        var importedStudent = _context.Students.FirstOrDefault(s => s.Login == login);
                         if (importedStudent != null)
                         {
-                            userRegistration.User = importedStudent;
+                            userRegistration.Student = importedStudent;
                         }
 
                         _context.UserRegistrations.Add(userRegistration);
@@ -522,13 +552,20 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.AdminMessage = TempData["AdminMessage"].ToString();
             }
+            dynamic model = new ExpandoObject();
+            model.Users = await _context.Users.ToListAsync();
+            model.Students = await _context.Students.ToListAsync();
+            return (_context.Users != null && _context.Students != null) ?
+                View(model) :
+            Problem("Entity set 'CourseContext.TestResults' or 'CourseContext.Students' is null.");
+            /*
             return _context.Users != null ?
             View(await _context.Users.ToListAsync()) :
-            Problem("Entity set 'CourseContext.Users'  is null.");
+            Problem("Entity set 'CourseContext.Users'  is null.");*/
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageUserList(string action, string firstName, string lastName, string login, string email)
+        public async Task<IActionResult> ManageUserList(string action, string studentIdentifier, string firstName, string lastName, string login, string email, string role)
         {
             bool isEmailValid;
             try
@@ -541,26 +578,30 @@ namespace ViewLayer.Controllers
                 isEmailValid = false;
             }
 
-            var loginCheck = _context.Users.FirstOrDefault(u => u.Login == login);
-            var emailCheck = _context.Users.FirstOrDefault(u => u.Email == email);
+            var studentLoginCheck = _context.Students.FirstOrDefault(u => u.Login == login);
+            var studentEmailCheck = _context.Students.FirstOrDefault(u => u.Email == email);
+
+            var userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == login);
+            var userEmailCheck = _context.Users.FirstOrDefault(u => u.Email == email);
 
             if (action == "addStudents")
             {
-                List<User> students = userController.LoadStudents();
+                List<Student> students = studentController.LoadStudents();
 
                 int successCount = 0;
                 int errorCount = 0;
                 for (int i = 0; i < students.Count; i++)
                 {
+                    _context.ChangeTracker.Clear();
                     try
                     {
-                        User student = students[i];
-                        _context.Users.Add(student);
-                        //in case the user has registered before the student has been imported, we add the User to the UserRegistration
+                        Student student = students[i];
+                        _context.Students.Add(student);
+                        //in case the student has registered before the student's file has been imported, we add the Student to the UserRegistration
                         var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == 1);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
-                            userRegistration.User = student;
+                            userRegistration.Student = student;
                         }
                         await _context.SaveChangesAsync();
                         successCount++;
@@ -573,9 +614,9 @@ namespace ViewLayer.Controllers
                 }
                 TempData["StudentMessage"] = "Přidáno " + successCount + " studentů (" + errorCount + " duplikátů nebo chyb).";
             }
-            else if(action == "deleteStudents")
+            else if(action == "deleteAllStudents")
             {
-                _context.Database.ExecuteSqlRaw("delete from [User] where role = 1");
+                _context.Database.ExecuteSqlRaw("delete from Student");
                 TempData["StudentMessage"] = "Byly smazáni všichni existující studenti.";
             }
             else if(action == "addStudent")
@@ -584,23 +625,93 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
                 }
-                else if (emailCheck != null)
+                else if (studentEmailCheck != null || userEmailCheck != null)
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
                 else
                 {
-                    var student = _context.Users.FirstOrDefault(u => u.Login == login && u.Role == 1);
-                    if (student == null)
+                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+                    var studentByIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
+                    if (studentByLogin == null && studentByIdentifier == null)
                     {
-                        TempData["StudentMessage"] = "Chyba: student s loginem \"" + login + "\" nebyl nalezen.";
+                        Student student = new Student();
+                        student.StudentIdentifier = studentIdentifier;
+                        student.Login = login;
+                        student.Email = email;
+                        student.FirstName = firstName;
+                        student.LastName = lastName;
+                        _context.Students.Add(student);
+                        await _context.SaveChangesAsync();
+                        TempData["StudentMessage"] = "Student s loginem \"" + login + "\" úspěšně přidán.";
                     }
                     else
                     {
-                        student.Email = email;
+                        studentByLogin.Email = email;
                         await _context.SaveChangesAsync();
                         TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
                     }
+                }
+            }
+            else if(action == "editStudent")
+            {
+                //it's necessary to ensure that there won't be two or more users with the same email/identifier
+                var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+                if(studentByLogin != null)
+                {
+                    var studentByNewEmail = _context.Students.FirstOrDefault(s => s.Email == email);
+                    if (!isEmailValid)
+                    {
+                        TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
+                    }
+                    else if (firstName == null || lastName == null || login == null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: je nutné vyplnit všechna pole.";
+                    }
+                    else if (studentByNewEmail != null && studentByLogin.Email != studentByNewEmail.Email)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + studentByNewEmail.Email + "\" již existuje.";
+                    }
+                    else if(userEmailCheck != null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
+                    }
+                    else
+                    {
+                        var studentByNewIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
+                        if (studentByNewIdentifier != null && studentByLogin.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
+                        {
+                            TempData["StudentMessage"] = "Chyba: student s identifikátorem \"" + studentByNewIdentifier.Email + "\" již existuje.";
+                        }
+                        else
+                        {
+                            studentByLogin.Login = login;
+                            studentByLogin.Email = email;
+                            studentByLogin.FirstName = firstName;
+                            studentByLogin.LastName = lastName;
+                            studentByLogin.StudentIdentifier = studentIdentifier;
+                            await _context.SaveChangesAsync();
+                            TempData["StudentMessage"] = "Student úspěšně upraven.";
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentByLogin + "\" nebyl nalezen.";
+                }
+            }
+            else if(action == "deleteStudent")
+            {
+                var user = _context.Students.FirstOrDefault(s => s.Login == login);
+                if(user != null)
+                {
+                    _context.Students.Remove(user);
+                    await _context.SaveChangesAsync();
+                    TempData["StudentMessage"] = "Student úspěšně smazán.";
+                }
+                else
+                {
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + login + "\" nebyl nalezen.";
                 }
             }
             else if(action == "addTeacher")
@@ -613,11 +724,11 @@ namespace ViewLayer.Controllers
                 {
                     TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if(loginCheck != null)
+                else if(userLoginCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
-                else if (emailCheck != null)
+                else if (userEmailCheck != null || studentEmailCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
@@ -634,6 +745,67 @@ namespace ViewLayer.Controllers
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
                 }
             }
+            else if (action == "editTeacher")
+            {
+                //it's necessary to ensure that there won't be two or more users with the same email
+                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (userByOldLogin != null)
+                {
+                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (!isEmailValid)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
+                    }
+                    else if (firstName == null || lastName == null || login == null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
+                    }
+                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                    }
+                    else if (studentEmailCheck != null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
+                    }
+                    else
+                    {
+                        userByOldLogin.Login = login;
+                        userByOldLogin.Email = email;
+                        userByOldLogin.FirstName = firstName;
+                        userByOldLogin.LastName = lastName;
+                        if (role != null)
+                        {
+                            userByOldLogin.Role = Convert.ToInt32(role);
+                        }
+                        await _context.SaveChangesAsync();
+                        TempData["TeacherMessage"] = "Učitel úspěšně upraven.";
+                    }
+                }
+                else
+                {
+                    TempData["TeacherMessage"] = "Chyba: učitel s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
+            else if (action == "deleteTeacher")
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                    TempData["TeacherMessage"] = "Učitel úspěšně smazán.";
+                }
+                else
+                {
+                    TempData["TeacherMessage"] = "Chyba: učitel s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
+            else if(action == "deleteAllTeachers")
+            {
+                _context.Database.ExecuteSqlRaw("delete from [User] where role = 2");
+                TempData["TeacherMessage"] = "Byly smazáni všichni existující učitelé.";
+            }
             else if (action == "addAdmin")
             {
                 if (!isEmailValid)
@@ -644,11 +816,11 @@ namespace ViewLayer.Controllers
                 {
                     TempData["AdminMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if (loginCheck != null)
+                else if (userLoginCheck != null)
                 {
                     TempData["AdminMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
-                else if (emailCheck != null)
+                else if (userEmailCheck != null || studentEmailCheck != null)
                 {
                     TempData["AdminMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
@@ -665,6 +837,103 @@ namespace ViewLayer.Controllers
                     TempData["AdminMessage"] = "Správce byl úspěšně přidán.";
                 }
             }
+            else if (action == "editAdmin" || action == "changeMainAdmin")
+            {
+                //it's necessary to ensure that there won't be two or more users with the same email
+                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (userByOldLogin != null)
+                {
+                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (!isEmailValid)
+                    {
+                        TempData["AdminMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
+                    }
+                    else if (firstName == null || lastName == null || login == null)
+                    {
+                        TempData["AdminMessage"] = "Chyba: je nutné vyplnit všechna pole.";
+                    }
+                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    {
+                        TempData["AdminMessage"] = "Chyba: správce s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                    }
+                    else if (studentEmailCheck != null)
+                    {
+                        TempData["AdminMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
+                    }
+                    else
+                    {
+                        if(action == "editAdmin")
+                        {
+                            if(Convert.ToInt32(role) == 2 || Convert.ToInt32(role) == 3)
+                            {
+                                TempData["AdminMessage"] = "Chyba: hlavnímu administrátorovi nelze změnit roli.";
+                            }
+                            else
+                            {
+                                userByOldLogin.Login = login;
+                                userByOldLogin.Email = email;
+                                userByOldLogin.FirstName = firstName;
+                                userByOldLogin.LastName = lastName;
+                                if (role != null)
+                                {
+                                    userByOldLogin.Role = Convert.ToInt32(role);
+                                }
+
+                                await _context.SaveChangesAsync();
+                                TempData["AdminMessage"] = "Správce úspěšně upraven.";
+                            }
+                        }
+                        else if(action == "changeMainAdmin")
+                        {
+                            var oldMainAdmin = _context.Users.FirstOrDefault(u => u.Role == 4);
+                            if(oldMainAdmin != null)
+                            {
+                                oldMainAdmin.Role = 3;
+                            }
+
+                            userByOldLogin.Login = login;
+                            userByOldLogin.Email = email;
+                            userByOldLogin.FirstName = firstName;
+                            userByOldLogin.LastName = lastName;
+                            userByOldLogin.Role = 4;
+
+                            await _context.SaveChangesAsync();
+                            TempData["AdminMessage"] = "Nový hlavní administrátor úspěšně nastaven.";
+                            return RedirectToAction(nameof(ManageUserListForAdmin));
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["AdminMessage"] = "Chyba: správce s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
+            else if (action == "deleteAdmin")
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (user != null)
+                {
+                    if(user.Role == 4)
+                    {
+                        TempData["AdminMessage"] = "Chyba: účet hlavního administrátora nelze smazat.";
+                    }
+                    else
+                    {
+                        _context.Users.Remove(user);
+                        await _context.SaveChangesAsync();
+                        TempData["AdminMessage"] = "Správce úspěšně smazán.";
+                    }
+                }
+                else
+                {
+                    TempData["AdminMessage"] = "Chyba: správce s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
+            else if (action == "deleteAllAdmins")
+            {
+                _context.Database.ExecuteSqlRaw("delete from [User] where role = 3");
+                TempData["AdminMessage"] = "Byly smazáni všichni existující správci.";
+            }
             return RedirectToAction(nameof(ManageUserList));
         }
 
@@ -678,13 +947,20 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.TeacherMessage = TempData["TeacherMessage"].ToString();
             }
-            return _context.Users != null ?
-            View(await _context.Users.ToListAsync()) :
-            Problem("Entity set 'CourseContext.Users'  is null.");
+            if (TempData["AdminMessage"] != null)
+            {
+                ViewBag.TeacherMessage = TempData["AdminMessage"].ToString();
+            }
+            dynamic model = new ExpandoObject();
+            model.Users = await _context.Users.ToListAsync();
+            model.Students = await _context.Students.ToListAsync();
+            return (_context.Users != null && _context.Students != null) ?
+                View(model) :
+            Problem("Entity set 'CourseContext.TestResults' or 'CourseContext.Students' is null.");
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageUserListForAdmin(string action, string firstName, string lastName, string login, string email)
+        public async Task<IActionResult> ManageUserListForAdmin(string action, string firstName, string lastName, string login, string email, string studentIdentifier)
         {
             bool isEmailValid;
             try
@@ -696,13 +972,16 @@ namespace ViewLayer.Controllers
             {
                 isEmailValid = false;
             }
+            
+            var studentLoginCheck = _context.Students.FirstOrDefault(u => u.Login == login);
+            var studentEmailCheck = _context.Students.FirstOrDefault(u => u.Email == email);
 
-            var loginCheck = _context.Users.FirstOrDefault(u => u.Login == login);
-            var emailCheck = _context.Users.FirstOrDefault(u => u.Email == email);
+            var userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == login);
+            var userEmailCheck = _context.Users.FirstOrDefault(u => u.Email == email);
 
             if (action == "addStudents")
             {
-                List<User> students = userController.LoadStudents();
+                List<Student> students = studentController.LoadStudents();
 
                 int successCount = 0;
                 int errorCount = 0;
@@ -710,13 +989,13 @@ namespace ViewLayer.Controllers
                 {
                     try
                     {
-                        User student = students[i];
-                        _context.Users.Add(student);
+                        Student student = students[i];
+                        _context.Students.Add(student);
                         //in case the user has registered before the student has been imported, we add the User to the UserRegistration
                         var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == 1);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
-                            userRegistration.User = student;
+                            userRegistration.Student = student;
                         }
                         await _context.SaveChangesAsync();
                         successCount++;
@@ -735,23 +1014,93 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
                 }
-                else if (emailCheck != null)
+                else if (studentEmailCheck != null || userEmailCheck != null)
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
                 else
                 {
-                    var student = _context.Users.FirstOrDefault(u => u.Login == login && u.Role == 1);
-                    if (student == null)
+                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+                    var studentByIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
+                    if (studentByLogin == null && studentByIdentifier == null)
                     {
-                        TempData["StudentMessage"] = "Chyba: student s loginem \"" + login + "\" nebyl nalezen.";
+                        Student student = new Student();
+                        student.StudentIdentifier = studentIdentifier;
+                        student.Login = login;
+                        student.Email = email;
+                        student.FirstName = firstName;
+                        student.LastName = lastName;
+                        _context.Students.Add(student);
+                        await _context.SaveChangesAsync();
+                        TempData["StudentMessage"] = "Student s loginem \"" + login + "\" úspěšně přidán.";
                     }
                     else
                     {
-                        student.Email = email;
+                        studentByLogin.Email = email;
                         await _context.SaveChangesAsync();
                         TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
                     }
+                }
+            }
+            else if (action == "editStudent")
+            {
+                //it's necessary to ensure that there won't be two or more users with the same email/identifier
+                var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+                if (studentByLogin != null)
+                {
+                    var studentByNewEmail = _context.Students.FirstOrDefault(s => s.Email == email);
+                    if (!isEmailValid)
+                    {
+                        TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
+                    }
+                    else if (firstName == null || lastName == null || login == null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: je nutné vyplnit všechna pole.";
+                    }
+                    else if (studentByNewEmail != null && studentByLogin.Email != studentByNewEmail.Email)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + studentByNewEmail.Email + "\" již existuje.";
+                    }
+                    else if (userEmailCheck != null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
+                    }
+                    else
+                    {
+                        var studentByNewIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
+                        if (studentByNewIdentifier != null && studentByLogin.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
+                        {
+                            TempData["StudentMessage"] = "Chyba: student s identifikátorem \"" + studentByNewIdentifier.Email + "\" již existuje.";
+                        }
+                        else
+                        {
+                            studentByLogin.Login = login;
+                            studentByLogin.Email = email;
+                            studentByLogin.FirstName = firstName;
+                            studentByLogin.LastName = lastName;
+                            studentByLogin.StudentIdentifier = studentIdentifier;
+                            await _context.SaveChangesAsync();
+                            TempData["StudentMessage"] = "Student úspěšně upraven.";
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentByLogin + "\" nebyl nalezen.";
+                }
+            }
+            else if (action == "deleteStudent")
+            {
+                var user = _context.Students.FirstOrDefault(s => s.Login == login);
+                if (user != null)
+                {
+                    _context.Students.Remove(user);
+                    await _context.SaveChangesAsync();
+                    TempData["StudentMessage"] = "Student úspěšně smazán.";
+                }
+                else
+                {
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + login + "\" nebyl nalezen.";
                 }
             }
             else if (action == "addTeacher")
@@ -764,11 +1113,11 @@ namespace ViewLayer.Controllers
                 {
                     TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if (loginCheck != null)
+                else if (userLoginCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
-                else if (emailCheck != null)
+                else if (userEmailCheck != null || studentEmailCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
@@ -785,6 +1134,58 @@ namespace ViewLayer.Controllers
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
                 }
             }
+            else if (action == "editTeacher")
+            {
+                //it's necessary to ensure that there won't be two or more users with the same email
+                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (userByOldLogin != null)
+                {
+                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (!isEmailValid)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
+                    }
+                    else if (firstName == null || lastName == null || login == null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
+                    }
+                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                    }
+                    else if (studentEmailCheck != null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
+                    }
+                    else
+                    {
+                        userByOldLogin.Login = login;
+                        userByOldLogin.Email = email;
+                        userByOldLogin.FirstName = firstName;
+                        userByOldLogin.LastName = lastName;
+                        await _context.SaveChangesAsync();
+                        TempData["TeacherMessage"] = "Učitel úspěšně upraven.";
+                    }
+                }
+                else
+                {
+                    TempData["TeacherMessage"] = "Chyba: učitel s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
+            else if (action == "deleteTeacher")
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Login == login);
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                    TempData["TeacherMessage"] = "Učitel úspěšně smazán.";
+                }
+                else
+                {
+                    TempData["TeacherMessage"] = "Chyba: učitel s loginem \"" + login + "\" nebyl nalezen.";
+                }
+            }
             return RedirectToAction(nameof(ManageUserListForAdmin));
         }
 
@@ -796,7 +1197,7 @@ namespace ViewLayer.Controllers
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
-                .Include(u => u.User).ToListAsync()) :
+                .Include(u => u.Student).ToListAsync()) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
         }
 
@@ -805,12 +1206,12 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> ManageUserRegistrationList(string login, string email, string firstName, string lastName, string role, string action)
         {
             string? message = null;
-            if(action == "accept")
+            if(action == "acceptRegistration")
             {
-                //for students, the entry has to already exist in the database (just without the email), for staff members it does not
+                //for students, the entry has to already exist in the database (just without the email)
                 if(role == "1")
                 {
-                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                    var userByLogin = _context.Students.FirstOrDefault(u => u.Login == login);
                     if (userByLogin != null)
                     {
                         if (userByLogin.Email != null)
@@ -819,7 +1220,7 @@ namespace ViewLayer.Controllers
                         }
                         else
                         {
-                            var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                            var userByEmail = _context.Students.FirstOrDefault(u => u.Email == email);
                             if (userByEmail != null)
                             {
                                 message = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
@@ -852,9 +1253,14 @@ namespace ViewLayer.Controllers
                 else
                 {
                     var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
                     if (userByEmail != null)
                     {
                         message = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
+                    }
+                    else if (userByLogin != null)
+                    {
+                        message = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                     }
                     else
                     {
@@ -879,7 +1285,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            else
+            else if(action == "refuseRegistration")
             {
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
@@ -893,6 +1299,26 @@ namespace ViewLayer.Controllers
                     message = "Chyba: registrace nebyla nalezena";
                 }
             }
+            else if(action == "deleteRegistration")
+            {
+                var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                if (userRegistration != null)
+                {
+                    _context.UserRegistrations.Remove(userRegistration);
+                    await _context.SaveChangesAsync();
+                    message = "Registrace úspěšně smazána.";
+                }
+                else
+                {
+                    message = "Chyba: registrace nebyla nalezena";
+                }
+            }
+            else if(action == "deleteAllRegistrations")
+            {
+                _context.Database.ExecuteSqlRaw("delete from UserRegistration");
+                await _context.SaveChangesAsync();
+                message = "Všechny registrace byly úspěšně smazány.";
+            }
             TempData["Message"] = message;
             return RedirectToAction(nameof(ManageUserRegistrationList));
         }
@@ -905,7 +1331,7 @@ namespace ViewLayer.Controllers
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
-                .Include(u => u.User).ToListAsync()) :
+                .Include(u => u.Student).ToListAsync()) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
         }
 
@@ -914,7 +1340,7 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> ManageUserRegistrationListForAdmin(string login, string email, string firstName, string lastName, string role, string action)
         {
             string? message = null;
-            if (action == "accept")
+            if (action == "acceptRegistration")
             {
                 //for students, the entry has to already exist in the database (just without the email), for staff members it does not
                 if (role == "1")
@@ -961,9 +1387,14 @@ namespace ViewLayer.Controllers
                 else
                 {
                     var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
                     if (userByEmail != null)
                     {
                         message = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
+                    }
+                    else if (userByLogin != null)
+                    {
+                        message = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                     }
                     else
                     {
@@ -988,7 +1419,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            else
+            else if(action == "refuseRegistration")
             {
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
@@ -996,6 +1427,20 @@ namespace ViewLayer.Controllers
                     userRegistration.State = 3;
                     await _context.SaveChangesAsync();
                     message = "Registrace úspěšně zamítnuta.";
+                }
+                else
+                {
+                    message = "Chyba: registrace nebyla nalezena";
+                }
+            }
+            else if(action == "deleteRegistration")
+            {
+                var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
+                if (userRegistration != null)
+                {
+                    _context.UserRegistrations.Remove(userRegistration);
+                    await _context.SaveChangesAsync();
+                    message = "Registrace úspěšně smazána.";
                 }
                 else
                 {

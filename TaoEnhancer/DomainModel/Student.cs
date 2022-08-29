@@ -2,19 +2,17 @@
 
 namespace DomainModel
 {
-    public class UserRegistration
+    public class Student
     {
         [Key]
-        public string Email { get; set; }
         public string Login { get; set; }
+        public string? Email { get; set; }
+        public string StudentIdentifier { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int State { get; set; }
-        public int Role { get; set; }
         public string FullName()
         {
             return FirstName + " " + LastName;
         }
-        public Student? Student { get; set; }
     }
 }

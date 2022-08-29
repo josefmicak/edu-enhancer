@@ -60,6 +60,15 @@ img {
     border-style: solid;
 }
 
+#confirm-action {
+    position: absolute;
+    left: 45%;
+    top: 90%;
+    border: 1px;
+    border-style: solid;
+    display: none;
+}
+
 /*Index.cshtml*/
 
 #emailField {
@@ -227,7 +236,7 @@ img {
 
 #student-management {
     position: absolute;
-    left: 15%;
+    left: 5%;
     top: 20%;
     border: 1px;
     border-style: solid;
@@ -243,7 +252,7 @@ img {
 
 #admin-management {
     position: absolute;
-    left: 60%;
+    left: 70%;
     top: 20%;
     border: 1px;
     border-style: solid;

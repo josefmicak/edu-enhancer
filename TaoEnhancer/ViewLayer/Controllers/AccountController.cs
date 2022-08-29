@@ -76,7 +76,8 @@ namespace ViewLayer.Controllers
         public IActionResult AfterSignInRedirect(ClaimsIdentity claimsIdentity)
         {
             User user = _context.Users.FirstOrDefault(u => u.Email == claimsIdentity.Claims.ToList()[2].Value);
-            if (user == null)
+            Student student = _context.Students.FirstOrDefault(s => s.Email == claimsIdentity.Claims.ToList()[2].Value);
+            if (user == null && student == null)
             {
                 string fullName = claimsIdentity.Claims.ToList()[1].Value;
                 string[] fullNameSplitBySpace = fullName.Split(" ");
@@ -87,24 +88,28 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                switch(user.Role)
+                if(user != null)
                 {
-                    case 1:
-                        Common.Config.Application["login"] = user.Login;
-                        return RedirectToAction("BrowseSolvedTestList", "Home");
-                    case 2:
-                        Common.Config.Application["login"] = user.Login;
-                        return RedirectToAction("TeacherMenu", "Home");
-                    case 3:
-                        Common.Config.Application["login"] = user.Login;
-                        return RedirectToAction("AdminMenu", "Home");
-                    case 4:
-                        return RedirectToAction("MainAdminMenu", "Home");
-                    default:
-                        //todo: throw exception - invalid role
-                        return RedirectToAction("Index", "Home");
+                    Common.Config.Application["login"] = user.Login;
+                    switch (user.Role)
+                    {
+                        case 2:
+                            return RedirectToAction("TeacherMenu", "Home");
+                        case 3:
+                            return RedirectToAction("AdminMenu", "Home");
+                        case 4:
+                            return RedirectToAction("MainAdminMenu", "Home");
+                        default:
+                            break;
+                    }
                 }
-                
+                else if(student != null)
+                {
+                    Common.Config.Application["login"] = student.Login;
+                    return RedirectToAction("BrowseSolvedTestList", "Home");
+                }
+                //todo: throw exception - no user found
+                return RedirectToAction("Index", "Home");
             }
         }
 

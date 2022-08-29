@@ -5,24 +5,24 @@ using System.Xml;
 
 namespace ViewLayer.Controllers
 {
-    public class UserController : Controller
+    public class StudentController : Controller
     {
-        public List<User> LoadStudents()
+        public List<Student> LoadStudents()
         {
-            List<User> students = new List<User>();
+            List<Student> students = new List<Student>();
             if (Directory.Exists(Settings.GetStudentsPath()))
             {
                 foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
                 {
                     if (new FileInfo(studentFile).Extension == ".rdf")
                     {
-                        User student = new User();
+                        Student student = new Student();
                         XmlReader xmlReader = XmlReader.Create(studentFile);
                         while (xmlReader.Read())
                         {
                             if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
                             {
-                                student.UserIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
+                                student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
                             }
 
                             if (xmlReader.Name == "ns0:login" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -40,7 +40,6 @@ namespace ViewLayer.Controllers
                                 student.LastName = xmlReader.ReadInnerXml();
                             }
 
-                            student.Role = 1;
                         }
                         students.Add(student);
                     }
@@ -55,9 +54,9 @@ namespace ViewLayer.Controllers
         /// </summary>
         /// <param name="studentIdentifier">Identifier of the selected student</param>
         /// <returns>the selected test student</returns>
-        public User LoadStudent(string studentIdentifier)
+        public Student LoadStudent(string studentIdentifier)
         {
-            User student = new User();
+            Student student = new Student();
 
             if (Directory.Exists(Settings.GetStudentsPath()))
             {
@@ -72,7 +71,7 @@ namespace ViewLayer.Controllers
                             {
                                 if (studentIdentifier == xmlReader.GetAttribute("rdf:about").Split("#")[1])
                                 {
-                                    student.UserIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
+                                    student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
                                 }
                                 else
                                 {

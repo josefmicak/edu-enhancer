@@ -46,6 +46,11 @@ namespace DataLayer
                 return;   // DB has been seeded
             }
 
+            if (context.Students.Any())
+            {
+                return;   // DB has been seeded
+            }
+
             if (context.UserRegistrations.Any())
             {
                 return;   // DB has been seeded

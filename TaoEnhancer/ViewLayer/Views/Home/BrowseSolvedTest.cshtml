@@ -37,7 +37,7 @@
             </tr>
             <tr>
                 <th>Identifikátor studenta</th>
-                <td>@Model.First().TestResult.Student.UserIdentifier</td>
+                <td>@Model.First().TestResult.Student.StudentIdentifier</td>
             </tr>
         </table>
     </div>
@@ -148,6 +148,6 @@
 </div>
 
 <div id="backBtn"><a asp-action="BrowseSolvedTestList"
-        asp-route-studentIdentifier="@Model.First().TestResult.Student.UserIdentifier">Zpět</a></div>
+        asp-route-studentIdentifier="@Model.First().TestResult.Student.StudentIdentifier">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

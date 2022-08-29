@@ -13,6 +13,7 @@
                 <th>Jmenný identifikátor testu</th>
                 <th>Číselný identifikátor testu</th>
                 <th>Nadpis</th>
+                <th>Smazat</th>
                 <th>Správa</th>
             </tr>
             @{
@@ -23,6 +24,7 @@
                         <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.TestNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTemplate', '@item.TestNumberIdentifier', null, null, null, null, null)">Smazat test</button></td>
                         <td><a class="button" id="testTemplateBtn_@i" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 
@@ -41,10 +43,17 @@
         <input type="hidden" value="add" name="action">
     </form>
 
-    <form method="POST">
-        <input type="submit" value="Smazat testy" class="btn btn-primary" />
-        <input type="hidden" value="delete" name="action">
-    </form>
+    <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAllTemplates', null, null, null, null, null, null)">Smazat všechny testy</button>
+
+    <div id="confirm-action">
+        <form method="POST">
+            <label><div id="confirm-action-label"></div></label><br>
+            <input title="Ano" type="submit" value="Ano"><br>
+            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+            <input type="hidden" id="testNumberIdentifier" name="testNumberIdentifier">
+            <input type="hidden" id="action" name="action">
+        </form>
+    </div>
 </div>
 
 <div id="backBtn"><a asp-action="@ViewBag.Return">Zpět</a></div>

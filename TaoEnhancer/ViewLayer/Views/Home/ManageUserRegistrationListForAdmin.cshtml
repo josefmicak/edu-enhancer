@@ -1,8 +1,5 @@
 ﻿@model IEnumerable<DomainModel.UserRegistration>
 
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProtectedLocalStorage LocalStorage
-
 @{
     string waitingString = "Čekající";
     string acceptedString = "Schválena";
@@ -10,8 +7,6 @@
 
     ViewData["Title"] = "Správa registrací";
 }
-
-<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
 
 <div class="text-center">
     <h1>Správa registrací</h1>
@@ -27,6 +22,7 @@
                 <th>Importovaný student s tímto loginem</th>
                 <th>Schválení</th>
                 <th>Zamítnutí</th>
+                <th>Smazání</th>
                 <th>Stav</th>
             </tr>
             @{
@@ -38,9 +34,9 @@
                     }
                     string fullName = item.FullName();
                     string? studentData = null;
-                    if(item.User != null)
+                    if(item.Student != null)
                     {
-                        studentData = "Identifikátor: " + item.User.UserIdentifier + ", jméno: " + item.User.FullName() + ", login: " + item.User.Login;
+                        studentData = "Identifikátor: " + item.Student.StudentIdentifier + ", jméno: " + item.Student.FullName() + ", login: " + item.Student.Login;
                     }
                     else
                     {
@@ -52,17 +48,9 @@
                         <td>@Html.DisplayFor(modelItem => item.Email)</td>
                         <td>@Html.DisplayFor(modelItem => studentData)</td>
                         @{
-                            if(item.User != null && item.State == 1)
+                            if(item.Student != null && item.State == 1)
                             {
-                                <form method="POST">
-                                    <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
-                                    <input type="hidden" value="@item.Email" name="email">
-                                    <input type="hidden" value="@item.Login" name="login">
-                                    <input type="hidden" value="@item.FirstName" name="firstName">
-                                    <input type="hidden" value="@item.LastName" name="lastName">
-                                    <input type="hidden" value="@item.Role" name="role">
-                                    <input type="hidden" value="accept" name="action">
-                                </form>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
                             }
                             else
                             {
@@ -71,16 +59,14 @@
 
                             if(item.State == 1)
                             {
-                                <form method="POST">
-                                    <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" /></td>
-                                    <input type="hidden" value="@item.Email" name="email">
-                                    <input type="hidden" value="refuse" name="action">
-                                </form>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
                             }
                             else
                             {
                                 <td>Registraci nelze zamítnout.</td>
                             }
+
+                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
 
                             string state = "";
                             if(item.State == 1)
@@ -113,6 +99,7 @@
                 <th>Role</th>
                 <th>Schválení</th>
                 <th>Zamítnutí</th>
+                <th>Smazání</th>
                 <th>Stav</th>
             </tr>
             @{
@@ -140,15 +127,7 @@
                         @{
                             if(item.State == 1 && item.Role == 2)
                             {
-                                <form method="POST">
-                                    <td><input type="submit" value="Schválit registraci" class="btn btn-primary" /></td>
-                                    <input type="hidden" value="@item.Email" name="email">
-                                    <input type="hidden" value="@item.Login" name="login">
-                                    <input type="hidden" value="@item.FirstName" name="firstName">
-                                    <input type="hidden" value="@item.LastName" name="lastName">
-                                    <input type="hidden" value="@item.Role" name="role">
-                                    <input type="hidden" value="accept" name="action">
-                                </form>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
                             }
                             else
                             {
@@ -157,15 +136,20 @@
 
                             if(item.State == 1 && item.Role == 2)
                             {
-                                <form method="POST">
-                                    <td><input type="submit" value="Odmítnout registraci" class="btn btn-primary" /></td>
-                                    <input type="hidden" value="@item.Email" name="email">
-                                    <input type="hidden" value="refuse" name="action">
-                                </form>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
                             }
                             else
                             {
                                 <td>Registraci nelze zamítnout.</td>
+                            }
+
+                            if(item.Role == 2)
+                            {
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+                            }
+                            else
+                            {
+                                <td>Registraci nelze smazat.</td>
                             }
 
                             string state = "";
@@ -189,7 +173,21 @@
         </table>
     </div>
 
-<div id="registration-visibility">
+    <div id="confirm-action">
+        <form method="POST">
+            <label>Opravdu si přejete provést tuto akci?</label><br>
+            <input title="Ano" type="submit" value="Ano"><br>
+            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+            <input type="hidden" id="email" name="email">
+            <input type="hidden" id="login" name="login">
+            <input type="hidden" id="firstName" name="firstName">
+            <input type="hidden" id="lastName" name="lastName">
+            <input type="hidden" id="role" name="role">
+            <input type="hidden" id="action" name="action">
+        </form>
+    </div>
+
+    <div id="registration-visibility">
         <p id="visibility-text"></p>
         @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>

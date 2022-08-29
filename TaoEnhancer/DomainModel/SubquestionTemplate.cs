@@ -13,6 +13,7 @@ namespace DomainModel
         public string[] CorrectAnswerList { get; set; }
         public double? SubquestionPoints { get; set; }
         public string QuestionNumberIdentifier { get; set; }
+        public string OwnerLogin { get; set; }
         public QuestionTemplate QuestionTemplate { get; set; }
     }
 }

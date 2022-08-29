@@ -64,7 +64,7 @@ namespace ViewLayer.Controllers
         /// <param name="testNameIdentifier">Name identifier of the selected test</param>
         /// <param name="testNumberIdentifier">Number identifier of the selected test</param>
         /// <returns>the list of questions with all their parameters</returns>
-        public List<QuestionTemplate> LoadQuestionTemplates(TestTemplate testTemplate)
+        public List<QuestionTemplate> LoadQuestionTemplates(TestTemplate testTemplate, string login)
         {
             int i = 0;
 
@@ -105,8 +105,9 @@ namespace ViewLayer.Controllers
                                                 questionTemplate.QuestionNumberIdentifier = questionParameters[j].Item4;
                                                 questionTemplate.Title = xmlReader.GetAttribute("title");
                                                 questionTemplate.Label = xmlReader.GetAttribute("label");
+                                                questionTemplate.OwnerLogin = login;
                                                 questionTemplate.TestTemplate = testTemplate;
-                                                questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate);
+                                                questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate, login);
                                                 questionTemplatesTemp.Add(questionTemplate);
                                                 i++;
                                             }
@@ -141,7 +142,7 @@ namespace ViewLayer.Controllers
         /// </summary>
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
         /// <returns>the list of all subquestion templates (by question template)</returns>
-        public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, QuestionTemplate questionTemplate)
+        public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, QuestionTemplate questionTemplate, string login)
         {
             List<SubquestionTemplate> subquestionTemplates = new List<SubquestionTemplate>();
             XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionTemplate.QuestionNumberIdentifier));
@@ -165,6 +166,8 @@ namespace ViewLayer.Controllers
                     subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
 
                     subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+
+                    subquestionTemplate.OwnerLogin = login;
                     
                     subquestionTemplate.QuestionTemplate = questionTemplate;
 
@@ -767,7 +770,7 @@ namespace ViewLayer.Controllers
             return correctAnswerList.ToArray();
         }
 
-        public List<SubquestionResult> LoadSubquestionResults(QuestionResult questionResult)
+        public List<SubquestionResult> LoadSubquestionResults(QuestionResult questionResult, string login)
         {
             List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
             QuestionTemplate questionTemplate = questionResult.QuestionTemplate;
@@ -808,6 +811,7 @@ namespace ViewLayer.Controllers
                             subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
                             subquestionResult.SubquestionTemplate = subquestionTemplate;
                             subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
+                            subquestionResult.OwnerLogin = login;
                             subquestionResults.Add(subquestionResult);
                         }
                     }
@@ -870,7 +874,7 @@ namespace ViewLayer.Controllers
             return subquestionResults;
         }
 
-        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate)//todo: odebrat testtemplate?
+        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate, string login)//todo: odebrat testtemplate?
         {
             List<QuestionResult> questionResults = new List<QuestionResult>();
             ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
@@ -881,7 +885,8 @@ namespace ViewLayer.Controllers
                 questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList).FirstOrDefault(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier);
                 questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
                 questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
-                questionResult.SubquestionResultList = LoadSubquestionResults(questionResult);
+                questionResult.SubquestionResultList = LoadSubquestionResults(questionResult, login);
+                questionResult.OwnerLogin = login;
                 questionResults.Add(questionResult);
             }
             return questionResults;
