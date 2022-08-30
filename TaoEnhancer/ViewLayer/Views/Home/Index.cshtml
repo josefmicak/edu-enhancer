@@ -1,30 +1,123 @@
-﻿@{
+﻿@model dynamic
+
+@using DomainModel
+@using Common;
+
+@{
     ViewData["Title"] = "TaoEnhancer";
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    int mainAdminCount = 0;
+    int adminCount = 0;
+    int teacherCount = 0;
 }
+
+<script>
+    function optGroupUpdate(login, email, role, mainAdminCount, adminCount, teacherCount) {
+        opt = document.createElement('OPTION');
+        opt.textContent = "Email: " + email + ", login: " + login;
+        opt.value = login;
+
+        if (role == "2") {
+            document.getElementById("teacher-optgroup").appendChild(opt);
+            document.getElementById("teacher-optgroup").setAttribute('label', 'Učitelé (' + teacherCount + ")");
+        }
+        else if (role == "3") {
+            document.getElementById("admin-optgroup").appendChild(opt);
+            document.getElementById("admin-optgroup").setAttribute('label', 'Správci (' + adminCount + ")");
+        }
+        else if (role == "4") {
+            document.getElementById("main-admin-optgroup").appendChild(opt);
+            document.getElementById("main-admin-optgroup").setAttribute('label', 'Hlavní administrátoři (' + teacherCount + ")");
+        }
+    }
+</script>
 
 <div class="text-center">
     <h1>TaoEnhancer</h1>
     <p>@ViewBag.Message</p>
-    <br>
-    <a asp-action="TeacherMenu">Jsem učitel</a>
-    <br>
-    <a asp-action="StudentMenu">Jsem student</a>
 </div>
 
-<div id="g_id_onload"
-    data-client_id="1005767738241-1gerk4e7lkbva1lre1hq3i0jrsbrs2rh.apps.googleusercontent.com"
-    data-context="signin"
-    data-ux_mode="redirect"
-    data-login_uri="https://localhost:7026/Account/SignIn"
-    data-auto_prompt="false">
+<div id="test-login">
+    <h2>Testovací přihlášení</h2>
+
+    <form method="POST">
+        <select name="selectedUserLogin" id="selectedUserLogin">
+        @{
+            <optgroup id="main-admin-optgroup" label="Hlavní administrátoři"></optgroup>
+            <optgroup id="admin-optgroup" label="Správci"></optgroup>
+            <optgroup id="teacher-optgroup" label="Učitelé"></optgroup>
+            foreach(User item in Model.Users)
+            {
+                if(item.Role == 2)
+                {
+                    teacherCount++;
+                }
+                else if(item.Role == 3)
+                {
+                    adminCount++;
+                }
+                else if(item.Role == 4)
+                {
+                    mainAdminCount++;
+                }
+                <script>
+                    optGroupUpdate('@item.Login', '@item.Email', '@item.Role', '@mainAdminCount', '@adminCount', '@teacherCount');
+                </script>
+            }
+            <optgroup label="Studenti (@Model.Students.Count)">
+            @{
+                foreach(Student item in Model.Students)
+                {
+                    string email = "";
+                    if(item.Email != null)
+                    {
+                        email = item.Email;
+                    }
+                    else
+                    {
+                        email = "<nevyplněno>";
+                    }
+                    <option value="@item.Login">Email: @email, Login: @item.Login</option>
+                }
+            }
+            </optgroup>
+        }
+        </select>
+        <input type="submit" value="Přihlásit se">
+    </form>
 </div>
-<div class="g_id_signin"
-    data-type="standard"
-    data-size="large"
-    data-theme="outline"
-    data-text="sign_in_with"
-    data-shape="rectangular"
-    data-logo_alignment="left">
+
+<div id="google-login">
+    <h2>Google přihlášení</h2>
+    <div id="g_id_onload"
+        data-client_id="1005767738241-1gerk4e7lkbva1lre1hq3i0jrsbrs2rh.apps.googleusercontent.com"
+        data-context="signin"
+        data-ux_mode="redirect"
+        data-login_uri="https://localhost:7026/Account/SignIn"
+        data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+    </div>
+
 </div>
+
+@{
+    if(Common.Config.TestingMode)
+    {
+        <script>
+            document.getElementById("test-login").style.visibility = 'visible';
+        </script>
+    }
+}
+
+<script>
+    document.getElementById("selectedUserLogin").selectedIndex = "0"; 
+</script>

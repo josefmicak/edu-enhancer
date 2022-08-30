@@ -229,6 +229,12 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
     }
 }
 
+//Index.cshtml
+
+
+
+//General
+
 function hideConfirmActionForm() {
     document.getElementById("confirm-action").style.display = "none";
 }

@@ -69,12 +69,36 @@ img {
     display: none;
 }
 
+#testing-mode {
+    position: absolute;
+    left: 3%;
+    top: 1%;
+    border: 1px;
+    border-style: solid;
+    visibility: hidden;
+}
+
+#testing-mode p::before {
+    content: "Testovac\00ED  re\017E im aktivn\00ED .";
+}
+
 /*Index.cshtml*/
 
-#emailField {
+#google-login {
     position: absolute;
-    left: 30%;
+    left: 45%;
+    top: 10%;
+    border: 1px;
+    border-style: solid;
+}
+
+#test-login {
+    position: absolute;
+    left: 40%;
     top: 20%;
+    border: 1px;
+    border-style: solid;
+    visibility: hidden;
 }
 
 /*TestTemplateList.cshtml*/

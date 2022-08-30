@@ -56,6 +56,11 @@ namespace DataLayer
                 return;   // DB has been seeded
             }
 
+            if (context.GlobalSettings.Any())
+            {
+                return;   // DB has been seeded
+            }
+
             context.SaveChanges();
         }
     }

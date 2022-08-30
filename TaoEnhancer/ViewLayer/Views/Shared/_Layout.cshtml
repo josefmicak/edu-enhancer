@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -38,6 +38,8 @@
         </main>
     </div>
 
+    <div id="testing-mode"><p></p></div>
+
    <!-- <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2022 - TaoEnhancer - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
@@ -49,3 +51,12 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+@{
+    if(Common.Config.TestingMode)
+    {
+        <script>
+            document.getElementById("testing-mode").style.visibility = 'visible';
+        </script>
+    }
+}

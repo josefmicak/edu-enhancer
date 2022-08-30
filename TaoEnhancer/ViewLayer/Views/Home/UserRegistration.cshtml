@@ -15,25 +15,25 @@
         @{
             if(Model.Count() == 0)
             {
-                <p>Zatím jste se nezaregistroval</p>
+                                <p>Zatím jste se nezaregistroval</p>
             }
             else
             {
-                <table>
-                    <tr>
-                        <th>Jméno</th>
-                        <th>Příjmení</th>
-                        <th>Login</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Stav</th>
-                    </tr>
-                    <tr>
-                        <td>@Model.First().FirstName</td>
-                        <td>@Model.First().LastName</td>
-                        <td>@Model.First().Login</td>
-                        <td>@Model.First().Email</td>
-                        @{
+                                <table>
+                                    <tr>
+                                        <th>Jméno</th>
+                                        <th>Příjmení</th>
+                                        <th>Login</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Stav</th>
+                                    </tr>
+                                    <tr>
+                                        <td>@Model.First().FirstName</td>
+                                        <td>@Model.First().LastName</td>
+                                        <td>@Model.First().Login</td>
+                                        <td>@Model.First().Email</td>
+                                        @{
                             string role = "";
                             if(Model.First().Role == 1)
                             {
@@ -47,7 +47,7 @@
                             {
                                 role = "Správce";
                             }
-                            <td>@role</td>
+                                                            <td>@role</td>
 
                             string state = "";
                             if(Model.First().State == 1)
@@ -58,10 +58,10 @@
                             {
                                 state = "Zamítnuta";
                             }
-                            <td>@state</td>
-                        }
-                    </tr>
-                </table>
+                                                            <td>@state</td>
+                                        }
+                                    </tr>
+                                </table>
             }
         }
     </div>
@@ -92,3 +92,19 @@
 <div id="backBtn"><a asp-action="Index">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+
+@{
+    if(ViewBag.firstRegistrationMessage != null)
+    {
+        <script>
+            var opt = document.createElement('option');
+            opt.value = "4";
+            opt.innerHTML = "Hlavní administrátor";
+            document.getElementById("role").appendChild(opt);
+
+            document.getElementById("role").value = "4";
+
+            document.getElementById("role").disabled = true;
+        </script>
+    }
+}

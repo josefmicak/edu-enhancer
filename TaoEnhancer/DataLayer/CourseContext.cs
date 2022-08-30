@@ -18,6 +18,7 @@ namespace DataLayer
         public DbSet<QuestionResult> QuestionResults { get; set; }
         public DbSet<SubquestionResult> SubquestionResults { get; set; }
         public DbSet<UserRegistration> UserRegistrations { get; set; }
+        public DbSet<GlobalSettings> GlobalSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -101,6 +102,15 @@ namespace DataLayer
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
 
             modelBuilder.Entity<UserRegistration>().ToTable("UserRegistration");
+
+            modelBuilder.Entity<GlobalSettings>().ToTable("Settings");
+            modelBuilder.Entity<GlobalSettings>().HasData(
+                new GlobalSettings
+                {
+                    Id = 1,
+                    TestingMode = false
+                }
+            );
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

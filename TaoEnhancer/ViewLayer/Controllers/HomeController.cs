@@ -31,10 +31,15 @@ namespace ViewLayer.Controllers
             _context = context;
             questionController = new QuestionController(context);
             testController = new TestController(context);
+
+            if(_context.GlobalSettings.FirstOrDefault().TestingMode)
+            {
+                Common.Config.TestingMode = true;
+            }
         }
 
         [AllowAnonymous]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if(_context.Users.Count() == 0)
             {
@@ -44,9 +49,52 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = "Pro přístup do aplikace se přihlašte.";
             }
-            return View();
+
+            //due to security reasons, the list of users is passed to the view only in case the application is in testing mode
+            if(!Common.Config.TestingMode)
+            {
+                return View();
+            }
+            else
+            {
+                dynamic model = new ExpandoObject();
+                model.Users = await _context.Users.ToListAsync();
+                model.Students = await _context.Students.ToListAsync();
+                return (_context.Users != null && _context.Students != null) ?
+                    View(model) :
+                Problem("Entity set 'CourseContext.Users' or 'CourseContext.Students'  is null.");
+            }
         }
-            
+
+        [HttpPost]
+        public IActionResult Index(string selectedUserLogin)
+        {
+            User user = _context.Users.FirstOrDefault(u => u.Login == selectedUserLogin);
+            Student student = _context.Students.FirstOrDefault(s => s.Login == selectedUserLogin);
+
+            Common.Config.Application["login"] = selectedUserLogin;
+            if (user != null)
+            {
+                switch (user.Role)
+                {
+                    case 2:
+                        return RedirectToAction("TeacherMenu", "Home");
+                    case 3:
+                        return RedirectToAction("AdminMenu", "Home");
+                    case 4:
+                        return RedirectToAction("MainAdminMenu", "Home");
+                    default:
+                        break;
+                }
+            }
+            else if (student != null)
+            {
+                return RedirectToAction("BrowseSolvedTestList", "Home");
+            }
+            //todo: throw exception - no user found
+            return RedirectToAction("Index", "Home");
+        }
+
         public async Task<IActionResult> TestTemplateList()
         {
             string login = Common.Config.Application["login"];
@@ -388,16 +436,6 @@ namespace ViewLayer.Controllers
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
                 .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
             Problem("Entity set 'CourseContext.SubquestionTemplates' is null.");
-        }
-
-        public IActionResult StudentMenu()
-        {
-            return View();
-            /*return View(new StudentMenuModel
-            {
-                Title = "Student",
-                Students = studentController.LoadStudents()
-            });*/
         }
 
         public async Task<IActionResult> BrowseSolvedTestList()
@@ -1474,9 +1512,37 @@ namespace ViewLayer.Controllers
                 Problem("Entity set 'CourseContext.Users'  is null.");
         }
 
-        public IActionResult GlobalSettings()
+        public async Task<IActionResult> GlobalSettings()
         {
-            return View();
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            return _context.GlobalSettings != null ?
+                View(await _context.GlobalSettings.FirstOrDefaultAsync()) :
+                Problem("Entity set 'CourseContext.GlobalSettings'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GlobalSettings(string testingMode)
+        {
+            var globalSettings = _context.GlobalSettings.FirstOrDefault();
+            if(globalSettings != null)
+            {
+                if (testingMode == "testingModeOff")
+                {
+                    globalSettings.TestingMode = false;
+                    Common.Config.TestingMode = false;
+                }
+                else if (testingMode == "testingModeOn")
+                {
+                    globalSettings.TestingMode = true;
+                    Common.Config.TestingMode = true;
+                }
+                TempData["Message"] = "Změny úspěšně uloženy.";
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(GlobalSettings));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
