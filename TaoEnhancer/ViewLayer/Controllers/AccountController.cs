@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using DomainModel;
 using DataLayer;
+using System.Security.Principal;
 
 namespace ViewLayer.Controllers
 {
@@ -72,7 +73,6 @@ namespace ViewLayer.Controllers
             return RedirectToAction("Index", "Home", new { error = "unexpected_exception" });
         }
 
-        [AllowAnonymous]
         public IActionResult AfterSignInRedirect(ClaimsIdentity claimsIdentity)
         {
             User user = _context.Users.FirstOrDefault(u => u.Email == claimsIdentity.Claims.ToList()[2].Value);
@@ -114,10 +114,23 @@ namespace ViewLayer.Controllers
         }
 
         /// <summary>
+        /// Used when testing mode is on - allows the user to browse pages that require authorization
+        /// </summary>
+        [AllowAnonymous]
+        public async Task<IActionResult> TestingModeLogin(string name, string email)
+        {
+            var claimsIdentity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, email));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, name));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, email));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            return AfterSignInRedirect(claimsIdentity);
+        }
+
+        /// <summary>
         /// Google Login Sign out
         /// </summary>
-        /// <returns></returns>
-        [AllowAnonymous]
         public async Task<IActionResult> GoogleSignOut()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

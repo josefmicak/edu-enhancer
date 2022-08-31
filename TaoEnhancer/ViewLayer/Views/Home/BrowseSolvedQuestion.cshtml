@@ -178,6 +178,7 @@
         <h2>Výběr podotázky</h2>
         <form method="POST">
             <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+            <input type="hidden" value="@subquestionTemplate.OwnerLogin" name="ownerLogin">
 
             @{
                 string subquestionLabel = "";
@@ -228,6 +229,7 @@
 </div>
 
 <div id="backBtn"><a asp-action="BrowseSolvedTest"
-        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a></div>
+        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier"
+        asp-route-ownerLogin="@subquestionResult.OwnerLogin">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

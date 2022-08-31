@@ -882,7 +882,8 @@ namespace ViewLayer.Controllers
             {
                 QuestionResult questionResult = new QuestionResult();
                 questionResult.TestResult = testResult;
-                questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList).FirstOrDefault(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier);
+                questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
+                    .FirstOrDefault(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login);
                 questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
                 questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                 questionResult.SubquestionResultList = LoadSubquestionResults(questionResult, login);

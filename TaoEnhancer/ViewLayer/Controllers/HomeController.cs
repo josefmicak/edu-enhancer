@@ -4,18 +4,12 @@ using ViewLayer.Models;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using DataLayer;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Mail;
 using System.Dynamic;
-
 namespace ViewLayer.Controllers
 {
-    //[Authorize] todo: uncomment
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly CourseContext _context;
@@ -39,11 +33,22 @@ namespace ViewLayer.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? error)
         {
             if(_context.Users.Count() == 0)
             {
                 ViewBag.Message = "Prozatím není zaregistrován žádný uživatel. Pro vytvoření účtu s právy hlavního administrátora se přihlašte.";
+            }
+            else if(error != null)
+            {
+                if(error == "access_denied")
+                {
+                    ViewBag.Message = "Přístup zamítnut.";
+                }
+                else if(error == "no_elements_found")
+                {
+                    ViewBag.Message = "Chyba: stránku nelze zobrazit.";
+                }
             }
             else
             {
@@ -67,7 +72,8 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index(string selectedUserLogin)
+        [AllowAnonymous]
+        public IActionResult Index(string selectedUserLogin, string? _)
         {
             User user = _context.Users.FirstOrDefault(u => u.Login == selectedUserLogin);
             Student student = _context.Students.FirstOrDefault(s => s.Login == selectedUserLogin);
@@ -75,21 +81,11 @@ namespace ViewLayer.Controllers
             Common.Config.Application["login"] = selectedUserLogin;
             if (user != null)
             {
-                switch (user.Role)
-                {
-                    case 2:
-                        return RedirectToAction("TeacherMenu", "Home");
-                    case 3:
-                        return RedirectToAction("AdminMenu", "Home");
-                    case 4:
-                        return RedirectToAction("MainAdminMenu", "Home");
-                    default:
-                        break;
-                }
+                return RedirectToAction("TestingModeLogin", "Account", new {name = user.FullName(), email = user.Email });
             }
             else if (student != null)
             {
-                return RedirectToAction("BrowseSolvedTestList", "Home");
+                return RedirectToAction("TestingModeLogin", "Account", new { name = student.FullName(), email = student.Email });
             }
             //todo: throw exception - no user found
             return RedirectToAction("Index", "Home");
@@ -97,6 +93,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplateList()
         {
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
             string login = Common.Config.Application["login"];
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
             if(user.Role == 2)
@@ -180,12 +181,30 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplate(string testNumberIdentifier)
         {
-            return _context.QuestionTemplates != null ?
-            View(await _context.QuestionTemplates
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            string login = Common.Config.Application["login"];
+
+            var questionTemplates = _context.QuestionTemplates
                 .Include(q => q.TestTemplate)
                 .Include(q => q.SubquestionTemplateList)
-                .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
+                .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier && q.OwnerLogin == login);
+
+            if(questionTemplates.Count() > 0)
+            {
+                return View(await questionTemplates.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
         [HttpPost]
@@ -201,30 +220,48 @@ namespace ViewLayer.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            ViewBag.Message = message;
-            return _context.QuestionTemplates != null ?
-            View(await _context.QuestionTemplates
-                .Include(q => q.TestTemplate)
-                .Include(q => q.SubquestionTemplateList)
-                .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.QuestionTemplates' is null.");
+            TempData["Message"] = message;
+            return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
         }
 
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier)
         {
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
+            string login = Common.Config.Application["login"];
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            if (TempData["subquestionIdentifier"] != null)
+            {
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+            }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionTemplates != null ?
-            View(await _context.SubquestionTemplates
+
+            var subquestionTemplates = _context.SubquestionTemplates
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
-                .Where(q => q.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionTemplates' is null.");
+                .Where(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
+
+            if (subquestionTemplates.Count() > 0)
+            {
+                return View(await subquestionTemplates.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
         {
-            if(subquestionPoints != null)
+            string login = Common.Config.Application["login"];
+            if (subquestionPoints != null)
             {
                 subquestionPoints = subquestionPoints.Replace(".", ",");
             }
@@ -232,7 +269,8 @@ namespace ViewLayer.Controllers
             //the teacher is changing points of the subquestion
             if (subquestionPoints != null)
             {
-                var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier);
+                var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
                 if(subquestionTemplate != null)
                 {
                     if (subquestionPoints == null)
@@ -255,19 +293,18 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            ViewBag.Message = message;
-            ViewBag.subquestionIdentifier = subquestionIdentifier;
-            ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionTemplates != null ?
-            View(await _context.SubquestionTemplates
-                .Include(q => q.QuestionTemplate)
-                .Include(q => q.QuestionTemplate.TestTemplate)
-                .Where(q => q.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionTemplates' is null.");
+            TempData["Message"] = message;
+            TempData["subquestionIdentifier"] = subquestionIdentifier;
+            return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
         }
 
         public async Task<IActionResult> ManageSolvedTestList()
         {
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
             string login = Common.Config.Application["login"];
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
             if (user.Role == 2)
@@ -353,34 +390,72 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedTest(string testResultIdentifier)
         {
-            return _context.QuestionResults != null ?
-            View(await _context.QuestionResults
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
+            string login = Common.Config.Application["login"];
+
+            var questionResults = _context.QuestionResults
                 .Include(t => t.TestResult)
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
                 .Include(q => q.QuestionTemplate.SubquestionTemplateList)
                 .Include(s => s.TestResult.Student)
                 .Include(q => q.SubquestionResultList)
-                .Where(t => t.TestResultIdentifier == testResultIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.QuestionResults'  is null.");
+                .Where(t => t.TestResultIdentifier == testResultIdentifier && t.OwnerLogin == login);
+
+            if (questionResults.Count() > 0)
+            {
+                return View(await questionResults.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
         public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier)
         {
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            if (TempData["subquestionIdentifier"] != null)
+            {
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+            }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionResults != null ?
-            View(await _context.SubquestionResults
+            string login = Common.Config.Application["login"];
+
+            var subquestionResults = _context.SubquestionResults
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.QuestionTemplate)
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionResults' is null.");
+                .Where(s => s.TestResultIdentifier == testResultIdentifier
+                && s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login);
+
+            if (subquestionResults.Count() > 0)
+            {
+                return View(await subquestionResults.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string studentsPoints, string subquestionPoints, string negativePoints)
         {
+            string login = Common.Config.Application["login"];
             if(studentsPoints != null)
             {
                 studentsPoints = studentsPoints.Replace(".", ",");
@@ -390,7 +465,8 @@ namespace ViewLayer.Controllers
             if(studentsPoints != null)
             {
                 var subquestionResult = _context.SubquestionResults
-                    .FirstOrDefault(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier);
+                    .FirstOrDefault(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier 
+                    && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
                 if(subquestionResult != null)
                 {
                     if(subquestionPoints == null)
@@ -425,25 +501,24 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            ViewBag.Message = message;
-            ViewBag.subquestionIdentifier = subquestionIdentifier;
-            ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionResults != null ?
-            View(await _context.SubquestionResults
-                .Include(s => s.SubquestionTemplate)
-                .Include(s => s.QuestionResult)
-                .Include(s => s.QuestionResult.QuestionTemplate)
-                .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionTemplates' is null.");
+            TempData["Message"] = message;
+            TempData["subquestionIdentifier"] = subquestionIdentifier;
+            return RedirectToAction("ManageSolvedQuestion", "Home", new { questionNumberIdentifier = questionNumberIdentifier, testResultIdentifier = testResultIdentifier });
         }
 
         public async Task<IActionResult> BrowseSolvedTestList()
         {
+            if (!CanUserAccessPage(1))
+            {
+                return AccessDeniedAction();
+            }
+
             string login = Common.Config.Application["login"];
             dynamic model = new ExpandoObject();
             model.TestResults = await _context.TestResults
                 .Include(t => t.Student)
+                .Include(t => t.TestTemplate)
+                .Include(t => t.TestTemplate.Owner)
                 .Where(t => t.Student.Login == login).ToListAsync();
             model.Student = _context.Students.FirstOrDefault(s => s.Login == login);
             return _context.TestResults != null ?
@@ -451,48 +526,80 @@ namespace ViewLayer.Controllers
             Problem("Entity set 'CourseContext.TestResults'  is null.");
         }
 
-        public async Task<IActionResult> BrowseSolvedTest(string testResultIdentifier)
+        public async Task<IActionResult> BrowseSolvedTest(string testResultIdentifier, string ownerLogin)
         {
-            return _context.QuestionResults != null ?
-            View(await _context.QuestionResults
-                .Include(t => t.TestResult)
+            if (!CanUserAccessPage(1))
+            {
+                return AccessDeniedAction();
+            }
+
+            string login = Common.Config.Application["login"];
+
+            var questionResults = _context.QuestionResults
+                .Include(q => q.TestResult)
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
+                .Include(q => q.TestResult.TestTemplate.Owner)
                 .Include(q => q.QuestionTemplate.SubquestionTemplateList)
-                .Include(s => s.TestResult.Student)
+                .Include(q => q.TestResult.Student)
                 .Include(q => q.SubquestionResultList)
-                .Where(q => q.TestResultIdentifier == testResultIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.QuestionResults'  is null.");
+                .Where(q => q.TestResultIdentifier == testResultIdentifier && q.TestResult.Student.Login == login
+                    && q.OwnerLogin == ownerLogin);
+
+            if (questionResults.Count() > 0)
+            {
+                return View(await questionResults.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
-        public async Task<IActionResult> BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier)
+        public async Task<IActionResult> BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string ownerLogin)
         {
+            if (!CanUserAccessPage(1))
+            {
+                return AccessDeniedAction();
+            }
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"].ToString();
+            }
+            if (TempData["subquestionIdentifier"] != null)
+            {
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+            }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionResults != null ?
-            View(await _context.SubquestionResults
+            string login = Common.Config.Application["login"];
+
+            var subquestionResults = _context.SubquestionResults
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.QuestionTemplate)
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionResults' is null.");
+                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier &&
+                s.QuestionResult.TestResult.Student.Login == login && s.OwnerLogin == ownerLogin);
+
+            if (subquestionResults.Count() > 0)
+            {
+                return View(await subquestionResults.ToListAsync());
+            }
+            else
+            {
+                return NoElementsFoundAction();
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier)
+        public IActionResult BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string ownerLogin)
         {
-            ViewBag.subquestionIdentifier = subquestionIdentifier;
-            ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            return _context.SubquestionResults != null ?
-            View(await _context.SubquestionResults
-                .Include(s => s.SubquestionTemplate)
-                .Include(s => s.QuestionResult)
-                .Include(s => s.QuestionResult.QuestionTemplate)
-                .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier).ToListAsync()) :
-            Problem("Entity set 'CourseContext.SubquestionResults' is null.");
+            TempData["subquestionIdentifier"] = subquestionIdentifier;
+            return RedirectToAction("BrowseSolvedQuestion", "Home", new { questionNumberIdentifier = questionNumberIdentifier, testResultIdentifier = testResultIdentifier, ownerLogin = ownerLogin });
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> UserRegistration()
         {
             ViewBag.firstName = Common.Config.Application["firstName"];
@@ -578,6 +685,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserList()
         {
+            if (!CanUserAccessPage(4))
+            {
+                return AccessDeniedAction();
+            }
+
             if (TempData["StudentMessage"] != null)
             {
                 ViewBag.StudentMessage = TempData["StudentMessage"].ToString();
@@ -596,10 +708,6 @@ namespace ViewLayer.Controllers
             return (_context.Users != null && _context.Students != null) ?
                 View(model) :
             Problem("Entity set 'CourseContext.TestResults' or 'CourseContext.Students' is null.");
-            /*
-            return _context.Users != null ?
-            View(await _context.Users.ToListAsync()) :
-            Problem("Entity set 'CourseContext.Users'  is null.");*/
         }
 
         [HttpPost]
@@ -977,6 +1085,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserListForAdmin()
         {
+            if (!CanUserAccessPage(3))
+            {
+                return AccessDeniedAction();
+            }
+
             if (TempData["StudentMessage"] != null)
             {
                 ViewBag.StudentMessage = TempData["StudentMessage"].ToString();
@@ -1229,6 +1342,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationList()
         {
+            if (!CanUserAccessPage(4))
+            {
+                return AccessDeniedAction();
+            }
+
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"].ToString();
@@ -1363,6 +1481,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationListForAdmin()
         {
+            if (!CanUserAccessPage(3))
+            {
+                return AccessDeniedAction();
+            }
+
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"].ToString();
@@ -1491,6 +1614,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TeacherMenu()
         {
+            if (!CanUserAccessPage(2))
+            {
+                return AccessDeniedAction();
+            }
+
             string login = Common.Config.Application["login"];
             return _context.Users != null ?
                 View(await _context.Users.FirstOrDefaultAsync(u => u.Login == login)) :
@@ -1499,6 +1627,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> AdminMenu()
         {
+            if (!CanUserAccessPage(3))
+            {
+                return AccessDeniedAction();
+            }
+
             string login = Common.Config.Application["login"];
             return _context.Users != null ?
                 View(await _context.Users.FirstOrDefaultAsync(u => u.Login == login)) :
@@ -1507,6 +1640,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> MainAdminMenu()
         {
+            if (!CanUserAccessPage(4))
+            {
+                return AccessDeniedAction();
+            }
+
             return _context.Users != null ?
                 View(await _context.Users.FirstOrDefaultAsync(u => u.Role == 4)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
@@ -1514,6 +1652,11 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> GlobalSettings()
         {
+            if (!CanUserAccessPage(4))
+            {
+                return AccessDeniedAction();
+            }
+
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"].ToString();
@@ -1543,6 +1686,49 @@ namespace ViewLayer.Controllers
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(GlobalSettings));
+        }
+
+        public bool CanUserAccessPage(int requiredRole)
+        {
+            if(Common.Config.TestingMode)
+            {
+                return true;
+            }
+
+            string login = Common.Config.Application["login"];
+            var user = _context.Users.FirstOrDefault(u => u.Login == login);
+            var student = _context.Students.FirstOrDefault(s => s.Login == login);
+
+            if(requiredRole > 1)//staff member
+            {
+                if(user == null)
+                {
+                    return false;
+                }
+                if(user.Role != requiredRole)
+                {
+                    return false;
+                }
+                return true;
+            }
+            else//student
+            {
+                if (student == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public IActionResult AccessDeniedAction()
+        {
+            return RedirectToAction("Index", "Home", new { error = "access_denied" });
+        }
+
+        public IActionResult NoElementsFoundAction()
+        {
+            return RedirectToAction("Index", "Home", new { error = "no_elements_found" });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

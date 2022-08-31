@@ -113,7 +113,8 @@ namespace ViewLayer.Controllers
                         TestResult testResult = new TestResult();
                         testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
                         testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
-                        testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList).FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier);
+                        testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList)
+                            .FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier && t.OwnerLogin == login);
                         testResult.TestNumberIdentifier = testResult.TestTemplate.TestNumberIdentifier;
                         testResult.Student = studentController.LoadStudent(testStudentIdentifier);//todo: predelat na context?
                         testResult.StudentLogin = testResult.Student.Login;

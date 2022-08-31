@@ -48,41 +48,45 @@
             <optgroup id="main-admin-optgroup" label="Hlavní administrátoři"></optgroup>
             <optgroup id="admin-optgroup" label="Správci"></optgroup>
             <optgroup id="teacher-optgroup" label="Učitelé"></optgroup>
-            foreach(User item in Model.Users)
+            if(Model != null)
             {
-                if(item.Role == 2)
+                foreach(User item in Model.Users)
                 {
-                    teacherCount++;
-                }
-                else if(item.Role == 3)
-                {
-                    adminCount++;
-                }
-                else if(item.Role == 4)
-                {
-                    mainAdminCount++;
-                }
-                <script>
-                    optGroupUpdate('@item.Login', '@item.Email', '@item.Role', '@mainAdminCount', '@adminCount', '@teacherCount');
-                </script>
-            }
-            <optgroup label="Studenti (@Model.Students.Count)">
-            @{
-                foreach(Student item in Model.Students)
-                {
-                    string email = "";
-                    if(item.Email != null)
+                    if(item.Role == 2)
                     {
-                        email = item.Email;
+                        teacherCount++;
                     }
-                    else
+                    else if(item.Role == 3)
                     {
-                        email = "<nevyplněno>";
+                        adminCount++;
                     }
-                    <option value="@item.Login">Email: @email, Login: @item.Login</option>
+                    else if(item.Role == 4)
+                    {
+                        mainAdminCount++;
+                    }
+                    <script>
+                        optGroupUpdate('@item.Login', '@item.Email', '@item.Role', '@mainAdminCount', '@adminCount', '@teacherCount');
+                    </script>
                 }
+
+                <optgroup label="Studenti (@Model.Students.Count)">
+                @{
+                    foreach(Student item in Model.Students)
+                    {
+                        string email = "";
+                        if(item.Email != null)
+                        {
+                            email = item.Email;
+                        }
+                        else
+                        {
+                            email = "<nevyplněno>";
+                        }
+                        <option value="@item.Login">Email: @email, Login: @item.Login</option>
+                    }
+                }
+                </optgroup>
             }
-            </optgroup>
         }
         </select>
         <input type="submit" value="Přihlásit se">
