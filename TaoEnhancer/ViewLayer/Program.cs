@@ -7,8 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var services = builder.Services;
 
-services.AddDbContext<CourseContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+string connectionString = configuration["ConnectionStrings:TaoEnhancerDB"];
+builder.Services.AddDbContext<CourseContext>(options =>
+        options.UseSqlServer(connectionString));
 
 services
 .AddAuthentication((options) =>

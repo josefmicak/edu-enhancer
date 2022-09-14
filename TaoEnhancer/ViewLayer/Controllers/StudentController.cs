@@ -10,9 +10,9 @@ namespace ViewLayer.Controllers
         public List<Student> LoadStudents()
         {
             List<Student> students = new List<Student>();
-            if (Directory.Exists(Settings.GetStudentsPath()))
+            if (Directory.Exists(Config.GetStudentsPath()))
             {
-                foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
+                foreach (var studentFile in Directory.GetFiles(Config.GetStudentsPath()))
                 {
                     if (new FileInfo(studentFile).Extension == ".rdf")
                     {
@@ -58,9 +58,9 @@ namespace ViewLayer.Controllers
         {
             Student student = new Student();
 
-            if (Directory.Exists(Settings.GetStudentsPath()))
+            if (Directory.Exists(Config.GetStudentsPath()))
             {
-                foreach (var studentFile in Directory.GetFiles(Settings.GetStudentsPath()))
+                foreach (var studentFile in Directory.GetFiles(Config.GetStudentsPath()))
                 {
                     if (new FileInfo(studentFile).Extension == ".rdf")
                     {

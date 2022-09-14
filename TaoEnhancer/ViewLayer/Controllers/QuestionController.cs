@@ -32,7 +32,7 @@ namespace ViewLayer.Controllers
             string questionNameIdentifier;
             string questionNumberIdentifier;
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestTestFilePath(testNameIdentifier, testNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetTestTemplateFilePath(testNameIdentifier, testNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "testPart")
@@ -74,13 +74,13 @@ namespace ViewLayer.Controllers
             //a separate function LoadQuestionParameters is used here because some of the question parameters are located in the test.xml file, while others are in the qti.xml file
             List<(string, string, string, string)> questionParameters = LoadQuestionParameters(testTemplate.TestNameIdentifier, testTemplate.TestNumberIdentifier);
 
-            if (Directory.Exists(Settings.GetTestItemsPath(testTemplate.TestNameIdentifier)))
+            if (Directory.Exists(Config.GetQuestionTemplatesPath(testTemplate.TestNameIdentifier)))
             {
-                foreach (var directory in Directory.GetDirectories(Settings.GetTestItemsPath(testTemplate.TestNameIdentifier)))
+                foreach (var directory in Directory.GetDirectories(Config.GetQuestionTemplatesPath(testTemplate.TestNameIdentifier)))
                 {
                     foreach (var file in Directory.GetFiles(directory))
                     {
-                        string[] fileSplitBySlash = file.Split(Settings.GetPathSeparator());
+                        string[] fileSplitBySlash = file.Split(Config.GetPathSeparator());
                         if (fileSplitBySlash[fileSplitBySlash.Length - 1] != "qti.xml")
                         {
                             continue;
@@ -145,7 +145,7 @@ namespace ViewLayer.Controllers
         public List<SubquestionTemplate> LoadSubquestionTemplates(string testNameIdentifier, QuestionTemplate questionTemplate, string login)
         {
             List<SubquestionTemplate> subquestionTemplates = new List<SubquestionTemplate>();
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionTemplate.QuestionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionTemplate.QuestionNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -187,7 +187,7 @@ namespace ViewLayer.Controllers
         public int GetSubquestionType(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier)
         {
             int subquestionType = 0;
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
 
             while (xmlReader.Read())
@@ -338,7 +338,7 @@ namespace ViewLayer.Controllers
             int nodeCount = 0;//counts how many nodes have been read by the XmlReader
             int oldNodeCount = 0;
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 nodeCount++;
@@ -476,7 +476,7 @@ namespace ViewLayer.Controllers
             {
                 nodeCount = 0;
                 identifierCheck = false;
-                xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+                xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
                 while (xmlReader.Read())
                 {
                     nodeCount++;
@@ -544,7 +544,7 @@ namespace ViewLayer.Controllers
         {
             string imageSource = "";
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes)
@@ -584,7 +584,7 @@ namespace ViewLayer.Controllers
             List<string> possibleAnswerList = new List<string>();
             int simpleMatchSetCounter = 0;//for subquestionType 4
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 var name = xmlReader.Name;
@@ -648,7 +648,7 @@ namespace ViewLayer.Controllers
         {
             List<(string, string)> answerIdentifiers = new List<(string, string)>();
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 var name = xmlReader.Name;
@@ -689,7 +689,7 @@ namespace ViewLayer.Controllers
             List<string> correctAnswerList = new List<string>();//text of correct choices
             List<(string, string)> answerIdentifiers = GetAnswerIdentifiers(selectedSubquestionIdentifier, testNameIdentifier, questionNumberIdentifier);
 
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
@@ -782,7 +782,7 @@ namespace ViewLayer.Controllers
             foreach(SubquestionTemplate subquestionTemplate in subquestionTemplateList)
             {
                 List<string> studentsAnswers = new List<string>();
-                xmlReader = XmlReader.Create(Settings.GetResultPath(testTemplate.TestNameIdentifier, questionResult.TestResultIdentifier));
+                xmlReader = XmlReader.Create(Config.GetResultPath(testTemplate.TestNameIdentifier, questionResult.TestResultIdentifier));
                 while (xmlReader.Read())
                 {
                     //skip other question results
@@ -903,7 +903,7 @@ namespace ViewLayer.Controllers
         /// <param name="studentsAnswer">String containing identifier of student's answer</param>
         string GetStudentsAnswerText(string testNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier, string studentsAnswer)
         {
-            XmlReader xmlReader = XmlReader.Create(Settings.GetTestItemFilePath(testNameIdentifier, questionNumberIdentifier));
+            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             while (xmlReader.Read())
             {
                 var name = xmlReader.Name;

@@ -1,5 +1,7 @@
 ﻿@model DomainModel.GlobalSettings
 
+@using Common
+
 @{
     ViewData["Title"] = "Globální nastavení";
 }
@@ -14,7 +16,12 @@
         <input type="radio" id="testingModeOff" name="testingMode" value="testingModeOff">
         <label for="testingModeOff">Vypnuto</label><br>
         <input type="radio" id="testingModeOn" name="testingMode" value="testingModeOn">
-        <label for="testingModeOn">Zapnuto</label><br>
+        <label for="testingModeOn">Zapnuto</label><br><br>
+        <p>Používaná platforma:</p>
+        <input type="radio" id="windows" name="selectedPlatform" value="windows">
+        <label for="windows">Windows</label><br>
+        <input type="radio" id="ubuntu" name="selectedPlatform" value="ubuntu">
+        <label for="ubuntu">Ubuntu</label><br>
         <input type="submit" value="Uložit">
     </form>
     
@@ -35,6 +42,19 @@
     {
         <script>
             document.getElementById("testingModeOff").checked = true;
+        </script>
+    }
+
+    if (Model.SelectedPlatform == Common.Config.Platform.Windows)
+    {
+        <script>
+            document.getElementById("windows").checked = true;
+        </script>
+    }
+    else
+    {
+        <script>
+            document.getElementById("ubuntu").checked = true;
         </script>
     }
 }

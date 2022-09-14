@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DomainModel;
+using Common;
 
 namespace DataLayer
 {
@@ -103,12 +104,13 @@ namespace DataLayer
 
             modelBuilder.Entity<UserRegistration>().ToTable("UserRegistration");
 
-            modelBuilder.Entity<GlobalSettings>().ToTable("Settings");
+            modelBuilder.Entity<GlobalSettings>().ToTable("GlobalSettings");
             modelBuilder.Entity<GlobalSettings>().HasData(
                 new GlobalSettings
                 {
                     Id = 1,
-                    TestingMode = false
+                    TestingMode = false,
+                    SelectedPlatform = Common.Config.Platform.Windows
                 }
             );
         }

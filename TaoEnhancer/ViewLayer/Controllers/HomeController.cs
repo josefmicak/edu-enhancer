@@ -30,6 +30,11 @@ namespace ViewLayer.Controllers
             {
                 Common.Config.TestingMode = true;
             }
+
+            if (_context.GlobalSettings.FirstOrDefault().SelectedPlatform == Common.Config.Platform.Ubuntu)
+            {
+                Common.Config.SelectedPlatform = Common.Config.Platform.Ubuntu;
+            }
         }
 
         [AllowAnonymous]
@@ -1667,7 +1672,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GlobalSettings(string testingMode)
+        public async Task<IActionResult> GlobalSettings(string testingMode, string selectedPlatform)
         {
             var globalSettings = _context.GlobalSettings.FirstOrDefault();
             if(globalSettings != null)
@@ -1681,6 +1686,17 @@ namespace ViewLayer.Controllers
                 {
                     globalSettings.TestingMode = true;
                     Common.Config.TestingMode = true;
+                }
+
+                if(selectedPlatform == "windows")
+                {
+                    globalSettings.SelectedPlatform = Common.Config.Platform.Windows;
+                    Common.Config.SelectedPlatform = Common.Config.Platform.Windows;
+                }
+                else if(selectedPlatform == "ubuntu")
+                {
+                    globalSettings.SelectedPlatform = Common.Config.Platform.Ubuntu;
+                    Common.Config.SelectedPlatform = Common.Config.Platform.Ubuntu;
                 }
                 TempData["Message"] = "Změny úspěšně uloženy.";
                 await _context.SaveChangesAsync();
@@ -1705,7 +1721,7 @@ namespace ViewLayer.Controllers
                 {
                     return false;
                 }
-                if(user.Role != requiredRole)
+                if(user.Role < requiredRole)
                 {
                     return false;
                 }

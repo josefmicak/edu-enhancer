@@ -29,17 +29,17 @@ namespace ViewLayer.Controllers
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             string subDirectory = "";
 
-            foreach (var directory in Directory.GetDirectories(Settings.GetTestsPath()))
+            foreach (var directory in Directory.GetDirectories(Config.GetTestTemplatesPath()))
             {
-                string[] splitDirectoryBySlash = directory.Split(Settings.GetPathSeparator());
+                string[] splitDirectoryBySlash = directory.Split(Config.GetPathSeparator());
                 string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
                 string testNumberIdentifier = "";
 
                 try
                 {
-                    foreach (var directory_ in Directory.GetDirectories(directory + Settings.GetPathSeparator() + "tests"))
+                    foreach (var directory_ in Directory.GetDirectories(directory + Config.GetPathSeparator() + "tests"))
                     {
-                        string[] splitDirectory_BySlash = directory_.Split(Settings.GetPathSeparator());
+                        string[] splitDirectory_BySlash = directory_.Split(Config.GetPathSeparator());
                         testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
                         subDirectory = directory_;
                     }
@@ -51,7 +51,7 @@ namespace ViewLayer.Controllers
 
                 try
                 {
-                    XmlReader xmlReader = XmlReader.Create(subDirectory + Settings.GetPathSeparator() + "test.xml");
+                    XmlReader xmlReader = XmlReader.Create(subDirectory + Config.GetPathSeparator() + "test.xml");
                     while (xmlReader.Read())
                     {
                         if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
@@ -87,7 +87,7 @@ namespace ViewLayer.Controllers
         {
             List<TestResult> testResults = new List<TestResult>();
 
-            foreach (var directory in Directory.GetDirectories(Settings.GetResultsPath()))
+            foreach (var directory in Directory.GetDirectories(Config.GetResultsPath()))
             {
                 foreach (var file in Directory.GetFiles(directory))
                 {
