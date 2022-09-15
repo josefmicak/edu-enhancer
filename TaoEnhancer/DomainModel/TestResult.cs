@@ -9,7 +9,7 @@ namespace DomainModel
         public string TestNameIdentifier { get; set; }
         public string TestNumberIdentifier { get; set; }
         public TestTemplate TestTemplate { get; set; }
-        public string TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; }
         public Student Student { get; set; }
         public string StudentLogin { get; set; }
         public string OwnerLogin { get; set; }

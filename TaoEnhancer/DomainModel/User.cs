@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Common;
 
 namespace DomainModel
 {
@@ -9,7 +10,7 @@ namespace DomainModel
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int Role { get; set; }
+        public Config.Role Role { get; set; }
         public string FullName()
         {
             return FirstName + " " + LastName;

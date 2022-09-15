@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Common;
+
+<!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="utf-8" />
@@ -53,7 +55,7 @@
 </html>
 
 @{
-    if(Common.Config.TestingMode)
+    if(Config.TestingMode)
     {
         <script>
             document.getElementById("testing-mode").style.visibility = 'visible';

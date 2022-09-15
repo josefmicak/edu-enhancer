@@ -3,12 +3,65 @@
     public class Config
     {
         public static Dictionary<string, string> Application = new Dictionary<string, string>();
+
         public static bool TestingMode { get; set; } = false;
+
         public static Platform SelectedPlatform { get; set; } = Platform.Windows;
+
+        /// <summary>
+        /// Platform on which the application is running (Windows/Ubuntu)
+        /// </summary>
         public enum Platform
         {
             Windows,
             Ubuntu
+        }
+
+        /// <summary>
+        /// Role of the user (Student/Teacher/Admin/MainAdmin)
+        /// </summary>
+        public enum Role
+        {
+            Student = 1,
+            Teacher = 2,
+            Admin = 3,
+            MainAdmin = 4
+        }
+
+        /// <summary>
+        /// State of the application (Waiting/Accepted/Rejected)
+        /// </summary>
+        public enum RegistrationState
+        {
+            Waiting,
+            Accepted,
+            Rejected
+        }
+
+        /// <summary>
+        /// Server URL for every platform
+        /// </summary>
+        public static readonly string[] URL = new string[] {
+            "https://localhost:7026",
+            "https://vsrvfeia0h-51.vsb.cz:5000"
+        };
+
+        /// <summary>
+        /// Returns server URL for every platform
+        /// </summary>
+        /// <returns>server URL for every platform</returns>
+        public static string GetURL()
+        {
+            return URL[(int)SelectedPlatform];
+        }
+
+        /// <summary>
+        /// Returns URL containing the page used for the Google sign in feature
+        /// </summary>
+        /// <returns>URL containing the page used for the Google sign in feature</returns>
+        public static string GetSignInURL()
+        {
+            return GetURL() + "/Account/SignIn";
         }
 
         /// <summary>

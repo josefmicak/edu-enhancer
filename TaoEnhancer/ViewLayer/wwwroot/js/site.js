@@ -3,14 +3,14 @@
 window.updateVisibility = function (accepted, rejected, text) {
     if (accepted == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[6].textContent === "Schválena") {
+            if (tr.children[8].textContent === "Schválena") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[6].textContent === "Schválena") {
+            if (tr.children[8].textContent === "Schválena") {
                 tr.style.display = '';
             }
         });
@@ -18,14 +18,14 @@ window.updateVisibility = function (accepted, rejected, text) {
 
     if (rejected == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[6].textContent === "Zamítnuta") {
+            if (tr.children[8].textContent === "Zamítnuta") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[6].textContent === "Zamítnuta") {
+            if (tr.children[8].textContent === "Zamítnuta") {
                 tr.style.display = '';
             }
         });
@@ -45,14 +45,18 @@ function addStudentDetails(clicked_id) {
 
     var studentIdentifier = table.rows[idArray[1]].cells[0].innerHTML;
     document.getElementById("studentIdentifier").value = studentIdentifier;
+    document.getElementById('studentIdentifier').readOnly = true;
 
     var fullName = table.rows[idArray[1]].cells[1].innerHTML;
     const nameArray = fullName.split(" "); 
     document.getElementById("studentFirstName").value = nameArray[0];
+    document.getElementById('studentFirstName').readOnly = true;
     document.getElementById("studentLastName").value = nameArray[1];
+    document.getElementById('studentLastName').readOnly = true;
 
     var login = table.rows[idArray[1]].cells[2].innerHTML;
     document.getElementById("studentLogin").value = login;
+    document.getElementById('studentLogin').readOnly = true;
 }
 
 function showEditStudentLabel(oldLogin, userIdentifier, email, firstName, lastName) {
@@ -61,8 +65,11 @@ function showEditStudentLabel(oldLogin, userIdentifier, email, firstName, lastNa
     document.getElementById("edited-student").style.visibility = 'visible';
     document.getElementById("studentOldLogin").value = oldLogin;
     document.getElementById("studentIdentifier").value = userIdentifier;
+    document.getElementById('studentIdentifier').readOnly = false;
     document.getElementById("studentFirstName").value = firstName;
+    document.getElementById('studentFirstName').readOnly = false;
     document.getElementById("studentLastName").value = lastName;
+    document.getElementById('studentLastName').readOnly = false;
     document.getElementById("studentLogin").value = oldLogin;
     document.getElementById('studentLogin').readOnly = true;
     document.getElementById("studentEmail").value = email;
@@ -80,17 +87,20 @@ function hideEditStudentLabel() {
     document.getElementById("studentEmail").value = "";
 }
 
-function showEditTeacherLabel(oldLogin, email, firstName, lastName) {
+function showEditTeacherLabel(oldLogin, email, firstName, lastName, makeVisible) {
     document.getElementById("teacher-action").value = 'editTeacher';
     document.getElementById("added-teacher").style.visibility = 'hidden';
     document.getElementById("edited-teacher").style.visibility = 'visible';
-    document.getElementById("teacher-edit-role").style.visibility = 'visible';
     document.getElementById("teacherOldLogin").value = oldLogin;
     document.getElementById("teacherFirstName").value = firstName;
     document.getElementById("teacherLastName").value = lastName;
     document.getElementById("teacherLogin").value = oldLogin;
     document.getElementById('teacherLogin').readOnly = true;
     document.getElementById("teacherEmail").value = email;
+
+    if (makeVisible) {
+        document.getElementById("teacher-edit-role").style.visibility = 'visible';
+    }
 }
 
 function hideEditTeacherLabel() {
@@ -117,10 +127,10 @@ function showEditAdminLabel(oldLogin, email, firstName, lastName, role) {
     document.getElementById('adminLogin').readOnly = true;
     document.getElementById("adminEmail").value = email;
     
-    if (role == "3") {
+    if (role == "Admin") {
         document.getElementById("isMainAdmin").value = false;
     }
-    else if (role == "4") {
+    else if (role == "MainAdmin") {
         document.getElementById("isMainAdmin").value = true;
     }
 }
@@ -150,6 +160,7 @@ function changeAdminRole(checkbox) {
 function adminFormSubmit(event) {
     var isMainAdmin = document.getElementById("isMainAdmin").value;
     var role = document.getElementById("change-admin-role").value;
+
     if (isMainAdmin == "false" && role == "4") {
         document.getElementById("email").value = document.getElementById("adminEmail").value;
         document.getElementById("login").value = document.getElementById("adminLogin").value;
@@ -166,7 +177,7 @@ function adminFormSubmit(event) {
 const adminForm = document.getElementById('admin-form');
 adminForm.addEventListener('submit', adminFormSubmit);
 
-//show form which prompts user to confirm the action to the user
+//show form which prompts user to confirm the action
 
 function showConfirmActionForm(action, identifier, email, login, firstName, lastName, role) {
     document.getElementById("confirm-action").style.display = "block";
@@ -228,10 +239,6 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
             " (provedením této akce bude váš účet změněn z hlavního administrátora na správce).";
     }
 }
-
-//Index.cshtml
-
-
 
 //General
 

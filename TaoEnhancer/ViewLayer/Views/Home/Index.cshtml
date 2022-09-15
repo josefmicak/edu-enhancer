@@ -18,18 +18,17 @@
         opt = document.createElement('OPTION');
         opt.textContent = "Email: " + email + ", login: " + login;
         opt.value = login;
-
-        if (role == "2") {
+        if (role == "Teacher") {
             document.getElementById("teacher-optgroup").appendChild(opt);
             document.getElementById("teacher-optgroup").setAttribute('label', 'Učitelé (' + teacherCount + ")");
         }
-        else if (role == "3") {
+        else if (role == "Admin") {
             document.getElementById("admin-optgroup").appendChild(opt);
             document.getElementById("admin-optgroup").setAttribute('label', 'Správci (' + adminCount + ")");
         }
-        else if (role == "4") {
+        else if (role == "MainAdmin") {
             document.getElementById("main-admin-optgroup").appendChild(opt);
-            document.getElementById("main-admin-optgroup").setAttribute('label', 'Hlavní administrátoři (' + teacherCount + ")");
+            document.getElementById("main-admin-optgroup").setAttribute('label', 'Hlavní administrátoři (' + mainAdminCount + ")");
         }
     }
 </script>
@@ -45,22 +44,22 @@
     <form method="POST">
         <select name="selectedUserLogin" id="selectedUserLogin">
         @{
-            <optgroup id="main-admin-optgroup" label="Hlavní administrátoři"></optgroup>
-            <optgroup id="admin-optgroup" label="Správci"></optgroup>
-            <optgroup id="teacher-optgroup" label="Učitelé"></optgroup>
+            <optgroup id="main-admin-optgroup" label="Hlavní administrátoři (0)"></optgroup>
+            <optgroup id="admin-optgroup" label="Správci (0)"></optgroup>
+            <optgroup id="teacher-optgroup" label="Učitelé (0)"></optgroup>
             if(Model != null)
             {
                 foreach(User item in Model.Users)
                 {
-                    if(item.Role == 2)
+                    if(item.Role == Config.Role.Teacher)
                     {
                         teacherCount++;
                     }
-                    else if(item.Role == 3)
+                    else if (item.Role == Config.Role.Admin)
                     {
                         adminCount++;
                     }
-                    else if(item.Role == 4)
+                    else if (item.Role == Config.Role.MainAdmin)
                     {
                         mainAdminCount++;
                     }
@@ -94,31 +93,33 @@
 </div>
 
 <div id="google-login">
-    <h2>Google přihlášení</h2>
-    <div id="g_id_onload"
-        data-client_id="1005767738241-1gerk4e7lkbva1lre1hq3i0jrsbrs2rh.apps.googleusercontent.com"
-        data-context="signin"
-        data-ux_mode="redirect"
-        data-login_uri="https://localhost:7026/Account/SignIn"
-        data-auto_prompt="false">
-    </div>
-    <div class="g_id_signin"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="sign_in_with"
-        data-shape="rectangular"
-        data-logo_alignment="left">
-    </div>
-
+    @{
+        string signInURL = Config.GetSignInURL();
+            <h2>Google přihlášení</h2>
+            <div id="g_id_onload"
+                    data-client_id="1005767738241-1gerk4e7lkbva1lre1hq3i0jrsbrs2rh.apps.googleusercontent.com"
+                    data-context="signin"
+                    data-ux_mode="redirect"
+                    data-login_uri="@signInURL"
+                    data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="outline"
+                    data-text="sign_in_with"
+                    data-shape="rectangular"
+                    data-logo_alignment="left">
+            </div>
+    }
 </div>
 
 @{
-    if(Common.Config.TestingMode)
+    if(Config.TestingMode)
     {
-        <script>
+    <script>
             document.getElementById("test-login").style.visibility = 'visible';
-        </script>
+    </script>
     }
 }
 

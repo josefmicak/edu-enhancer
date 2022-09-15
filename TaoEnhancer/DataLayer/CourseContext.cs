@@ -103,6 +103,10 @@ namespace DataLayer
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
 
             modelBuilder.Entity<UserRegistration>().ToTable("UserRegistration");
+            modelBuilder.Entity<UserRegistration>()
+                .HasOne(q => q.Student)
+                .WithMany()
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<GlobalSettings>().ToTable("GlobalSettings");
             modelBuilder.Entity<GlobalSettings>().HasData(
@@ -110,7 +114,7 @@ namespace DataLayer
                 {
                     Id = 1,
                     TestingMode = false,
-                    SelectedPlatform = Common.Config.Platform.Windows
+                    SelectedPlatform = Config.Platform.Windows
                 }
             );
         }

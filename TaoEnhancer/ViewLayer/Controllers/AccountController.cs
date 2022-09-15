@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using DomainModel;
 using DataLayer;
-using System.Security.Principal;
+using Common;
 
 namespace ViewLayer.Controllers
 {
@@ -81,23 +81,23 @@ namespace ViewLayer.Controllers
             {
                 string fullName = claimsIdentity.Claims.ToList()[1].Value;
                 string[] fullNameSplitBySpace = fullName.Split(" ");
-                Common.Config.Application["firstName"] = fullNameSplitBySpace[0];
-                Common.Config.Application["lastName"] = fullNameSplitBySpace[1];
-                Common.Config.Application["email"] = claimsIdentity.Claims.ToList()[2].Value;
+                Config.Application["firstName"] = fullNameSplitBySpace[0];
+                Config.Application["lastName"] = fullNameSplitBySpace[1];
+                Config.Application["email"] = claimsIdentity.Claims.ToList()[2].Value;
                 return RedirectToAction("UserRegistration", "Home");
             }
             else
             {
                 if(user != null)
                 {
-                    Common.Config.Application["login"] = user.Login;
+                    Config.Application["login"] = user.Login;
                     switch (user.Role)
                     {
-                        case 2:
+                        case Config.Role.Teacher:
                             return RedirectToAction("TeacherMenu", "Home");
-                        case 3:
+                        case Config.Role.Admin:
                             return RedirectToAction("AdminMenu", "Home");
-                        case 4:
+                        case Config.Role.MainAdmin:
                             return RedirectToAction("MainAdminMenu", "Home");
                         default:
                             break;
@@ -105,7 +105,7 @@ namespace ViewLayer.Controllers
                 }
                 else if(student != null)
                 {
-                    Common.Config.Application["login"] = student.Login;
+                    Config.Application["login"] = student.Login;
                     return RedirectToAction("BrowseSolvedTestList", "Home");
                 }
                 //todo: throw exception - no user found

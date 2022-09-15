@@ -1,6 +1,7 @@
 ﻿@model dynamic
 
 @using DomainModel;
+@using Common;
 
 @{
     ViewData["Title"] = "Správa uživatelů";
@@ -72,13 +73,13 @@
                 </div>
 
                 <label for="studentIdentifier">Identifikátor:</label>
-                <input type="text" required readonly id="studentIdentifier" name="studentIdentifier"><br><br>
+                <input type="text" required id="studentIdentifier" name="studentIdentifier"><br><br>
                 <label for="studentFirstName">Jméno:</label>
-                <input type="text" required readonly id="studentFirstName" name="firstName"><br><br>
+                <input type="text" required id="studentFirstName" name="firstName"><br><br>
                 <label for="studentLastName">Příjmení:</label>
-                <input type="text" required readonly id="studentLastName" name="lastName"><br><br>
+                <input type="text" required id="studentLastName" name="lastName"><br><br>
                 <label for="studentLogin">Login:</label>
-                <input type="text" required readonly id="studentLogin" name="login"><br><br>
+                <input type="text" required id="studentLogin" name="login"><br><br>
                 <label for="studentEmail">Email:</label>
                 <input type="text" required id="studentEmail" name="email"><br><br>
                 <input type="hidden" value="addStudent" id="student-action" name="action">
@@ -105,7 +106,7 @@
                 @{
                     foreach (User item in Model.Users)
                     {
-                        if(item.Role != 2)
+                        if(item.Role != Config.Role.Teacher)
                         {
                             continue;
                         }
@@ -114,7 +115,7 @@
                             <td>@Html.DisplayFor(modelItem => fullName)</td>
                             <td>@Html.DisplayFor(modelItem => item.Login)</td>
                             <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit učitele</button></td>
+                            <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
                             <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
                         </tr>
                     }
@@ -123,7 +124,7 @@
         </div>
 
         <div id="add-teacher">
-            <h3>Přidat učitele</h3>
+            <h3>Přidat/upravit učitele</h3>
             <form method="POST">
                 <div id="added-teacher">
                     Přidáváte učitele
@@ -163,14 +164,14 @@
                 @{
                     foreach (User item in Model.Users)
                     {
-                        if(item.Role != 3 && item.Role != 4)
+                        if(item.Role != Config.Role.Admin && item.Role != Config.Role.MainAdmin)
                         {
                             continue;
                         }
                         string fullName = item.FullName();
 
                         string type = "";
-                        if(item.Role == 3)
+                        if(item.Role == Config.Role.Admin)
                         {
                             type = "Správce";
                         }

@@ -93,7 +93,7 @@ namespace ViewLayer.Controllers
                 {
                     if (Path.GetExtension(file) == ".xml")
                     {
-                        string timeStamp = "";
+                        string timeStampString = "";
                         string testStudentIdentifier = "";
 
                         XmlReader xmlReader = XmlReader.Create(file);
@@ -106,7 +106,7 @@ namespace ViewLayer.Controllers
 
                             if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
                             {
-                                timeStamp = xmlReader.GetAttribute("datestamp");
+                                timeStampString = xmlReader.GetAttribute("datestamp");
                             }
                         }
                         string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
@@ -119,6 +119,8 @@ namespace ViewLayer.Controllers
                         testResult.Student = studentController.LoadStudent(testStudentIdentifier);//todo: predelat na context?
                         testResult.StudentLogin = testResult.Student.Login;
                         testResult.OwnerLogin = login;
+                        DateTime timeStamp = DateTime.ParseExact(timeStampString, "yyyy-MM-ddTHH:mm:ss.fff",
+                                System.Globalization.CultureInfo.InvariantCulture);
                         testResult.TimeStamp = timeStamp;
                         testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, testResult.TestTemplate, login);
                         testResults.Add(testResult);

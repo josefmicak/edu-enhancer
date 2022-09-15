@@ -563,7 +563,7 @@ namespace ViewLayer.Controllers
 
                 if (xmlReader.Name == "img")
                 {
-                    imageSource = "https://localhost:7026/images/" + testNameIdentifier + "/items/" + questionNumberIdentifier + "/" + xmlReader.GetAttribute("src");
+                    imageSource = "/images/" + testNameIdentifier + "/items/" + questionNumberIdentifier + "/" + xmlReader.GetAttribute("src");
                     return imageSource;
                 }
             }
@@ -577,7 +577,7 @@ namespace ViewLayer.Controllers
         /// <param name="subquestionIdentifier">Subquestion identifier of the selected subquestion</param>
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
-        /// /// <param name="subquestionType">Type of the selected subquestion</param>
+        /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the list of possible answers</returns>
         public string[] GetPossibleAnswerList(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
         {

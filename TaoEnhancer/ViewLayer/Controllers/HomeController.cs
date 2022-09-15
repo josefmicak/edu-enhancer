@@ -7,6 +7,8 @@ using DataLayer;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Mail;
 using System.Dynamic;
+using Common;
+
 namespace ViewLayer.Controllers
 {
     [Authorize]
@@ -26,15 +28,8 @@ namespace ViewLayer.Controllers
             questionController = new QuestionController(context);
             testController = new TestController(context);
 
-            if(_context.GlobalSettings.FirstOrDefault().TestingMode)
-            {
-                Common.Config.TestingMode = true;
-            }
-
-            if (_context.GlobalSettings.FirstOrDefault().SelectedPlatform == Common.Config.Platform.Ubuntu)
-            {
-                Common.Config.SelectedPlatform = Common.Config.Platform.Ubuntu;
-            }
+            Config.TestingMode = _context.GlobalSettings.FirstOrDefault().TestingMode;
+            Config.SelectedPlatform = _context.GlobalSettings.FirstOrDefault().SelectedPlatform;
         }
 
         [AllowAnonymous]
@@ -61,7 +56,7 @@ namespace ViewLayer.Controllers
             }
 
             //due to security reasons, the list of users is passed to the view only in case the application is in testing mode
-            if(!Common.Config.TestingMode)
+            if(!Config.TestingMode)
             {
                 return View();
             }
@@ -83,7 +78,7 @@ namespace ViewLayer.Controllers
             User user = _context.Users.FirstOrDefault(u => u.Login == selectedUserLogin);
             Student student = _context.Students.FirstOrDefault(s => s.Login == selectedUserLogin);
 
-            Common.Config.Application["login"] = selectedUserLogin;
+            Config.Application["login"] = selectedUserLogin;
             if (user != null)
             {
                 return RedirectToAction("TestingModeLogin", "Account", new {name = user.FullName(), email = user.Email });
@@ -98,22 +93,22 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplateList()
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
-            if(user.Role == 2)
+            if(user.Role == Config.Role.Teacher)
             {
                 ViewBag.Return = "TeacherMenu";
             }
-            else if (user.Role == 3)
+            else if (user.Role == Config.Role.Admin)
             {
                 ViewBag.Return = "AdminMenu";
             }
-            else if (user.Role == 4)
+            else if (user.Role == Config.Role.MainAdmin)
             {
                 ViewBag.Return = "MainAdminMenu";
             }
@@ -131,7 +126,7 @@ namespace ViewLayer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TestTemplateList(string action, string testNumberIdentifier)
         {
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             if (action == "add")
             {
                 List<TestTemplate> testTemplates = testController.LoadTestTemplates(login);
@@ -186,7 +181,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplate(string testNumberIdentifier)
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -195,7 +190,7 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = TempData["Message"].ToString();
             }
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
 
             var questionTemplates = _context.QuestionTemplates
                 .Include(q => q.TestTemplate)
@@ -231,12 +226,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier)
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"].ToString();
@@ -265,7 +260,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
         {
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             if (subquestionPoints != null)
             {
                 subquestionPoints = subquestionPoints.Replace(".", ",");
@@ -305,22 +300,22 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedTestList()
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
-            if (user.Role == 2)
+            if (user.Role == Config.Role.Teacher)
             {
                 ViewBag.Return = "TeacherMenu";
             }
-            else if (user.Role == 3)
+            else if (user.Role == Config.Role.Admin)
             {
                 ViewBag.Return = "AdminMenu";
             }
-            else if (user.Role == 4)
+            else if (user.Role == Config.Role.MainAdmin)
             {
                 ViewBag.Return = "MainAdminMenu";
             }
@@ -340,7 +335,7 @@ namespace ViewLayer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManageSolvedTestList(string action, string testResultIdentifier)
         {
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             if (action == "add")
             {
                 List<TestResult> testResults = testController.LoadTestResults(login);
@@ -395,12 +390,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedTest(string testResultIdentifier)
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
 
             var questionResults = _context.QuestionResults
                 .Include(t => t.TestResult)
@@ -423,7 +418,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier)
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -437,7 +432,7 @@ namespace ViewLayer.Controllers
                 ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
 
             var subquestionResults = _context.SubquestionResults
                 .Include(s => s.SubquestionTemplate)
@@ -460,7 +455,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string studentsPoints, string subquestionPoints, string negativePoints)
         {
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             if(studentsPoints != null)
             {
                 studentsPoints = studentsPoints.Replace(".", ",");
@@ -513,12 +508,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedTestList()
         {
-            if (!CanUserAccessPage(1))
+            if (!CanUserAccessPage(Config.Role.Student))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             dynamic model = new ExpandoObject();
             model.TestResults = await _context.TestResults
                 .Include(t => t.Student)
@@ -533,12 +528,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedTest(string testResultIdentifier, string ownerLogin)
         {
-            if (!CanUserAccessPage(1))
+            if (!CanUserAccessPage(Config.Role.Student))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
 
             var questionResults = _context.QuestionResults
                 .Include(q => q.TestResult)
@@ -563,7 +558,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string ownerLogin)
         {
-            if (!CanUserAccessPage(1))
+            if (!CanUserAccessPage(Config.Role.Student))
             {
                 return AccessDeniedAction();
             }
@@ -577,7 +572,7 @@ namespace ViewLayer.Controllers
                 ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
 
             var subquestionResults = _context.SubquestionResults
                 .Include(s => s.SubquestionTemplate)
@@ -607,9 +602,9 @@ namespace ViewLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> UserRegistration()
         {
-            ViewBag.firstName = Common.Config.Application["firstName"];
-            ViewBag.lastName = Common.Config.Application["lastName"];
-            ViewBag.email = Common.Config.Application["email"];
+            ViewBag.firstName = Config.Application["firstName"];
+            ViewBag.lastName = Config.Application["lastName"];
+            ViewBag.email = Config.Application["email"];
             ViewBag.message = TempData["message"];
             if(_context.Users.Count() == 0)
             {
@@ -617,14 +612,14 @@ namespace ViewLayer.Controllers
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
-                .Where(u => u.Email == Common.Config.Application["email"]).ToListAsync()) :
+                .Where(u => u.Email == Config.Application["email"]).ToListAsync()) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
         }
 
         [HttpPost]
         public async Task<IActionResult> UserRegistration(string? firstName, string? lastName, string? login, string role)
         {
-            string email = Common.Config.Application["email"];
+            string email = Config.Application["email"];
             if(_context.Users.Count() == 0)
             {
                 if (firstName == null || lastName == null || login == null || email == null)
@@ -639,8 +634,8 @@ namespace ViewLayer.Controllers
                     mainAdmin.LastName = lastName;
                     mainAdmin.Email = email;
                     mainAdmin.Login = login;
-                    mainAdmin.Role = 4;
-                    Common.Config.Application["login"] = login;
+                    mainAdmin.Role = Config.Role.MainAdmin;
+                    Config.Application["login"] = login;
                     _context.Users.Add(mainAdmin);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(MainAdminMenu));
@@ -666,8 +661,9 @@ namespace ViewLayer.Controllers
                         userRegistration.LastName = lastName;
                         userRegistration.Login = login;
                         userRegistration.Email = email;
-                        userRegistration.State = 1;
-                        userRegistration.Role = Convert.ToInt32(role);
+                        userRegistration.State = Config.RegistrationState.Waiting;
+                        userRegistration.CreationDate = DateTime.Now;
+                        userRegistration.Role = (Config.Role)Convert.ToInt32(role);
                         var importedStudent = _context.Students.FirstOrDefault(s => s.Login == login);
                         if (importedStudent != null)
                         {
@@ -690,7 +686,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserList()
         {
-            if (!CanUserAccessPage(4))
+            if (!CanUserAccessPage(Config.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -747,9 +743,14 @@ namespace ViewLayer.Controllers
                     try
                     {
                         Student student = students[i];
+                        userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == student.Login);
+                        if(userLoginCheck != null)
+                        {
+                            throw new Exception("Uživatel s loginem " + student.Login + " již existuje");//todo: vytvorit exception
+                        }
                         _context.Students.Add(student);
                         //in case the student has registered before the student's file has been imported, we add the Student to the UserRegistration
-                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == 1);
+                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == Config.RegistrationState.Waiting);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
                             userRegistration.Student = student;
@@ -780,11 +781,14 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
+                else if (userLoginCheck != null)
+                {
+                    TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
+                }
                 else
                 {
-                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
                     var studentByIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
-                    if (studentByLogin == null && studentByIdentifier == null)
+                    if (studentLoginCheck == null && studentByIdentifier == null)
                     {
                         Student student = new Student();
                         student.StudentIdentifier = studentIdentifier;
@@ -798,7 +802,7 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        studentByLogin.Email = email;
+                        studentLoginCheck.Email = email;
                         await _context.SaveChangesAsync();
                         TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
                     }
@@ -807,8 +811,7 @@ namespace ViewLayer.Controllers
             else if(action == "editStudent")
             {
                 //it's necessary to ensure that there won't be two or more users with the same email/identifier
-                var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
-                if(studentByLogin != null)
+                if(studentLoginCheck != null)
                 {
                     var studentByNewEmail = _context.Students.FirstOrDefault(s => s.Email == email);
                     if (!isEmailValid)
@@ -819,7 +822,7 @@ namespace ViewLayer.Controllers
                     {
                         TempData["StudentMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                     }
-                    else if (studentByNewEmail != null && studentByLogin.Email != studentByNewEmail.Email)
+                    else if (studentByNewEmail != null && studentLoginCheck.Email != studentByNewEmail.Email)
                     {
                         TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + studentByNewEmail.Email + "\" již existuje.";
                     }
@@ -827,20 +830,24 @@ namespace ViewLayer.Controllers
                     {
                         TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
                     }
+                    else if (userLoginCheck != null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + userLoginCheck.Login + "\" již existuje.";
+                    }
                     else
                     {
                         var studentByNewIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
-                        if (studentByNewIdentifier != null && studentByLogin.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
+                        if (studentByNewIdentifier != null && studentLoginCheck.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
                         {
                             TempData["StudentMessage"] = "Chyba: student s identifikátorem \"" + studentByNewIdentifier.Email + "\" již existuje.";
                         }
                         else
                         {
-                            studentByLogin.Login = login;
-                            studentByLogin.Email = email;
-                            studentByLogin.FirstName = firstName;
-                            studentByLogin.LastName = lastName;
-                            studentByLogin.StudentIdentifier = studentIdentifier;
+                            studentLoginCheck.Login = login;
+                            studentLoginCheck.Email = email;
+                            studentLoginCheck.FirstName = firstName;
+                            studentLoginCheck.LastName = lastName;
+                            studentLoginCheck.StudentIdentifier = studentIdentifier;
                             await _context.SaveChangesAsync();
                             TempData["StudentMessage"] = "Student úspěšně upraven.";
                         }
@@ -848,7 +855,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentByLogin + "\" nebyl nalezen.";
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentLoginCheck + "\" nebyl nalezen.";
                 }
             }
             else if(action == "deleteStudent")
@@ -875,7 +882,7 @@ namespace ViewLayer.Controllers
                 {
                     TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if(userLoginCheck != null)
+                else if(userLoginCheck != null || studentLoginCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
@@ -890,7 +897,7 @@ namespace ViewLayer.Controllers
                     teacher.LastName = lastName;
                     teacher.Login = login;
                     teacher.Email = email;
-                    teacher.Role = 2;
+                    teacher.Role = Config.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
@@ -899,10 +906,8 @@ namespace ViewLayer.Controllers
             else if (action == "editTeacher")
             {
                 //it's necessary to ensure that there won't be two or more users with the same email
-                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (userByOldLogin != null)
+                if (userLoginCheck != null)
                 {
-                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
                     if (!isEmailValid)
                     {
                         TempData["TeacherMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
@@ -911,23 +916,27 @@ namespace ViewLayer.Controllers
                     {
                         TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                     }
-                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    else if (userEmailCheck != null && userLoginCheck.Email != userEmailCheck.Email)
                     {
-                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
                     }
                     else if (studentEmailCheck != null)
                     {
                         TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
                     }
+                    else if (studentLoginCheck != null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + studentLoginCheck.Login + "\" již existuje.";
+                    }
                     else
                     {
-                        userByOldLogin.Login = login;
-                        userByOldLogin.Email = email;
-                        userByOldLogin.FirstName = firstName;
-                        userByOldLogin.LastName = lastName;
+                        userLoginCheck.Login = login;
+                        userLoginCheck.Email = email;
+                        userLoginCheck.FirstName = firstName;
+                        userLoginCheck.LastName = lastName;
                         if (role != null)
                         {
-                            userByOldLogin.Role = Convert.ToInt32(role);
+                            userLoginCheck.Role = (Config.Role)Convert.ToInt32(role);
                         }
                         await _context.SaveChangesAsync();
                         TempData["TeacherMessage"] = "Učitel úspěšně upraven.";
@@ -940,10 +949,9 @@ namespace ViewLayer.Controllers
             }
             else if (action == "deleteTeacher")
             {
-                var user = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (user != null)
+                if (userLoginCheck != null)
                 {
-                    _context.Users.Remove(user);
+                    _context.Users.Remove(userLoginCheck);
                     await _context.SaveChangesAsync();
                     TempData["TeacherMessage"] = "Učitel úspěšně smazán.";
                 }
@@ -967,7 +975,7 @@ namespace ViewLayer.Controllers
                 {
                     TempData["AdminMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if (userLoginCheck != null)
+                else if (userLoginCheck != null || studentLoginCheck != null)
                 {
                     TempData["AdminMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
@@ -982,7 +990,7 @@ namespace ViewLayer.Controllers
                     admin.LastName = lastName;
                     admin.Login = login;
                     admin.Email = email;
-                    admin.Role = 3;
+                    admin.Role = Config.Role.Admin;
                     _context.Users.Add(admin);
                     await _context.SaveChangesAsync();
                     TempData["AdminMessage"] = "Správce byl úspěšně přidán.";
@@ -991,10 +999,8 @@ namespace ViewLayer.Controllers
             else if (action == "editAdmin" || action == "changeMainAdmin")
             {
                 //it's necessary to ensure that there won't be two or more users with the same email
-                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (userByOldLogin != null)
+                if (userLoginCheck != null)
                 {
-                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
                     if (!isEmailValid)
                     {
                         TempData["AdminMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
@@ -1003,13 +1009,17 @@ namespace ViewLayer.Controllers
                     {
                         TempData["AdminMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                     }
-                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    else if (userEmailCheck != null && userLoginCheck.Email != userEmailCheck.Email)
                     {
-                        TempData["AdminMessage"] = "Chyba: správce s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                        TempData["AdminMessage"] = "Chyba: správce s emailem \"" + userEmailCheck.Email + "\" již existuje.";
                     }
                     else if (studentEmailCheck != null)
                     {
                         TempData["AdminMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
+                    }
+                    else if (studentLoginCheck != null)
+                    {
+                        TempData["AdminMessage"] = "Chyba: uživatel s loginem \"" + studentLoginCheck.Login + "\" již existuje.";
                     }
                     else
                     {
@@ -1021,13 +1031,13 @@ namespace ViewLayer.Controllers
                             }
                             else
                             {
-                                userByOldLogin.Login = login;
-                                userByOldLogin.Email = email;
-                                userByOldLogin.FirstName = firstName;
-                                userByOldLogin.LastName = lastName;
+                                userLoginCheck.Login = login;
+                                userLoginCheck.Email = email;
+                                userLoginCheck.FirstName = firstName;
+                                userLoginCheck.LastName = lastName;
                                 if (role != null)
                                 {
-                                    userByOldLogin.Role = Convert.ToInt32(role);
+                                    userLoginCheck.Role = (Config.Role)Convert.ToInt32(role);
                                 }
 
                                 await _context.SaveChangesAsync();
@@ -1036,17 +1046,17 @@ namespace ViewLayer.Controllers
                         }
                         else if(action == "changeMainAdmin")
                         {
-                            var oldMainAdmin = _context.Users.FirstOrDefault(u => u.Role == 4);
+                            var oldMainAdmin = _context.Users.FirstOrDefault(u => u.Role == Config.Role.MainAdmin);
                             if(oldMainAdmin != null)
                             {
-                                oldMainAdmin.Role = 3;
+                                oldMainAdmin.Role = Config.Role.Admin;
                             }
 
-                            userByOldLogin.Login = login;
-                            userByOldLogin.Email = email;
-                            userByOldLogin.FirstName = firstName;
-                            userByOldLogin.LastName = lastName;
-                            userByOldLogin.Role = 4;
+                            userLoginCheck.Login = login;
+                            userLoginCheck.Email = email;
+                            userLoginCheck.FirstName = firstName;
+                            userLoginCheck.LastName = lastName;
+                            userLoginCheck.Role = Config.Role.MainAdmin;
 
                             await _context.SaveChangesAsync();
                             TempData["AdminMessage"] = "Nový hlavní administrátor úspěšně nastaven.";
@@ -1061,16 +1071,15 @@ namespace ViewLayer.Controllers
             }
             else if (action == "deleteAdmin")
             {
-                var user = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (user != null)
+                if (userLoginCheck != null)
                 {
-                    if(user.Role == 4)
+                    if(userLoginCheck.Role == Config.Role.MainAdmin)
                     {
                         TempData["AdminMessage"] = "Chyba: účet hlavního administrátora nelze smazat.";
                     }
                     else
                     {
-                        _context.Users.Remove(user);
+                        _context.Users.Remove(userLoginCheck);
                         await _context.SaveChangesAsync();
                         TempData["AdminMessage"] = "Správce úspěšně smazán.";
                     }
@@ -1090,7 +1099,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserListForAdmin()
         {
-            if (!CanUserAccessPage(3))
+            if (!CanUserAccessPage(Config.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1129,8 +1138,8 @@ namespace ViewLayer.Controllers
                 isEmailValid = false;
             }
             
-            var studentLoginCheck = _context.Students.FirstOrDefault(u => u.Login == login);
-            var studentEmailCheck = _context.Students.FirstOrDefault(u => u.Email == email);
+            var studentLoginCheck = _context.Students.FirstOrDefault(s => s.Login == login);
+            var studentEmailCheck = _context.Students.FirstOrDefault(s => s.Email == email);
 
             var userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == login);
             var userEmailCheck = _context.Users.FirstOrDefault(u => u.Email == email);
@@ -1146,9 +1155,14 @@ namespace ViewLayer.Controllers
                     try
                     {
                         Student student = students[i];
+                        userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == student.Login);
+                        if (userLoginCheck != null)
+                        {
+                            throw new Exception("Uživatel s loginem " + student.Login + " již existuje");//todo: vytvorit exception
+                        }
                         _context.Students.Add(student);
                         //in case the user has registered before the student has been imported, we add the User to the UserRegistration
-                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == 1);
+                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == Config.RegistrationState.Waiting);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
                             userRegistration.Student = student;
@@ -1174,11 +1188,14 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
+                else if(userLoginCheck != null)
+                {
+                    TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
+                }
                 else
                 {
-                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
                     var studentByIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
-                    if (studentByLogin == null && studentByIdentifier == null)
+                    if (studentLoginCheck == null && studentByIdentifier == null)
                     {
                         Student student = new Student();
                         student.StudentIdentifier = studentIdentifier;
@@ -1192,7 +1209,7 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        studentByLogin.Email = email;
+                        studentLoginCheck.Email = email;
                         await _context.SaveChangesAsync();
                         TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
                     }
@@ -1201,10 +1218,8 @@ namespace ViewLayer.Controllers
             else if (action == "editStudent")
             {
                 //it's necessary to ensure that there won't be two or more users with the same email/identifier
-                var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
-                if (studentByLogin != null)
+                if (studentLoginCheck != null)
                 {
-                    var studentByNewEmail = _context.Students.FirstOrDefault(s => s.Email == email);
                     if (!isEmailValid)
                     {
                         TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
@@ -1213,28 +1228,32 @@ namespace ViewLayer.Controllers
                     {
                         TempData["StudentMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                     }
-                    else if (studentByNewEmail != null && studentByLogin.Email != studentByNewEmail.Email)
+                    else if (studentEmailCheck != null && studentLoginCheck.Email != studentEmailCheck.Email)
                     {
-                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + studentByNewEmail.Email + "\" již existuje.";
+                        TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
                     }
                     else if (userEmailCheck != null)
                     {
                         TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
                     }
+                    else if (userLoginCheck != null)
+                    {
+                        TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + userLoginCheck.Login + "\" již existuje.";
+                    }
                     else
                     {
                         var studentByNewIdentifier = _context.Students.FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
-                        if (studentByNewIdentifier != null && studentByLogin.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
+                        if (studentByNewIdentifier != null && studentLoginCheck.StudentIdentifier != studentByNewIdentifier.StudentIdentifier)
                         {
                             TempData["StudentMessage"] = "Chyba: student s identifikátorem \"" + studentByNewIdentifier.Email + "\" již existuje.";
                         }
                         else
                         {
-                            studentByLogin.Login = login;
-                            studentByLogin.Email = email;
-                            studentByLogin.FirstName = firstName;
-                            studentByLogin.LastName = lastName;
-                            studentByLogin.StudentIdentifier = studentIdentifier;
+                            studentLoginCheck.Login = login;
+                            studentLoginCheck.Email = email;
+                            studentLoginCheck.FirstName = firstName;
+                            studentLoginCheck.LastName = lastName;
+                            studentLoginCheck.StudentIdentifier = studentIdentifier;
                             await _context.SaveChangesAsync();
                             TempData["StudentMessage"] = "Student úspěšně upraven.";
                         }
@@ -1242,7 +1261,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentByLogin + "\" nebyl nalezen.";
+                    TempData["StudentMessage"] = "Chyba: student s loginem \"" + studentLoginCheck + "\" nebyl nalezen.";
                 }
             }
             else if (action == "deleteStudent")
@@ -1269,7 +1288,7 @@ namespace ViewLayer.Controllers
                 {
                     TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                 }
-                else if (userLoginCheck != null)
+                else if (userLoginCheck != null || studentLoginCheck != null)
                 {
                     TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
@@ -1284,7 +1303,7 @@ namespace ViewLayer.Controllers
                     teacher.LastName = lastName;
                     teacher.Login = login;
                     teacher.Email = email;
-                    teacher.Role = 2;
+                    teacher.Role = Config.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
@@ -1293,10 +1312,8 @@ namespace ViewLayer.Controllers
             else if (action == "editTeacher")
             {
                 //it's necessary to ensure that there won't be two or more users with the same email
-                var userByOldLogin = _context.Users.FirstOrDefault(u => u.Login == login);
-                if (userByOldLogin != null)
+                if (userLoginCheck != null)
                 {
-                    var userByNewEmail = _context.Users.FirstOrDefault(u => u.Email == email);
                     if (!isEmailValid)
                     {
                         TempData["TeacherMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
@@ -1305,20 +1322,24 @@ namespace ViewLayer.Controllers
                     {
                         TempData["TeacherMessage"] = "Chyba: je nutné vyplnit všechna pole.";
                     }
-                    else if (userByNewEmail != null && userByOldLogin.Email != userByNewEmail.Email)
+                    else if (userEmailCheck != null && userLoginCheck.Email != userEmailCheck.Email)
                     {
-                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userByNewEmail.Email + "\" již existuje.";
+                        TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + userEmailCheck.Email + "\" již existuje.";
                     }
                     else if (studentEmailCheck != null)
                     {
                         TempData["TeacherMessage"] = "Chyba: uživatel s emailem \"" + studentEmailCheck.Email + "\" již existuje.";
                     }
+                    else if (studentLoginCheck != null)
+                    {
+                        TempData["TeacherMessage"] = "Chyba: uživatel s loginem \"" + studentLoginCheck.Login + "\" již existuje.";
+                    }
                     else
                     {
-                        userByOldLogin.Login = login;
-                        userByOldLogin.Email = email;
-                        userByOldLogin.FirstName = firstName;
-                        userByOldLogin.LastName = lastName;
+                        userLoginCheck.Login = login;
+                        userLoginCheck.Email = email;
+                        userLoginCheck.FirstName = firstName;
+                        userLoginCheck.LastName = lastName;
                         await _context.SaveChangesAsync();
                         TempData["TeacherMessage"] = "Učitel úspěšně upraven.";
                     }
@@ -1347,7 +1368,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationList()
         {
-            if (!CanUserAccessPage(4))
+            if (!CanUserAccessPage(Config.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1370,32 +1391,35 @@ namespace ViewLayer.Controllers
             if(action == "acceptRegistration")
             {
                 //for students, the entry has to already exist in the database (just without the email)
-                if(role == "1")
+                if(role == "Student")
                 {
-                    var userByLogin = _context.Students.FirstOrDefault(u => u.Login == login);
-                    if (userByLogin != null)
+                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+
+                    if (studentByLogin != null)
                     {
-                        if (userByLogin.Email != null)
+                        if (userByLogin != null)
                         {
                             message = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                         }
                         else
                         {
-                            var userByEmail = _context.Students.FirstOrDefault(u => u.Email == email);
-                            if (userByEmail != null)
+                            var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                            var studentByEmail = _context.Students.FirstOrDefault(s => s.Email == email);
+                            if (userByEmail != null || studentByEmail != null)
                             {
                                 message = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                             }
                             else
                             {
-                                userByLogin.Email = email;
-                                userByLogin.FirstName = firstName;
-                                userByLogin.LastName = lastName;
+                                studentByLogin.Email = email;
+                                studentByLogin.FirstName = firstName;
+                                studentByLogin.LastName = lastName;
 
                                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                                 if (userRegistration != null)
                                 {
-                                    userRegistration.State = 2;
+                                    userRegistration.State = Config.RegistrationState.Accepted;
                                     await _context.SaveChangesAsync();
                                     message = "Registrace úspěšně schválena.";
                                 }
@@ -1414,12 +1438,16 @@ namespace ViewLayer.Controllers
                 else
                 {
                     var userByEmail = _context.Users.FirstOrDefault(u => u.Email == email);
+                    var studentByEmail = _context.Students.FirstOrDefault(s => s.Email == email);
+
                     var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
-                    if (userByEmail != null)
+                    var studentByLogin = _context.Students.FirstOrDefault(s => s.Login == login);
+
+                    if (userByEmail != null || studentByEmail != null)
                     {
                         message = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                     }
-                    else if (userByLogin != null)
+                    else if (userByLogin != null || studentByLogin != null)
                     {
                         message = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                     }
@@ -1430,12 +1458,12 @@ namespace ViewLayer.Controllers
                         user.FirstName = firstName;
                         user.LastName = lastName;
                         user.Login = login;
-                        user.Role = Convert.ToInt32(role);
+                        user.Role = Enum.Parse<Config.Role>(role);
                         _context.Users.Add(user);
                         var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                         if (userRegistration != null)
                         {
-                            userRegistration.State = 2;
+                            userRegistration.State = Config.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
                         }
@@ -1451,7 +1479,7 @@ namespace ViewLayer.Controllers
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
                 {
-                    userRegistration.State = 3;
+                    userRegistration.State = Config.RegistrationState.Rejected;
                     await _context.SaveChangesAsync();
                     message = "Registrace úspěšně zamítnuta.";
                 }
@@ -1486,7 +1514,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationListForAdmin()
         {
-            if (!CanUserAccessPage(3))
+            if (!CanUserAccessPage(Config.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1509,9 +1537,9 @@ namespace ViewLayer.Controllers
             if (action == "acceptRegistration")
             {
                 //for students, the entry has to already exist in the database (just without the email), for staff members it does not
-                if (role == "1")
+                if (role == "Student")
                 {
-                    var userByLogin = _context.Users.FirstOrDefault(u => u.Login == login);
+                    var userByLogin = _context.Students.FirstOrDefault(u => u.Login == login);
                     if (userByLogin != null)
                     {
                         if (userByLogin.Email != null)
@@ -1534,7 +1562,7 @@ namespace ViewLayer.Controllers
                                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                                 if (userRegistration != null)
                                 {
-                                    userRegistration.State = 2;
+                                    userRegistration.State = Config.RegistrationState.Accepted;
                                     await _context.SaveChangesAsync();
                                     message = "Registrace úspěšně schválena.";
                                 }
@@ -1569,12 +1597,12 @@ namespace ViewLayer.Controllers
                         user.FirstName = firstName;
                         user.LastName = lastName;
                         user.Login = login;
-                        user.Role = Convert.ToInt32(role);
+                        user.Role = Enum.Parse<Config.Role>(role);
                         _context.Users.Add(user);
                         var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                         if (userRegistration != null)
                         {
-                            userRegistration.State = 2;
+                            userRegistration.State = Config.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
                         }
@@ -1590,7 +1618,7 @@ namespace ViewLayer.Controllers
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
                 {
-                    userRegistration.State = 3;
+                    userRegistration.State = Config.RegistrationState.Rejected;
                     await _context.SaveChangesAsync();
                     message = "Registrace úspěšně zamítnuta.";
                 }
@@ -1619,12 +1647,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TeacherMenu()
         {
-            if (!CanUserAccessPage(2))
+            if (!CanUserAccessPage(Config.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             return _context.Users != null ?
                 View(await _context.Users.FirstOrDefaultAsync(u => u.Login == login)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
@@ -1632,12 +1660,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> AdminMenu()
         {
-            if (!CanUserAccessPage(3))
+            if (!CanUserAccessPage(Config.Role.Admin))
             {
                 return AccessDeniedAction();
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             return _context.Users != null ?
                 View(await _context.Users.FirstOrDefaultAsync(u => u.Login == login)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
@@ -1645,19 +1673,19 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> MainAdminMenu()
         {
-            if (!CanUserAccessPage(4))
+            if (!CanUserAccessPage(Config.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
 
             return _context.Users != null ?
-                View(await _context.Users.FirstOrDefaultAsync(u => u.Role == 4)) :
+                View(await _context.Users.FirstOrDefaultAsync(u => u.Role == Config.Role.MainAdmin)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
         }
 
         public async Task<IActionResult> GlobalSettings()
         {
-            if (!CanUserAccessPage(4))
+            if (!CanUserAccessPage(Config.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1680,23 +1708,23 @@ namespace ViewLayer.Controllers
                 if (testingMode == "testingModeOff")
                 {
                     globalSettings.TestingMode = false;
-                    Common.Config.TestingMode = false;
+                    Config.TestingMode = false;
                 }
                 else if (testingMode == "testingModeOn")
                 {
                     globalSettings.TestingMode = true;
-                    Common.Config.TestingMode = true;
+                    Config.TestingMode = true;
                 }
 
                 if(selectedPlatform == "windows")
                 {
-                    globalSettings.SelectedPlatform = Common.Config.Platform.Windows;
-                    Common.Config.SelectedPlatform = Common.Config.Platform.Windows;
+                    globalSettings.SelectedPlatform = Config.Platform.Windows;
+                    Config.SelectedPlatform = Config.Platform.Windows;
                 }
                 else if(selectedPlatform == "ubuntu")
                 {
-                    globalSettings.SelectedPlatform = Common.Config.Platform.Ubuntu;
-                    Common.Config.SelectedPlatform = Common.Config.Platform.Ubuntu;
+                    globalSettings.SelectedPlatform = Config.Platform.Ubuntu;
+                    Config.SelectedPlatform = Config.Platform.Ubuntu;
                 }
                 TempData["Message"] = "Změny úspěšně uloženy.";
                 await _context.SaveChangesAsync();
@@ -1704,18 +1732,18 @@ namespace ViewLayer.Controllers
             return RedirectToAction(nameof(GlobalSettings));
         }
 
-        public bool CanUserAccessPage(int requiredRole)
+        public bool CanUserAccessPage(Config.Role requiredRole)
         {
-            if(Common.Config.TestingMode)
+            if(Config.TestingMode)//in case the testing mode is on, no authentication is required at all
             {
                 return true;
             }
 
-            string login = Common.Config.Application["login"];
+            string login = Config.Application["login"];
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
             var student = _context.Students.FirstOrDefault(s => s.Login == login);
 
-            if(requiredRole > 1)//staff member
+            if(requiredRole > Config.Role.Student)//staff member
             {
                 if(user == null)
                 {

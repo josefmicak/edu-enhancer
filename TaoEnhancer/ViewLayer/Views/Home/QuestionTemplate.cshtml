@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<DomainModel.SubquestionTemplate>
 
 @using DomainModel;
+@using Common;
 
 @{
     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
@@ -106,9 +107,10 @@
                 <td>@subquestionPoints</td>
             </tr>
             @{
+                string imageSource = Config.GetURL() + subquestionTemplate.ImageSource;
                 if(subquestionTemplate.ImageSource != "")
                 {
-                    <tr><td colspan="2"><img class="image" src="@subquestionTemplate.ImageSource"></td></tr>
+                    <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                 }
             }
             <tr>

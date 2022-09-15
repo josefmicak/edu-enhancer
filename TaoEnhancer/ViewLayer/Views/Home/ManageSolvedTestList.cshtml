@@ -28,7 +28,7 @@
                         <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
                         <td>@Html.DisplayFor(modelItem => item.TestResultIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => fullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Student.StudentIdentifier)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
                         <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultIdentifier', null, null, null, null, null)">Smazat test</button></td>
                         <td><a class="button" id="manageSolvedTestBtn_@i" title="Správa testu"
                             asp-area="" 
