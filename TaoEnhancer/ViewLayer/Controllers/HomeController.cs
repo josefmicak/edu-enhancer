@@ -20,35 +20,31 @@ namespace ViewLayer.Controllers
         private TestController testController;
 
         private readonly ILogger<HomeController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public HomeController(ILogger<HomeController> logger, CourseContext context)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, CourseContext context)
         {
             _logger = logger;
+            _configuration = configuration;
             _context = context;
             questionController = new QuestionController(context);
             testController = new TestController(context);
 
-            Config.TestingMode = _context.GlobalSettings.FirstOrDefault().TestingMode;
-            Config.SelectedPlatform = _context.GlobalSettings.FirstOrDefault().SelectedPlatform;
+            if(_context.GlobalSettings.First() != null)
+            {
+                Config.TestingMode = _context.GlobalSettings.First().TestingMode;
+                Config.SelectedPlatform = _context.GlobalSettings.First().SelectedPlatform;
+            }
+
+            Config.GoogleClientId = configuration["Authentication:Google:ClientId"];
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Index(string? error)
+        public async Task<IActionResult> Index()
         {
             if(_context.Users.Count() == 0)
             {
                 ViewBag.Message = "Prozatím není zaregistrován žádný uživatel. Pro vytvoření účtu s právy hlavního administrátora se přihlašte.";
-            }
-            else if(error != null)
-            {
-                if(error == "access_denied")
-                {
-                    ViewBag.Message = "Přístup zamítnut.";
-                }
-                else if(error == "no_elements_found")
-                {
-                    ViewBag.Message = "Chyba: stránku nelze zobrazit.";
-                }
             }
             else
             {
@@ -73,10 +69,10 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Index(string selectedUserLogin, string? _)
+        public IActionResult Index(string selectedUserLogin)
         {
-            User user = _context.Users.FirstOrDefault(u => u.Login == selectedUserLogin);
-            Student student = _context.Students.FirstOrDefault(s => s.Login == selectedUserLogin);
+            User? user = _context.Users.FirstOrDefault(u => u.Login == selectedUserLogin);
+            Student? student = _context.Students.FirstOrDefault(s => s.Login == selectedUserLogin);
 
             Config.Application["login"] = selectedUserLogin;
             if (user != null)
@@ -87,8 +83,8 @@ namespace ViewLayer.Controllers
             {
                 return RedirectToAction("TestingModeLogin", "Account", new { name = student.FullName(), email = student.Email });
             }
-            //todo: throw exception - no user found
-            return RedirectToAction("Index", "Home");
+            //throw an exception in case no user or student with this login exists
+            throw Exceptions.UserNotFoundException;
         }
 
         public async Task<IActionResult> TestTemplateList()
@@ -99,22 +95,25 @@ namespace ViewLayer.Controllers
             }
 
             string login = Config.Application["login"];
-            var user = _context.Users.FirstOrDefault(u => u.Login == login);
-            if(user.Role == Config.Role.Teacher)
+            var user = _context.Users.First(u => u.Login == login);
+            if(user != null)
             {
-                ViewBag.Return = "TeacherMenu";
-            }
-            else if (user.Role == Config.Role.Admin)
-            {
-                ViewBag.Return = "AdminMenu";
-            }
-            else if (user.Role == Config.Role.MainAdmin)
-            {
-                ViewBag.Return = "MainAdminMenu";
+                if (user.Role == Config.Role.Teacher)
+                {
+                    ViewBag.Return = "TeacherMenu";
+                }
+                else if (user.Role == Config.Role.Admin)
+                {
+                    ViewBag.Return = "AdminMenu";
+                }
+                else if (user.Role == Config.Role.MainAdmin)
+                {
+                    ViewBag.Return = "MainAdminMenu";
+                }
             }
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             return _context.TestTemplates != null ?
             View(await _context.TestTemplates
@@ -188,7 +187,7 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             string login = Config.Application["login"];
 
@@ -234,11 +233,11 @@ namespace ViewLayer.Controllers
             string login = Config.Application["login"];
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             if (TempData["subquestionIdentifier"] != null)
             {
-                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
 
@@ -306,22 +305,25 @@ namespace ViewLayer.Controllers
             }
 
             string login = Config.Application["login"];
-            var user = _context.Users.FirstOrDefault(u => u.Login == login);
-            if (user.Role == Config.Role.Teacher)
+            var user = _context.Users.First(u => u.Login == login);
+            if(user != null)
             {
-                ViewBag.Return = "TeacherMenu";
-            }
-            else if (user.Role == Config.Role.Admin)
-            {
-                ViewBag.Return = "AdminMenu";
-            }
-            else if (user.Role == Config.Role.MainAdmin)
-            {
-                ViewBag.Return = "MainAdminMenu";
+                if (user.Role == Config.Role.Teacher)
+                {
+                    ViewBag.Return = "TeacherMenu";
+                }
+                else if (user.Role == Config.Role.Admin)
+                {
+                    ViewBag.Return = "AdminMenu";
+                }
+                else if (user.Role == Config.Role.MainAdmin)
+                {
+                    ViewBag.Return = "MainAdminMenu";
+                }
             }
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             return _context.TestResults != null ?
             View(await _context.TestResults.
@@ -425,11 +427,11 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             if (TempData["subquestionIdentifier"] != null)
             {
-                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
             string login = Config.Application["login"];
@@ -565,11 +567,11 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             if (TempData["subquestionIdentifier"] != null)
             {
-                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"].ToString();
+                ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
             string login = Config.Application["login"];
@@ -693,15 +695,15 @@ namespace ViewLayer.Controllers
 
             if (TempData["StudentMessage"] != null)
             {
-                ViewBag.StudentMessage = TempData["StudentMessage"].ToString();
+                ViewBag.StudentMessage = TempData["StudentMessage"]!.ToString();
             }
             if (TempData["TeacherMessage"] != null)
             {
-                ViewBag.TeacherMessage = TempData["TeacherMessage"].ToString();
+                ViewBag.TeacherMessage = TempData["TeacherMessage"]!.ToString();
             }
             if (TempData["AdminMessage"] != null)
             {
-                ViewBag.AdminMessage = TempData["AdminMessage"].ToString();
+                ViewBag.AdminMessage = TempData["AdminMessage"]!.ToString();
             }
             dynamic model = new ExpandoObject();
             model.Users = await _context.Users.ToListAsync();
@@ -746,7 +748,7 @@ namespace ViewLayer.Controllers
                         userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == student.Login);
                         if(userLoginCheck != null)
                         {
-                            throw new Exception("Uživatel s loginem " + student.Login + " již existuje");//todo: vytvorit exception
+                            throw Exceptions.UserAlreadyExistsException(login);
                         }
                         _context.Students.Add(student);
                         //in case the student has registered before the student's file has been imported, we add the Student to the UserRegistration
@@ -802,9 +804,12 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        studentLoginCheck.Email = email;
-                        await _context.SaveChangesAsync();
-                        TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
+                        if(studentLoginCheck != null)
+                        {
+                            studentLoginCheck.Email = email;
+                            await _context.SaveChangesAsync();
+                            TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
+                        }
                     }
                 }
             }
@@ -1106,15 +1111,15 @@ namespace ViewLayer.Controllers
 
             if (TempData["StudentMessage"] != null)
             {
-                ViewBag.StudentMessage = TempData["StudentMessage"].ToString();
+                ViewBag.StudentMessage = TempData["StudentMessage"]!.ToString();
             }
             if (TempData["TeacherMessage"] != null)
             {
-                ViewBag.TeacherMessage = TempData["TeacherMessage"].ToString();
+                ViewBag.TeacherMessage = TempData["TeacherMessage"]!.ToString();
             }
             if (TempData["AdminMessage"] != null)
             {
-                ViewBag.TeacherMessage = TempData["AdminMessage"].ToString();
+                ViewBag.TeacherMessage = TempData["AdminMessage"]!.ToString();
             }
             dynamic model = new ExpandoObject();
             model.Users = await _context.Users.ToListAsync();
@@ -1158,7 +1163,7 @@ namespace ViewLayer.Controllers
                         userLoginCheck = _context.Users.FirstOrDefault(u => u.Login == student.Login);
                         if (userLoginCheck != null)
                         {
-                            throw new Exception("Uživatel s loginem " + student.Login + " již existuje");//todo: vytvorit exception
+                            throw Exceptions.UserAlreadyExistsException(login);
                         }
                         _context.Students.Add(student);
                         //in case the user has registered before the student has been imported, we add the User to the UserRegistration
@@ -1209,9 +1214,12 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        studentLoginCheck.Email = email;
-                        await _context.SaveChangesAsync();
-                        TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
+                        if(studentLoginCheck != null)
+                        {
+                            studentLoginCheck.Email = email;
+                            await _context.SaveChangesAsync();
+                            TempData["StudentMessage"] = "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
+                        }
                     }
                 }
             }
@@ -1375,7 +1383,7 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
@@ -1521,7 +1529,7 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             return _context.UserRegistrations != null ?
             View(await _context.UserRegistrations
@@ -1692,7 +1700,7 @@ namespace ViewLayer.Controllers
 
             if (TempData["Message"] != null)
             {
-                ViewBag.Message = TempData["Message"].ToString();
+                ViewBag.Message = TempData["Message"]!.ToString();
             }
             return _context.GlobalSettings != null ?
                 View(await _context.GlobalSettings.FirstOrDefaultAsync()) :
@@ -1767,12 +1775,12 @@ namespace ViewLayer.Controllers
 
         public IActionResult AccessDeniedAction()
         {
-            return RedirectToAction("Index", "Home", new { error = "access_denied" });
+            throw Exceptions.AccessDeniedException;
         }
 
         public IActionResult NoElementsFoundAction()
         {
-            return RedirectToAction("Index", "Home", new { error = "no_elements_found" });
+            throw Exceptions.NoElementsFoundException;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

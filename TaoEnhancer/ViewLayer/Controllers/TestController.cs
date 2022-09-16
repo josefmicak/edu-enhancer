@@ -29,54 +29,70 @@ namespace ViewLayer.Controllers
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             string subDirectory = "";
 
-            foreach (var directory in Directory.GetDirectories(Config.GetTestTemplatesPath()))
+            if (Directory.Exists(Config.GetTestTemplatesPath()))
             {
-                string[] splitDirectoryBySlash = directory.Split(Config.GetPathSeparator());
-                string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
-                string testNumberIdentifier = "";
+                foreach (var directory in Directory.GetDirectories(Config.GetTestTemplatesPath()))
+                {
+                    string[] splitDirectoryBySlash = directory.Split(Config.GetPathSeparator());
+                    string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+                    string testNumberIdentifier = "";
 
-                try
-                {
-                    foreach (var directory_ in Directory.GetDirectories(directory + Config.GetPathSeparator() + "tests"))
+                    try
                     {
-                        string[] splitDirectory_BySlash = directory_.Split(Config.GetPathSeparator());
-                        testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
-                        subDirectory = directory_;
-                    }
-                }
-                catch
-                {
-                    continue;
-                }
-
-                try
-                {
-                    XmlReader xmlReader = XmlReader.Create(subDirectory + Config.GetPathSeparator() + "test.xml");
-                    while (xmlReader.Read())
-                    {
-                        if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                        foreach (var directory_ in Directory.GetDirectories(directory + Config.GetPathSeparator() + "tests"))
                         {
-                            if (xmlReader.HasAttributes)
+                            string[] splitDirectory_BySlash = directory_.Split(Config.GetPathSeparator());
+                            testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                            subDirectory = directory_;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        XmlReader xmlReader = XmlReader.Create(subDirectory + Config.GetPathSeparator() + "test.xml");
+                        while (xmlReader.Read())
+                        {
+                            if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
                             {
-                                TestTemplate testTemplate = new TestTemplate();
-                                testTemplate.TestNameIdentifier = testNameIdentifier;
-                                testTemplate.TestNumberIdentifier = testNumberIdentifier;
-                                testTemplate.Title = xmlReader.GetAttribute("title");
-                                testTemplate.OwnerLogin = login;
-                                testTemplate.Owner = _context.Users.FirstOrDefault(u => u.Login == login);
-                                testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testTemplate, login);
-                                testTemplates.Add(testTemplate);
+                                if (xmlReader.HasAttributes)
+                                {
+                                    TestTemplate testTemplate = new TestTemplate();
+                                    testTemplate.TestNameIdentifier = testNameIdentifier;
+                                    testTemplate.TestNumberIdentifier = testNumberIdentifier;
+                                    if(xmlReader.GetAttribute("title") != null)
+                                    {
+                                        testTemplate.Title = xmlReader.GetAttribute("title")!;
+                                    }
+                                    testTemplate.OwnerLogin = login;
+                                    if(_context.Users.First(u => u.Login == login) != null)
+                                    {
+                                        testTemplate.Owner = _context.Users.First(u => u.Login == login);
+                                    }
+                                    else
+                                    {
+                                        throw Exceptions.SpecificUserNotFoundException(login);
+                                    }
+                                    testTemplate.QuestionTemplateList = questionController.LoadQuestionTemplates(testTemplate, login);
+                                    testTemplates.Add(testTemplate);
+                                }
                             }
                         }
                     }
+                    catch
+                    {
+                        continue;
+                    }
                 }
-                catch
-                {
-                    continue;
-                }
+                return testTemplates;
             }
-
-            return testTemplates;
+            else
+            {
+                throw Exceptions.TestTemplatesPathNotFoundException;
+            }
         }
 
         /// <summary>
@@ -87,47 +103,99 @@ namespace ViewLayer.Controllers
         {
             List<TestResult> testResults = new List<TestResult>();
 
-            foreach (var directory in Directory.GetDirectories(Config.GetResultsPath()))
+            if (Directory.Exists(Config.GetResultsPath()))
             {
-                foreach (var file in Directory.GetFiles(directory))
+                foreach (var directory in Directory.GetDirectories(Config.GetResultsPath()))
                 {
-                    if (Path.GetExtension(file) == ".xml")
+                    foreach (var file in Directory.GetFiles(directory))
                     {
-                        string timeStampString = "";
-                        string testStudentIdentifier = "";
-
-                        XmlReader xmlReader = XmlReader.Create(file);
-                        while (xmlReader.Read())
+                        if (Path.GetExtension(file) == ".xml")
                         {
-                            if (xmlReader.Name == "context")
+                            string timeStampString = "";
+                            string testStudentIdentifier = "";
+
+                            XmlReader xmlReader = XmlReader.Create(file);
+                            while (xmlReader.Read())
                             {
-                                testStudentIdentifier = xmlReader.GetAttribute("sourcedId");
+                                if (xmlReader.Name == "context")
+                                {
+                                    if(xmlReader.GetAttribute("sourcedId") != null)
+                                    {
+                                        testStudentIdentifier = xmlReader.GetAttribute("sourcedId")!;
+                                    }
+                                }
+
+                                if (xmlReader.Name == "testResult")
+                                {
+                                    if(xmlReader.GetAttribute("datestamp") != null)
+                                    {
+                                        timeStampString = xmlReader.GetAttribute("datestamp")!;
+                                    }
+                                }
+                            }
+                            string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
+                            TestResult testResult = new TestResult();
+                            testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
+
+                            if(Path.GetFileName(Path.GetDirectoryName(file)) != null)
+                            {
+                                testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file))!;
+                            }
+                            else
+                            {
+                                throw Exceptions.TestTemplateNotFoundException(testResult.TestResultIdentifier);
                             }
 
-                            if (xmlReader.Name == "testResult" && xmlReader.GetAttribute("datestamp") != null)
+                            if (_context.TestTemplates.Count() == 0)
                             {
-                                timeStampString = xmlReader.GetAttribute("datestamp");
+                                throw Exceptions.TestTemplatesNotImportedException;
                             }
+                            if (_context.TestTemplates.Include(t => t.QuestionTemplateList)
+                                .FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier && t.OwnerLogin == login) != null)
+                            {
+                                testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList)
+                                    .First(t => t.TestNameIdentifier == testResult.TestNameIdentifier && t.OwnerLogin == login);
+                            }
+                            else
+                            {
+                                throw Exceptions.TestTemplateNotFoundException(testResult.TestResultIdentifier);
+                            }
+
+                            testResult.TestNumberIdentifier = testResult.TestTemplate.TestNumberIdentifier;
+
+                            if(_context.Students.Count() == 0)
+                            {
+                                throw Exceptions.StudentsNotImportedException;
+                            }
+                            if(_context.Students.FirstOrDefault(s => s.StudentIdentifier == testStudentIdentifier) != null)
+                            {
+                                testResult.Student = _context.Students.First(s => s.StudentIdentifier == testStudentIdentifier);
+                                testResult.StudentLogin = testResult.Student.Login;
+                            }
+                            else
+                            {
+                                throw Exceptions.StudentNotFoundException(testStudentIdentifier);
+                            }
+
+                            testResult.OwnerLogin = login;
+
+                            DateTime timeStamp = DateTime.ParseExact(timeStampString, "yyyy-MM-ddTHH:mm:ss.fff",
+                                    System.Globalization.CultureInfo.InvariantCulture);
+                            testResult.TimeStamp = timeStamp;
+
+                            testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, login);
+
+                            testResults.Add(testResult);
                         }
-                        string[] attemptIdentifierSplitByUnderscore = Path.GetFileNameWithoutExtension(file).Split("_");
-                        TestResult testResult = new TestResult();
-                        testResult.TestResultIdentifier = attemptIdentifierSplitByUnderscore[2];
-                        testResult.TestNameIdentifier = Path.GetFileName(Path.GetDirectoryName(file));
-                        testResult.TestTemplate = _context.TestTemplates.Include(t => t.QuestionTemplateList)
-                            .FirstOrDefault(t => t.TestNameIdentifier == testResult.TestNameIdentifier && t.OwnerLogin == login);
-                        testResult.TestNumberIdentifier = testResult.TestTemplate.TestNumberIdentifier;
-                        testResult.Student = studentController.LoadStudent(testStudentIdentifier);//todo: predelat na context?
-                        testResult.StudentLogin = testResult.Student.Login;
-                        testResult.OwnerLogin = login;
-                        DateTime timeStamp = DateTime.ParseExact(timeStampString, "yyyy-MM-ddTHH:mm:ss.fff",
-                                System.Globalization.CultureInfo.InvariantCulture);
-                        testResult.TimeStamp = timeStamp;
-                        testResult.QuestionResultList = questionController.LoadQuestionResults(testResult, testResult.TestTemplate, login);
-                        testResults.Add(testResult);
                     }
                 }
+                return testResults;
             }
-            return testResults;
+            else
+            {
+                throw Exceptions.TestResultsPathNotFoundException;
+            }
+
         }
     }
 }

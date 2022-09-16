@@ -1,8 +1,13 @@
 ﻿namespace Common
 {
+    /// <summary>
+    /// A class containing various data types and custom settings that are used throughout the application
+    /// </summary>
     public class Config
     {
         public static Dictionary<string, string> Application = new Dictionary<string, string>();
+
+        public static string? GoogleClientId { get; set; }
 
         public static bool TestingMode { get; set; } = false;
 

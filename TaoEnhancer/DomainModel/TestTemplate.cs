@@ -2,12 +2,12 @@
 {
     public class TestTemplate
     {
-        public string TestNameIdentifier { get; set; }
-        public string TestNumberIdentifier { get; set; }
-        public string Title { get; set; }
+        public string TestNameIdentifier { get; set; } = default!;
+        public string TestNumberIdentifier { get; set; } = default!;
+        public string Title { get; set; } = default!;
         public string NegativePoints { get; set; } = "disabled";
-        public string OwnerLogin { get; set; }
-        public User Owner { get; set; }
-        public ICollection<QuestionTemplate> QuestionTemplateList { get; set; }
+        public string OwnerLogin { get; set; } = default!;
+        public User Owner { get; set; } = default!;
+        public ICollection<QuestionTemplate> QuestionTemplateList { get; set; } = default!;
     }
 }

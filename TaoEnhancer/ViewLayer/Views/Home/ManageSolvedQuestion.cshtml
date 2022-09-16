@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<DomainModel.SubquestionResult>
 
 @using DomainModel;
+@using Common;
 
 @{
     SubquestionResult subquestionResult = new SubquestionResult();
@@ -18,8 +19,13 @@
                 break;
             }
         }
-        //todo: throw exception (podotazka nenalezena)
     }
+
+    if (subquestionResult == null)
+    {
+        throw Exceptions.SubquestionResultNotFoundException;
+    }
+
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
     string negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 

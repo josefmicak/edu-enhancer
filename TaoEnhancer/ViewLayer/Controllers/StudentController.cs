@@ -22,7 +22,14 @@ namespace ViewLayer.Controllers
                         {
                             if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
                             {
-                                student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
+                                if (xmlReader.GetAttribute("rdf:about") != null)
+                                {
+                                    string[] studentDescription = xmlReader.GetAttribute("rdf:about")!.Split("#");
+                                    if (studentDescription[1] != null)
+                                    {
+                                        student.StudentIdentifier = studentDescription[1];
+                                    }
+                                }
                             }
 
                             if (xmlReader.Name == "ns0:login" && xmlReader.NodeType != XmlNodeType.EndElement)
@@ -69,13 +76,21 @@ namespace ViewLayer.Controllers
                         {
                             if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
                             {
-                                if (studentIdentifier == xmlReader.GetAttribute("rdf:about").Split("#")[1])
+
+                                if (xmlReader.GetAttribute("rdf:about") != null)
                                 {
-                                    student.StudentIdentifier = xmlReader.GetAttribute("rdf:about").Split("#")[1];
-                                }
-                                else
-                                {
-                                    break;
+                                    string[] studentDescription = xmlReader.GetAttribute("rdf:about")!.Split("#");
+                                    if (studentDescription[1] != null)
+                                    {
+                                        if(studentIdentifier == studentDescription[1])
+                                        {
+                                            student.StudentIdentifier = studentIdentifier;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
                                 }
                             }
 

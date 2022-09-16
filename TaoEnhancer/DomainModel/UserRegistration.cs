@@ -6,10 +6,10 @@ namespace DomainModel
     public class UserRegistration
     {
         [Key]
-        public string Email { get; set; }
-        public string Login { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Email { get; set; } = default!;
+        public string Login { get; set; } = default!;
+        public string FirstName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
         public Config.RegistrationState State { get; set; }
         public Config.Role Role { get; set; }
         public DateTime CreationDate { get; set; }

@@ -29,26 +29,34 @@ namespace ViewLayer.Controllers
             List<(string, string, string, string)> questionParameters = new List<(string, string, string, string)>();
             string testPart = "";
             string testSection = "";
-            string questionNameIdentifier;
-            string questionNumberIdentifier;
+            string questionNameIdentifier = "";
+            string questionNumberIdentifier = "";
+            string questionNumberIdentifierToSplit = "";
 
             XmlReader xmlReader = XmlReader.Create(Config.GetTestTemplateFilePath(testNameIdentifier, testNumberIdentifier));
             while (xmlReader.Read())
             {
-                if (xmlReader.Name == "testPart")
+                if (xmlReader.Name == "testPart" && xmlReader.GetAttribute("identifier") != null)
                 {
-                    testPart = xmlReader.GetAttribute("identifier");
+                    testPart = xmlReader.GetAttribute("identifier")!;
                 }
 
-                if (xmlReader.Name == "assessmentSection")
+                if (xmlReader.Name == "assessmentSection" && xmlReader.GetAttribute("identifier") != null)
                 {
-                    testSection = xmlReader.GetAttribute("identifier");
+                    testSection = xmlReader.GetAttribute("identifier")!;
                 }
 
                 if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
-                    questionNameIdentifier = xmlReader.GetAttribute("identifier");
-                    string questionNumberIdentifierToSplit = xmlReader.GetAttribute("href");
+                    if(xmlReader.GetAttribute("identifier") != null)
+                    {
+                        questionNameIdentifier = xmlReader.GetAttribute("identifier")!;
+                    }
+                    
+                    if(xmlReader.GetAttribute("href") != null)
+                    {
+                        questionNumberIdentifierToSplit = xmlReader.GetAttribute("href")!;
+                    }
                     string[] questionNumberIdentifierSplitBySlash = questionNumberIdentifierToSplit.Split(@"/");
                     questionNumberIdentifier = questionNumberIdentifierSplitBySlash[3];
                     questionParameters.Add((testPart, testSection, questionNameIdentifier, questionNumberIdentifier));
@@ -59,11 +67,11 @@ namespace ViewLayer.Controllers
         }
 
         /// <summary>
-        /// Returns the list of questions with all their parameters
+        /// Returns the list of question templates (of a particular test template) with all their parameters
         /// </summary>
-        /// <param name="testNameIdentifier">Name identifier of the selected test</param>
-        /// <param name="testNumberIdentifier">Number identifier of the selected test</param>
-        /// <returns>the list of questions with all their parameters</returns>
+        /// <param name="testTemplate">Test template that the returned question templates belong to</param>
+        /// <param name="login">Login of the staff member that's uploading these question templates</param>
+        /// <returns>the list of question templates with all their parameters</returns>
         public List<QuestionTemplate> LoadQuestionTemplates(TestTemplate testTemplate, string login)
         {
             int i = 0;
@@ -98,13 +106,17 @@ namespace ViewLayer.Controllers
                                         {
                                             if (questionParameters[j].Item4 == xmlReader.GetAttribute("identifier"))
                                             {
-                                                //(int questionPoints, bool questionPointsDetermined) = GetQuestionPoints(testNameIdentifier, itemNumberIdenfifier);
-                                                //questionTemplatesTemp.Add((itemNumberIdenfifier, itemNameIdenfifier, title, label, questionPoints, questionPointsDetermined));
                                                 QuestionTemplate questionTemplate = new QuestionTemplate();
                                                 questionTemplate.QuestionNameIdentifier = questionParameters[j].Item3;
                                                 questionTemplate.QuestionNumberIdentifier = questionParameters[j].Item4;
-                                                questionTemplate.Title = xmlReader.GetAttribute("title");
-                                                questionTemplate.Label = xmlReader.GetAttribute("label");
+                                                if(xmlReader.GetAttribute("title") != null)
+                                                {
+                                                    questionTemplate.Title = xmlReader.GetAttribute("title")!;
+                                                }
+                                                if(xmlReader.GetAttribute("label") != null)
+                                                {
+                                                    questionTemplate.Label = xmlReader.GetAttribute("label")!;
+                                                }
                                                 questionTemplate.OwnerLogin = login;
                                                 questionTemplate.TestTemplate = testTemplate;
                                                 questionTemplate.SubquestionTemplateList = LoadSubquestionTemplates(testTemplate.TestNameIdentifier, questionTemplate, login);
@@ -119,7 +131,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            else { throw Exceptions.TestItemsPathNotFoundException; }
+            else { throw Exceptions.QuestionTemplatesPathNotFoundException(testTemplate.TestNameIdentifier); }
 
             //correction of potential wrong order of elements in the questionTemplatesTemp array
             List<QuestionTemplate> questionTemplates = new List<QuestionTemplate>();
@@ -151,27 +163,30 @@ namespace ViewLayer.Controllers
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
                     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                    string subquestionIdentifier = xmlReader.GetAttribute("identifier");
-                    subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
+                    if(xmlReader.GetAttribute("identifier") != null)
+                    {
+                        string subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
+                        subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
 
-                    int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
-                    subquestionTemplate.SubquestionType = subquestionType;
+                        int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
+                        subquestionTemplate.SubquestionType = subquestionType;
 
-                    subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
+                        subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
 
-                    subquestionTemplate.PossibleAnswerList = GetPossibleAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
+                        subquestionTemplate.PossibleAnswerList = GetPossibleAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
 
-                    subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
+                        subquestionTemplate.CorrectAnswerList = GetCorrectAnswerList(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType);
 
-                    subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
+                        subquestionTemplate.SubquestionText = GetSubquestionText(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionType, subquestionTemplate.CorrectAnswerList.Length);
 
-                    subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                        subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
 
-                    subquestionTemplate.OwnerLogin = login;
-                    
-                    subquestionTemplate.QuestionTemplate = questionTemplate;
+                        subquestionTemplate.OwnerLogin = login;
 
-                    subquestionTemplates.Add(subquestionTemplate);
+                        subquestionTemplate.QuestionTemplate = questionTemplate;
+
+                        subquestionTemplates.Add(subquestionTemplate);
+                    }
                 }
             }
             return subquestionTemplates;
@@ -194,41 +209,44 @@ namespace ViewLayer.Controllers
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
-                    string subquestionIdentifier = xmlReader.GetAttribute("identifier");
+                    if(xmlReader.GetAttribute("identifier") != null)
+                    {
+                        string subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
 
-                    //skip other subquestions
-                    if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
-                    {
-                        xmlReader.Skip();
-                    }
+                        //skip other subquestions
+                        if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
+                        {
+                            xmlReader.Skip();
+                        }
 
-                    if (xmlReader.GetAttribute("cardinality") == "ordered" && xmlReader.GetAttribute("baseType") == "identifier")
-                    {
-                        subquestionType = 1;//Typ otázky = seřazení pojmů
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "identifier")
-                    {
-                        subquestionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
-                    {
-                        subquestionType = 3;//Typ otázky = spojování párů
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
-                    {
-                        subquestionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
-                    {
-                        subquestionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
-                    {
-                        subquestionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
-                    }
-                    else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
-                    {
-                        singleCorrectAnswer = true;
+                        if (xmlReader.GetAttribute("cardinality") == "ordered" && xmlReader.GetAttribute("baseType") == "identifier")
+                        {
+                            subquestionType = 1;//Typ otázky = seřazení pojmů
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "identifier")
+                        {
+                            subquestionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
+                        {
+                            subquestionType = 3;//Typ otázky = spojování párů
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
+                        {
+                            subquestionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
+                        {
+                            subquestionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
+                        {
+                            subquestionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
+                        }
+                        else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
+                        {
+                            singleCorrectAnswer = true;
+                        }
                     }
                 }
 
@@ -237,20 +255,28 @@ namespace ViewLayer.Controllers
                 if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" ||
                     name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction" || name == "inlineChoiceInteraction")
                 {
-                    string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier");
-                    if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
+                    if(xmlReader.GetAttribute("responseIdentifier") != null)
                     {
-                        xmlReader.Skip();
+                        string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier")!;
+                        if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
+                        {
+                            xmlReader.Skip();
+                        }
                     }
+
                 }
 
                 if (xmlReader.Name == "gapMatchInteraction")
                 {
-                    string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier");
-                    if (subquestionIdentifier == selectedSubquestionIdentifier)
+                    if (xmlReader.GetAttribute("responseIdentifier") != null)
                     {
-                        subquestionType = 9;
+                        string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier")!;
+                        if (subquestionIdentifier == selectedSubquestionIdentifier)
+                        {
+                            subquestionType = 9;
+                        }
                     }
+
                 }
 
                 if (singleCorrectAnswer)
@@ -602,8 +628,16 @@ namespace ViewLayer.Controllers
                         {
                             if (name == "sliderInteraction")
                             {
-                                string lowerBound = xmlReader.GetAttribute("lowerBound");
-                                string upperBound = xmlReader.GetAttribute("upperBound");
+                                string lowerBound = "";
+                                string upperBound = "";
+                                if (xmlReader.GetAttribute("lowerBound") != null)
+                                {
+                                    lowerBound = xmlReader.GetAttribute("lowerBound")!;
+                                }
+                                if (xmlReader.GetAttribute("upperBound") != null)
+                                {
+                                    upperBound = xmlReader.GetAttribute("upperBound")!;
+                                }
                                 possibleAnswerList.Add(lowerBound + " - " + upperBound);
                             }
                         }
@@ -666,7 +700,11 @@ namespace ViewLayer.Controllers
 
                     if (name == "simpleChoice" || name == "simpleAssociableChoice" || name == "gapText" || name == "inlineChoice")
                     {
-                        string answerIdentifier = xmlReader.GetAttribute("identifier");
+                        string answerIdentifier = "";
+                        if(xmlReader.GetAttribute("identifier") != null)
+                        {
+                            answerIdentifier = xmlReader.GetAttribute("identifier")!;
+                        }
                         string answerText = xmlReader.ReadString();
                         answerIdentifiers.Add((answerIdentifier, answerText));
                     }
@@ -694,7 +732,11 @@ namespace ViewLayer.Controllers
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
-                    string subquestionIdentifier = xmlReader.GetAttribute("identifier");
+                    string subquestionIdentifier = "";
+                    if (xmlReader.GetAttribute("identifier") != null)
+                    {
+                        subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
+                    }
                     if (subquestionIdentifier != selectedSubquestionIdentifier)
                     {
                         xmlReader.Skip();
@@ -874,16 +916,25 @@ namespace ViewLayer.Controllers
             return subquestionResults;
         }
 
-        public List<QuestionResult> LoadQuestionResults(TestResult testResult, TestTemplate testTemplate, string login)//todo: odebrat testtemplate?
+        public List<QuestionResult> LoadQuestionResults(TestResult testResult, string login)
         {
             List<QuestionResult> questionResults = new List<QuestionResult>();
+            TestTemplate testTemplate = testResult.TestTemplate;
             ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
             foreach (QuestionTemplate questionTemplate in questionTemplates)
             {
                 QuestionResult questionResult = new QuestionResult();
                 questionResult.TestResult = testResult;
-                questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
-                    .FirstOrDefault(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login);
+                if(_context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
+                    .First(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login) != null)
+                {
+                    questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
+                        .First(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login);
+                }
+                else
+                {
+                    throw Exceptions.QuestionTemplateNotFoundException(testResult.TestResultIdentifier, questionTemplate.QuestionNumberIdentifier);
+                }
                 questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
                 questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                 questionResult.SubquestionResultList = LoadSubquestionResults(questionResult, login);
@@ -922,7 +973,7 @@ namespace ViewLayer.Controllers
                     return xmlReader.ReadString();
                 }
             }
-            return null;//todo: throw exception
+            throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
         }
     }
 }

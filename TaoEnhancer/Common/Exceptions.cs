@@ -1,35 +1,56 @@
-﻿using System.Xml;
+﻿using System.IO;
+using System.Xml;
 
 namespace Common
 {
+    /// <summary>
+    /// A class containing all user-made exceptions
+    /// </summary>
     public static class Exceptions
     {
-        // Filesystem exceptions
-        public static DirectoryNotFoundException PathNotFoundException { get { return new DirectoryNotFoundException("Kořenová složka nebyla nalezena!"); } }
-        public static DirectoryNotFoundException ResultsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s výsledky testů nebyla nalezena!"); } }
-        public static DirectoryNotFoundException ResultPathNotFoundException { get { return new DirectoryNotFoundException("Složka s výsledky testu nebyla nalezena!"); } }
-        public static FileNotFoundException ResultFilePathNotFoundException { get { return new FileNotFoundException("XML soubor s výsledkem testu nebyl nalezen!"); } }
-        public static FileNotFoundException ResultResultsDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor s výsledkem testu nebyl nalezen!"); } }
-        public static DirectoryNotFoundException StudentsPathNotFoundException { get { return new DirectoryNotFoundException("Složka se studenty nebyla nalezena!"); } }
-        public static FileNotFoundException StudentFilePathNotFoundException { get { return new FileNotFoundException("RDF soubor se studentem nebyl nalezen!"); } }
-        public static FileNotFoundException StudentLoginDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor se studentem nebyl nalezen!"); } }
-        public static DirectoryNotFoundException TestsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s testy nebyla nalezena!"); } }
-        public static DirectoryNotFoundException TestPathNotFoundException { get { return new DirectoryNotFoundException("Složka s testem nebyla nalezena!"); } }
-        public static DirectoryNotFoundException TestItemsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s otázkami z testu nebyla nalezena!"); } }
-        public static DirectoryNotFoundException TestItemPathNotFoundException { get { return new DirectoryNotFoundException("Složka s otázkou z testu nebyla nalezena!"); } }
-        public static FileNotFoundException TestItemFilePathNotFoundException { get { return new FileNotFoundException("XML soubor s otázkou z testu nebyl nalezen!"); } }
-        public static FileNotFoundException TestItemPointsDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor s body za otázku z testu nebyl nalezen!"); } }
-        public static FileNotFoundException TestItemImagePathNotFoundException { get { return new FileNotFoundException("Obrázek k otázce z testu nebyl nalezen!"); } }
-        public static DirectoryNotFoundException TestTestsPathNotFoundException { get { return new DirectoryNotFoundException("Složka s konkrétními testy nebyla nalezena!"); } }
-        public static DirectoryNotFoundException TestTestPathNotFoundException { get { return new DirectoryNotFoundException("Složka s konkrétním testem nebyla nalezena!"); } }
-        public static FileNotFoundException TestTestFilePathNotFoundException { get { return new FileNotFoundException("XML soubor s konkrétním testem nebyl nalezen!"); } }
-        public static FileNotFoundException TestTestNegativePointsDataPathNotFoundException { get { return new FileNotFoundException("Datový soubor se zápornými body konkrétního testu nebyl nalezen!"); } }
+        //Filesystem exceptions
+        public static DirectoryNotFoundException TestTemplatesPathNotFoundException { get { return new DirectoryNotFoundException("Chyba: složka s šablonami testů nebyla nalezena."); } }
+        public static DirectoryNotFoundException QuestionTemplatesPathNotFoundException(string testNameIdentifier)
+        {
+            return new DirectoryNotFoundException("Chyba: složka s šablonami otázek nebyla nalezena. Identifikátor testu: " + testNameIdentifier);
+        }
+        public static DirectoryNotFoundException TestResultsPathNotFoundException { get { return new DirectoryNotFoundException("Chyba: složka s výsledky testů nebyla nalezena."); } }
+        public static DirectoryNotFoundException StudentsPathNotFoundException { get { return new DirectoryNotFoundException("Chyba: složka se studenty nebyla nalezena."); } }
+        public static FileNotFoundException TestTemplateNotFoundException(string testResultIdentifier)
+        {
+            return new FileNotFoundException("Chyba: šablona testu nebyla nalezena. Identifikátor testu: " + testResultIdentifier);
+        }
+        public static FileNotFoundException QuestionTemplateNotFoundException(string testResultIdentifier, string questionNumberIdentifier)
+        {
+            return new FileNotFoundException("Chyba: šablona otázky nebyla nalezena. Identifikátor testu: " + testResultIdentifier + ", identifikátor otázky: " + questionNumberIdentifier);
+        }
 
-        // XML exceptions
-        public static XmlException XmlRootElementMissing { get { return new XmlException("Chybí kořenový element!"); } }
-        public static XmlException XmlAttributeNotFound { get { return new XmlException("Atribut nebyl nalezen!"); } }
+        //XML exceptions
+        public static XmlException StudentsAnswerNotFoundException(string testNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            return new XmlException("Chyba: studentova odpověď nebyla nalezena (identifikátor testu: " + testNameIdentifier +
+                ", identifikátor otázky: " + questionNumberIdentifier + ", identifikátor podotázky: " + subquestionIdentifier + ")");
+        }
 
-        // Data exceptions
-        public static Exception DataIdentifierNotFound { get { return new Exception("Identifikátor nebyl nalezen!"); } }
+        //Data exceptions
+        public static Exception SubquestionTemplateNotFoundException { get { return new Exception("Chyba: šablona podotázky nebyla nalezena."); } }
+        public static Exception SubquestionResultNotFoundException { get { return new Exception("Chyba: výsledek podotázky nebyl nalezen."); } }
+        public static Exception UserNotFoundException { get { return new Exception("Chyba: uživatel nebyl nalezen."); } }
+        public static Exception SpecificUserNotFoundException(string login)
+        {
+            return new Exception("Chyba: uživatel s loginem " + login + " nebyl nalezen.");
+        }
+        public static Exception UserAlreadyExistsException(string login)
+        {
+            return new Exception("Chyba: uživatel s loginem " + login + " již existuje.");
+        }
+        public static Exception StudentNotFoundException(string studentIdentifier)
+        {
+            return new Exception("Chyba: student s identifikátorem " + studentIdentifier + " nebyl nalezen.");
+        }
+        public static Exception StudentsNotImportedException { get { return new Exception("Chyba: do systému nebyli zatím importováni žádní studenti."); } }
+        public static Exception TestTemplatesNotImportedException { get { return new Exception("Chyba: do systému nebyli zatím importovány žádné šablony testu."); } }
+        public static Exception AccessDeniedException { get { return new Exception("Chyba: přístup zamítnut."); } }
+        public static Exception NoElementsFoundException { get { return new Exception("Chyba: stránku nelze zobrazit."); } }
     }
 }

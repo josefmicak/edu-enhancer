@@ -18,7 +18,10 @@
     /// <param name="args">Value of checkbox for accepted registrations</param>
     private void ChangeVisibilityAccepted(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
-        accepted = (bool)args.Value;
+        if (args.Value != null)
+        {
+            accepted = (bool)args.Value;
+        } 
     }
 
     /// <summary>
@@ -27,7 +30,10 @@
     /// <param name="args">Value of checkbox for rejected registrations</param>
     private void ChangeVisibilityRejected(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
-        rejected = (bool)args.Value;
+        if (args.Value != null)
+        {
+            rejected = (bool)args.Value;
+        }
     }
 
     /// <summary>

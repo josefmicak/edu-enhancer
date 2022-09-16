@@ -19,7 +19,11 @@
                 break;
             }
         }
-        //todo: throw exception (podotazka nenalezena)
+    }
+
+    if (subquestionTemplate == null)
+    {
+        throw Exceptions.SubquestionTemplateNotFoundException;
     }
 
     ViewData["Title"] = "Správa zadání otázky " + subquestionTemplate.QuestionTemplate.QuestionNameIdentifier;
@@ -30,7 +34,7 @@
         singleSubquestion = false;
     }
 
-    string subquestionPoints = "";
+    string? subquestionPoints = "";
     if(subquestionTemplate.SubquestionPoints == null)
     {
         subquestionPoints = "N/A";
@@ -42,7 +46,7 @@
 
     double? questionPoints = 0;
     bool questionPointsDetermined = true;
-    string questionPointsString = "";
+    string? questionPointsString = "";
     foreach(var item in Model)
     {
         if(item.SubquestionPoints == null)

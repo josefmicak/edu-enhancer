@@ -5,7 +5,7 @@
 @{
     bool testPointsDetermined = true;
     double? testPoints = 0;
-    string testPointsString = "";
+    string? testPointsString = "";
 
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
@@ -52,7 +52,7 @@
                         questionPoints += subquestionTemplate.SubquestionPoints;
                     }
                     testPoints += questionPoints;
-                    string questionPointsString = "";
+                    string? questionPointsString = "";
                     if(!questionPointsDetermined)
                     {
                         questionPointsString = "N/A";

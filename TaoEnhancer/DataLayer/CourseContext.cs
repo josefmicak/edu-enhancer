@@ -10,16 +10,16 @@ namespace DataLayer
         {
         }
 
-        public DbSet<TestTemplate> TestTemplates { get; set; }
-        public DbSet<QuestionTemplate> QuestionTemplates { get; set; }
-        public DbSet<SubquestionTemplate> SubquestionTemplates { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<TestResult> TestResults { get; set; }
-        public DbSet<QuestionResult> QuestionResults { get; set; }
-        public DbSet<SubquestionResult> SubquestionResults { get; set; }
-        public DbSet<UserRegistration> UserRegistrations { get; set; }
-        public DbSet<GlobalSettings> GlobalSettings { get; set; }
+        public DbSet<TestTemplate> TestTemplates { get; set; } = default!;
+        public DbSet<QuestionTemplate> QuestionTemplates { get; set; } = default!;
+        public DbSet<SubquestionTemplate> SubquestionTemplates { get; set; } = default!;
+        public DbSet<User> Users { get; set; } = default!;
+        public DbSet<Student> Students { get; set; } = default!;
+        public DbSet<TestResult> TestResults { get; set; } = default!;
+        public DbSet<QuestionResult> QuestionResults { get; set; } = default!;
+        public DbSet<SubquestionResult> SubquestionResults { get; set; } = default!;
+        public DbSet<UserRegistration> UserRegistrations { get; set; } = default!;
+        public DbSet<GlobalSettings> GlobalSettings { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
