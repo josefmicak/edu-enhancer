@@ -27,7 +27,7 @@
     }
 
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-    string negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
+    EnumTypes.NegativePoints negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 
     ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionNumberIdentifier;
 
@@ -79,7 +79,7 @@
             studentsQuestionPoints += item.StudentsPoints;
         }
     }
-    if(negativePoints == "enabledForQuestion" && studentsQuestionPoints < 0)
+    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
     {
         studentsQuestionPoints = 0;
     }

@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Správa neuronových sítí";
+}
+
+<div class="text-center">
+    Správa neuronových sítí
+
+    <p>@ViewBag.Message</p>
+
+    <form method="POST">
+        <input type="submit" value="Načíst testovací data" class="btn btn-primary" />
+        <input type="hidden" value="addSubquestionTemplateRecords" name="action">
+    </form>
+
+    <form method="POST">
+        <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
+        <input type="hidden" value="deleteSubquestionTemplateRecords" name="action">
+    </form>
+
+    <p>R^2 neuronové sítě: @ViewBag.NeuralNetworkAccuracy</p>
+</div>
+
+<div id="backBtn">
+    <a asp-action="MainAdminMenu">Zpět</a>
+</div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

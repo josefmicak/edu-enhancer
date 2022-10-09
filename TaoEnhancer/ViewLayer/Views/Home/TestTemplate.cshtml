@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<DomainModel.QuestionTemplate>
 
 @using DomainModel;
+@using Common;
 
 @{
     bool testPointsDetermined = true;
@@ -18,9 +19,9 @@
         <form method="POST">
             <p>@ViewBag.Message</p>
             <input type="hidden" value="@Model.First().TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
-            <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="disabled" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
-            <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="enabledForQuestion" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
-            <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="enabled" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
+            <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
+            <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
+            <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
             <p><input class="button" id="setNegativePointsBtn" title="Uložit" type="submit" value="Uložit"></p>
         </form>
     </div>
@@ -85,20 +86,20 @@
         testPointsString = testPoints.ToString();
     }
 
-    string negativePoints = Model.First().TestTemplate.NegativePoints;
-    if(negativePoints == "enabled")
+    EnumTypes.NegativePoints negativePoints = Model.First().TestTemplate.NegativePoints;
+    if (negativePoints == EnumTypes.NegativePoints.Enabled)
     {
         <script>
         document.getElementById("negativePointsEnabled").checked = true;
         </script>
     }
-    else if(negativePoints == "enabledForQuestion")
+    else if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion)
     {
         <script>
         document.getElementById("negativePointsEnabledForQuestion").checked = true;
         </script>
     }
-    else if(negativePoints == "disabled")
+    else if (negativePoints == EnumTypes.NegativePoints.Disabled)
     {
         <script>
         document.getElementById("negativePointsDisabled").checked = true;

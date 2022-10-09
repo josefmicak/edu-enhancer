@@ -38,15 +38,15 @@
                         <td>@Model.First().Email</td>
                         @{
                             string role = "";
-                            if (Model.First().Role == Config.Role.Student)
+                            if (Model.First().Role == EnumTypes.Role.Student)
                             {
                                 role = "Student";
                             }
-                            else if (Model.First().Role == Config.Role.Teacher)
+                            else if (Model.First().Role == EnumTypes.Role.Teacher)
                             {
                                 role = "Učitel";
                             }
-                            else if (Model.First().Role == Config.Role.Admin)
+                            else if (Model.First().Role == EnumTypes.Role.Admin)
                             {
                                 role = "Správce";
                             }
@@ -55,11 +55,11 @@
                             <td>@Model.First().CreationDate</td>
 
                             string state = "";
-                            if (Model.First().State == Config.RegistrationState.Waiting)
+                            if (Model.First().State == EnumTypes.RegistrationState.Waiting)
                             {
                                 state = "Čekající";
                             }
-                            else if (Model.First().State == Config.RegistrationState.Rejected)
+                            else if (Model.First().State == EnumTypes.RegistrationState.Rejected)
                             {
                                 state = "Zamítnuta";
                             }

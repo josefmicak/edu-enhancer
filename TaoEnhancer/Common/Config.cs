@@ -1,7 +1,7 @@
 ﻿namespace Common
 {
     /// <summary>
-    /// A class containing various data types and custom settings that are used throughout the application
+    /// A class containing various custom settings that are used throughout the application
     /// </summary>
     public class Config
     {
@@ -11,37 +11,7 @@
 
         public static bool TestingMode { get; set; } = false;
 
-        public static Platform SelectedPlatform { get; set; } = Platform.Windows;
-
-        /// <summary>
-        /// Platform on which the application is running (Windows/Ubuntu)
-        /// </summary>
-        public enum Platform
-        {
-            Windows,
-            Ubuntu
-        }
-
-        /// <summary>
-        /// Role of the user (Student/Teacher/Admin/MainAdmin)
-        /// </summary>
-        public enum Role
-        {
-            Student = 1,
-            Teacher = 2,
-            Admin = 3,
-            MainAdmin = 4
-        }
-
-        /// <summary>
-        /// State of the application (Waiting/Accepted/Rejected)
-        /// </summary>
-        public enum RegistrationState
-        {
-            Waiting,
-            Accepted,
-            Rejected
-        }
+        public static EnumTypes.Platform SelectedPlatform { get; set; } = EnumTypes.Platform.Windows;
 
         /// <summary>
         /// Server URL for every platform
@@ -75,6 +45,23 @@
         public static readonly string[] ExportedFilesPath = new string[] {
             "C:\\xampp\\exported",
             @"/home/fei/mic0378/exported"
+        };
+
+        /// <summary>
+        /// Returns Python path for every platform
+        /// </summary>
+        /// <returns>Python path for every platform</returns>
+        public static string GetPythonPath()
+        {
+            return PythonPath[(int)SelectedPlatform];
+        }
+
+        /// <summary>
+        /// Path to the Python executable for every platform
+        /// </summary>
+        public static readonly string[] PythonPath = new string[] {
+            "C:\\Users\\granders\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+            @"UbuntuPythonPath"
         };
 
         /// <summary>

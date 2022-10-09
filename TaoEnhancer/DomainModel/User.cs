@@ -10,7 +10,8 @@ namespace DomainModel
         public string Email { get; set; } = default!;
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
-        public Config.Role Role { get; set; }
+        public EnumTypes.Role Role { get; set; }
+        public bool IsTestingData { get; set; } = false;
         public string FullName()
         {
             return FirstName + " " + LastName;

@@ -20,6 +20,7 @@ namespace DataLayer
         public DbSet<SubquestionResult> SubquestionResults { get; set; } = default!;
         public DbSet<UserRegistration> UserRegistrations { get; set; } = default!;
         public DbSet<GlobalSettings> GlobalSettings { get; set; } = default!;
+        public DbSet<SubquestionTemplateRecord> SubquestionTemplateRecords { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -107,16 +108,18 @@ namespace DataLayer
                 .HasOne(q => q.Student)
                 .WithMany()
                 .OnDelete(DeleteBehavior.SetNull);
-
+            
             modelBuilder.Entity<GlobalSettings>().ToTable("GlobalSettings");
             modelBuilder.Entity<GlobalSettings>().HasData(
                 new GlobalSettings
                 {
                     Id = 1,
                     TestingMode = false,
-                    SelectedPlatform = Config.Platform.Windows
+                    SelectedPlatform = EnumTypes.Platform.Windows
                 }
             );
+
+            modelBuilder.Entity<SubquestionTemplateRecord>().ToTable("SubquestionTemplateRecord");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

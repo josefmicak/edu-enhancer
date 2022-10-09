@@ -7,9 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var services = builder.Services;
 
-string connectionString = configuration["ConnectionStrings:TaoEnhancerDB"];
+//This connection string should be used only if LocalDB on Windows is being used (although the second one can be used as well)
+services.AddDbContext<CourseContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//This connection string should always be used on Ubuntu, because the appsettings.json connection string would always include user credentials
+/*string connectionString = configuration["ConnectionStrings:TaoEnhancerDB"];
 builder.Services.AddDbContext<CourseContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(connectionString));*/
 
 services
 .AddAuthentication((options) =>

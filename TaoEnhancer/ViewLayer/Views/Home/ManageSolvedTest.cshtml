@@ -1,12 +1,13 @@
 ﻿@model IEnumerable<DomainModel.QuestionResult>
 
 @using DomainModel;
+@using Common;
 
 @{
     bool studentsTestPointsDetermined = true;
     double? studentsTestPoints = 0;
     string studentsTestPointsString = "";
-    string negativePoints = Model.First().QuestionTemplate.TestTemplate.NegativePoints;
+    EnumTypes.NegativePoints negativePoints = Model.First().QuestionTemplate.TestTemplate.NegativePoints;
 
     double? testPoints = 0;
 
@@ -84,7 +85,7 @@
                     }
                     else
                     {
-                        if(negativePoints == "enabledForQuestion" && studentsQuestionPoints < 0)
+                        if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
                         {
                             studentsQuestionPoints = 0;
                         }
@@ -112,7 +113,7 @@
         }
         else
         {
-            if(negativePoints == "enabledForQuestion" && studentsTestPoints < 0)
+            if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsTestPoints < 0)
             {
                 studentsTestPoints = 0;
             }

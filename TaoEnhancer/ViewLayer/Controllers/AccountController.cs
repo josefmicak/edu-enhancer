@@ -105,11 +105,11 @@ namespace ViewLayer.Controllers
                     Config.Application["login"] = user.Login;
                     switch (user.Role)
                     {
-                        case Config.Role.Teacher:
+                        case EnumTypes.Role.Teacher:
                             return RedirectToAction("TeacherMenu", "Home");
-                        case Config.Role.Admin:
+                        case EnumTypes.Role.Admin:
                             return RedirectToAction("AdminMenu", "Home");
-                        case Config.Role.MainAdmin:
+                        case EnumTypes.Role.MainAdmin:
                             return RedirectToAction("MainAdminMenu", "Home");
                         default:
                             break;

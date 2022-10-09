@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using DataLayer;
 using Microsoft.EntityFrameworkCore;
+using NeuralNetworkTools;
 
 namespace ViewLayer.Controllers
 {
@@ -974,6 +975,72 @@ namespace ViewLayer.Controllers
                 }
             }
             throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
+        }
+
+        public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate)
+        {
+            var testTemplates = _context.TestTemplates
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.OwnerLogin == "login").ToList();
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAveragePoints(testTemplates);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAveragePoints(testTemplates);
+            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
+            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+
+            SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
+            subquestionTemplateRecord.Id = "temp";
+            int subquestionType = subquestionTemplate.SubquestionType;
+            subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
+            int possibleAnswersCount = 0;
+            int correctAnswersCount = 0;
+            if (subquestionTemplate.PossibleAnswerList != null)
+            {
+                possibleAnswersCount = subquestionTemplate.PossibleAnswerList.Count();
+            }
+            if (subquestionTemplate.CorrectAnswerList != null)
+            {
+                correctAnswersCount = subquestionTemplate.CorrectAnswerList.Count();
+            }
+
+            if (possibleAnswersCount != 0)
+            {
+                //This type of subquestion typically contains 2 possible answers and many correct answers, so we set CorrectAnswersShare manually instead
+                if (subquestionType == 4)
+                {
+                    subquestionTemplateRecord.CorrectAnswersShare = 0.5;
+                }
+                //These type of subquestion are about sorting elements - the more elements there are, the harder it is to answer correctly
+                else if (subquestionType == 1 || subquestionType == 9)
+                {
+                    subquestionTemplateRecord.CorrectAnswersShare = 1 / (double)possibleAnswersCount;
+                }
+                //This type of subquestion uses slider - typically tens to hunders of possible answers
+                else if (subquestionType == 10)
+                {
+                    subquestionTemplateRecord.CorrectAnswersShare = 0;
+                }
+                else
+                {
+                    subquestionTemplateRecord.CorrectAnswersShare = (double)correctAnswersCount / (double)possibleAnswersCount;
+                }
+                subquestionTemplateRecord.CorrectAnswersShare = Math.Round(subquestionTemplateRecord.CorrectAnswersShare, 2);
+            }
+
+            string? subject = testTemplate.Subject;
+            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
+            subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subquestionTypeAveragePoints[subjectId], 2);
+            subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
+            subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
+            subquestionTemplateRecord.MinimumPointsShare = minimumPointsShare;
+            if (subquestionTemplate.SubquestionPoints != null)
+            {
+                subquestionTemplateRecord.SubquestionPoints = Math.Round((double)subquestionTemplate.SubquestionPoints, 2);
+            }
+
+            return subquestionTemplateRecord;
+
         }
     }
 }

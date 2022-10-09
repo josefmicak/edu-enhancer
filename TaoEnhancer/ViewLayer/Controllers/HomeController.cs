@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Net.Mail;
 using System.Dynamic;
 using Common;
+using NeuralNetworkTools;
 
 namespace ViewLayer.Controllers
 {
@@ -24,6 +25,9 @@ namespace ViewLayer.Controllers
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, CourseContext context)
         {
+            //DataGenerator.GenerateTemplatesFile("on");
+            //string test = DataGenerator.run_cmd("helloworld");
+
             _logger = logger;
             _configuration = configuration;
             _context = context;
@@ -89,7 +93,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplateList()
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -98,15 +102,15 @@ namespace ViewLayer.Controllers
             var user = _context.Users.First(u => u.Login == login);
             if(user != null)
             {
-                if (user.Role == Config.Role.Teacher)
+                if (user.Role == EnumTypes.Role.Teacher)
                 {
                     ViewBag.Return = "TeacherMenu";
                 }
-                else if (user.Role == Config.Role.Admin)
+                else if (user.Role == EnumTypes.Role.Admin)
                 {
                     ViewBag.Return = "AdminMenu";
                 }
-                else if (user.Role == Config.Role.MainAdmin)
+                else if (user.Role == EnumTypes.Role.MainAdmin)
                 {
                     ViewBag.Return = "MainAdminMenu";
                 }
@@ -180,7 +184,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TestTemplate(string testNumberIdentifier)
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -214,7 +218,7 @@ namespace ViewLayer.Controllers
             var testTemplate = _context.TestTemplates.FirstOrDefault(t => t.TestNumberIdentifier == testNumberIdentifier);
             if(testTemplate != null)
             {
-                testTemplate.NegativePoints = negativePoints;
+                testTemplate.NegativePoints = (EnumTypes.NegativePoints)Convert.ToInt32(negativePoints);
                 message = "Změny úspěšně uloženy.";
                 await _context.SaveChangesAsync();
             }
@@ -225,7 +229,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier)
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -235,16 +239,34 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
-            if (TempData["subquestionIdentifier"] != null)
+
+            string? subquestionIdentifier = null;
+            if (TempData["subquestionIdentifier"] != null)//the user selected a subquestion from the dropdown menu
             {
+                subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
                 ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
 
+            ViewBag.SuggestedSubquestionPoints = 0;
+
             var subquestionTemplates = _context.SubquestionTemplates
-                .Include(q => q.QuestionTemplate)
-                .Include(q => q.QuestionTemplate.TestTemplate)
-                .Where(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
+                .Include(s => s.QuestionTemplate)
+                .Include(s => s.QuestionTemplate.TestTemplate)
+                .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login);
+
+            if(subquestionIdentifier == null)
+            {
+                subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
+            }
+
+            var subquestionTemplate = _context.SubquestionTemplates
+                .Include(s => s.QuestionTemplate)
+                .Include(s => s.QuestionTemplate.TestTemplate)
+                .FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login && s.SubquestionIdentifier == subquestionIdentifier);
+            
+            SubquestionTemplateRecord subquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate);
+            ViewBag.SuggestedSubquestionPoints = DataGenerator.GetSubquestionTemplateSuggestedPoints("predict_new", subquestionTemplateRecord);
 
             if (subquestionTemplates.Count() > 0)
             {
@@ -299,7 +321,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedTestList()
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -308,15 +330,15 @@ namespace ViewLayer.Controllers
             var user = _context.Users.First(u => u.Login == login);
             if(user != null)
             {
-                if (user.Role == Config.Role.Teacher)
+                if (user.Role == EnumTypes.Role.Teacher)
                 {
                     ViewBag.Return = "TeacherMenu";
                 }
-                else if (user.Role == Config.Role.Admin)
+                else if (user.Role == EnumTypes.Role.Admin)
                 {
                     ViewBag.Return = "AdminMenu";
                 }
-                else if (user.Role == Config.Role.MainAdmin)
+                else if (user.Role == EnumTypes.Role.MainAdmin)
                 {
                     ViewBag.Return = "MainAdminMenu";
                 }
@@ -392,7 +414,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedTest(string testResultIdentifier)
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -420,7 +442,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier)
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -510,7 +532,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedTestList()
         {
-            if (!CanUserAccessPage(Config.Role.Student))
+            if (!CanUserAccessPage(EnumTypes.Role.Student))
             {
                 return AccessDeniedAction();
             }
@@ -530,7 +552,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedTest(string testResultIdentifier, string ownerLogin)
         {
-            if (!CanUserAccessPage(Config.Role.Student))
+            if (!CanUserAccessPage(EnumTypes.Role.Student))
             {
                 return AccessDeniedAction();
             }
@@ -560,7 +582,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string ownerLogin)
         {
-            if (!CanUserAccessPage(Config.Role.Student))
+            if (!CanUserAccessPage(EnumTypes.Role.Student))
             {
                 return AccessDeniedAction();
             }
@@ -636,7 +658,7 @@ namespace ViewLayer.Controllers
                     mainAdmin.LastName = lastName;
                     mainAdmin.Email = email;
                     mainAdmin.Login = login;
-                    mainAdmin.Role = Config.Role.MainAdmin;
+                    mainAdmin.Role = EnumTypes.Role.MainAdmin;
                     Config.Application["login"] = login;
                     _context.Users.Add(mainAdmin);
                     await _context.SaveChangesAsync();
@@ -663,9 +685,9 @@ namespace ViewLayer.Controllers
                         userRegistration.LastName = lastName;
                         userRegistration.Login = login;
                         userRegistration.Email = email;
-                        userRegistration.State = Config.RegistrationState.Waiting;
+                        userRegistration.State = EnumTypes.RegistrationState.Waiting;
                         userRegistration.CreationDate = DateTime.Now;
-                        userRegistration.Role = (Config.Role)Convert.ToInt32(role);
+                        userRegistration.Role = (EnumTypes.Role)Convert.ToInt32(role);
                         var importedStudent = _context.Students.FirstOrDefault(s => s.Login == login);
                         if (importedStudent != null)
                         {
@@ -688,7 +710,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserList()
         {
-            if (!CanUserAccessPage(Config.Role.MainAdmin))
+            if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -752,7 +774,7 @@ namespace ViewLayer.Controllers
                         }
                         _context.Students.Add(student);
                         //in case the student has registered before the student's file has been imported, we add the Student to the UserRegistration
-                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == Config.RegistrationState.Waiting);
+                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == EnumTypes.RegistrationState.Waiting);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
                             userRegistration.Student = student;
@@ -771,6 +793,7 @@ namespace ViewLayer.Controllers
             else if(action == "deleteAllStudents")
             {
                 _context.Database.ExecuteSqlRaw("delete from Student");
+                await _context.SaveChangesAsync();
                 TempData["StudentMessage"] = "Byly smazáni všichni existující studenti.";
             }
             else if(action == "addStudent")
@@ -902,7 +925,7 @@ namespace ViewLayer.Controllers
                     teacher.LastName = lastName;
                     teacher.Login = login;
                     teacher.Email = email;
-                    teacher.Role = Config.Role.Teacher;
+                    teacher.Role = EnumTypes.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
@@ -941,7 +964,7 @@ namespace ViewLayer.Controllers
                         userLoginCheck.LastName = lastName;
                         if (role != null)
                         {
-                            userLoginCheck.Role = (Config.Role)Convert.ToInt32(role);
+                            userLoginCheck.Role = (EnumTypes.Role)Convert.ToInt32(role);
                         }
                         await _context.SaveChangesAsync();
                         TempData["TeacherMessage"] = "Učitel úspěšně upraven.";
@@ -968,6 +991,7 @@ namespace ViewLayer.Controllers
             else if(action == "deleteAllTeachers")
             {
                 _context.Database.ExecuteSqlRaw("delete from [User] where role = 2");
+                await _context.SaveChangesAsync();
                 TempData["TeacherMessage"] = "Byly smazáni všichni existující učitelé.";
             }
             else if (action == "addAdmin")
@@ -995,7 +1019,7 @@ namespace ViewLayer.Controllers
                     admin.LastName = lastName;
                     admin.Login = login;
                     admin.Email = email;
-                    admin.Role = Config.Role.Admin;
+                    admin.Role = EnumTypes.Role.Admin;
                     _context.Users.Add(admin);
                     await _context.SaveChangesAsync();
                     TempData["AdminMessage"] = "Správce byl úspěšně přidán.";
@@ -1042,7 +1066,7 @@ namespace ViewLayer.Controllers
                                 userLoginCheck.LastName = lastName;
                                 if (role != null)
                                 {
-                                    userLoginCheck.Role = (Config.Role)Convert.ToInt32(role);
+                                    userLoginCheck.Role = (EnumTypes.Role)Convert.ToInt32(role);
                                 }
 
                                 await _context.SaveChangesAsync();
@@ -1051,17 +1075,17 @@ namespace ViewLayer.Controllers
                         }
                         else if(action == "changeMainAdmin")
                         {
-                            var oldMainAdmin = _context.Users.FirstOrDefault(u => u.Role == Config.Role.MainAdmin);
+                            var oldMainAdmin = _context.Users.FirstOrDefault(u => u.Role == EnumTypes.Role.MainAdmin);
                             if(oldMainAdmin != null)
                             {
-                                oldMainAdmin.Role = Config.Role.Admin;
+                                oldMainAdmin.Role = EnumTypes.Role.Admin;
                             }
 
                             userLoginCheck.Login = login;
                             userLoginCheck.Email = email;
                             userLoginCheck.FirstName = firstName;
                             userLoginCheck.LastName = lastName;
-                            userLoginCheck.Role = Config.Role.MainAdmin;
+                            userLoginCheck.Role = EnumTypes.Role.MainAdmin;
 
                             await _context.SaveChangesAsync();
                             TempData["AdminMessage"] = "Nový hlavní administrátor úspěšně nastaven.";
@@ -1078,7 +1102,7 @@ namespace ViewLayer.Controllers
             {
                 if (userLoginCheck != null)
                 {
-                    if(userLoginCheck.Role == Config.Role.MainAdmin)
+                    if(userLoginCheck.Role == EnumTypes.Role.MainAdmin)
                     {
                         TempData["AdminMessage"] = "Chyba: účet hlavního administrátora nelze smazat.";
                     }
@@ -1097,6 +1121,7 @@ namespace ViewLayer.Controllers
             else if (action == "deleteAllAdmins")
             {
                 _context.Database.ExecuteSqlRaw("delete from [User] where role = 3");
+                await _context.SaveChangesAsync();
                 TempData["AdminMessage"] = "Byly smazáni všichni existující správci.";
             }
             return RedirectToAction(nameof(ManageUserList));
@@ -1104,7 +1129,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserListForAdmin()
         {
-            if (!CanUserAccessPage(Config.Role.Admin))
+            if (!CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1167,7 +1192,7 @@ namespace ViewLayer.Controllers
                         }
                         _context.Students.Add(student);
                         //in case the user has registered before the student has been imported, we add the User to the UserRegistration
-                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == Config.RegistrationState.Waiting);
+                        var userRegistrationList = _context.UserRegistrations.Where(u => u.Login == student.Login && u.State == EnumTypes.RegistrationState.Waiting);
                         foreach (UserRegistration userRegistration in userRegistrationList)
                         {
                             userRegistration.Student = student;
@@ -1311,7 +1336,7 @@ namespace ViewLayer.Controllers
                     teacher.LastName = lastName;
                     teacher.Login = login;
                     teacher.Email = email;
-                    teacher.Role = Config.Role.Teacher;
+                    teacher.Role = EnumTypes.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
@@ -1376,7 +1401,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationList()
         {
-            if (!CanUserAccessPage(Config.Role.MainAdmin))
+            if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1427,7 +1452,7 @@ namespace ViewLayer.Controllers
                                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                                 if (userRegistration != null)
                                 {
-                                    userRegistration.State = Config.RegistrationState.Accepted;
+                                    userRegistration.State = EnumTypes.RegistrationState.Accepted;
                                     await _context.SaveChangesAsync();
                                     message = "Registrace úspěšně schválena.";
                                 }
@@ -1466,12 +1491,12 @@ namespace ViewLayer.Controllers
                         user.FirstName = firstName;
                         user.LastName = lastName;
                         user.Login = login;
-                        user.Role = Enum.Parse<Config.Role>(role);
+                        user.Role = Enum.Parse<EnumTypes.Role>(role);
                         _context.Users.Add(user);
                         var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                         if (userRegistration != null)
                         {
-                            userRegistration.State = Config.RegistrationState.Accepted;
+                            userRegistration.State = EnumTypes.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
                         }
@@ -1487,7 +1512,7 @@ namespace ViewLayer.Controllers
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
                 {
-                    userRegistration.State = Config.RegistrationState.Rejected;
+                    userRegistration.State = EnumTypes.RegistrationState.Rejected;
                     await _context.SaveChangesAsync();
                     message = "Registrace úspěšně zamítnuta.";
                 }
@@ -1522,7 +1547,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationListForAdmin()
         {
-            if (!CanUserAccessPage(Config.Role.Admin))
+            if (!CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1570,7 +1595,7 @@ namespace ViewLayer.Controllers
                                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                                 if (userRegistration != null)
                                 {
-                                    userRegistration.State = Config.RegistrationState.Accepted;
+                                    userRegistration.State = EnumTypes.RegistrationState.Accepted;
                                     await _context.SaveChangesAsync();
                                     message = "Registrace úspěšně schválena.";
                                 }
@@ -1605,12 +1630,12 @@ namespace ViewLayer.Controllers
                         user.FirstName = firstName;
                         user.LastName = lastName;
                         user.Login = login;
-                        user.Role = Enum.Parse<Config.Role>(role);
+                        user.Role = Enum.Parse<EnumTypes.Role>(role);
                         _context.Users.Add(user);
                         var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                         if (userRegistration != null)
                         {
-                            userRegistration.State = Config.RegistrationState.Accepted;
+                            userRegistration.State = EnumTypes.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
                         }
@@ -1626,7 +1651,7 @@ namespace ViewLayer.Controllers
                 var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                 if (userRegistration != null)
                 {
-                    userRegistration.State = Config.RegistrationState.Rejected;
+                    userRegistration.State = EnumTypes.RegistrationState.Rejected;
                     await _context.SaveChangesAsync();
                     message = "Registrace úspěšně zamítnuta.";
                 }
@@ -1655,7 +1680,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TeacherMenu()
         {
-            if (!CanUserAccessPage(Config.Role.Teacher))
+            if (!CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -1668,7 +1693,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> AdminMenu()
         {
-            if (!CanUserAccessPage(Config.Role.Admin))
+            if (!CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1681,19 +1706,19 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> MainAdminMenu()
         {
-            if (!CanUserAccessPage(Config.Role.MainAdmin))
+            if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
 
             return _context.Users != null ?
-                View(await _context.Users.FirstOrDefaultAsync(u => u.Role == Config.Role.MainAdmin)) :
+                View(await _context.Users.FirstOrDefaultAsync(u => u.Role == EnumTypes.Role.MainAdmin)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
         }
 
         public async Task<IActionResult> GlobalSettings()
         {
-            if (!CanUserAccessPage(Config.Role.MainAdmin))
+            if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1726,13 +1751,13 @@ namespace ViewLayer.Controllers
 
                 if(selectedPlatform == "windows")
                 {
-                    globalSettings.SelectedPlatform = Config.Platform.Windows;
-                    Config.SelectedPlatform = Config.Platform.Windows;
+                    globalSettings.SelectedPlatform = EnumTypes.Platform.Windows;
+                    Config.SelectedPlatform = EnumTypes.Platform.Windows;
                 }
                 else if(selectedPlatform == "ubuntu")
                 {
-                    globalSettings.SelectedPlatform = Config.Platform.Ubuntu;
-                    Config.SelectedPlatform = Config.Platform.Ubuntu;
+                    globalSettings.SelectedPlatform = EnumTypes.Platform.Ubuntu;
+                    Config.SelectedPlatform = EnumTypes.Platform.Ubuntu;
                 }
                 TempData["Message"] = "Změny úspěšně uloženy.";
                 await _context.SaveChangesAsync();
@@ -1740,7 +1765,85 @@ namespace ViewLayer.Controllers
             return RedirectToAction(nameof(GlobalSettings));
         }
 
-        public bool CanUserAccessPage(Config.Role requiredRole)
+        public async Task<IActionResult> ManageNeuralNetworks()
+        {
+            if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            {
+                return AccessDeniedAction();
+            }
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
+            string neuralNetworkAccuracy = DataGenerator.GetSubquestionTemplateSuggestedPoints("get_accuracy", null);
+            if (neuralNetworkAccuracy != null && neuralNetworkAccuracy != "")
+            {
+                ViewBag.NeuralNetworkAccuracy = neuralNetworkAccuracy;
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageNeuralNetworks(string action)
+        {
+            if(action == "addSubquestionTemplateRecords")
+            {
+                int successCount = 0;
+                int errorCount = 0;
+                var testTemplates = DataGenerator.GenerateCorrelationalTestTemplates();
+                for (int i = 0; i < testTemplates.Count; i++)
+                {
+                    try
+                    {
+                        var testTemplate = testTemplates[i];
+                        _context.TestTemplates.Add(testTemplate);
+                        await _context.SaveChangesAsync();
+                        successCount++;
+                    }
+
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        errorCount++;
+                    }
+                }
+
+                var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
+                for (int i = 0; i < subquestionTemplateRecords.Count; i++)
+                {
+                    try
+                    {
+                        var subquestionTemplateRecord = subquestionTemplateRecords[i];
+                        _context.SubquestionTemplateRecords.Add(subquestionTemplateRecord);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                }
+
+                TempData["Message"] = "Přidáno " + successCount + " šablon testů (" + errorCount + " duplikátů nebo chyb).";
+                successCount = 0;
+                errorCount = 0;
+            }
+            else if(action == "deleteSubquestionTemplateRecords")
+            {
+                _context.Database.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
+                _context.Database.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
+                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplateRecord");
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Testovací data úspěšně vymazány.";
+            }
+
+            return RedirectToAction(nameof(ManageNeuralNetworks));
+        }
+
+        public bool CanUserAccessPage(EnumTypes.Role requiredRole)
         {
             if(Config.TestingMode)//in case the testing mode is on, no authentication is required at all
             {
@@ -1751,7 +1854,7 @@ namespace ViewLayer.Controllers
             var user = _context.Users.FirstOrDefault(u => u.Login == login);
             var student = _context.Students.FirstOrDefault(s => s.Login == login);
 
-            if(requiredRole > Config.Role.Student)//staff member
+            if(requiredRole > EnumTypes.Role.Student)//staff member
             {
                 if(user == null)
                 {

@@ -27,7 +27,7 @@
     }
 
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-    string negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
+    EnumTypes.NegativePoints negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 
     ViewData["Title"] = "Prohlížení vyřešené otázky " + subquestionResult.QuestionNumberIdentifier;
 
@@ -46,7 +46,7 @@
         }
         questionPoints += item.SubquestionPoints;
     }
-    if(negativePoints == "enabledForQuestion" && subquestionResult.StudentsPoints < 0)
+    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && subquestionResult.StudentsPoints < 0)
     {
         questionPoints = 0;
     }
@@ -76,7 +76,7 @@
             studentsQuestionPoints += item.StudentsPoints;
         }
     }
-    if(negativePoints == "enabledForQuestion" && studentsQuestionPoints < 0)
+    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
     {
         studentsQuestionPoints = 0;
     }

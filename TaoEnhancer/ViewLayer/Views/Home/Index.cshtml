@@ -51,15 +51,15 @@
             {
                 foreach(User item in Model.Users)
                 {
-                    if(item.Role == Config.Role.Teacher)
+                    if(item.Role == EnumTypes.Role.Teacher)
                     {
                         teacherCount++;
                     }
-                    else if (item.Role == Config.Role.Admin)
+                    else if (item.Role == EnumTypes.Role.Admin)
                     {
                         adminCount++;
                     }
-                    else if (item.Role == Config.Role.MainAdmin)
+                    else if (item.Role == EnumTypes.Role.MainAdmin)
                     {
                         mainAdminCount++;
                     }
@@ -95,22 +95,22 @@
 <div id="google-login">
     @{
         string signInURL = Config.GetSignInURL();
-            <h2>Google přihlášení</h2>
-            <div id="g_id_onload"
-                    data-client_id="@Config.GoogleClientId"
-                    data-context="signin"
-                    data-ux_mode="redirect"
-                    data-login_uri="@signInURL"
-                    data-auto_prompt="false">
-            </div>
-            <div class="g_id_signin"
-                    data-type="standard"
-                    data-size="large"
-                    data-theme="outline"
-                    data-text="sign_in_with"
-                    data-shape="rectangular"
-                    data-logo_alignment="left">
-            </div>
+        <h2>Google přihlášení</h2>
+        <div id="g_id_onload"
+                data-client_id="@Config.GoogleClientId"
+                data-context="signin"
+                data-ux_mode="redirect"
+                data-login_uri="@signInURL"
+                data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+                data-type="standard"
+                data-size="large"
+                data-theme="outline"
+                data-text="sign_in_with"
+                data-shape="rectangular"
+                data-logo_alignment="left">
+        </div>
     }
 </div>
 

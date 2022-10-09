@@ -207,6 +207,7 @@
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
 
             <p>Počet bodů za otázku: <input class="input" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
+            <p>Doporučený počet bodů za otázku: @ViewBag.SuggestedSubquestionPoints</p>
             <input class="button" id="setSubquestionPointsBtn" title="Uložit" type="submit" value="Uložit">
         </form>
     </div>
