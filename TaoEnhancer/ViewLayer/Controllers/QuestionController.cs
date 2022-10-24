@@ -977,12 +977,12 @@ namespace ViewLayer.Controllers
             throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
         }
 
-        public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate)
+        public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner)
         {
             var testTemplates = _context.TestTemplates
                 .Include(t => t.QuestionTemplateList)
                 .ThenInclude(q => q.SubquestionTemplateList)
-                .Where(t => t.OwnerLogin == "login").ToList();
+                .Where(t => t.OwnerLogin == owner.Login).ToList();
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAveragePoints(testTemplates);
             double[] subjectAveragePoints = DataGenerator.GetSubjectAveragePoints(testTemplates);
@@ -990,7 +990,11 @@ namespace ViewLayer.Controllers
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
-            subquestionTemplateRecord.Id = "temp";
+            subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
+            subquestionTemplateRecord.SubquestionIdentifier = "SubquestionIdentifier_0_0_0";
+            subquestionTemplateRecord.QuestionNumberIdentifier = "QuestionNumberIdentifier_0_0";
+            subquestionTemplateRecord.Owner = owner;
+            subquestionTemplateRecord.OwnerLogin = owner.Login;
             int subquestionType = subquestionTemplate.SubquestionType;
             subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
             int possibleAnswersCount = 0;
@@ -1041,6 +1045,22 @@ namespace ViewLayer.Controllers
 
             return subquestionTemplateRecord;
 
+        }
+
+        public void CreateSubquestionTemplatesStatistics(User user)
+        {
+            SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+            subquestionTemplateStatistics.User = user;
+            subquestionTemplateStatistics.UserLogin = user.Login;
+            _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+            _context.SaveChangesAsync();
+        }
+
+        public void IncrementSubquestionTemplatesAdded(User user)
+        {
+            SubquestionTemplateStatistics subquestionTemplateStatistics = _context.SubquestionTemplateStatistics.First(s => s.User == user);
+            subquestionTemplateStatistics.SubquestionTemplatesAdded++;
+            _context.SaveChangesAsync();
         }
     }
 }

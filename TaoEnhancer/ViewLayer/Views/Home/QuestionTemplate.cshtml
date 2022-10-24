@@ -64,6 +64,12 @@
     {
         questionPointsString = questionPoints.ToString();
     }
+
+    bool userRequestedPointsSuggestion = false;
+    if (ViewBag.SuggestedSubquestionPoints != null)
+    {
+        userRequestedPointsSuggestion = true;
+    }
 }
 
 <div class="text-center">
@@ -205,10 +211,18 @@
         <form method="POST">
             <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
-
             <p>Počet bodů za otázku: <input class="input" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
-            <p>Doporučený počet bodů za otázku: @ViewBag.SuggestedSubquestionPoints</p>
-            <input class="button" id="setSubquestionPointsBtn" title="Uložit" type="submit" value="Uložit">
+            @{
+                if (userRequestedPointsSuggestion)
+                {
+                    <p>Doporučený počet bodů za otázku: @ViewBag.SuggestedSubquestionPoints</p>
+                }
+                else
+                {
+                    <p>Doporučený počet bodů za otázku: <input class="button" title="Zobrazit" type="submit" value="Zobrazit" name="action"></p>
+                }
+            }
+            <input class="button" id="setSubquestionPointsBtn" title="Uložit" type="submit" value="Uložit" name="action">
         </form>
     </div>
 </div>

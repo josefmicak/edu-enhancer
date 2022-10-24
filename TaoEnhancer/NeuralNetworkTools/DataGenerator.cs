@@ -6,27 +6,26 @@ using System.Diagnostics;
 using DataLayer;
 using System.Reflection;
 using System;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace NeuralNetworkTools
 {
     public class DataGenerator
     {
-        //static DataFunctions dataFunctions = new DataFunctions();
-        private readonly CourseContext _context;
         /// <summary>
         /// Generates .csv file of a number of subquestion templates with parameters that are used by the neural network
         /// </summary>
         /// <param name="dataColleration">Decides whether the generated data will be randomized or if there are going to be collerations between the templates</param>
-        public static void GenerateTemplatesFile(string dataColleration)
+        public static void GenerateTemplatesFile(string dataColleration, User owner)
         {
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             if(dataColleration == "none")
             {
-                testTemplates = GenerateRandomTestTemplates();
+                testTemplates = GenerateRandomTestTemplates(testTemplates, 500);
             }
             else if(dataColleration == "on")
             {
-                testTemplates = GenerateCorrelationalTestTemplates();
+                testTemplates = GenerateCorrelationalTestTemplates(testTemplates, 500);
             }
             var subquestionTemplateRecords = GetSubquestionTemplateRecords(testTemplates);
 
@@ -59,6 +58,7 @@ namespace NeuralNetworkTools
             double[] subquestionTypeAveragePoints = GetSubquestionTypeAveragePoints(testTemplates);
             double[] subjectAveragePoints = GetSubjectAveragePoints(testTemplates);
             int subquestionTemplateRecordId = 0;
+            User owner = testTemplates[0].Owner;
 
             for (int i = 0; i < testTemplates.Count; i++)
             {
@@ -73,7 +73,11 @@ namespace NeuralNetworkTools
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
                         SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
-                        subquestionTemplateRecord.Id = "record-" + subquestionTemplateRecordId;
+                        subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
+                        subquestionTemplateRecord.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                        subquestionTemplateRecord.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
+                        subquestionTemplateRecord.Owner = owner;
+                        subquestionTemplateRecord.OwnerLogin = owner.Login;
                         int subquestionType = subquestionTemplate.SubquestionType;
                         subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
                         int possibleAnswersCount = 0;
@@ -151,16 +155,26 @@ namespace NeuralNetworkTools
 
         /// <summary>
         /// Generates random test templates - their subquestion points are randomized, not dependent on any variables
+        /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
+        /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
         /// </summary>
-        public static List<TestTemplate> GenerateRandomTestTemplates()
+        public static List<TestTemplate> GenerateRandomTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated)
         {
-            List<TestTemplate> testTemplates = new List<TestTemplate>();
+            List<TestTemplate> testTemplates = existingTestTemplates;
+            int existingTestTemplatesCount = existingTestTemplates.Count;
             Random random = new Random();
             User owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
+            bool stopDataGeneration = false;
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
 
-            for (int i = 0; i < 10; i++)
+            for (int i = existingTestTemplates.Count; ; i++)
             {
+                if (stopDataGeneration)
+                {
+                    break;
+                }
+
                 string testId = i.ToString();
                 TestTemplate testTemplate = new TestTemplate();
                 testTemplate.TestNameIdentifier = "TestNameIdentifier_" + testId;
@@ -169,7 +183,8 @@ namespace NeuralNetworkTools
                 testTemplate.NegativePoints = (EnumTypes.NegativePoints)random.Next(1, 4);
                 double? totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
-                testTemplate.Subject = "Subject_" + testId;
+                int subject = random.Next(0, 5);
+                testTemplate.Subject = subjectsArray[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
                 testTemplate.IsTestingData = true;
@@ -177,6 +192,11 @@ namespace NeuralNetworkTools
 
                 for (int j = 0; j < 10; j++)
                 {
+                    if (stopDataGeneration)
+                    {
+                        break;
+                    }
+
                     string questionId = j.ToString();
                     QuestionTemplate questionTemplate = new QuestionTemplate();
                     questionTemplate.QuestionNameIdentifier = "QuestionNameIdentifier_" + testId + "_" + questionId;
@@ -189,6 +209,11 @@ namespace NeuralNetworkTools
 
                     for (int k = 0; k < 5; k++)
                     {
+                        if (stopDataGeneration)
+                        {
+                            break;
+                        }
+
                         string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
@@ -267,6 +292,11 @@ namespace NeuralNetworkTools
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
+
+                        if (subquestionCount >= amountOfSubquestionTemplatesToBeGenerated)//we have reached the desired amount of generated subquestion templates
+                        {
+                            stopDataGeneration = true;
+                        }
                     }
                     questionTemplate.SubquestionTemplateList = subquestionTemplates;
                     questionTemplates.Add(questionTemplate);
@@ -278,25 +308,36 @@ namespace NeuralNetworkTools
                 testTemplates.Add(testTemplate);
             }
 
+            testTemplates.RemoveRange(0, existingTestTemplatesCount);
             return testTemplates;
         }
 
         /// <summary>
         /// Generates correlational test templates - their subquestion points are dependent on variables such as subquestion type, subject etc.
+        /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
+        /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
         /// </summary>
-        public static List<TestTemplate> GenerateCorrelationalTestTemplates()
+        public static List<TestTemplate> GenerateCorrelationalTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated)
         {
-            List<TestTemplate> testTemplates = new List<TestTemplate>();
+            //existing test templates have to be added here because otherwise newly created test templates would not be related to the old ones
+            List<TestTemplate> testTemplates = existingTestTemplates;
+            int existingTestTemplatesCount = existingTestTemplates.Count;
             Random random = new Random();
             User owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
+            bool stopDataGeneration = false;
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             int[] subquestionPointsByTypeArray = { 0, 2, -4, -3, -4, 5, -1, -1, 2, -3, 0 };
             int[] subquestionPointsBySubjectArray = { 3, -1, 3, 1, 1 };
             int[] negativePointsArray = { -4, -2, 0 };
 
-            for (int i = 0; i < 10; i++)
+            for (int i = existingTestTemplates.Count; ; i++)
             {
+                if (stopDataGeneration)
+                {
+                    break;
+                }
+
                 string testId = i.ToString();
                 TestTemplate testTemplate = new TestTemplate();
                 testTemplate.TestNameIdentifier = "TestNameIdentifier_" + testId;
@@ -315,6 +356,11 @@ namespace NeuralNetworkTools
 
                 for (int j = 0; j < 10; j++)
                 {
+                    if (stopDataGeneration)
+                    {
+                        break;
+                    }
+
                     string questionId = j.ToString();
                     QuestionTemplate questionTemplate = new QuestionTemplate();
                     questionTemplate.QuestionNameIdentifier = "QuestionNameIdentifier_" + testId + "_" + questionId;
@@ -327,6 +373,11 @@ namespace NeuralNetworkTools
 
                     for (int k = 0; k < 5; k++)
                     {
+                        if(stopDataGeneration)
+                        {
+                            break;
+                        }
+
                         string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
@@ -441,6 +492,11 @@ namespace NeuralNetworkTools
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
+
+                        if(subquestionCount >= amountOfSubquestionTemplatesToBeGenerated)//we have reached the desired amount of generated subquestion templates
+                        {
+                            stopDataGeneration = true;
+                        }
                     }
                     questionTemplate.SubquestionTemplateList = subquestionTemplates;
                     questionTemplates.Add(questionTemplate);
@@ -451,6 +507,7 @@ namespace NeuralNetworkTools
                 testTemplates.Add(testTemplate);
             }
 
+            testTemplates.RemoveRange(0, existingTestTemplatesCount);
             return testTemplates;
         }
 
@@ -538,33 +595,6 @@ namespace NeuralNetworkTools
             }
 
             return subjectPointsShare;
-        }
-
-        /// <summary>
-        /// Runs selected python file
-        /// </summary>
-        public static string GetSubquestionTemplateSuggestedPoints(string function, SubquestionTemplateRecord? subquestionTemplateRecord)
-        {
-            string[] arguments = new string[] { subquestionTemplateRecord.SubquestionTypeAveragePoints.ToString().Replace(",", "."), subquestionTemplateRecord.CorrectAnswersShare.ToString().Replace(",", "."),
-            subquestionTemplateRecord.SubjectAveragePoints.ToString().Replace(",", "."), subquestionTemplateRecord.ContainsImage.ToString().Replace(",", "."), subquestionTemplateRecord.NegativePoints.ToString().Replace(",", "."), subquestionTemplateRecord.MinimumPointsShare.ToString().Replace(",", ".")};
-
-            ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = Config.GetPythonPath();
-            start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7}", 
-                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\NeuralNetworkTools\\TemplateNeuralNetwork.py", function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]); 
-            start.UseShellExecute = false;
-            start.CreateNoWindow = true; 
-            start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true; 
-            using (Process process = Process.Start(start))
-            {
-                using (StreamReader reader = process.StandardOutput)
-                {
-                    string stderr = process.StandardError.ReadToEnd(); 
-                    string result = reader.ReadToEnd(); 
-                    return result;
-                }
-            }
         }
     }
 }

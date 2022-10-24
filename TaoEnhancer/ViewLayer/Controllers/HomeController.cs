@@ -9,6 +9,8 @@ using System.Net.Mail;
 using System.Dynamic;
 using Common;
 using NeuralNetworkTools;
+using NuGet.DependencyResolver;
+using NuGet.Protocol.Plugins;
 
 namespace ViewLayer.Controllers
 {
@@ -248,14 +250,17 @@ namespace ViewLayer.Controllers
             }
             ViewBag.SubquestionTypeTextArray = questionController.SubquestionTypeTextArray;
 
-            ViewBag.SuggestedSubquestionPoints = 0;
+            if (TempData["SuggestedSubquestionPoints"] != null)
+            {
+                ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
+            }
 
             var subquestionTemplates = _context.SubquestionTemplates
                 .Include(s => s.QuestionTemplate)
                 .Include(s => s.QuestionTemplate.TestTemplate)
                 .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login);
 
-            if(subquestionIdentifier == null)
+       /*     if(subquestionIdentifier == null)
             {
                 subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
             }
@@ -265,8 +270,12 @@ namespace ViewLayer.Controllers
                 .Include(s => s.QuestionTemplate.TestTemplate)
                 .FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login && s.SubquestionIdentifier == subquestionIdentifier);
             
-            SubquestionTemplateRecord subquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate);
-            ViewBag.SuggestedSubquestionPoints = DataGenerator.GetSubquestionTemplateSuggestedPoints("predict_new", subquestionTemplateRecord);
+            if(login == "login")//todo
+            {
+                User owner = _context.Users.First(u => u.Login == "login");
+                SubquestionTemplateRecord subquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate, owner);
+                ViewBag.SuggestedSubquestionPoints = DataGenerator.GetSubquestionTemplateSuggestedPoints("predict_new", subquestionTemplateRecord);
+            }*/
 
             if (subquestionTemplates.Count() > 0)
             {
@@ -279,7 +288,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> QuestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
+        public async Task<IActionResult> QuestionTemplate(string action, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
         {
             string login = Config.Application["login"];
             if (subquestionPoints != null)
@@ -287,37 +296,122 @@ namespace ViewLayer.Controllers
                 subquestionPoints = subquestionPoints.Replace(".", ",");
             }
             string? message = null;
-            //the teacher is changing points of the subquestion
-            if (subquestionPoints != null)
+
+            if(action == "Uložit")
             {
-                var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier
-                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
-                if(subquestionTemplate != null)
+                //the teacher is changing points of the subquestion
+                if (subquestionPoints != null)
                 {
-                    if (subquestionPoints == null)
+                    var subquestionTemplate = _context.SubquestionTemplates.FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                    && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+                    if (subquestionTemplate != null)
                     {
-                        message = "Chyba: nebyl zadán žádný počet bodů.";
-                    }
-                    else if (!double.TryParse(subquestionPoints, out _))
-                    {
-                        message = "Chyba: \"" + subquestionPoints + "\" není korektní formát počtu bodů. Je nutné zadat číslo.";
-                    }
-                    else if(Math.Round(Convert.ToDouble(subquestionPoints), 2) <= 0)
-                    {
-                        message = "Chyba: otázce je nutné přidělit kladný počet bodů.";
-                    }
-                    else//todo: overit jestli nema za otazku nektery student pridelen vyssi pocet bodu nez soucasny pocet bodu
-                    {
-                        message = "Počet bodů byl úspěšně změněn.";
-                        subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
-                        await _context.SaveChangesAsync();
+                        //user has attached points to a subquestion that did not have them before - increment SubquestionTemplatesAdded variable
+                        if(subquestionPoints != null && subquestionTemplate.SubquestionPoints == null)
+                        {
+                            User user = _context.Users.First(u => u.Login == login);
+                            SubquestionTemplateStatistics subquestionTemplateStatistics = _context.SubquestionTemplateStatistics.First(s => s.User == user);
+                            subquestionTemplateStatistics.SubquestionTemplatesAdded++;
+                        }
+
+                        if (subquestionPoints == null)
+                        {
+                            message = "Chyba: nebyl zadán žádný počet bodů.";
+                        }
+                        else if (!double.TryParse(subquestionPoints, out _))
+                        {
+                            message = "Chyba: \"" + subquestionPoints + "\" není korektní formát počtu bodů. Je nutné zadat číslo.";
+                        }
+                        else if (Math.Round(Convert.ToDouble(subquestionPoints), 2) <= 0)
+                        {
+                            message = "Chyba: otázce je nutné přidělit kladný počet bodů.";
+                        }
+                        else//todo: overit jestli nema za otazku nektery student pridelen vyssi pocet bodu nez soucasny pocet bodu
+                        {
+                            message = "Počet bodů byl úspěšně změněn.";
+                            subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
+                            await _context.SaveChangesAsync();
+                        }
                     }
                 }
             }
+            else if(action == "Zobrazit")
+            {
+                User owner = _context.Users.First(u => u.Login == login);
+                //the teacher has requested to see the recommended amount of points for this subquestion
+
+                //check if enough subquestion templates have been added to warrant new model training
+                bool retrainModel = false;
+                int subquestionTemplatesAdded = _context.SubquestionTemplateStatistics.First(s => s.UserLogin == login).SubquestionTemplatesAdded;
+                if(subquestionTemplatesAdded >= 100)
+                {
+                    retrainModel = true;
+                    //delete existing subquestion template records of this user
+                    _context.Database.ExecuteSqlRaw("delete from SubquestionTemplateRecord where 'login' = '" + login + "'");
+                    await _context.SaveChangesAsync();
+
+                    //create subquestion template records
+                    var testTemplates = _context.TestTemplates
+                        .Include(t => t.QuestionTemplateList)
+                        .ThenInclude(q => q.SubquestionTemplateList)
+                        .Where(t => t.OwnerLogin == login).ToList();
+
+                    var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
+                    for (int i = 0; i < subquestionTemplateRecords.Count; i++)
+                    {
+                        try
+                        {
+                            var subquestionTemplateRecord = subquestionTemplateRecords[i];
+                            _context.Users.Attach(owner);
+                            _context.SubquestionTemplateRecords.Add(subquestionTemplateRecord);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.Message);
+                        }
+                    }
+                }
+
+                var subquestionTemplates = _context.SubquestionTemplates
+                    .Include(s => s.QuestionTemplate)
+                    .Include(s => s.QuestionTemplate.TestTemplate)
+                    .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login);
+
+                if (subquestionIdentifier == null)
+                {
+                    subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
+                }
+
+                var subquestionTemplate = _context.SubquestionTemplates
+                    .Include(s => s.QuestionTemplate)
+                    .Include(s => s.QuestionTemplate.TestTemplate)
+                    .FirstOrDefault(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login && s.SubquestionIdentifier == subquestionIdentifier);
+
+                SubquestionTemplateRecord currentSubquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate, owner);
+                TempData["SuggestedSubquestionPoints"] = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord);
+                if (subquestionTemplatesAdded >= 100)
+                {
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = _context.SubquestionTemplateStatistics.First(s => s.UserLogin == login);
+                    subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
+                    subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                    await _context.SaveChangesAsync();
+                }
+
+            }
+
             TempData["Message"] = message;
             TempData["subquestionIdentifier"] = subquestionIdentifier;
             return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
         }
+
+        /*public string GetPrediction(SubquestionTemplate subquestionTemplate, User owner, bool retrainModel)
+        {
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate, owner);
+
+            return DataGenerator.GetSubquestionTemplateSuggestedPoints(owner.Login, retrainModel, "predict_new", currentSubquestionTemplateRecord);
+        }*/
 
         public async Task<IActionResult> ManageSolvedTestList()
         {
@@ -662,6 +756,14 @@ namespace ViewLayer.Controllers
                     Config.Application["login"] = login;
                     _context.Users.Add(mainAdmin);
                     await _context.SaveChangesAsync();
+
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = mainAdmin;
+                    subquestionTemplateStatistics.UserLogin = mainAdmin.Login;
+                    _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                    await _context.SaveChangesAsync();
+
+                    //questionController.CreateSubquestionTemplatesStatistics(mainAdmin);
                     return RedirectToAction(nameof(MainAdminMenu));
                 }
             }
@@ -928,6 +1030,14 @@ namespace ViewLayer.Controllers
                     teacher.Role = EnumTypes.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
+
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = teacher;
+                    subquestionTemplateStatistics.UserLogin = teacher.Login;
+                    _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                    await _context.SaveChangesAsync();
+                    //questionController.CreateSubquestionTemplatesStatistics(teacher);
+
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
                 }
             }
@@ -1022,6 +1132,13 @@ namespace ViewLayer.Controllers
                     admin.Role = EnumTypes.Role.Admin;
                     _context.Users.Add(admin);
                     await _context.SaveChangesAsync();
+
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = admin;
+                    subquestionTemplateStatistics.UserLogin = admin.Login;
+                    _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                    await _context.SaveChangesAsync();
+                    //questionController.CreateSubquestionTemplatesStatistics(admin);
                     TempData["AdminMessage"] = "Správce byl úspěšně přidán.";
                 }
             }
@@ -1339,6 +1456,13 @@ namespace ViewLayer.Controllers
                     teacher.Role = EnumTypes.Role.Teacher;
                     _context.Users.Add(teacher);
                     await _context.SaveChangesAsync();
+
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = teacher;
+                    subquestionTemplateStatistics.UserLogin = teacher.Login;
+                    _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                    await _context.SaveChangesAsync();
+                    //questionController.CreateSubquestionTemplatesStatistics(teacher);
                     TempData["TeacherMessage"] = "Učitel byl úspěšně přidán.";
                 }
             }
@@ -1499,6 +1623,13 @@ namespace ViewLayer.Controllers
                             userRegistration.State = EnumTypes.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
+
+                            SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                            subquestionTemplateStatistics.User = user;
+                            subquestionTemplateStatistics.UserLogin = user.Login;
+                            _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                            await _context.SaveChangesAsync();
+                            //questionController.CreateSubquestionTemplatesStatistics(user);
                         }
                         else
                         {
@@ -1632,12 +1763,21 @@ namespace ViewLayer.Controllers
                         user.Login = login;
                         user.Role = Enum.Parse<EnumTypes.Role>(role);
                         _context.Users.Add(user);
+
                         var userRegistration = _context.UserRegistrations.FirstOrDefault(u => u.Email == email);
                         if (userRegistration != null)
                         {
                             userRegistration.State = EnumTypes.RegistrationState.Accepted;
                             await _context.SaveChangesAsync();
                             message = "Registrace úspěšně schválena.";
+
+
+                            SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                            subquestionTemplateStatistics.User = user;
+                            subquestionTemplateStatistics.UserLogin = user.Login;
+                            _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                            await _context.SaveChangesAsync();
+                            //questionController.CreateSubquestionTemplatesStatistics(user);
                         }
                         else
                         {
@@ -1767,6 +1907,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageNeuralNetworks()
         {
+            string login = Config.Application["login"];
             if (!CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
@@ -1777,29 +1918,68 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            string neuralNetworkAccuracy = DataGenerator.GetSubquestionTemplateSuggestedPoints("get_accuracy", null);
-            if (neuralNetworkAccuracy != null && neuralNetworkAccuracy != "")
+            if (TempData["DeviceName"] != null)
             {
-                ViewBag.NeuralNetworkAccuracy = neuralNetworkAccuracy;
+                ViewBag.DeviceName = TempData["DeviceName"]!.ToString();
             }
 
-            return View();
+            int testingDataSubquestionTemplates = 0;
+            var testTemplates = _context.TestTemplates
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.IsTestingData).ToList();
+            for(int i = 0; i < testTemplates.Count; i++)
+            {
+                TestTemplate testTemplate = testTemplates[i];
+                for(int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                {
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    {
+                        testingDataSubquestionTemplates++;
+                    }
+                }
+            }
+
+            ViewBag.TestingDataSubquestionTemplates = testingDataSubquestionTemplates;
+
+            return _context.SubquestionTemplateStatistics != null ?
+                View(await _context.SubquestionTemplateStatistics.ToListAsync()) :
+                Problem("Entity set 'CourseContext.SubquestionTemplateStatistics'  is null.");
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageNeuralNetworks(string action)
+        public async Task<IActionResult> ManageNeuralNetworks(string action, string amountOfSubquestionTemplates)
         {
-            if(action == "addSubquestionTemplateRecords")
+            if(action == "addSubquestionTemplateRandomData" || action == "addSubquestionTemplateCorrelationalData")
             {
+                User? owner = _context.Users.AsNoTracking().FirstOrDefault(u => u.Login == "login");
+                var existingTestTemplates = _context.TestTemplates
+                    .Include(t => t.QuestionTemplateList)
+                    .ThenInclude(q => q.SubquestionTemplateList)
+                    .Where(t => t.IsTestingData).ToList();
+
                 int successCount = 0;
                 int errorCount = 0;
-                var testTemplates = DataGenerator.GenerateCorrelationalTestTemplates();
+                List<TestTemplate> testTemplates = new List<TestTemplate>();
+                if(action == "addSubquestionTemplateRandomData")
+                {
+                    testTemplates = DataGenerator.GenerateRandomTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+                }
+                else if(action == "addSubquestionTemplateCorrelationalData")
+                {
+                    testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+                }
                 for (int i = 0; i < testTemplates.Count; i++)
                 {
                     try
                     {
                         var testTemplate = testTemplates[i];
                         _context.TestTemplates.Add(testTemplate);
+                        if(owner != null)
+                        {
+                            _context.Users.Attach(testTemplate.Owner);
+                        }
                         await _context.SaveChangesAsync();
                         successCount++;
                     }
@@ -1811,12 +1991,26 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
+                string login = "login";
+                owner = _context.Users.AsNoTracking().FirstOrDefault(u => u.Login == "login");
+
+                //delete existing subquestion template records of this user
+                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplateRecord where 'login' = '" + login + "'");
+                await _context.SaveChangesAsync();
+
+                //create subquestion template records
+                var testTemplatesToRecord = _context.TestTemplates
+                    .Include(t => t.QuestionTemplateList)
+                    .ThenInclude(q => q.SubquestionTemplateList)
+                    .Where(t => t.OwnerLogin == login).ToList();
+
+                var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplatesToRecord);
                 for (int i = 0; i < subquestionTemplateRecords.Count; i++)
                 {
                     try
                     {
                         var subquestionTemplateRecord = subquestionTemplateRecords[i];
+                        _context.Users.Attach(owner);
                         _context.SubquestionTemplateRecords.Add(subquestionTemplateRecord);
                         await _context.SaveChangesAsync();
                     }
@@ -1827,17 +2021,40 @@ namespace ViewLayer.Controllers
                     }
                 }
 
+                _context.ChangeTracker.Clear();
+                owner = _context.Users.AsNoTracking().FirstOrDefault(u => u.Login == "login");
+                var subquestionTemplateStatistics = _context.SubquestionTemplateStatistics.FirstOrDefault(s => s.User == owner);
+                if(subquestionTemplateStatistics == null)
+                {
+                    subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = owner;
+                    subquestionTemplateStatistics.UserLogin = owner.Login;
+                    subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                    _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
+                    _context.Users.Attach(subquestionTemplateStatistics.User);
+                }
+                else
+                {
+                    subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                }
+                await _context.SaveChangesAsync();
+
                 TempData["Message"] = "Přidáno " + successCount + " šablon testů (" + errorCount + " duplikátů nebo chyb).";
                 successCount = 0;
                 errorCount = 0;
             }
-            else if(action == "deleteSubquestionTemplateRecords")
+            else if(action == "deleteSubquestionTemplateTestingData")
             {
                 _context.Database.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
                 _context.Database.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
-                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplateRecord");
+                _context.Database.ExecuteSqlRaw("delete from SubquestionTemplateRecord");//todo
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Testovací data úspěšně vymazány.";
+            }
+            else if(action == "getDeviceName")
+            {
+                string deviceName = PythonFunctions.GetDevice();
+                TempData["DeviceName"] = deviceName;
             }
 
             return RedirectToAction(nameof(ManageNeuralNetworks));

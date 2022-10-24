@@ -66,6 +66,11 @@ namespace DataLayer
                 return;   // DB has been seeded
             }
 
+            if (context.SubquestionTemplateStatistics.Any())
+            {
+                return;   // DB has been seeded
+            }
+
             context.SaveChanges();
         }
     }

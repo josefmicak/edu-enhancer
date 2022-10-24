@@ -1,11 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DomainModel
 {
     public class SubquestionTemplateRecord
     {
-        [Key]
-        public string Id { get; set; } = default!;
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //public int Id { get; set; }
+        public string SubquestionIdentifier { get; set; }
+        public string QuestionNumberIdentifier { get; set; }
+        public SubquestionTemplate SubquestionTemplate { get; set; }
+        public User Owner { get; set; } = default!;
+        public string OwnerLogin { get; set; } = default!;
         public double SubquestionTypeAveragePoints { get; set; }
         public double CorrectAnswersShare { get; set; }
         public double SubjectAveragePoints { get; set; }

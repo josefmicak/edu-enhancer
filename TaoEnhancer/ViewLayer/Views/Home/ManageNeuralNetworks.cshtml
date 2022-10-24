@@ -1,23 +1,69 @@
-﻿@{
+﻿@model IEnumerable<DomainModel.SubquestionTemplateStatistics>
+
+@{
     ViewData["Title"] = "Správa neuronových sítí";
+
+    bool userRequestedDeviceName = false;
+    if (ViewBag.DeviceName != null)
+    {
+        userRequestedDeviceName = true;
+    }
 }
 
 <div class="text-center">
-    Správa neuronových sítí
+    <h1>Správa neuronových sítí</h1>
+
+    @{
+        if (userRequestedDeviceName)
+        {
+            <p>Používané zařízení (CPU/GPU): @ViewBag.DeviceName</p>
+        }
+        else
+        {
+            <form method="POST">
+                <p>Používané zařízení (CPU/GPU): <button type="submit" value="getDeviceName" name="action">Zobrazit</button></p>
+            </form>
+        }
+    }
 
     <p>@ViewBag.Message</p>
 
+    <p>Počet existujících testovacích dat (šablony podotázek): @ViewBag.TestingDataSubquestionTemplates</p>
+    <br />
     <form method="POST">
-        <input type="submit" value="Načíst testovací data" class="btn btn-primary" />
-        <input type="hidden" value="addSubquestionTemplateRecords" name="action">
+        Přidat testovací data - náhodná data<br />
+        Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" class="btn btn-primary" />
+        <input type="hidden" value="addSubquestionTemplateRandomData" name="action">
+    </form>
+    <form method="POST">
+        Přidat testovací data - data s kolerací<br />
+        Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates"/> <input type="submit" value="Přidat" class="btn btn-primary" />
+        <input type="hidden" value="addSubquestionTemplateCorrelationalData" name="action">
     </form>
 
     <form method="POST">
         <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
-        <input type="hidden" value="deleteSubquestionTemplateRecords" name="action">
+        <input type="hidden" value="deleteSubquestionTemplateTestingData" name="action">
     </form>
 
-    <p>R^2 neuronové sítě: @ViewBag.NeuralNetworkAccuracy</p>
+    <div id="neural-network-statistics">
+        <table>
+            <tr>
+                <th>Login</th>
+                <th>Přesnost</th>
+            </tr>
+            @{
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.UserLogin)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NeuralNetworkAccuracy)</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+
 </div>
 
 <div id="backBtn">

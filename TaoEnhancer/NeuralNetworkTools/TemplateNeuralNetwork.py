@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+from pathlib import Path
 
 
 class NeuralNetwork(nn.Module):
@@ -68,7 +69,45 @@ def predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAverag
     print(y_unseen.item())
 
 
+def load_model(model, login, x, y, retrainModel):
+    base_path = Path(__file__) #Path(__file__).parent
+    file_path_string = "../model/" + login + "_NN.pt"
+    file_path = (base_path / file_path_string).resolve()
+
+    if retrainModel is True:
+        train(model, 0.05, 500, x, y)
+        save_model(model, login)
+    else:
+        try:  # a file with trained model already exists for this user
+            model.load_state_dict(torch.load(file_path))
+        except:  # a file with trained model does not exist for this user - it's necessary to create a new file
+            train(model, 0.05, 500, x, y)
+            save_model(model, login)
+    return model
+
+
+def save_model(model, login):
+    base_path = Path(__file__) #Path(__file__).parent
+    file_path_string = "../model/" + login + "_NN.pt"
+    file_path = (base_path / file_path_string).resolve()
+    torch.save(model.state_dict(), file_path)
+
+
+def device_name():
+    if torch.cuda.is_available() is True:
+        print("GPU")
+    else:
+        print("CPU")
+
+
 def main(arguments):
+    if len(arguments) > 1:
+        login = arguments[1]
+        retrainModel = eval(arguments[2])
+        function_name = arguments[3]
+    else:
+        login = "login"
+
     conn_str = (
         r"Driver={ODBC Driver 17 for SQL Server};"
         r"Server=(localdb)\mssqllocaldb;"
@@ -76,12 +115,13 @@ def main(arguments):
         r"Trusted_Connection=yes;"
     )
     connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn_str})
-
     engine = create_engine(connection_url)
 
-    sql = "SELECT * FROM SubquestionTemplateRecord"
+    sql = "SELECT * FROM SubquestionTemplateRecord WHERE OwnerLogin = '" + login + "'"
     df = pd.read_sql(sql, engine)
-    df = df.drop('Id', axis=1)  # id is irrelevant in this context
+    df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
+    df = df.drop('QuestionNumberIdentifier', axis=1)  # owner login is irrelevant in this context
+    df = df.drop('SubquestionIdentifier', axis=1)  # owner login is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -96,13 +136,13 @@ def main(arguments):
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
-    model = NeuralNetwork(X.shape[1], 32, 16)
-
     x = torch.tensor(np.array(X_train), dtype=torch.float)
     y = torch.tensor(np.array(y_train).reshape(-1, 1), dtype=torch.float)
 
-    model.train()
-    train(model, 0.05, 500, x, y)
+    model = NeuralNetwork(X.shape[1], 32, 16)
+    model = load_model(model, login, x, y, retrainModel)
+
+    #train(model, 0.05, 500, x, y)
 
     y_train_pred = model(torch.tensor(X_train, dtype=torch.float))
     y_test_pred = model(torch.tensor(X_test, dtype=torch.float))
@@ -110,20 +150,25 @@ def main(arguments):
     y_train_pred = y_train_pred.detach().numpy()
     y_test_pred = y_test_pred.detach().numpy()
 
-    if arguments[1] is not None:
-        if arguments[1] == 'get_accuracy':
-            get_accuracy(y_test, y_test_pred)
+    R2 = r2_score(y_test, y_test_pred)
+    #print(R2)
 
-        if arguments[1] == 'predict_new':
-            SubquestionTypeAveragePoints = float(sys.argv[2])
-            CorrectAnswersShare = float(sys.argv[3])
-            SubjectAveragePoints = float(sys.argv[4])
-            ContainsImage = float(sys.argv[5])
-            NegativePoints = float(sys.argv[6])
-            MinimumPointsShare = float(sys.argv[7])
+    if len(arguments) > 1:
+        if function_name == 'get_accuracy':
+            get_accuracy(y_test, y_test_pred)
+        elif function_name == 'predict_new':
+            SubquestionTypeAveragePoints = float(arguments[4])
+            CorrectAnswersShare = float(arguments[5])
+            SubjectAveragePoints = float(arguments[6])
+            ContainsImage = float(arguments[7])
+            NegativePoints = float(arguments[8])
+            MinimumPointsShare = float(arguments[9])
             predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage,
                         NegativePoints, MinimumPointsShare, df, model)
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    if sys.argv[1] == 'device_name':
+        device_name()
+    else:
+        main(sys.argv)

@@ -291,3 +291,13 @@ img {
     border: 1px;
     border-style: solid;
 }
+
+/*ManageNeuralNewtworks.cshtml*/
+
+#neural-network-statistics {
+    position: absolute;
+    left: 45%;
+    top: 30%;
+    border: 1px;
+    border-style: solid;
+}
