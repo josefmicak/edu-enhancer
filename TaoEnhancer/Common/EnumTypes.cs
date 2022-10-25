@@ -44,5 +44,23 @@
             EnabledForQuestion = 2,
             Enabled = 3
         }
+
+        /// <summary>
+        /// Type of the subquestion (up to 10 possible types of subquestions are implemented in the application)
+        /// </summary>
+        public enum SubquestionType
+        {
+            Error = 0, 
+            OrderingElements = 1,
+            MultiChoiceMultipleCorrectAnswers = 2,
+            MatchingElements = 3,
+            MultipleQuestions = 4,
+            FreeAnswer = 5,
+            MultiChoiceSingleCorrectAnswer = 6,
+            MultiChoiceTextFill = 7,
+            FreeAnswerWithDeterminedCorrectAnswer = 8,
+            GapMatch = 9,
+            Slider = 10
+        }
     }
 }

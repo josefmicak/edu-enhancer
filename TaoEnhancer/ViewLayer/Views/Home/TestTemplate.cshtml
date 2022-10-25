@@ -1,12 +1,21 @@
 ﻿@model IEnumerable<DomainModel.QuestionTemplate>
 
 @using DomainModel;
-@using Common;
+@using Common
+@using System.Diagnostics;
 
 @{
     bool testPointsDetermined = true;
     double? testPoints = 0;
     string? testPointsString = "";
+
+    //minimum points
+    double? minimumPoints = Model.First().TestTemplate.MinimumPoints;
+    string minimumPointsString = "0";
+    if (minimumPoints != null)
+    {
+        minimumPointsString = minimumPoints.ToString()!.Replace(",", ".");
+    }
 
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
@@ -17,12 +26,13 @@
     <div id="negative-points">
         <h2>Záporné body</h2>
         <form method="POST">
-            <p>@ViewBag.Message</p>
+            <p>@ViewBag.NegativePointsMessage</p>
             <input type="hidden" value="@Model.First().TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
             <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
             <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
             <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
             <p><input class="button" id="setNegativePointsBtn" title="Uložit" type="submit" value="Uložit"></p>
+            <input type="hidden" value="setNegativePoints" name="action">
         </form>
     </div>
 
@@ -60,7 +70,10 @@
                     }
                     else
                     {
-                        questionPointsString = questionPoints.ToString();
+                        double? questionPointsRound = questionPoints.HasValue
+                        ? (double?)Math.Round(questionPoints.Value, 2)
+                        : null;
+                        questionPointsString = questionPointsRound.ToString();
                     }
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.QuestionNameIdentifier)</td>
@@ -83,9 +96,13 @@
     }
     else
     {
-        testPointsString = testPoints.ToString();
+        double? testPointsRound = testPoints.HasValue
+        ? (double?)Math.Round(testPoints.Value, 2)
+        : null;
+        testPointsString = testPointsRound.ToString();
     }
 
+    //negative points
     EnumTypes.NegativePoints negativePoints = Model.First().TestTemplate.NegativePoints;
     if (negativePoints == EnumTypes.NegativePoints.Enabled)
     {
@@ -131,6 +148,17 @@
             <td>@testPointsString</td>
         </tr>
     </table>
+</div>
+
+<div id="minimum-points">
+    <h2>Minimální počet bodů</h2>
+    <form method="POST">
+        <p>@ViewBag.MinimumPointsMessage</p>
+        <p>Minimální počet bodů: <input type="number" min="0" step=".01" required name="minimumPointsAmount" value="@minimumPointsString" /></p>
+        <p><input class="button" id="setMinimumPointsBtn" title="Uložit" type="submit" value="Uložit"></p>
+        <input type="hidden" value="setMinimumPoints" name="action">
+        <input type="hidden" value="@testPointsDetermined.ToString()" name="testPointsDetermined">
+    </form>
 </div>
 
 <div id="backBtn"><a asp-action="TestTemplateList">Zpět</a></div>

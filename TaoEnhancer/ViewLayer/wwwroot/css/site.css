@@ -131,6 +131,14 @@ img {
     border-style: solid;
 }
 
+#minimum-points {
+    position: absolute;
+    left: 20%;
+    top: 70%;
+    border: 1px;
+    border-style: solid;
+}
+
 /*QuestionTemplate.cshtml*/
 
 #question-template {

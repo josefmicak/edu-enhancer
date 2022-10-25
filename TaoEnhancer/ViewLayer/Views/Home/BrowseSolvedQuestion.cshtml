@@ -128,7 +128,7 @@
             </tr>
             <tr>
                 <th>Typ podotázky</th>
-                <td>@ViewBag.SubquestionTypeTextArray[@subquestionTemplate.SubquestionType]</td>
+                <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
             </tr>
             <tr>
                 <th>Počet bodů za podotázku</th>
@@ -148,11 +148,11 @@
                 <th colspan="2">Možné odpovědi</th>
             </tr>
             @{
-                if(@subquestionTemplate.SubquestionType == 5)
+                if(@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer)
                 {
                     <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
                 }
-                else if (@subquestionTemplate.SubquestionType == 8)
+                else if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                 {
                     <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
                 }

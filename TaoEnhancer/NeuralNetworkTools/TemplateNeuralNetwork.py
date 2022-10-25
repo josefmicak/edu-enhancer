@@ -66,7 +66,7 @@ def predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAverag
 
     x_unseen = torch.Tensor([SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
     y_unseen = model(torch.atleast_2d(x_unseen))
-    print(y_unseen.item())
+    print(round(y_unseen.item(), 2))
 
 
 def load_model(model, login, x, y, retrainModel):

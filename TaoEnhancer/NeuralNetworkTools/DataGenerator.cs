@@ -78,8 +78,8 @@ namespace NeuralNetworkTools
                         subquestionTemplateRecord.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
                         subquestionTemplateRecord.Owner = owner;
                         subquestionTemplateRecord.OwnerLogin = owner.Login;
-                        int subquestionType = subquestionTemplate.SubquestionType;
-                        subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
+                        EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
+                        subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
                         int possibleAnswersCount = 0;
                         int correctAnswersCount = 0;
                         if (subquestionTemplate.PossibleAnswerList != null)
@@ -94,17 +94,17 @@ namespace NeuralNetworkTools
                         if (possibleAnswersCount != 0)
                         {
                             //This type of subquestion typically contains 2 possible answers and many correct answers, so we set CorrectAnswersShare manually instead
-                            if (subquestionType == 4)
+                            if (subquestionType == EnumTypes.SubquestionType.MultipleQuestions)
                             {
                                 subquestionTemplateRecord.CorrectAnswersShare = 0.5;
                             }
                             //These type of subquestion are about sorting elements - the more elements there are, the harder it is to answer correctly
-                            else if (subquestionType == 1 || subquestionType == 9)
+                            else if (subquestionType == EnumTypes.SubquestionType.OrderingElements || subquestionType == EnumTypes.SubquestionType.GapMatch)
                             {
                                 subquestionTemplateRecord.CorrectAnswersShare = 1 / (double)possibleAnswersCount;
                             }
                             //This type of subquestion uses slider - typically tens to hunders of possible answers
-                            else if (subquestionType == 10)
+                            else if (subquestionType == EnumTypes.SubquestionType.Slider)
                             {
                                 subquestionTemplateRecord.CorrectAnswersShare = 0;
                             }
@@ -120,7 +120,10 @@ namespace NeuralNetworkTools
                         subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subquestionTypeAveragePoints[subjectId], 2);
                         subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
                         subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-                        subquestionTemplateRecord.MinimumPointsShare = minimumPointsShare;
+                        double? minimumPointsShareRound = minimumPointsShare.HasValue
+                        ? (double?)Math.Round(minimumPointsShare.Value, 2)
+                        : null;
+                        subquestionTemplateRecord.MinimumPointsShare = minimumPointsShareRound;
                         if (subquestionTemplate.SubquestionPoints != null)
                         {
                             subquestionTemplateRecord.SubquestionPoints = Math.Round((double)subquestionTemplate.SubquestionPoints, 2);
@@ -218,7 +221,7 @@ namespace NeuralNetworkTools
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
                         int subquestionType = random.Next(1, 11);
-                        subquestionTemplate.SubquestionType = subquestionType;
+                        subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
                         subquestionTemplate.SubquestionText = "SubquestionText" + testId + "_" + questionId + "_" + subquestionId;
                         bool containsImage = random.NextDouble() < 0.25;
                         if (containsImage)
@@ -302,8 +305,11 @@ namespace NeuralNetworkTools
                     questionTemplates.Add(questionTemplate);
                 }
 
-                testTemplate.MinimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                //testTemplate.MinimumPoints = random.Next(0, (int)totalSubquestionPoints);
+                double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
+                double? minimumPointsRound = minimumPoints.HasValue
+                ? (double?)Math.Round(minimumPoints.Value, 2)
+                : null;
+                testTemplate.MinimumPoints = minimumPointsRound;
                 testTemplate.QuestionTemplateList = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
@@ -327,7 +333,8 @@ namespace NeuralNetworkTools
             int subquestionCount = 0;
             bool stopDataGeneration = false;
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            int[] subquestionPointsByTypeArray = { 0, 2, -4, -3, -4, 5, -1, -1, 2, -3, 0 };
+            //int[] subquestionPointsByTypeArray = { 0, 2, -4, -3, -4, 5, -1, -1, 2, -3, 0 };
+            int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
             int[] subquestionPointsBySubjectArray = { 3, -1, 3, 1, 1 };
             int[] negativePointsArray = { -4, -2, 0 };
 
@@ -382,7 +389,7 @@ namespace NeuralNetworkTools
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
                         int subquestionType = random.Next(1, 11); 
-                        subquestionTemplate.SubquestionType = subquestionType;
+                        subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
                         subquestionTemplate.SubquestionText = "SubquestionText" + testId + "_" + questionId + "_" + subquestionId;
                         bool containsImage = random.Next(0, 2) > 0; 
                         if (containsImage)
@@ -484,7 +491,7 @@ namespace NeuralNetworkTools
                         subquestionPoints += negativePointsArray[negativePoints-1];//negativePoints modifier
                         subquestionPoints += ((double)minimumPointsShare / 100) * 4;//minimumPointsShare modifier
 
-                        subquestionTemplate.SubquestionPoints = subquestionPoints;
+                        subquestionTemplate.SubquestionPoints = Math.Round(subquestionPoints, 2);
 
                         totalSubquestionPoints += subquestionTemplate.SubquestionPoints;
                         subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
@@ -502,8 +509,11 @@ namespace NeuralNetworkTools
                     questionTemplates.Add(questionTemplate);
                 }
 
-                testTemplate.MinimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                testTemplate.QuestionTemplateList = questionTemplates;
+                double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
+                double? minimumPointsRound = minimumPoints.HasValue
+                ? (double?)Math.Round(minimumPoints.Value, 2)
+                : null;
+                testTemplate.MinimumPoints = minimumPointsRound; testTemplate.QuestionTemplateList = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
 
@@ -531,16 +541,16 @@ namespace NeuralNetworkTools
                     for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
-                        int subquestionType = subquestionTemplate.SubquestionType;
+                        EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
                         if(subquestionTemplate.SubquestionPoints != null)
                         {
-                            subquestionTypePointsShare[subquestionType - 1] += (double)subquestionTemplate.SubquestionPoints;
+                            subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionTemplate.SubquestionPoints;
                         }
                         else
                         {
                             continue;
                         }
-                        subquestionCountByType[subquestionType-1] += 1;
+                        subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
                     }
                 }
             }

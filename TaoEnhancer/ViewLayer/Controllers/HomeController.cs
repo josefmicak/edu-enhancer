@@ -191,9 +191,13 @@ namespace ViewLayer.Controllers
                 return AccessDeniedAction();
             }
 
-            if (TempData["Message"] != null)
+            if (TempData["NegativePointsMessage"] != null)
             {
-                ViewBag.Message = TempData["Message"]!.ToString();
+                ViewBag.NegativePointsMessage = TempData["NegativePointsMessage"]!.ToString();
+            }
+            if (TempData["MinimumPointsMessage"] != null)
+            {
+                ViewBag.MinimumPointsMessage = TempData["MinimumPointsMessage"]!.ToString();
             }
             string login = Config.Application["login"];
 
@@ -213,19 +217,61 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> TestTemplate(string testNumberIdentifier, string negativePoints)
+        public async Task<IActionResult> TestTemplate(string action, string testNumberIdentifier, string negativePoints,
+            string minimumPointsAmount, string testPointsDetermined)
         {
-            string? message = null;
-            //the teacher is changing negative points setting for the test template
-            var testTemplate = _context.TestTemplates.FirstOrDefault(t => t.TestNumberIdentifier == testNumberIdentifier);
-            if(testTemplate != null)
+            string? negativePointsMessage = null;
+            string? minimumPointsMessage = null;
+            var testTemplate = _context.TestTemplates
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .FirstOrDefault(t => t.TestNumberIdentifier == testNumberIdentifier);
+            if (action == "setNegativePoints")
             {
-                testTemplate.NegativePoints = (EnumTypes.NegativePoints)Convert.ToInt32(negativePoints);
-                message = "Změny úspěšně uloženy.";
-                await _context.SaveChangesAsync();
+                if (testTemplate != null)
+                {
+                    testTemplate.NegativePoints = (EnumTypes.NegativePoints)Convert.ToInt32(negativePoints);
+                    negativePointsMessage = "Změny úspěšně uloženy.";
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if(action == "setMinimumPoints")
+            {
+                if (testTemplate != null)
+                {
+                    double minimumPointsAmountRound = Math.Round(Convert.ToDouble(minimumPointsAmount.Replace(".", ",")), 2);
+                    double? totalTestPoints = 0;
+                    for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+                    {
+                        QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                        for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                        {
+                            SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                            totalTestPoints += subquestionTemplate.SubquestionPoints;
+                        }
+                    }
+                    if (minimumPointsAmountRound < 0 || minimumPointsAmountRound > totalTestPoints)
+                    {
+                        double? totalTestPointsRound = totalTestPoints.HasValue
+                        ? (double?)Math.Round(totalTestPoints.Value, 2)
+                        : null;
+                        minimumPointsMessage = "Chyba: Hodnota musí být mezi 0 a " + totalTestPointsRound.ToString();
+                    }
+                    else if(testPointsDetermined == "False")
+                    {
+                        minimumPointsMessage = "Chyba: Nejprve je nutné nastavit body u všech otázek testu.";
+                    }
+                    else
+                    {
+                        testTemplate.MinimumPoints = Math.Round(Convert.ToDouble(minimumPointsAmount.Replace(".", ",")), 2);
+                        minimumPointsMessage = "Změny úspěšně uloženy.";
+                        await _context.SaveChangesAsync();
+                    }
+                }
             }
 
-            TempData["Message"] = message;
+            TempData["NegativePointsMessage"] = negativePointsMessage;
+            TempData["MinimumPointsMessage"] = minimumPointsMessage;
             return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
         }
 
@@ -297,7 +343,7 @@ namespace ViewLayer.Controllers
             }
             string? message = null;
 
-            if(action == "Uložit")
+            if(action == "savePoints")
             {
                 //the teacher is changing points of the subquestion
                 if (subquestionPoints != null)
@@ -335,7 +381,7 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
-            else if(action == "Zobrazit")
+            else if(action == "getPointsSuggestion")
             {
                 User owner = _context.Users.First(u => u.Login == login);
                 //the teacher has requested to see the recommended amount of points for this subquestion
@@ -405,14 +451,7 @@ namespace ViewLayer.Controllers
             TempData["subquestionIdentifier"] = subquestionIdentifier;
             return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
         }
-
-        /*public string GetPrediction(SubquestionTemplate subquestionTemplate, User owner, bool retrainModel)
-        {
-            SubquestionTemplateRecord currentSubquestionTemplateRecord = questionController.CreateSubquestionTemplateRecord(subquestionTemplate, owner);
-
-            return DataGenerator.GetSubquestionTemplateSuggestedPoints(owner.Login, retrainModel, "predict_new", currentSubquestionTemplateRecord);
-        }*/
-
+        
         public async Task<IActionResult> ManageSolvedTestList()
         {
             if (!CanUserAccessPage(EnumTypes.Role.Teacher))

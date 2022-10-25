@@ -62,7 +62,10 @@
     }
     else
     {
-        questionPointsString = questionPoints.ToString();
+        double? questionPointsRound = questionPoints.HasValue
+        ? (double?)Math.Round(questionPoints.Value, 2)
+        : null;
+        questionPointsString = questionPointsRound.ToString();
     }
 
     bool userRequestedPointsSuggestion = false;
@@ -110,7 +113,7 @@
             </tr>
             <tr>
                 <th>Typ podotázky</th>
-                <td>@ViewBag.SubquestionTypeTextArray[@subquestionTemplate.SubquestionType]</td>
+                <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
             </tr>
             <tr>
                 <th>Počet bodů za podotázku</th>
@@ -131,11 +134,11 @@
                 <th colspan="2">Možné odpovědi</th>
             </tr>
             @{
-                if(@subquestionTemplate.SubquestionType == 5)
+                if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer)
                 {
                     <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
                 }
-                else if (@subquestionTemplate.SubquestionType == 8)
+                else if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                 {
                     <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
                 }
@@ -219,10 +222,10 @@
                 }
                 else
                 {
-                    <p>Doporučený počet bodů za otázku: <input class="button" title="Zobrazit" type="submit" value="Zobrazit" name="action"></p>
+                    <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
                 }
             }
-            <input class="button" id="setSubquestionPointsBtn" title="Uložit" type="submit" value="Uložit" name="action">
+            <button type="submit" value="savePoints" name="action">Uložit</button>
         </form>
     </div>
 </div>

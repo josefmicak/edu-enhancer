@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace DomainModel
 {
@@ -6,7 +7,7 @@ namespace DomainModel
     {
         [Key]
         public string SubquestionIdentifier { get; set; } = default!;
-        public int SubquestionType { get; set; }
+        public EnumTypes.SubquestionType SubquestionType { get; set; }
         public string SubquestionText { get; set; } = default!;
         public string ImageSource { get; set; } = default!;
         public string[] PossibleAnswerList { get; set; } = default!;

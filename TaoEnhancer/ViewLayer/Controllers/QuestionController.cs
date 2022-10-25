@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using DataLayer;
 using Microsoft.EntityFrameworkCore;
 using NeuralNetworkTools;
+using static Common.EnumTypes;
 
 namespace ViewLayer.Controllers
 {
@@ -169,7 +170,7 @@ namespace ViewLayer.Controllers
                         string subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
                         subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
 
-                        int subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
+                        EnumTypes.SubquestionType subquestionType = GetSubquestionType(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
                         subquestionTemplate.SubquestionType = subquestionType;
 
                         subquestionTemplate.ImageSource = GetSubquestionImage(subquestionIdentifier, testNameIdentifier, questionTemplate.QuestionNumberIdentifier);
@@ -200,9 +201,9 @@ namespace ViewLayer.Controllers
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <returns>the type of subquestion</returns>
-        public int GetSubquestionType(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier)
+        public EnumTypes.SubquestionType GetSubquestionType(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier)
         {
-            int subquestionType = 0;
+            EnumTypes.SubquestionType subquestionType = EnumTypes.SubquestionType.Error;
             XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
             bool singleCorrectAnswer = false;//questionType = 6 nebo 7; jediná správná odpověď
 
@@ -222,27 +223,27 @@ namespace ViewLayer.Controllers
 
                         if (xmlReader.GetAttribute("cardinality") == "ordered" && xmlReader.GetAttribute("baseType") == "identifier")
                         {
-                            subquestionType = 1;//Typ otázky = seřazení pojmů
+                            subquestionType = EnumTypes.SubquestionType.OrderingElements;//Typ otázky = seřazení pojmů
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "identifier")
                         {
-                            subquestionType = 2;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
+                            subquestionType = EnumTypes.SubquestionType.MultiChoiceMultipleCorrectAnswers;//Typ otázky = více odpovědí (abc); více odpovědí může být správně
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "pair")
                         {
-                            subquestionType = 3;//Typ otázky = spojování párů
+                            subquestionType = EnumTypes.SubquestionType.MatchingElements;//Typ otázky = spojování párů
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "multiple" && xmlReader.GetAttribute("baseType") == "directedPair")
                         {
-                            subquestionType = 4;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
+                            subquestionType = EnumTypes.SubquestionType.MultipleQuestions;//Typ otázky = více otázek (tabulka); více odpovědí může být správně
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "string")
                         {
-                            subquestionType = 5;//Typ otázky = volná odpověď; odpověď není předem daná
+                            subquestionType = EnumTypes.SubquestionType.FreeAnswer;//Typ otázky = volná odpověď; odpověď není předem daná
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "integer")
                         {
-                            subquestionType = 10;//Typ otázky = volná odpověď; odpověď není předem daná
+                            subquestionType = EnumTypes.SubquestionType.Slider;//Typ otázky = slider
                         }
                         else if (xmlReader.GetAttribute("cardinality") == "single" && xmlReader.GetAttribute("baseType") == "identifier")
                         {
@@ -274,7 +275,7 @@ namespace ViewLayer.Controllers
                         string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier")!;
                         if (subquestionIdentifier == selectedSubquestionIdentifier)
                         {
-                            subquestionType = 9;
+                            subquestionType = EnumTypes.SubquestionType.GapMatch;
                         }
                     }
 
@@ -284,19 +285,19 @@ namespace ViewLayer.Controllers
                 {
                     if (xmlReader.Name == "simpleChoice")
                     {
-                        subquestionType = 6;//Typ otázky = výběr z více možností (abc), jen jedna odpověď je správně
+                        subquestionType = EnumTypes.SubquestionType.MultiChoiceSingleCorrectAnswer;//Typ otázky = výběr z více možností (abc), jen jedna odpověď je správně
                     }
                 }
 
-                if (xmlReader.Name == "textEntryInteraction" && subquestionType == 5)
+                if (xmlReader.Name == "textEntryInteraction" && subquestionType == EnumTypes.SubquestionType.FreeAnswer)
                 {
-                    subquestionType = 8;//Typ otázky = volná odpověď; odpověď je předem daná
+                    subquestionType = EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer;//Typ otázky = volná odpověď; odpověď je předem daná
                 }
             }
 
             if (singleCorrectAnswer && subquestionType == 0)
             {
-                subquestionType = 7;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
+                subquestionType = EnumTypes.SubquestionType.MultiChoiceTextFill;//Typ otázky = výběr z více možností (dropdown), jen jedna odpověď je správně
             }
             return subquestionType;
         }
@@ -353,7 +354,7 @@ namespace ViewLayer.Controllers
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the text of subquestion</returns>
-        public string GetSubquestionText(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType, int correctAnswersCount)
+        public string GetSubquestionText(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, EnumTypes.SubquestionType subquestionType, int correctAnswersCount)
         {
             string subquestionText = "";
             string subquestionTextTemporary = "";
@@ -400,12 +401,13 @@ namespace ViewLayer.Controllers
                 }
 
                 //in subquestion types 7 and 8 it's impossible to read their identifiers before reading (at least a part) of their text
-                if (subquestionType == 7 || subquestionType == 8 || subquestionType == 9)
+                if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer 
+                    || subquestionType == EnumTypes.SubquestionType.GapMatch)
                 {
                     if (xmlReader.Name == "p" && xmlReader.NodeType == XmlNodeType.Element)
                     {
                         pTagVisited = true;
-                        if (subquestionType == 7 || subquestionType == 8)
+                        if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                         {
                             subquestionTextTemporary = xmlReader.ReadString() + "(DOPLŇTE)";
                             oldNodeCount = nodeCount;
@@ -420,7 +422,7 @@ namespace ViewLayer.Controllers
                     }
 
                     //the identifier that has been read matches the identifier of the selected subquestion 
-                    if ((subquestionType == 7 || subquestionType == 8) && nodeCount == oldNodeCount && xmlReader.GetAttribute("responseIdentifier") == subquestionIdentifier)
+                    if ((subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer) && nodeCount == oldNodeCount && xmlReader.GetAttribute("responseIdentifier") == subquestionIdentifier)
                     {
                         identifierCheck = true;
                     }
@@ -429,7 +431,7 @@ namespace ViewLayer.Controllers
                     {
                         if (pTagVisited)
                         {
-                            if (subquestionType == 7 || subquestionType == 8)
+                            if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                             {
                                 subquestionText = subquestionTextTemporary;
 
@@ -469,7 +471,7 @@ namespace ViewLayer.Controllers
                     }
 
                     //in this type of subquestion it is necessary to add text located in some of the simpleAssociableChoice tags to the subquestion text
-                    if (subquestionType == 4)
+                    if (subquestionType == EnumTypes.SubquestionType.MultipleQuestions)
                     {
                         if (xmlReader.Name == "simpleMatchSet")
                         {
@@ -510,7 +512,7 @@ namespace ViewLayer.Controllers
                     if (xmlReader.Name == "div" && xmlReader.GetAttribute("class") == "col-12" && xmlReader.NodeType == XmlNodeType.Element)
                     {
                         divTagVisited = true;
-                        if (subquestionType == 7 || subquestionType == 8)
+                        if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                         {
                             subquestionTextTemporary = xmlReader.ReadString() + "(DOPLŇTE)";
                             oldNodeCount = nodeCount;
@@ -524,7 +526,8 @@ namespace ViewLayer.Controllers
                         }
                     }
 
-                    if ((subquestionType == 7 || subquestionType == 8) && nodeCount == oldNodeCount && xmlReader.GetAttribute("responseIdentifier") == subquestionIdentifier)
+                    if ((subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer) 
+                        && nodeCount == oldNodeCount && xmlReader.GetAttribute("responseIdentifier") == subquestionIdentifier)
                     {
                         identifierCheck = true;
                     }
@@ -533,7 +536,7 @@ namespace ViewLayer.Controllers
                     {
                         if (divTagVisited)
                         {
-                            if (subquestionType == 7 || subquestionType == 8)
+                            if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                             {
                                 subquestionText = subquestionTextTemporary;
                                 subquestionText += xmlReader.ReadString();
@@ -606,7 +609,7 @@ namespace ViewLayer.Controllers
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the list of possible answers</returns>
-        public string[] GetPossibleAnswerList(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
+        public string[] GetPossibleAnswerList(string subquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, EnumTypes.SubquestionType subquestionType)
         {
             List<string> possibleAnswerList = new List<string>();
             int simpleMatchSetCounter = 0;//for subquestionType 4
@@ -645,7 +648,7 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                if (subquestionType != 4)
+                if (subquestionType != EnumTypes.SubquestionType.MultipleQuestions)
                 {
                     if (name == "simpleAssociableChoice" || name == "gapText" || name == "simpleChoice" || name == "inlineChoice")
                     {
@@ -722,7 +725,7 @@ namespace ViewLayer.Controllers
         /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
         /// <param name="subquestionType">Type of the selected subquestion</param>
         /// <returns>the list of correct answers</returns>
-        public string[] GetCorrectAnswerList(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, int subquestionType)
+        public string[] GetCorrectAnswerList(string selectedSubquestionIdentifier, string testNameIdentifier, string questionNumberIdentifier, EnumTypes.SubquestionType subquestionType)
         {
             List<string> correctIdentifierList = new List<string>();//identifiers of correct choices
             List<string> correctAnswerList = new List<string>();//text of correct choices
@@ -756,7 +759,7 @@ namespace ViewLayer.Controllers
             }
 
             //slider - the correct answer is one number
-            if (subquestionType == 10)
+            if (subquestionType == EnumTypes.SubquestionType.Slider)
             {
                 correctAnswerList = correctIdentifierList;
             }
@@ -766,7 +769,7 @@ namespace ViewLayer.Controllers
                 for (int j = 0; j < answerIdentifiers.Count; j++)
                 {
                     //correct answers of these subquestion types consist of doubles (such as matching two terms)
-                    if (subquestionType == 3 || subquestionType == 4)
+                    if (subquestionType == EnumTypes.SubquestionType.MatchingElements || subquestionType == EnumTypes.SubquestionType.MultipleQuestions)
                     {
                         string[] splitIdentifiersBySpace = correctIdentifierList[i].Split(" ");
                         if (splitIdentifiersBySpace[0] == answerIdentifiers[j].Item1)
@@ -793,7 +796,7 @@ namespace ViewLayer.Controllers
                         }
                     }
                     //correct answers of this type of subquestion are entered into gaps
-                    else if (subquestionType == 9)
+                    else if (subquestionType == EnumTypes.SubquestionType.GapMatch)
                     {
                         string[] splitIdentifiersBySpace = correctIdentifierList[i].Split(" ");
                         if (splitIdentifiersBySpace[0] == answerIdentifiers[j].Item1)
@@ -885,23 +888,24 @@ namespace ViewLayer.Controllers
                                 }
                             }
 
-                            if (subquestionTemplate.SubquestionType == 1 || subquestionTemplate.SubquestionType == 2 || subquestionTemplate.SubquestionType == 6 || subquestionTemplate.SubquestionType == 7)
+                            if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceMultipleCorrectAnswers ||
+                                subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill)
                             {
                                 studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswer);
                             }
-                            else if (subquestionTemplate.SubquestionType == 3)
+                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MatchingElements)
                             {
                                 string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
                                 studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0])
                                     + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1]);
                             }
-                            else if (subquestionTemplate.SubquestionType == 4)
+                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultipleQuestions)
                             {
                                 string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
                                 studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1])
                                     + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0]);
                             }
-                            else if (subquestionTemplate.SubquestionType == 9)
+                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.GapMatch)
                             {
                                 gapCount++;
                                 string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
@@ -988,15 +992,16 @@ namespace ViewLayer.Controllers
             double[] subjectAveragePoints = DataGenerator.GetSubjectAveragePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
-
+            
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
             subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
             subquestionTemplateRecord.SubquestionIdentifier = "SubquestionIdentifier_0_0_0";
             subquestionTemplateRecord.QuestionNumberIdentifier = "QuestionNumberIdentifier_0_0";
             subquestionTemplateRecord.Owner = owner;
             subquestionTemplateRecord.OwnerLogin = owner.Login;
-            int subquestionType = subquestionTemplate.SubquestionType;
-            subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
+            EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
+            //subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
+            subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
             int possibleAnswersCount = 0;
             int correctAnswersCount = 0;
             if (subquestionTemplate.PossibleAnswerList != null)
@@ -1011,17 +1016,17 @@ namespace ViewLayer.Controllers
             if (possibleAnswersCount != 0)
             {
                 //This type of subquestion typically contains 2 possible answers and many correct answers, so we set CorrectAnswersShare manually instead
-                if (subquestionType == 4)
+                if (subquestionType == EnumTypes.SubquestionType.MultipleQuestions)
                 {
                     subquestionTemplateRecord.CorrectAnswersShare = 0.5;
                 }
                 //These type of subquestion are about sorting elements - the more elements there are, the harder it is to answer correctly
-                else if (subquestionType == 1 || subquestionType == 9)
+                else if (subquestionType == EnumTypes.SubquestionType.OrderingElements || subquestionType == EnumTypes.SubquestionType.GapMatch)
                 {
                     subquestionTemplateRecord.CorrectAnswersShare = 1 / (double)possibleAnswersCount;
                 }
                 //This type of subquestion uses slider - typically tens to hunders of possible answers
-                else if (subquestionType == 10)
+                else if (subquestionType == EnumTypes.SubquestionType.Slider)
                 {
                     subquestionTemplateRecord.CorrectAnswersShare = 0;
                 }
