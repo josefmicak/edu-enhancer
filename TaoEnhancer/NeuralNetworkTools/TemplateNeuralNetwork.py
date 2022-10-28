@@ -102,18 +102,30 @@ def device_name():
 
 def main(arguments):
     if len(arguments) > 1:
-        login = arguments[1]
-        retrainModel = eval(arguments[2])
-        function_name = arguments[3]
+        platform = arguments[1]
+        login = arguments[2]
+        retrainModel = eval(arguments[3])
+        function_name = arguments[4]
     else:
         login = "login"
 
-    conn_str = (
-        r"Driver={ODBC Driver 17 for SQL Server};"
-        r"Server=(localdb)\mssqllocaldb;"
-        r"Database=TaoEnhancerDB;"
-        r"Trusted_Connection=yes;"
-    )
+    conn_str = ""
+    if platform == 'Windows':
+        conn_str = (
+            r"Driver={ODBC Driver 17 for SQL Server};"
+            r"Server=(localdb)\mssqllocaldb;"
+            r"Database=TaoEnhancerDB;"
+            r"Trusted_Connection=yes;"
+        )
+    elif platform == 'Linux':
+        conn_str = (
+            r"Driver={ODBC Driver 17 for SQL Server};"
+            r"Server=127.0.0.1;"
+            r"Database=TaoEnhancerDB;"
+            r"Uid=MyUser;"
+            r"Pwd=Userpassword1;"
+        )
+
     connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn_str})
     engine = create_engine(connection_url)
 
@@ -157,12 +169,12 @@ def main(arguments):
         if function_name == 'get_accuracy':
             get_accuracy(y_test, y_test_pred)
         elif function_name == 'predict_new':
-            SubquestionTypeAveragePoints = float(arguments[4])
-            CorrectAnswersShare = float(arguments[5])
-            SubjectAveragePoints = float(arguments[6])
-            ContainsImage = float(arguments[7])
-            NegativePoints = float(arguments[8])
-            MinimumPointsShare = float(arguments[9])
+            SubquestionTypeAveragePoints = float(arguments[5])
+            CorrectAnswersShare = float(arguments[6])
+            SubjectAveragePoints = float(arguments[7])
+            ContainsImage = float(arguments[8])
+            NegativePoints = float(arguments[9])
+            MinimumPointsShare = float(arguments[10])
             predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage,
                         NegativePoints, MinimumPointsShare, df, model)
 

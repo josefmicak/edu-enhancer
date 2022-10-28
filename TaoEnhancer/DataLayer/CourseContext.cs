@@ -115,8 +115,7 @@ namespace DataLayer
                 new GlobalSettings
                 {
                     Id = 1,
-                    TestingMode = false,
-                    SelectedPlatform = EnumTypes.Platform.Windows
+                    TestingMode = false
                 }
             );
 

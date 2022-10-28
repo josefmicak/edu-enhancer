@@ -20,8 +20,8 @@ namespace NeuralNetworkTools
 
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
-            start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}",
-                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\NeuralNetworkTools\\TemplateNeuralNetwork.py ", login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
+            start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "TemplateNeuralNetwork.py ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -47,8 +47,8 @@ namespace NeuralNetworkTools
             string function = "get_accuracy";
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
-            start.Arguments = string.Format("{0} {1} {2} {3}",
-                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\NeuralNetworkTools\\TemplateNeuralNetwork.py ", login, retrainModel, function);
+            start.Arguments = string.Format("{0} {1} {2} {3} {4}",
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "TemplateNeuralNetwork.py ", Config.SelectedPlatform.ToString(), login, retrainModel, function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -62,8 +62,11 @@ namespace NeuralNetworkTools
                     try
                     {
                         result = result.Substring(0, result.Length - 4);//remove new line from the result
-                        result = result.Replace(".", ",");
-                        return Convert.ToDouble(result);
+                        if(Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                        {
+                            result = result.Replace(".", ",");
+                        }
+                        return Math.Round(Convert.ToDouble(result), 4);
                     }
                     catch
                     {
@@ -80,7 +83,7 @@ namespace NeuralNetworkTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1}",
-                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\NeuralNetworkTools\\TemplateNeuralNetwork.py ", function);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "TemplateNeuralNetwork.py ", function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -91,7 +94,11 @@ namespace NeuralNetworkTools
                 {
                     string stderr = process.StandardError.ReadToEnd();
                     string result = reader.ReadToEnd();
-                    result = result.Substring(0, result.Length - 2);//remove new line from the result
+
+                    if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                    {
+                        result = result.Substring(0, result.Length - 2);//remove new line from the result
+                    }
                     return result;
                 }
             }

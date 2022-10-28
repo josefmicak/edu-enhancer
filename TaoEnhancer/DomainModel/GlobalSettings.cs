@@ -8,6 +8,5 @@ namespace DomainModel
         [Key]
         public int Id { get; set; }
         public bool TestingMode { get; set; }
-        public EnumTypes.Platform SelectedPlatform { get; set; } = EnumTypes.Platform.Windows;
     }
 }

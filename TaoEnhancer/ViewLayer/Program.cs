@@ -11,7 +11,7 @@ var services = builder.Services;
 services.AddDbContext<CourseContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//This connection string should always be used on Ubuntu, because the appsettings.json connection string would always include user credentials
+//This connection string should always be used on Linux, because the appsettings.json connection string would always include user credentials
 /*string connectionString = configuration["ConnectionStrings:TaoEnhancerDB"];
 builder.Services.AddDbContext<CourseContext>(options =>
         options.UseSqlServer(connectionString));*/

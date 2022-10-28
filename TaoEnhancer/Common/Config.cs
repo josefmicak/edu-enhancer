@@ -18,7 +18,8 @@
         /// </summary>
         public static readonly string[] URL = new string[] {
             "https://localhost:7026",
-            "https://vsrvfeia0h-51.vsb.cz:5000"
+            "https://vsrvfeia0h-51.vsb.cz:5000",
+            //"https://localhost:5000"
         };
 
         /// <summary>
@@ -61,11 +62,21 @@
         /// </summary>
         public static readonly string[] PythonPath = new string[] {
             "C:\\Users\\granders\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
-            @"UbuntuPythonPath"
+            "/usr/bin/python3"
+        };
+
+        public static string GetPythonScriptsPath()
+        {
+            return PythonScriptsPath[(int)SelectedPlatform];
+        }
+
+        public static readonly string[] PythonScriptsPath = new string[] {
+            Path.GetDirectoryName(Environment.CurrentDirectory),
+            "/home/fei/mic0378/TaoEnhancer"
         };
 
         /// <summary>
-        /// All possible path separators (Windows paths use backslashes, whereas Ubuntu paths use forward slashes)
+        /// All possible path separators (Windows paths use backslashes, whereas Linux paths use forward slashes)
         /// </summary>
         public static readonly string[] PathSeparator = new string[] {
             "\\",

@@ -6,12 +6,12 @@
     public class EnumTypes
     {
         /// <summary>
-        /// Platform on which the application is running (Windows/Ubuntu)
+        /// Platform on which the application is running (Windows/Linux)
         /// </summary>
         public enum Platform
         {
             Windows,
-            Ubuntu
+            Linux
         }
 
         /// <summary>

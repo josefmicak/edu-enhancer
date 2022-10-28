@@ -11,6 +11,8 @@ using Common;
 using NeuralNetworkTools;
 using NuGet.DependencyResolver;
 using NuGet.Protocol.Plugins;
+using System.Text;
+using System.Runtime.InteropServices;
 
 namespace ViewLayer.Controllers
 {
@@ -27,9 +29,6 @@ namespace ViewLayer.Controllers
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, CourseContext context)
         {
-            //DataGenerator.GenerateTemplatesFile("on");
-            //string test = DataGenerator.run_cmd("helloworld");
-
             _logger = logger;
             _configuration = configuration;
             _context = context;
@@ -39,7 +38,20 @@ namespace ViewLayer.Controllers
             if(_context.GlobalSettings.First() != null)
             {
                 Config.TestingMode = _context.GlobalSettings.First().TestingMode;
-                Config.SelectedPlatform = _context.GlobalSettings.First().SelectedPlatform;
+            }
+
+            //determine running operating system
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Config.SelectedPlatform = EnumTypes.Platform.Windows;
+            }
+            else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Config.SelectedPlatform = EnumTypes.Platform.Linux;
+            }
+            else
+            {
+                //throw exception
             }
 
             Config.GoogleClientId = configuration["Authentication:Google:ClientId"];
@@ -220,6 +232,17 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> TestTemplate(string action, string testNumberIdentifier, string negativePoints,
             string minimumPointsAmount, string testPointsDetermined)
         {
+            if (minimumPointsAmount != null)
+            {
+                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                {
+                    minimumPointsAmount = minimumPointsAmount.Replace(".", ",");
+                }
+                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+                {
+                    minimumPointsAmount = minimumPointsAmount.Replace(",", ".");
+                }
+            }
             string? negativePointsMessage = null;
             string? minimumPointsMessage = null;
             var testTemplate = _context.TestTemplates
@@ -239,7 +262,7 @@ namespace ViewLayer.Controllers
             {
                 if (testTemplate != null)
                 {
-                    double minimumPointsAmountRound = Math.Round(Convert.ToDouble(minimumPointsAmount.Replace(".", ",")), 2);
+                    double minimumPointsAmountRound = Math.Round(Convert.ToDouble(minimumPointsAmount), 2);
                     double? totalTestPoints = 0;
                     for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
                     {
@@ -263,7 +286,7 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        testTemplate.MinimumPoints = Math.Round(Convert.ToDouble(minimumPointsAmount.Replace(".", ",")), 2);
+                        testTemplate.MinimumPoints = minimumPointsAmountRound;
                         minimumPointsMessage = "Změny úspěšně uloženy.";
                         await _context.SaveChangesAsync();
                     }
@@ -339,7 +362,14 @@ namespace ViewLayer.Controllers
             string login = Config.Application["login"];
             if (subquestionPoints != null)
             {
-                subquestionPoints = subquestionPoints.Replace(".", ",");
+                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                {
+                    subquestionPoints = subquestionPoints.Replace(".", ",");
+                }
+                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+                {
+                    subquestionPoints = subquestionPoints.Replace(",", ".");
+                }
             }
             string? message = null;
 
@@ -1928,16 +1958,6 @@ namespace ViewLayer.Controllers
                     Config.TestingMode = true;
                 }
 
-                if(selectedPlatform == "windows")
-                {
-                    globalSettings.SelectedPlatform = EnumTypes.Platform.Windows;
-                    Config.SelectedPlatform = EnumTypes.Platform.Windows;
-                }
-                else if(selectedPlatform == "ubuntu")
-                {
-                    globalSettings.SelectedPlatform = EnumTypes.Platform.Ubuntu;
-                    Config.SelectedPlatform = EnumTypes.Platform.Ubuntu;
-                }
                 TempData["Message"] = "Změny úspěšně uloženy.";
                 await _context.SaveChangesAsync();
             }
