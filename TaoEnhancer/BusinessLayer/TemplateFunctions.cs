@@ -1,71 +1,403 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using DomainModel;
-using Common;
-using System.Xml;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using Common;
 using DataLayer;
+using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using NeuralNetworkTools;
-using static Common.EnumTypes;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml;
 
-namespace ViewLayer.Controllers
+namespace BusinessLayer
 {
-    public class QuestionController : Controller
+    /// <summary>
+    /// Functions related to test templates (entities: TestTemplate, QuestionTemplate, SubquestionTemplate)
+    /// </summary>
+    public class TemplateFunctions
     {
-        private readonly CourseContext _context;
+        private DataFunctions dataFunctions;
 
-        public QuestionController(CourseContext context)
+        public TemplateFunctions(CourseContext context)
         {
-            _context = context;
+            dataFunctions = new DataFunctions(context);
+        }
+
+        public DbSet<TestTemplate> GetTestTemplateDbSet()
+        {
+            return dataFunctions.GetTestTemplateDbSet();
+        }
+
+        public IQueryable<TestTemplate> GetTestTemplates(string login)
+        {
+            return GetTestTemplateDbSet()
+                .Where(t => t.OwnerLogin == login);
+        }
+
+        public DbSet<QuestionTemplate> GetQuestionTemplateDbSet()
+        {
+            return dataFunctions.GetQuestionTemplateDbSet();
+        }
+
+        public DbSet<SubquestionTemplate> GetSubquestionTemplateDbSet()
+        {
+            return dataFunctions.GetSubquestionTemplateDbSet();
+        }
+
+        public DbSet<SubquestionTemplateStatistics> GetSubquestionTemplateStatisticsDbSet()
+        {
+            return dataFunctions.GetSubquestionTemplateStatisticsDbSet();
+        }
+
+        public List<TestTemplate> GetTestTemplateList()
+        {
+            return GetTestTemplateDbSet().ToList();
+        }
+
+        public List<TestTemplate> GetTestTemplateList(string login)
+        {
+            return GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.OwnerLogin == login).ToList();
+        }
+
+        public async Task<string> AddTestTemplates(string login)
+        {
+            List<TestTemplate> testTemplates = LoadTestTemplates(login);
+
+            return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner, false);
+        }
+
+        public async Task<string> DeleteTestTemplates(string login)
+        {
+            return await dataFunctions.DeleteTestTemplates(login);
+        }
+
+        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier)
+        {
+            TestTemplate testTemplate = GetTestTemplateDbSet().First(t => t.OwnerLogin == login && t.TestNumberIdentifier == testNumberIdentifier);
+            return await dataFunctions.DeleteTestTemplate(testTemplate);
+        }
+
+        public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, string testNumberIdentifier)
+        {
+             return GetQuestionTemplateDbSet()
+                 .Include(q => q.TestTemplate)
+                 .Include(q => q.SubquestionTemplateList)
+                 .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier && q.OwnerLogin == login).AsQueryable();
+        }
+
+        public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
+        {
+            return GetSubquestionTemplateDbSet()
+                .Include(s => s.QuestionTemplate)
+                .Include(s => s.QuestionTemplate.TestTemplate)
+                .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login).AsQueryable();
+        }
+
+        public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
+        {
+            return GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .First(t => t.TestNumberIdentifier == testNumberIdentifier && t.OwnerLogin == login);
+        }
+
+        public SubquestionTemplate GetSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            return GetSubquestionTemplateDbSet()
+                .First(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+        }
+
+        public SubquestionTemplateStatistics? GetSubquestionTemplateStatistics(string login)
+        {
+            return dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
+        public async Task SetNegativePoints(TestTemplate testTemplate, EnumTypes.NegativePoints negativePoints)
+        {
+            testTemplate.NegativePoints = negativePoints;
+            await dataFunctions.SaveChangesAsync();
+        }
+
+        public async Task<string> SetMinimumPoints(TestTemplate testTemplate, double minimumPoints, string testPointsDetermined)
+        {
+            string message = string.Empty;
+            double? totalTestPoints = 0;
+            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                {
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    totalTestPoints += subquestionTemplate.SubquestionPoints;
+                }
+            }
+            if (minimumPoints < 0 || minimumPoints > totalTestPoints)
+            {
+                double? totalTestPointsRound = totalTestPoints.HasValue
+                ? (double?)Math.Round(totalTestPoints.Value, 2)
+                : null;
+                message = "Chyba: Hodnota musí být mezi 0 a " + totalTestPointsRound.ToString();
+            }
+            else if (testPointsDetermined == "False")//todo: parse to bool
+            {
+                message = "Chyba: Nejprve je nutné nastavit body u všech otázek testu.";
+            }
+            else
+            {
+                testTemplate.MinimumPoints = minimumPoints;
+                message = "Změny úspěšně uloženy.";
+                await dataFunctions.SaveChangesAsync();
+            }
+            return message;
+        }
+
+        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
+        {
+            string message = string.Empty;
+            var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
+            if (subquestionTemplate != null)
+            {
+                //user has attached points to a subquestion that did not have them before - increment SubquestionTemplatesAdded variable
+                if (subquestionPoints != null && subquestionTemplate.SubquestionPoints == null)
+                {
+                    User user = dataFunctions.GetUserByLogin(login);
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+                    subquestionTemplateStatistics.SubquestionTemplatesAdded++;
+                }
+
+                if (subquestionPoints == null)
+                {
+                    message = "Chyba: nebyl zadán žádný počet bodů.";
+                }
+                else if (!double.TryParse(subquestionPoints, out _))
+                {
+                    message = "Chyba: \"" + subquestionPoints + "\" není korektní formát počtu bodů. Je nutné zadat číslo.";
+                }
+                else if (Math.Round(Convert.ToDouble(subquestionPoints), 2) <= 0)
+                {
+                    message = "Chyba: otázce je nutné přidělit kladný počet bodů.";
+                }
+                else//todo: overit jestli nema za otazku nektery student pridelen vyssi pocet bodu nez soucasny pocet bodu
+                {
+                    message = "Počet bodů byl úspěšně změněn.";
+                    subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
+                    await dataFunctions.SaveChangesAsync();
+                }
+            }
+            return message;
+        }
+
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            User owner = dataFunctions.GetUserByLogin(login);
+
+            //check if enough subquestion templates have been added to warrant new model training
+            bool retrainModel = false;
+            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(login).SubquestionTemplatesAdded;
+            if (subquestionTemplatesAdded >= 100)
+            {
+                retrainModel = true;
+                await RetrainSubquestionTemplateModel(owner);
+            }
+
+            var subquestionTemplates = GetSubquestionTemplates(login, questionNumberIdentifier);
+
+            if (subquestionIdentifier == null)
+            {
+                subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
+            }
+
+            var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
+
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = CreateSubquestionTemplateRecord(subquestionTemplate, owner);
+            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord);
+            if (subquestionTemplatesAdded >= 100)
+            {
+                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                await dataFunctions.SaveChangesAsync();
+            }
+
+            return suggestedSubquestionPoints;
+        }
+
+        public async Task RetrainSubquestionTemplateModel(User owner)
+        {
+            string login = owner.Login;
+            //delete existing subquestion template records of this user
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where 'login' = '" + login + "'");
+            await dataFunctions.SaveChangesAsync();
+
+            //create subquestion template records
+            var testTemplates = GetTestTemplateList(login);
+
+            var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
+            await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
+        }
+
+        public List<TestTemplate> GetTestingDataTestTemplates()
+        {
+            var testTemplates = GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.IsTestingData).ToList();
+            return testTemplates;
+        }
+
+        public int GetTestingDataSubquestionTemplatesCount()
+        {
+            int testingDataSubquestionTemplates = 0;
+            var testTemplates = GetTestingDataTestTemplates();
+            for (int i = 0; i < testTemplates.Count; i++)
+            {
+                TestTemplate testTemplate = testTemplates[i];
+                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                {
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    {
+                        testingDataSubquestionTemplates++;
+                    }
+                }
+            }
+            return testingDataSubquestionTemplates;
+        }
+
+        public async Task<string> CreateTemplateTestingData(string action, string amountOfSubquestionTemplates)
+        {
+            string message;
+            User? owner = dataFunctions.GetUserByLoginAsNoTracking();
+            var existingTestTemplates = GetTestingDataTestTemplates();
+
+            List<TestTemplate> testTemplates = new List<TestTemplate>();
+            if (action == "addSubquestionTemplateRandomData")
+            {
+                testTemplates = DataGenerator.GenerateRandomTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+            }
+            else if (action == "addSubquestionTemplateCorrelationalData")
+            {
+                testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+            }
+            message = await dataFunctions.AddTestTemplates(testTemplates, owner, true);//todo: error?
+            string login = "login";
+            owner = dataFunctions.GetUserByLoginAsNoTracking();
+
+            //delete existing subquestion template records of this user
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where 'login' = '" + login + "'");
+            await dataFunctions.SaveChangesAsync();
+
+            //create subquestion template records
+            var testTemplatesToRecord = GetTestTemplateList(login);
+
+            var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplatesToRecord);
+            await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
+
+            dataFunctions.ClearChargeTracker();
+            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            var subquestionTemplateStatistics = GetSubquestionTemplateStatistics(owner.Login);
+            if (subquestionTemplateStatistics == null)
+            {
+                subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                subquestionTemplateStatistics.User = owner;
+                subquestionTemplateStatistics.UserLogin = owner.Login;
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+                dataFunctions.AttachUser(subquestionTemplateStatistics.User);
+                await dataFunctions.SaveChangesAsync();
+            }
+            else
+            {
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                await dataFunctions.SaveChangesAsync();
+            }
+
+            return message;
+        }
+
+        public async Task DeleteTemplateTestingData()
+        {
+            dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
+            dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord");//todo
+            await dataFunctions.SaveChangesAsync();
         }
 
         /// <summary>
-        /// Returns the list of questions with certain parameters - name/number identifiers, and test part/section they belong to from the test.xml file
+        /// Returns the list of test templates
         /// </summary>
-        /// <param name="testNameIdentifier">Name identifier of the selected test</param>
-        /// <param name="testNumberIdentifier">Number identifier of the selected test</param>
-        /// <returns>the list of questions and their name/number identifiers, and test part/section they belong to</returns>
-        public List<(string, string, string, string)> LoadQuestionParameters(string testNameIdentifier, string testNumberIdentifier)
+        public List<TestTemplate> LoadTestTemplates(string login)
         {
-            List<(string, string, string, string)> questionParameters = new List<(string, string, string, string)>();
-            string testPart = "";
-            string testSection = "";
-            string questionNameIdentifier = "";
-            string questionNumberIdentifier = "";
-            string questionNumberIdentifierToSplit = "";
+            List<TestTemplate> testTemplates = new List<TestTemplate>();
+            string subDirectory = "";
 
-            XmlReader xmlReader = XmlReader.Create(Config.GetTestTemplateFilePath(testNameIdentifier, testNumberIdentifier));
-            while (xmlReader.Read())
+            if (Directory.Exists(Config.GetTestTemplatesPath()))
             {
-                if (xmlReader.Name == "testPart" && xmlReader.GetAttribute("identifier") != null)
+                foreach (var directory in Directory.GetDirectories(Config.GetTestTemplatesPath()))
                 {
-                    testPart = xmlReader.GetAttribute("identifier")!;
-                }
+                    string[] splitDirectoryBySlash = directory.Split(Config.GetPathSeparator());
+                    string testNameIdentifier = splitDirectoryBySlash[splitDirectoryBySlash.Length - 1].ToString();
+                    string testNumberIdentifier = "";
 
-                if (xmlReader.Name == "assessmentSection" && xmlReader.GetAttribute("identifier") != null)
-                {
-                    testSection = xmlReader.GetAttribute("identifier")!;
-                }
+                    try
+                    {
+                        foreach (var directory_ in Directory.GetDirectories(directory + Config.GetPathSeparator() + "tests"))
+                        {
+                            string[] splitDirectory_BySlash = directory_.Split(Config.GetPathSeparator());
+                            testNumberIdentifier = splitDirectory_BySlash[splitDirectory_BySlash.Length - 1].ToString();
+                            subDirectory = directory_;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
-                if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
-                {
-                    if(xmlReader.GetAttribute("identifier") != null)
+                    try
                     {
-                        questionNameIdentifier = xmlReader.GetAttribute("identifier")!;
+                        XmlReader xmlReader = XmlReader.Create(subDirectory + Config.GetPathSeparator() + "test.xml");
+                        while (xmlReader.Read())
+                        {
+                            if ((xmlReader.NodeType == XmlNodeType.Element) && (xmlReader.Name == "assessmentTest"))
+                            {
+                                if (xmlReader.HasAttributes)
+                                {
+                                    TestTemplate testTemplate = new TestTemplate();
+                                    testTemplate.TestNameIdentifier = testNameIdentifier;
+                                    testTemplate.TestNumberIdentifier = testNumberIdentifier;
+                                    if (xmlReader.GetAttribute("title") != null)
+                                    {
+                                        testTemplate.Title = xmlReader.GetAttribute("title")!;
+                                    }
+                                    testTemplate.OwnerLogin = login;
+                                    if (dataFunctions.GetUserByLogin(login) != null)
+                                    {
+                                        testTemplate.Owner = dataFunctions.GetUserByLogin(login);
+                                    }
+                                    else
+                                    {
+                                        throw Exceptions.SpecificUserNotFoundException(login);
+                                    }
+                                    testTemplate.QuestionTemplateList = LoadQuestionTemplates(testTemplate, login);
+                                    testTemplates.Add(testTemplate);
+                                }
+                            }
+                        }
                     }
-                    
-                    if(xmlReader.GetAttribute("href") != null)
+                    catch
                     {
-                        questionNumberIdentifierToSplit = xmlReader.GetAttribute("href")!;
+                        continue;
                     }
-                    string[] questionNumberIdentifierSplitBySlash = questionNumberIdentifierToSplit.Split(@"/");
-                    questionNumberIdentifier = questionNumberIdentifierSplitBySlash[3];
-                    questionParameters.Add((testPart, testSection, questionNameIdentifier, questionNumberIdentifier));
                 }
+                return testTemplates;
             }
-
-            return questionParameters;
+            else
+            {
+                throw Exceptions.TestTemplatesPathNotFoundException;
+            }
         }
 
         /// <summary>
@@ -111,11 +443,11 @@ namespace ViewLayer.Controllers
                                                 QuestionTemplate questionTemplate = new QuestionTemplate();
                                                 questionTemplate.QuestionNameIdentifier = questionParameters[j].Item3;
                                                 questionTemplate.QuestionNumberIdentifier = questionParameters[j].Item4;
-                                                if(xmlReader.GetAttribute("title") != null)
+                                                if (xmlReader.GetAttribute("title") != null)
                                                 {
                                                     questionTemplate.Title = xmlReader.GetAttribute("title")!;
                                                 }
-                                                if(xmlReader.GetAttribute("label") != null)
+                                                if (xmlReader.GetAttribute("label") != null)
                                                 {
                                                     questionTemplate.Label = xmlReader.GetAttribute("label")!;
                                                 }
@@ -152,6 +484,54 @@ namespace ViewLayer.Controllers
         }
 
         /// <summary>
+        /// Returns the list of questions with certain parameters - name/number identifiers, and test part/section they belong to from the test.xml file
+        /// </summary>
+        /// <param name="testNameIdentifier">Name identifier of the selected test</param>
+        /// <param name="testNumberIdentifier">Number identifier of the selected test</param>
+        /// <returns>the list of questions and their name/number identifiers, and test part/section they belong to</returns>
+        public List<(string, string, string, string)> LoadQuestionParameters(string testNameIdentifier, string testNumberIdentifier)
+        {
+            List<(string, string, string, string)> questionParameters = new List<(string, string, string, string)>();
+            string testPart = "";
+            string testSection = "";
+            string questionNameIdentifier = "";
+            string questionNumberIdentifier = "";
+            string questionNumberIdentifierToSplit = "";
+
+            XmlReader xmlReader = XmlReader.Create(Config.GetTestTemplateFilePath(testNameIdentifier, testNumberIdentifier));
+            while (xmlReader.Read())
+            {
+                if (xmlReader.Name == "testPart" && xmlReader.GetAttribute("identifier") != null)
+                {
+                    testPart = xmlReader.GetAttribute("identifier")!;
+                }
+
+                if (xmlReader.Name == "assessmentSection" && xmlReader.GetAttribute("identifier") != null)
+                {
+                    testSection = xmlReader.GetAttribute("identifier")!;
+                }
+
+                if (xmlReader.Name == "assessmentItemRef" && xmlReader.NodeType != XmlNodeType.EndElement)
+                {
+                    if (xmlReader.GetAttribute("identifier") != null)
+                    {
+                        questionNameIdentifier = xmlReader.GetAttribute("identifier")!;
+                    }
+
+                    if (xmlReader.GetAttribute("href") != null)
+                    {
+                        questionNumberIdentifierToSplit = xmlReader.GetAttribute("href")!;
+                    }
+                    string[] questionNumberIdentifierSplitBySlash = questionNumberIdentifierToSplit.Split(@"/");
+                    questionNumberIdentifier = questionNumberIdentifierSplitBySlash[3];
+                    questionParameters.Add((testPart, testSection, questionNameIdentifier, questionNumberIdentifier));
+                }
+            }
+
+            return questionParameters;
+        }
+
+        /// <summary>
         /// Returns the list of all subquestion templates that are included in the selected question
         /// </summary>
         /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
@@ -165,7 +545,7 @@ namespace ViewLayer.Controllers
                 if (xmlReader.Name == "responseDeclaration" && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
                     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                    if(xmlReader.GetAttribute("identifier") != null)
+                    if (xmlReader.GetAttribute("identifier") != null)
                     {
                         string subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
                         subquestionTemplate.SubquestionIdentifier = subquestionIdentifier;
@@ -211,7 +591,7 @@ namespace ViewLayer.Controllers
             {
                 if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.HasAttributes && xmlReader.Name == "responseDeclaration")
                 {
-                    if(xmlReader.GetAttribute("identifier") != null)
+                    if (xmlReader.GetAttribute("identifier") != null)
                     {
                         string subquestionIdentifier = xmlReader.GetAttribute("identifier")!;
 
@@ -257,7 +637,7 @@ namespace ViewLayer.Controllers
                 if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" ||
                     name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction" || name == "inlineChoiceInteraction")
                 {
-                    if(xmlReader.GetAttribute("responseIdentifier") != null)
+                    if (xmlReader.GetAttribute("responseIdentifier") != null)
                     {
                         string subquestionIdentifier = xmlReader.GetAttribute("responseIdentifier")!;
                         if (subquestionIdentifier != null && subquestionIdentifier != selectedSubquestionIdentifier)
@@ -346,6 +726,11 @@ namespace ViewLayer.Controllers
         "Dosazování pojmů do mezer",
         "Posuvník; jedna správná odpověď (číslo)"};
 
+        public string[] GetSubquestionTypeTextArray()
+        {
+            return SubquestionTypeTextArray;
+        }
+
         /// <summary>
         /// Returns the subquestion text
         /// </summary>
@@ -401,7 +786,7 @@ namespace ViewLayer.Controllers
                 }
 
                 //in subquestion types 7 and 8 it's impossible to read their identifiers before reading (at least a part) of their text
-                if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer 
+                if (subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer
                     || subquestionType == EnumTypes.SubquestionType.GapMatch)
                 {
                     if (xmlReader.Name == "p" && xmlReader.NodeType == XmlNodeType.Element)
@@ -526,7 +911,7 @@ namespace ViewLayer.Controllers
                         }
                     }
 
-                    if ((subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer) 
+                    if ((subquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill || subquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                         && nodeCount == oldNodeCount && xmlReader.GetAttribute("responseIdentifier") == subquestionIdentifier)
                     {
                         identifierCheck = true;
@@ -705,7 +1090,7 @@ namespace ViewLayer.Controllers
                     if (name == "simpleChoice" || name == "simpleAssociableChoice" || name == "gapText" || name == "inlineChoice")
                     {
                         string answerIdentifier = "";
-                        if(xmlReader.GetAttribute("identifier") != null)
+                        if (xmlReader.GetAttribute("identifier") != null)
                         {
                             answerIdentifier = xmlReader.GetAttribute("identifier")!;
                         }
@@ -816,183 +1201,15 @@ namespace ViewLayer.Controllers
             return correctAnswerList.ToArray();
         }
 
-        public List<SubquestionResult> LoadSubquestionResults(QuestionResult questionResult, string login)
-        {
-            List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
-            QuestionTemplate questionTemplate = questionResult.QuestionTemplate;
-            TestTemplate testTemplate = questionTemplate.TestTemplate;
-            XmlReader xmlReader;
-            int gapCount = 0;
-
-            ICollection<SubquestionTemplate> subquestionTemplateList = questionResult.QuestionTemplate.SubquestionTemplateList;
-            foreach(SubquestionTemplate subquestionTemplate in subquestionTemplateList)
-            {
-                List<string> studentsAnswers = new List<string>();
-                xmlReader = XmlReader.Create(Config.GetResultPath(testTemplate.TestNameIdentifier, questionResult.TestResultIdentifier));
-                while (xmlReader.Read())
-                {
-                    //skip other question results
-                    if (xmlReader.Name == "itemResult")
-                    {
-                        if (xmlReader.GetAttribute("identifier") != questionTemplate.QuestionNameIdentifier && xmlReader.GetAttribute("identifier") != null)
-                        {
-                            xmlReader.Skip();
-                        }
-                    }
-
-                    if (xmlReader.Name == "responseVariable")
-                    {
-                        //skip these two tags, because they include a <value> child-tag that we don't want to read
-                        if (xmlReader.GetAttribute("identifier") != subquestionTemplate.SubquestionIdentifier && xmlReader.GetAttribute("identifier") != null)
-                        {
-                            xmlReader.Skip();
-                        }
-
-                        if (xmlReader.NodeType == XmlNodeType.EndElement)
-                        {
-                            SubquestionResult subquestionResult = new SubquestionResult();
-                            subquestionResult.TestResultIdentifier = questionResult.TestResultIdentifier;
-                            subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
-                            subquestionResult.QuestionResult = questionResult;
-                            subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
-                            subquestionResult.SubquestionTemplate = subquestionTemplate;
-                            subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
-                            subquestionResult.OwnerLogin = login;
-                            subquestionResults.Add(subquestionResult);
-                        }
-                    }
-
-                    if (xmlReader.Name == "outcomeVariable")
-                    {
-                        xmlReader.Skip();
-                    }
-
-                    if (xmlReader.Name == "value")
-                    {
-                        string studentsAnswer = xmlReader.ReadString();//this may read only the answer's identifier instead of the answer itself
-
-                        if (studentsAnswer.Length == 0)
-                        {
-                            studentsAnswer = "Nevyplněno";
-                        }
-                        else
-                        {
-                            //some of the strings may include invalid characters that must be removed
-                            Regex regEx = new Regex("['<>]");
-                            studentsAnswer = regEx.Replace(studentsAnswer, "");
-                            if (studentsAnswer.Length > 0)
-                            {
-                                if (studentsAnswer[0] == ' ')
-                                {
-                                    studentsAnswer = studentsAnswer.Remove(0, 1);
-                                }
-                            }
-
-                            if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceMultipleCorrectAnswers ||
-                                subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultiChoiceTextFill)
-                            {
-                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswer);
-                            }
-                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MatchingElements)
-                            {
-                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0])
-                                    + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1]);
-                            }
-                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultipleQuestions)
-                            {
-                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                                studentsAnswer = GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[1])
-                                    + " -> " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0]);
-                            }
-                            else if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.GapMatch)
-                            {
-                                gapCount++;
-                                string[] studentsAnswerSplitBySpace = studentsAnswer.Split(" ");
-                                studentsAnswer = "[" + gapCount + "] - " + GetStudentsAnswerText(testTemplate.TestNameIdentifier, questionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier, studentsAnswerSplitBySpace[0]);
-                            }
-                        }
-
-                        studentsAnswers.Add(studentsAnswer);
-                    }
-                }
-            }
-
-            return subquestionResults;
-        }
-
-        public List<QuestionResult> LoadQuestionResults(TestResult testResult, string login)
-        {
-            List<QuestionResult> questionResults = new List<QuestionResult>();
-            TestTemplate testTemplate = testResult.TestTemplate;
-            ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
-            foreach (QuestionTemplate questionTemplate in questionTemplates)
-            {
-                QuestionResult questionResult = new QuestionResult();
-                questionResult.TestResult = testResult;
-                if(_context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
-                    .First(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login) != null)
-                {
-                    questionResult.QuestionTemplate = _context.QuestionTemplates.Include(q => q.SubquestionTemplateList)
-                        .First(q => q.QuestionNumberIdentifier == questionTemplate.QuestionNumberIdentifier && q.OwnerLogin == login);
-                }
-                else
-                {
-                    throw Exceptions.QuestionTemplateNotFoundException(testResult.TestResultIdentifier, questionTemplate.QuestionNumberIdentifier);
-                }
-                questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
-                questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
-                questionResult.SubquestionResultList = LoadSubquestionResults(questionResult, login);
-                questionResult.OwnerLogin = login;
-                questionResults.Add(questionResult);
-            }
-            return questionResults;
-        }
-
-        /// <summary>
-        /// Returns the selected question result
-        /// </summary>
-        /// <returns>the selected question result</returns>
-        /// <param name="testNameIdentifier">Name identifier of the test that the selected question belongs to</param>
-        /// <param name="questionNumberIdentifier">Number identifier of the selected question</param>
-        /// <param name="subquestionIdentifier">Subquestion identifier of the selected subquestion</param>
-        /// <param name="studentsAnswer">String containing identifier of student's answer</param>
-        string GetStudentsAnswerText(string testNameIdentifier, string questionNumberIdentifier, string subquestionIdentifier, string studentsAnswer)
-        {
-            XmlReader xmlReader = XmlReader.Create(Config.GetQuestionTemplateFilePath(testNameIdentifier, questionNumberIdentifier));
-            while (xmlReader.Read())
-            {
-                var name = xmlReader.Name;
-                if (name == "choiceInteraction" || name == "sliderInteraction" || name == "gapMatchInteraction" || name == "matchInteraction" ||
-                    name == "extendedTextInteraction" || name == "orderInteraction" || name == "associateInteraction" || name == "inlineChoiceInteraction")
-                {
-                    //skip other subquestions
-                    if (xmlReader.GetAttribute("responseIdentifier") != subquestionIdentifier)
-                    {
-                        xmlReader.Skip();
-                    }
-                }
-
-                if ((name == "simpleChoice" || name == "simpleAssociableChoice" || name == "inlineChoice" || name == "gapText") && xmlReader.GetAttribute("identifier") == studentsAnswer)
-                {
-                    return xmlReader.ReadString();
-                }
-            }
-            throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
-        }
-
         public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner)
         {
-            var testTemplates = _context.TestTemplates
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
-                .Where(t => t.OwnerLogin == owner.Login).ToList();
+            var testTemplates = GetTestTemplateList(owner.Login);
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAveragePoints(testTemplates);
             double[] subjectAveragePoints = DataGenerator.GetSubjectAveragePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
-            
+
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
             subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
             subquestionTemplateRecord.SubquestionIdentifier = "SubquestionIdentifier_0_0_0";
@@ -1052,20 +1269,5 @@ namespace ViewLayer.Controllers
 
         }
 
-        public void CreateSubquestionTemplatesStatistics(User user)
-        {
-            SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
-            subquestionTemplateStatistics.User = user;
-            subquestionTemplateStatistics.UserLogin = user.Login;
-            _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
-            _context.SaveChangesAsync();
-        }
-
-        public void IncrementSubquestionTemplatesAdded(User user)
-        {
-            SubquestionTemplateStatistics subquestionTemplateStatistics = _context.SubquestionTemplateStatistics.First(s => s.User == user);
-            subquestionTemplateStatistics.SubquestionTemplatesAdded++;
-            _context.SaveChangesAsync();
-        }
     }
 }
