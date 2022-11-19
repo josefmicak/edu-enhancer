@@ -177,6 +177,18 @@ function adminFormSubmit(event) {
 const adminForm = document.getElementById('admin-form');
 adminForm.addEventListener('submit', adminFormSubmit);
 
+//QuestionTemplate.cshtml
+
+function setWrongChoicePointsInputs(el) {
+    if (el.value == "wrongChoicePoints_automatic_radio") {
+        document.getElementById("wrongChoicePoints_manual").readOnly = true;
+      //  document.getElementById("wrongChoicePoints_manual").value = document.getElementById("wrongChoicePoints_automatic").value;
+    }
+    else {
+        document.getElementById("wrongChoicePoints_manual").readOnly = false;
+    }
+}
+
 //show form which prompts user to confirm the action
 
 function showConfirmActionForm(action, identifier, email, login, firstName, lastName, role) {

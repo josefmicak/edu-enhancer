@@ -132,6 +132,12 @@ namespace DataLayer
                 .First(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
         }
 
+        public SubquestionTemplate GetSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string login)
+        {
+            return GetSubquestionTemplateDbSet()
+                .First(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+        }
+
         public async Task AddSubquestionTemplateStatistics(SubquestionTemplateStatistics subquestionTemplateStatistics)
         {
             _context.SubquestionTemplateStatistics.Add(subquestionTemplateStatistics);
@@ -202,6 +208,26 @@ namespace DataLayer
             await _context.SaveChangesAsync();
             string message = "Test byl úspěšně smazán.";
             return message;
+        }
+
+        public SubquestionResult GetSubquestionResult(string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier, string login)
+        {
+            SubquestionResult subquestionResult = GetSubquestionResultDbSet()
+                /*     .Include(s => s.QuestionResult)
+                     .Include(s => s.QuestionResult.TestResult)
+                     .Include(s => s.QuestionResult.TestResult.TestTemplate)*/
+                .First(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier
+                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+            return subquestionResult;
+        }
+
+        public List<SubquestionResult> GetSubquestionResults(string questionNumberIdentifier, string subquestionIdentifier, string login)
+        {
+            List<SubquestionResult> subquestionResults = GetSubquestionResultDbSet()
+                    .Include(s => s.SubquestionTemplate)
+                    .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                    && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login).ToList();
+            return subquestionResults;
         }
 
         //UserFunctions.cs

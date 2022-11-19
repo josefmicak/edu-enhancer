@@ -2,6 +2,7 @@
 
 @using DomainModel;
 @using Common;
+@using System.Globalization;
 
 @{
     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
@@ -72,6 +73,12 @@
     if (ViewBag.SuggestedSubquestionPoints != null)
     {
         userRequestedPointsSuggestion = true;
+    }
+
+    bool defaultWrongChoicePointsChecked = false;
+    if (subquestionTemplate.DefaultWrongChoicePoints == subquestionTemplate.WrongChoicePoints || subquestionTemplate.DefaultWrongChoicePoints == null)
+    {
+        defaultWrongChoicePointsChecked = true;
     }
 }
 
@@ -214,7 +221,7 @@
         <form method="POST">
             <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
-            <p>Počet bodů za otázku: <input class="input" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
+            <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
             @{
                 if (userRequestedPointsSuggestion)
                 {
@@ -225,6 +232,23 @@
                     <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
                 }
             }
+            <p>Počet bodů za správnou volbu: <input class="input" readonly value="@subquestionTemplate.CorrectChoicePoints.ToString()"></p>
+            <p>Počet bodů za špatnou volbu:</p>
+            <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio" name="wrongChoicePointsRadio" checked="@defaultWrongChoicePointsChecked" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
+            <input class="input" value="@subquestionTemplate.DefaultWrongChoicePoints.ToString()" id="wrongChoicePoints_automatic" readonly> <br />
+            <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio" name="wrongChoicePointsRadio" checked="@(!defaultWrongChoicePointsChecked)" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
+
+            @{
+                if (defaultWrongChoicePointsChecked)
+                {
+                    <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")" readonly>
+                }
+                else
+                {
+                    <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")">
+                }
+            }
+            <br />
             <button type="submit" value="savePoints" name="action">Uložit</button>
         </form>
     </div>

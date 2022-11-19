@@ -160,6 +160,136 @@ namespace BusinessLayer
             return message;
         }
 
+        public double? CalculateDefaultStudentsPoints(SubquestionTemplate subquestionTemplate, string[] studentsAnswers)
+        {
+            SubquestionType subquestionType = subquestionTemplate.SubquestionType;
+            string[] correctAnswersArray = subquestionTemplate.CorrectAnswerList;
+            double? subquestionPoints = subquestionTemplate.SubquestionPoints;
+            double? wrongChoicePoints = subquestionTemplate.WrongChoicePoints;
+            double? defaultStudentPoints = 0;
+
+            switch(subquestionType)
+            {
+                case SubquestionType n when (n == SubquestionType.OrderingElements || n == SubquestionType.MultiChoiceSingleCorrectAnswer ||
+                n == SubquestionType.MultiChoiceTextFill || n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || n == SubquestionType.Slider):
+                    bool areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctAnswersArray, studentsAnswers);
+                    if (areStudentsAnswersCorrect)
+                    {
+                        defaultStudentPoints = subquestionPoints;
+                    }
+                    else
+                    {
+                        defaultStudentPoints -= wrongChoicePoints * (-1);
+                    }
+                    break;
+                case SubquestionType.MultiChoiceMultipleCorrectAnswers:
+                    int studentsCorrectAnswers = 0;
+
+                    for (int i = 0; i < studentsAnswers.Length; i++)
+                    {
+                        for (int j = 0; j < correctAnswersArray.Length; j++)
+                        {
+                            if (studentsAnswers[i] == correctAnswersArray[j])
+                            {
+                                studentsCorrectAnswers++;
+                                defaultStudentPoints += ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                            }
+                        }
+                    }
+
+                    defaultStudentPoints -= Math.Abs(Math.Abs(studentsAnswers.Length - studentsCorrectAnswers) * (wrongChoicePoints.Value));
+                    break;
+                case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
+                    string separator = "";
+                    switch (n)
+                    {
+                        case SubquestionType.MultipleQuestions:
+                            separator = " -> ";
+                                break;
+                        case SubquestionType.GapMatch:
+                            separator = " - ";
+                            break;
+                    }
+                    for (int i = 0; i < studentsAnswers.Length; i++)
+                    {
+                        //the student did not answer this question - he gets no points for this question
+                        if (studentsAnswers[0] == "Nevyplněno" && studentsAnswers.Length == 1)
+                        {
+                            break;
+                        }
+                        for(int j = 0; j < correctAnswersArray.Length; j++)
+                        {
+                            string[] studentsAnswerSplit = studentsAnswers[i].Split(separator);
+                            string[] correctAnswerSplit = correctAnswersArray[j].Split(separator);
+                            if (studentsAnswerSplit[0] == correctAnswerSplit[0])
+                            {
+                                //student answered correctly
+                                if (studentsAnswerSplit[1] == correctAnswerSplit[1])
+                                {
+                                    defaultStudentPoints += ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                                }
+                                //student answered incorrectly
+                                else
+                                {
+                                    defaultStudentPoints -= ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                                }
+                            }
+                        }
+
+                    }
+                    break;
+                case SubquestionType.MatchingElements:
+                    separator = " -> ";
+                    studentsCorrectAnswers = 0;
+
+                    for (int i = 0; i < studentsAnswers.Length; i++)
+                    {
+                        //the student did not answer this question - he gets no points for this question
+                        if (studentsAnswers[0] == "Nevyplněno" && studentsAnswers.Length == 1)
+                        {
+                            break;
+                        }
+
+                        for (int j = 0; j < correctAnswersArray.Length; j++)
+                        {
+                            string[] studentsAnswerSplit = studentsAnswers[i].Split(separator);
+                            string[] correctAnswerSplit = correctAnswersArray[j].Split(separator);
+                            //for this type of subquestion, the order of the elements contained in the answer is not always the same
+                            if ((studentsAnswerSplit[0] == correctAnswerSplit[0] && studentsAnswerSplit[1] == correctAnswerSplit[1]) ||
+                                (studentsAnswerSplit[0] == correctAnswerSplit[1] && studentsAnswerSplit[1] == correctAnswerSplit[0]))
+                            {
+                                studentsCorrectAnswers++;
+                            }
+                        }
+                    }
+
+                    //increase points for every correct answer
+                    defaultStudentPoints += studentsCorrectAnswers * ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                    //decrease points for every incorrect answer
+                    defaultStudentPoints -= (correctAnswersArray.Length - studentsCorrectAnswers) * ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                    break;
+                    /*case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
+
+                        break;*/
+            }
+
+            return defaultStudentPoints;
+        }
+
+        public async Task UpdateStudentsPoints(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            List<SubquestionResult> subquestionResults = dataFunctions.GetSubquestionResults(questionNumberIdentifier, subquestionIdentifier, login);
+            for(int i = 0; i < subquestionResults.Count; i++)
+            {
+                SubquestionResult subquestionResult = subquestionResults[i];
+                SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+                double? defaultStudentsPoints = CalculateDefaultStudentsPoints(subquestionTemplate, subquestionResult.StudentsAnswerList);
+                subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
+                subquestionResult.StudentsPoints = defaultStudentsPoints;
+            }
+            await dataFunctions.SaveChangesAsync();
+        }
+
         /// <summary>
         /// Returns the list of test results
         /// </summary>
@@ -328,6 +458,12 @@ namespace BusinessLayer
                             subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
                             subquestionResult.SubquestionTemplate = subquestionTemplate;
                             subquestionResult.StudentsAnswerList = studentsAnswers.ToArray();
+                            if(subquestionTemplate.SubquestionPoints != null)
+                            {
+                                double? defaultStudentsPoints = CalculateDefaultStudentsPoints(subquestionTemplate, subquestionResult.StudentsAnswerList);
+                                subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
+                                subquestionResult.StudentsPoints = defaultStudentsPoints;
+                            }
                             subquestionResult.OwnerLogin = login;
                             subquestionResults.Add(subquestionResult);
                         }

@@ -6,7 +6,9 @@ using NeuralNetworkTools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Xml;
+using static Common.EnumTypes;
 
 namespace BusinessLayer
 {
@@ -154,7 +156,7 @@ namespace BusinessLayer
             return message;
         }
 
-        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
+        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
         {
             string message = string.Empty;
             var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
@@ -168,6 +170,9 @@ namespace BusinessLayer
                     subquestionTemplateStatistics.SubquestionTemplatesAdded++;
                 }
 
+                double subquestionPointsDouble = Math.Round(Convert.ToDouble(subquestionPoints), 2);
+                double wrongChoicePointsDouble = Math.Round(Convert.ToDouble(wrongChoicePoints), 2);
+
                 if (subquestionPoints == null)
                 {
                     message = "Chyba: nebyl zadán žádný počet bodů.";
@@ -176,19 +181,65 @@ namespace BusinessLayer
                 {
                     message = "Chyba: \"" + subquestionPoints + "\" není korektní formát počtu bodů. Je nutné zadat číslo.";
                 }
-                else if (Math.Round(Convert.ToDouble(subquestionPoints), 2) <= 0)
+                else if (subquestionPointsDouble <= 0)
                 {
                     message = "Chyba: otázce je nutné přidělit kladný počet bodů.";
+                }
+                else if (!defaultWrongChoicePoints && wrongChoicePointsDouble * (-1) > subquestionPointsDouble)
+                {
+                    message = "Chyba: za špatnou volbu nemůže student obdržet méně než " + subquestionPointsDouble * (-1) + " bodů.";
                 }
                 else//todo: overit jestli nema za otazku nektery student pridelen vyssi pocet bodu nez soucasny pocet bodu
                 {
                     message = "Počet bodů byl úspěšně změněn.";
                     subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
+                    subquestionTemplate.CorrectChoicePoints = CalculateCorrectChoicePoints(
+                        Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+
+                    if(subquestionTemplate.WrongChoicePoints == null)
+                    {
+                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                    }
+                    else
+                    {
+                        if(defaultWrongChoicePoints)
+                        {
+                            subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                            subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        }
+                        else
+                        {
+                            subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                            subquestionTemplate.WrongChoicePoints = Math.Round(Convert.ToDouble(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
+                        }
+                    }
                     await dataFunctions.SaveChangesAsync();
                 }
             }
             return message;
         }
+
+        public double CalculateCorrectChoicePoints(double subquestionPoints, string[] correctChoiceArray, SubquestionType subquestionType)
+        {
+            double correctChoicePoints = 0;
+            switch (subquestionType)
+            {
+                case SubquestionType n when (n == SubquestionType. OrderingElements || n == SubquestionType.FreeAnswer || n == SubquestionType.MultiChoiceSingleCorrectAnswer
+                || n == SubquestionType.MultiChoiceTextFill || n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || n == SubquestionType.Slider):
+                    correctChoicePoints = subquestionPoints;
+                    break;
+                case SubquestionType.MultiChoiceMultipleCorrectAnswers:
+                    correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Length;
+                    break;
+                case SubquestionType n when (n == SubquestionType.MatchingElements || n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
+                    correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Length / 2);
+                    break;
+            }
+            return Math.Round(correctChoicePoints, 2);
+        }
+
+
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
         {

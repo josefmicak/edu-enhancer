@@ -242,7 +242,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> QuestionTemplate(string action, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
+        public async Task<IActionResult> QuestionTemplate(string action, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, string wrongChoicePointsRadio)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             if (subquestionPoints != null)
@@ -263,7 +263,18 @@ namespace ViewLayer.Controllers
                 //the teacher is changing points of the subquestion
                 if (subquestionPoints != null)
                 {
-                    message = await businessLayerFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints);
+                    bool defaultWrongChoicePoints = false;
+                    if(wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
+                    {
+                        defaultWrongChoicePoints = true;
+                    }
+                    message = await businessLayerFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints, wrongChoicePoints, defaultWrongChoicePoints);
+                    
+                    //in case the subquestion points have been changed, we change the amount of student's points accordingly
+                    if(message == "Počet bodů byl úspěšně změněn.")
+                    {
+                        await businessLayerFunctions.UpdateStudentsPoints(login, questionNumberIdentifier, subquestionIdentifier);
+                    }
                 }
             }
             else if(action == "getPointsSuggestion")

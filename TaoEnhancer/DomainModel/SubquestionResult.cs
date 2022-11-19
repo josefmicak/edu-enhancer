@@ -8,6 +8,7 @@
         public string OwnerLogin { get; set; } = default!;
         public string[] StudentsAnswerList { get; set; } = default!;
         public double? StudentsPoints { get; set; } = default!;
+        public double? DefaultStudentsPoints { get; set; } = default!;
         public SubquestionTemplate SubquestionTemplate { get; set; } = default!;
         public QuestionResult QuestionResult { get; set; } = default!;
     }

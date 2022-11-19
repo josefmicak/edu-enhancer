@@ -90,9 +90,9 @@ namespace BusinessLayer
             return await templateFunctions.SetMinimumPoints(testTemplate, minimumPoints, testPointsDetermined);
         }
 
-        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints)
+        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
         {
-            return await templateFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints);
+            return await templateFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints, wrongChoicePoints, defaultWrongChoicePoints);
         }
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
@@ -180,6 +180,11 @@ namespace BusinessLayer
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
         {
             return await resultFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
+        }
+
+        public async Task UpdateStudentsPoints(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            await resultFunctions.UpdateStudentsPoints(login, questionNumberIdentifier, subquestionIdentifier);
         }
 
         //UserFunctions.cs
