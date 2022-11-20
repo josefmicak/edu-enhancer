@@ -73,10 +73,18 @@
         }
         else
         {
-            studentsQuestionPoints += item.StudentsPoints;
+            if (item.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
+            {
+                //in case negative points are disabled, the minimum points for every subquestion is 0
+                studentsQuestionPoints += 0;
+            }
+            else
+            {
+                studentsQuestionPoints += item.StudentsPoints;
+            }
         }
     }
-    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
+    if (negativePoints == EnumTypes.NegativePoints.Disabled && studentsQuestionPoints < 0)
     {
         studentsQuestionPoints = 0;
     }

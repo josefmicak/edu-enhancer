@@ -71,9 +71,27 @@
                             studentsTestPointsDetermined = false;
                             break;
                         }
-                        studentsQuestionPoints += subquestionResult.StudentsPoints;
+
+                        if (subquestionResult.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
+                        {
+                            //in case negative points are disabled, the minimum points for every subquestion is 0
+                            studentsQuestionPoints += 0;
+                        }
+                        else
+                        {
+                            studentsQuestionPoints += subquestionResult.StudentsPoints;
+                        }
                     }
-                    studentsTestPoints += studentsQuestionPoints;
+
+                    if (studentsQuestionPoints < 0 && (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion || negativePoints == EnumTypes.NegativePoints.Disabled))
+                    {
+                        //in case negative points are not enabled, the minimum points for every question is 0
+                        studentsTestPoints += 0;
+                    }
+                    else
+                    {
+                        studentsTestPoints += studentsQuestionPoints;
+                    }
 
                     double? questionPoints = 0;
                     foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplateList)
@@ -125,6 +143,22 @@
             }
             studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
         }
+
+        string? studentsMinimumPointsString = string.Empty;
+        if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
+        {
+            double? minimumPoints = Model.First().QuestionTemplate.TestTemplate.MinimumPoints;
+            studentsMinimumPointsString += minimumPoints.ToString();
+            if (minimumPoints > studentsTestPoints)
+            {
+                studentsMinimumPointsString += " - pokus neúspěšný ";
+            }
+            else
+            {
+                studentsMinimumPointsString += " - pokus úspěšný ";
+            }
+            studentsMinimumPointsString += "(" + studentsTestPoints.ToString() + " / " + minimumPoints.ToString() + ")";
+        }
     }
 
     <div id="test-template">
@@ -150,6 +184,15 @@
                 <th>Počet bodů</th>
                 <td>@studentsTestPointsString</td>
             </tr>
+            @{
+                if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
+                {
+                    <tr>
+                        <th>Minimální počet bodů</th>
+                        <td>@studentsMinimumPointsString</td>
+                    </tr>
+                }
+            }
         </table>
     </div>
 </div>

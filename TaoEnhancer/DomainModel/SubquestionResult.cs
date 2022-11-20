@@ -1,4 +1,6 @@
-﻿namespace DomainModel
+﻿using Common;
+
+namespace DomainModel
 {
     public class SubquestionResult
     {
@@ -9,6 +11,7 @@
         public string[] StudentsAnswerList { get; set; } = default!;
         public double? StudentsPoints { get; set; } = default!;
         public double? DefaultStudentsPoints { get; set; } = default!;
+        public EnumTypes.AnswerCorrect AnswerCorrect { get; set; }
         public SubquestionTemplate SubquestionTemplate { get; set; } = default!;
         public QuestionResult QuestionResult { get; set; } = default!;
     }

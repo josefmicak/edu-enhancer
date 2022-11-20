@@ -62,5 +62,18 @@
             GapMatch = 9,
             Slider = 10
         }
+
+        /// <summary>
+        /// Whether student's answer is correct (Correct/PartiallyCorrect/Incorrect/NotDetermined)
+        /// </summary>
+        public enum AnswerCorrect
+        {
+            NotDetermined = 0,
+            Correct = 1, 
+            PartiallyCorrect = 2,
+            Incorrect = 3,
+            NotAnswered = 4,
+            CannotBeDetermined = 5
+        }
     }
 }

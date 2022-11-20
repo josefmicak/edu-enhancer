@@ -76,10 +76,18 @@
         }
         else
         {
-            studentsQuestionPoints += item.StudentsPoints;
+            if (item.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
+            {
+                //in case negative points are disabled, the minimum points for every subquestion is 0
+                studentsQuestionPoints += 0;
+            }
+            else
+            {
+                studentsQuestionPoints += item.StudentsPoints;
+            }
         }
     }
-    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
+    if (negativePoints == EnumTypes.NegativePoints.Disabled && studentsQuestionPoints < 0)
     {
         studentsQuestionPoints = 0;
     }
@@ -90,6 +98,29 @@
     else
     {
         studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
+    }
+
+    string answerCorrectString = "";
+    switch(subquestionResult.AnswerCorrect)
+    {
+        case EnumTypes.AnswerCorrect.NotDetermined:
+            answerCorrectString = "Správnost odpovědi nebyla určena.";
+            break;
+        case EnumTypes.AnswerCorrect.Correct:
+            answerCorrectString = "Správná odpověď.";
+            break;
+        case EnumTypes.AnswerCorrect.PartiallyCorrect:
+            answerCorrectString = "Částečně správná odpověď.";
+            break;
+        case EnumTypes.AnswerCorrect.Incorrect:
+            answerCorrectString = "Nesprávná odpověď.";
+            break;
+        case EnumTypes.AnswerCorrect.NotAnswered:
+            answerCorrectString = "Správnost odpovědi nebyla určena - otázka nezodpovězena";
+            break;
+        case EnumTypes.AnswerCorrect.CannotBeDetermined:
+            answerCorrectString = "Správnost odpovědi nelze určit.";
+            break;
     }
 }
 
@@ -233,6 +264,8 @@
                 <p>@answer</p>
             }
         }
+
+        <p>@answerCorrectString</p>
     </div>
 
     <div id="subquestion-result-points">

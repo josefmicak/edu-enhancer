@@ -43,13 +43,13 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionTemplate>()
                 .Property(e => e.CorrectAnswerList)
                 .HasConversion(
-                v => string.Join(',', v),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                v => string.Join('~', v),
+                v => v.Split('~', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<SubquestionTemplate>()
                 .Property(e => e.PossibleAnswerList)
                 .HasConversion(
-                v => string.Join(',', v),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                v => string.Join('~', v),
+                v => v.Split('~', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<SubquestionTemplate>()
                 .HasOne(s => s.QuestionTemplate)
                 .WithMany()
