@@ -368,7 +368,7 @@ namespace BusinessLayer
             User? owner = dataFunctions.GetUserByLogin("login");
             if(owner == null)
             {
-                owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
+                owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
                 await dataFunctions.AddUser(owner);
             }
         }
@@ -376,8 +376,8 @@ namespace BusinessLayer
         public async Task DeleteTemplateTestingData()
         {
             dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
-            //dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
-            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where OwnerLogin = 'login'");//todo
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where OwnerLogin = 'login'");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateStatistics where UserLogin = 'login'");
             await dataFunctions.SaveChangesAsync();
         }
 

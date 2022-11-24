@@ -207,9 +207,14 @@ namespace BusinessLayer
             await resultFunctions.DeleteResultTestingData();
         }
 
-        public string GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task<string> GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
         {
-            return resultFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+            return await resultFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+        }
+
+        public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
+        {
+            return resultFunctions.GetSubquestionResultStatisticsDbSet();
         }
 
         //UserFunctions.cs

@@ -71,7 +71,7 @@ def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAverageP
 
 def load_model(model, login, x, y, retrainModel):
     base_path = Path(__file__) #Path(__file__).parent
-    file_path_string = "../model/" + login + "_NN.pt"
+    file_path_string = "../model/results/" + login + "_NN.pt"
     file_path = (base_path / file_path_string).resolve()
 
     if retrainModel is True:
@@ -88,7 +88,7 @@ def load_model(model, login, x, y, retrainModel):
 
 def save_model(model, login):
     base_path = Path(__file__) #Path(__file__).parent
-    file_path_string = "../model/" + login + "_NN.pt"
+    file_path_string = "../model/results/" + login + "_NN.pt"
     file_path = (base_path / file_path_string).resolve()
     torch.save(model.state_dict(), file_path)
 

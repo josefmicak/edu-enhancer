@@ -169,6 +169,11 @@ namespace DataLayer
             return _context.SubquestionResults;
         }
 
+        public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
+        {
+            return _context.SubquestionResultStatistics;
+        }
+
         public async Task<string> AddTestResults(List<TestResult> testResults)
         {
             int successCount = 0;
@@ -254,6 +259,13 @@ namespace DataLayer
                     Debug.WriteLine(ex.Message);
                 }
             }
+        }
+
+        public async Task AddSubquestionResultStatistics(SubquestionResultStatistics subquestionResultStatistics)
+        {
+            _context.SubquestionResultStatistics.Add(subquestionResultStatistics);
+            AttachUser(subquestionResultStatistics.User);
+            await _context.SaveChangesAsync();
         }
 
         //UserFunctions.cs

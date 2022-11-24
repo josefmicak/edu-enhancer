@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="model\" />
+    <Folder Include="model\results\" />
   </ItemGroup>
 
 </Project>

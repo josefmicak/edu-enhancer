@@ -1,4 +1,5 @@
-﻿@model IEnumerable<DomainModel.SubquestionTemplateStatistics>
+﻿@using DomainModel
+@model dynamic
 
 @{
     ViewData["Title"] = "Správa neuronových sítí";
@@ -54,7 +55,7 @@
                 <th>Přesnost</th>
             </tr>
             @{
-                foreach (var item in Model)
+                foreach (SubquestionTemplateStatistics item in Model.SubquestionTemplateStatistics)
                 {
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.UserLogin)</td>
@@ -91,11 +92,11 @@
                 <th>Přesnost</th>
             </tr>
             @{
-                foreach (var item in Model)
+                foreach (SubquestionResultStatistics item in Model.SubquestionResultStatistics)
                 {
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.UserLogin)</td>
-                        <td>TODO - @Html.DisplayFor(modelItem => item.NeuralNetworkAccuracy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NeuralNetworkAccuracy)</td>
                     </tr>
                 }
             }

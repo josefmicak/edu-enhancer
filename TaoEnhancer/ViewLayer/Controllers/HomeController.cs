@@ -33,7 +33,7 @@ namespace ViewLayer.Controllers
             businessLayerFunctions.InitialTestingModeSettings();
             businessLayerFunctions.SelectedPlatformSettings();
 
-           // DataGenerator.GenerateTemplatesFile("none", businessLayerFunctions.GetUserByLogin("login"));
+           // DataGenerator.GenerateTemplatesFile("none");
 
             List<TestTemplate> testTemplates = businessLayerFunctions.GetTestTemplatesByLogin("login");
           //  DataGenerator.GenerateResultsFile(testTemplates, "on");
@@ -434,13 +434,14 @@ namespace ViewLayer.Controllers
             else if(action == "getPointsSuggestion")
             {
                 int subquestionTypeInt = Convert.ToInt32(subquestionType);
+                //for these types of subquestion AI can't predict the amount of points, as their results are always entirely correct or entirely incorrect
                 if(subquestionTypeInt == 0 || subquestionTypeInt == 6 || subquestionTypeInt == 7 || subquestionTypeInt == 8)
                 {
                     TempData["SuggestedSubquestionPoints"] = "0";
                 }
                 else
                 {
-                    TempData["SuggestedSubquestionPoints"] = businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+                    TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
                 }
             }
             TempData["Message"] = message;
@@ -1342,14 +1343,16 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.DeviceName = TempData["DeviceName"]!.ToString();
             }
-
             ViewBag.TestingDataSubquestionTemplates = businessLayerFunctions.GetTestingDataSubquestionTemplatesCount();
-
             ViewBag.TestingDataSubquestionResults = businessLayerFunctions.GetTestingDataSubquestionResultsCount();
 
-            return businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet() != null ?
-                View(await businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet().ToListAsync()) :
-                Problem("Entity set 'CourseContext.SubquestionTemplateStatistics'  is null.");
+            dynamic model = new ExpandoObject();
+            model.SubquestionTemplateStatistics = await businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet().ToListAsync();
+            model.SubquestionResultStatistics = await businessLayerFunctions.GetSubquestionResultStatisticsDbSet().ToListAsync();
+
+            return (businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet() != null || businessLayerFunctions.GetSubquestionResultStatisticsDbSet() != null) ?
+                View(model) :
+            Problem("Entity set 'CourseContext.SubquestionTemplateStatistics' or 'CourseContext.SubquestionResultStatistics' is null.");
         }
 
         [HttpPost]

@@ -151,6 +151,16 @@ namespace BusinessLayer
                     && s.TestResultIdentifier == testResultIdentifier).AsQueryable();
         }
 
+        public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
+        {
+            return dataFunctions.GetSubquestionResultStatisticsDbSet();
+        }
+
+        public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
+        {
+            return dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
         {
             string message;
@@ -456,7 +466,7 @@ namespace BusinessLayer
             var subquestionResultRecords = DataGenerator.GetSubquestionResultRecords(testResultsToRecord);
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
 
-     /*       dataFunctions.ClearChargeTracker();
+            dataFunctions.ClearChargeTracker();
             owner = dataFunctions.GetUserByLoginAsNoTracking();
             var subquestionResultStatistics = GetSubquestionResultStatistics(owner.Login);
             if (subquestionResultStatistics == null)
@@ -473,7 +483,7 @@ namespace BusinessLayer
             {
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
                 await dataFunctions.SaveChangesAsync();
-            }*/
+            }
 
             return message;
         }
@@ -483,7 +493,7 @@ namespace BusinessLayer
             Student? student = dataFunctions.GetStudentByLogin("testingstudent");
             if (student == null)
             {
-                student = new Student() { Login = "testingstudent", Email = "email", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+                student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
                 await dataFunctions.AddStudent(student);
             }
         }
@@ -491,23 +501,23 @@ namespace BusinessLayer
         public async Task DeleteResultTestingData()
         {
             dataFunctions.ExecuteSqlRaw("delete from TestResult where IsTestingData = 1");
-            //dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
-            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");//todo
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultStatistics where UserLogin = 'login'");
             await dataFunctions.SaveChangesAsync();
         }
 
-        public string GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task<string> GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
         {
             User owner = dataFunctions.GetUserByLogin(login);
 
-            //check if enough subquestion templates have been added to warrant new model training
+            //check if enough subquestion results have been added to warrant new model training
             bool retrainModel = false;
-         /*   int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(login).SubquestionTemplatesAdded;
-            if (subquestionTemplatesAdded >= 100)
+            int subquestionResultsAdded = GetSubquestionResultStatistics(login).SubquestionResultsAdded;
+            if (subquestionResultsAdded >= 100)
             {
                 retrainModel = true;
-                await RetrainSubquestionTemplateModel(owner);
-            }*/
+                await RetrainSubquestionResultModel(owner);
+            }
 
             var subquestionResults = GetSubquestionResults(login, testResultIdentifier, questionNumberIdentifier);
 
@@ -519,19 +529,30 @@ namespace BusinessLayer
             var subquestionResult = GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
 
             SubquestionResultRecord currentSubquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner);
-            string suggestedSubquestionPoints = string.Empty;
-        //    int subquestionType = (int)subquestionResult.SubquestionTemplate.SubquestionType;
-
-            suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord);
-        /*    if (subquestionTemplatesAdded >= 100)
+            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord);
+            if (subquestionResultsAdded >= 100)
             {
-                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
-                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
+                subquestionResultStatistics.SubquestionResultsAdded = 0;
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
                 await dataFunctions.SaveChangesAsync();
-            }*/
+            }
 
             return suggestedSubquestionPoints;
+        }
+
+        public async Task RetrainSubquestionResultModel(User owner)
+        {
+            string login = owner.Login;
+            //delete existing subquestion template records of this user
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where 'login' = '" + login + "'");
+            await dataFunctions.SaveChangesAsync();
+
+            //create subquestion template records
+            var testResults = GetTestResultList(login);
+
+            var subquestionResultRecords = DataGenerator.GetSubquestionResultRecords(testResults);
+            await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
         }
 
         /// <summary>

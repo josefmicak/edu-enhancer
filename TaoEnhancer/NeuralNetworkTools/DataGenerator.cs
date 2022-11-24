@@ -2,10 +2,6 @@
 using Common;
 using CsvHelper;
 using System.Globalization;
-using System.Diagnostics;
-using static Common.EnumTypes;
-using System.Text.RegularExpressions;
-using System;
 
 namespace NeuralNetworkTools
 {
@@ -15,7 +11,7 @@ namespace NeuralNetworkTools
         /// Generates .csv file of a number of subquestion templates with parameters that are used by the neural network
         /// </summary>
         /// <param name="dataColleration">Decides whether the generated data will be randomized or if there are going to be collerations between the templates</param>
-        public static void GenerateTemplatesFile(string dataColleration, User owner)
+        public static void GenerateTemplatesFile(string dataColleration)
         {
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             if (dataColleration == "none")
@@ -194,7 +190,7 @@ namespace NeuralNetworkTools
             List<TestTemplate> testTemplates = existingTestTemplates;
             int existingTestTemplatesCount = existingTestTemplates.Count;
             Random random = new Random();
-            User owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
+            User owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
             bool stopDataGeneration = false;
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
@@ -357,7 +353,7 @@ namespace NeuralNetworkTools
             List<TestTemplate> testTemplates = existingTestTemplates;
             int existingTestTemplatesCount = existingTestTemplates.Count;
             Random random = new Random();
-            User owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
+            User owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
             bool stopDataGeneration = false;
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
@@ -525,6 +521,8 @@ namespace NeuralNetworkTools
                         subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
+                        subquestionTemplate.CorrectChoicePoints = CalculateCorrectChoicePoints(
+                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
 
@@ -558,7 +556,7 @@ namespace NeuralNetworkTools
         public static List<TestResult> GenerateRandomTestResults(List<TestTemplate> existingTestTemplates, int testingDataTestResultsCount, int amountOfSubquestionResultsToBeGenerated)
         {
             List<TestResult> testResults = new List<TestResult>();
-            Student student = new Student() { Login = "testingstudent", Email = "email", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+            Student student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
             Random random = new Random();
             int subquestionCount = 0;
             bool stopDataGeneration = false;
@@ -659,7 +657,7 @@ namespace NeuralNetworkTools
         public static List<TestResult> GenerateCorrelationalTestResults(List<TestTemplate> existingTestTemplates, int testingDataTestResultsCount, int amountOfSubquestionResultsToBeGenerated)
         {
             List<TestResult> testResults = new List<TestResult>();
-            Student student = new Student() { Login = "testingstudent", Email = "email", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+            Student student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
             Random random = new Random();
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
@@ -668,11 +666,17 @@ namespace NeuralNetworkTools
             int subquestionCount = 0;
             bool stopDataGeneration = false;
 
-            for (int i = 0; i < existingTestTemplates.Count; i++)
+            for (int i = 0;; i++)
             {
                 if (stopDataGeneration)
                 {
                     break;
+                }
+
+                //by doing this, we ensure that there can be more testing data results than testing data templates in the system
+                if(i == existingTestTemplates.Count)
+                {
+                    i = 0;
                 }
 
                 string testId = testingDataTestResultsCount.ToString();

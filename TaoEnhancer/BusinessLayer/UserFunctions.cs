@@ -102,6 +102,11 @@ namespace BusinessLayer
             subquestionTemplateStatistics.User = mainAdmin;
             subquestionTemplateStatistics.UserLogin = mainAdmin.Login;
             await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+            SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+            subquestionResultStatistics.User = mainAdmin;
+            subquestionResultStatistics.UserLogin = mainAdmin.Login;
+            await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
         }
 
         public async Task<string> CreateUserRegistration(string firstName, string lastName, string email, string login, string role)
@@ -212,6 +217,11 @@ namespace BusinessLayer
             subquestionTemplateStatistics.User = teacher;
             subquestionTemplateStatistics.UserLogin = teacher.Login;
             await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+            SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+            subquestionResultStatistics.User = teacher;
+            subquestionResultStatistics.UserLogin = teacher.Login;
+            await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
         }
 
         public async Task EditUser(User user, string firstName, string lastName, string login, string email, string role)
@@ -258,6 +268,11 @@ namespace BusinessLayer
             subquestionTemplateStatistics.User = admin;
             subquestionTemplateStatistics.UserLogin = admin.Login;
             await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+            SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+            subquestionResultStatistics.User = admin;
+            subquestionResultStatistics.UserLogin = admin.Login;
+            await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
         }
 
         public async Task ChangeMainAdmin(User newMainAdmin, string firstName, string lastName, string login, string email)
@@ -319,6 +334,11 @@ namespace BusinessLayer
                 subquestionTemplateStatistics.User = user;
                 subquestionTemplateStatistics.UserLogin = user.Login;
                 await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+                SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+                subquestionResultStatistics.User = user;
+                subquestionResultStatistics.UserLogin = user.Login;
+                await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
             }
             else
             {
