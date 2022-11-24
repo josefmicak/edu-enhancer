@@ -10,6 +10,7 @@ using System.Dynamic;
 using Common;
 using BusinessLayer;
 using NuGet.Protocol.Plugins;
+using NeuralNetworkTools;
 
 namespace ViewLayer.Controllers
 {
@@ -31,6 +32,11 @@ namespace ViewLayer.Controllers
 
             businessLayerFunctions.InitialTestingModeSettings();
             businessLayerFunctions.SelectedPlatformSettings();
+
+           // DataGenerator.GenerateTemplatesFile("none", businessLayerFunctions.GetUserByLogin("login"));
+
+            List<TestTemplate> testTemplates = businessLayerFunctions.GetTestTemplatesByLogin("login");
+          //  DataGenerator.GenerateResultsFile(testTemplates, "on");
 
             Config.GoogleClientId = businessLayerFunctions.GetGoogleClientId();
         }
@@ -374,11 +380,19 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
+
             if (TempData["subquestionIdentifier"] != null)
             {
                 ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
+
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
+
+            if (TempData["SuggestedSubquestionPoints"] != null)
+            {
+                ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
+            }
+
             string login = businessLayerFunctions.GetCurrentUserLogin();
 
             var subquestionResults = businessLayerFunctions.GetSubquestionResultsByOwnerLogin(login, testResultIdentifier, questionNumberIdentifier);
@@ -394,22 +408,39 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageSolvedQuestion(string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier, string studentsPoints, string subquestionPoints, string negativePoints)
+        public async Task<IActionResult> ManageSolvedQuestion(string action, string questionNumberIdentifier, string testResultIdentifier, string subquestionIdentifier,
+            string studentsPoints, string subquestionPoints, string negativePoints, string subquestionType)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            if (studentsPoints != null)
-            {
-                studentsPoints = studentsPoints.Replace(".", ",");//todo: formatting
-            }
             string? message = null;
-            //the teacher is changing student's points
-            if(studentsPoints != null)
+            if (action == "setPoints") 
             {
-                var subquestionResult = businessLayerFunctions.GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
-
-                if(subquestionResult != null)
+                if (studentsPoints != null)
                 {
-                    message = await businessLayerFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
+                    studentsPoints = studentsPoints.Replace(".", ",");//todo: formatting
+                }
+                
+                //the teacher is changing student's points
+                if (studentsPoints != null)
+                {
+                    var subquestionResult = businessLayerFunctions.GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+
+                    if (subquestionResult != null)
+                    {
+                        message = await businessLayerFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
+                    }
+                }
+            }
+            else if(action == "getPointsSuggestion")
+            {
+                int subquestionTypeInt = Convert.ToInt32(subquestionType);
+                if(subquestionTypeInt == 0 || subquestionTypeInt == 6 || subquestionTypeInt == 7 || subquestionTypeInt == 8)
+                {
+                    TempData["SuggestedSubquestionPoints"] = "0";
+                }
+                else
+                {
+                    TempData["SuggestedSubquestionPoints"] = businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
                 }
             }
             TempData["Message"] = message;
@@ -1314,13 +1345,15 @@ namespace ViewLayer.Controllers
 
             ViewBag.TestingDataSubquestionTemplates = businessLayerFunctions.GetTestingDataSubquestionTemplatesCount();
 
+            ViewBag.TestingDataSubquestionResults = businessLayerFunctions.GetTestingDataSubquestionResultsCount();
+
             return businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet() != null ?
                 View(await businessLayerFunctions.GetSubquestionTemplateStatisticsDbSet().ToListAsync()) :
                 Problem("Entity set 'CourseContext.SubquestionTemplateStatistics'  is null.");
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageNeuralNetworks(string action, string amountOfSubquestionTemplates)
+        public async Task<IActionResult> ManageNeuralNetworks(string action, string amountOfSubquestionTemplates, string amountOfSubquestionResults)
         {
             if(action == "addSubquestionTemplateRandomData" || action == "addSubquestionTemplateCorrelationalData")
             {
@@ -1329,6 +1362,15 @@ namespace ViewLayer.Controllers
             else if(action == "deleteSubquestionTemplateTestingData")
             {
                 await businessLayerFunctions.DeleteTemplateTestingData();
+                TempData["Message"] = "Testovací data úspěšně vymazány.";
+            }
+            else if (action == "addSubquestionResultRandomData" || action == "addSubquestionResultCorrelationalData")
+            {
+                TempData["Message"] = await businessLayerFunctions.CreateResultTestingData(action, amountOfSubquestionResults);
+            }
+            else if (action == "deleteSubquestionResultTestingData")
+            {
+                await businessLayerFunctions.DeleteResultTestingData();
                 TempData["Message"] = "Testovací data úspěšně vymazány.";
             }
             else if(action == "getDeviceName")

@@ -10,6 +10,7 @@ namespace DomainModel
         public string StudentIdentifier { get; set; } = default!;
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
+        public bool IsTestingData { get; set; } = false;
         public string FullName()
         {
             return FirstName + " " + LastName;

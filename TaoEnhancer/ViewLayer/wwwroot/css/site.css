@@ -302,10 +302,18 @@ img {
 
 /*ManageNeuralNewtworks.cshtml*/
 
-#neural-network-statistics {
+#neural-network-templates {
     position: absolute;
-    left: 45%;
-    top: 30%;
+    left: 15%;
+    top: 10%;
+    border: 1px;
+    border-style: solid;
+}
+
+#neural-network-results {
+    position: absolute;
+    left: 40%;
+    top: 10%;
     border: 1px;
     border-style: solid;
 }

@@ -41,7 +41,15 @@ namespace DataLayer
             return _context.SubquestionTemplateStatistics;
         }
 
-        public async Task<string> AddTestTemplates(List<TestTemplate> testTemplates, User? owner, bool attachOwner)
+        public List<TestTemplate> GetTestTemplateList(string login)
+        {
+            return GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.OwnerLogin == login).ToList();
+        }
+
+        public async Task<string> AddTestTemplates(List<TestTemplate> testTemplates, User? owner)
         {
             int successCount = 0;
             int errorCount = 0;
@@ -53,17 +61,7 @@ namespace DataLayer
                 {
                     TestTemplate testTemplate = testTemplates[i];
                     _context.ChangeTracker.Clear();
-                    if(attachOwner)
-                    {
-                        if(owner != null)
-                        {
-                            _context.Users.Attach(testTemplate.Owner);
-                        }
-                    }
-                    else
-                    {
-                        _context.Users.Attach(testTemplate.Owner);
-                    }
+                    _context.Users.Attach(testTemplate.Owner);
                     _context.TestTemplates.Add(testTemplate);
                     await _context.SaveChangesAsync();
                     successCount++;
@@ -116,6 +114,15 @@ namespace DataLayer
                     Debug.WriteLine(ex.Message);
                 }
             }
+        }
+
+        public List<TestTemplate> GetTestTemplatesByLogin(string login)
+        {
+            return _context.TestTemplates
+                .Include(t => t.Owner)
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.OwnerLogin == login).ToList();
         }
 
         public TestTemplate GetTestTemplate(string login, string testNameIdentifier)
@@ -228,6 +235,25 @@ namespace DataLayer
                     .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
                     && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login).ToList();
             return subquestionResults;
+        }
+
+        public async Task SaveSubquestionResultRecords(List<SubquestionResultRecord> subquestionResultRecords, User owner)
+        {
+            for (int i = 0; i < subquestionResultRecords.Count; i++)
+            {
+                try
+                {
+                    var subquestionResultRecord = subquestionResultRecords[i];
+                    _context.Users.Attach(owner);
+                    _context.SubquestionResultRecords.Add(subquestionResultRecord);
+                    await _context.SaveChangesAsync();
+                }
+
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
         }
 
         //UserFunctions.cs

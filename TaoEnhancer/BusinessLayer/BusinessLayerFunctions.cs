@@ -40,6 +40,11 @@ namespace BusinessLayer
             return templateFunctions.GetSubquestionTemplateStatisticsDbSet();
         }
 
+        public List<TestTemplate> GetTestTemplatesByLogin(string login)//todo: duplikat
+        {
+            return templateFunctions.GetTestTemplatesByLogin(login);
+        }
+
         public IQueryable<TestTemplate> GetTestTemplates(string login)
         {
             return templateFunctions.GetTestTemplates(login);
@@ -185,6 +190,26 @@ namespace BusinessLayer
         public async Task UpdateStudentsPoints(string login, string questionNumberIdentifier, string subquestionIdentifier)
         {
             await resultFunctions.UpdateStudentsPoints(login, questionNumberIdentifier, subquestionIdentifier);
+        }
+
+        public int GetTestingDataSubquestionResultsCount()
+        {
+            return resultFunctions.GetTestingDataSubquestionResultsCount();
+        }
+
+        public async Task<string> CreateResultTestingData(string action, string amountOfSubquestionResults)
+        {
+            return await resultFunctions.CreateResultTestingData(action, amountOfSubquestionResults);
+        }
+
+        public async Task DeleteResultTestingData()
+        {
+            await resultFunctions.DeleteResultTestingData();
+        }
+
+        public string GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            return resultFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
         }
 
         //UserFunctions.cs

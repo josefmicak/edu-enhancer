@@ -22,6 +22,7 @@ namespace DataLayer
         public DbSet<GlobalSettings> GlobalSettings { get; set; } = default!;
         public DbSet<SubquestionTemplateRecord> SubquestionTemplateRecords { get; set; } = default!;
         public DbSet<SubquestionTemplateStatistics> SubquestionTemplateStatistics { get; set; } = default!;
+        public DbSet<SubquestionResultRecord> SubquestionResultRecords { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -137,6 +138,19 @@ namespace DataLayer
                 .HasOne(s => s.User)
                 .WithMany()
                 .HasForeignKey(s => s.UserLogin)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SubquestionResultRecord>().ToTable("SubquestionResultRecord");
+            modelBuilder.Entity<SubquestionResultRecord>().HasKey(s => new { s.TestResultIdentifier, s.QuestionNumberIdentifier, s.SubquestionIdentifier, s.OwnerLogin });
+            modelBuilder.Entity<SubquestionResultRecord>()
+                .HasOne(s => s.Owner)
+                .WithMany()
+                .HasForeignKey(s => s.OwnerLogin)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SubquestionResultRecord>()
+                .HasOne(s => s.SubquestionResult)
+                .WithMany()
+                .HasForeignKey(s => new { s.TestResultIdentifier, s.QuestionNumberIdentifier, s.SubquestionIdentifier, s.OwnerLogin })
                 .OnDelete(DeleteBehavior.Cascade);
         }
 

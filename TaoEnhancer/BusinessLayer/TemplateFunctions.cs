@@ -29,6 +29,11 @@ namespace BusinessLayer
             return dataFunctions.GetTestTemplateDbSet();
         }
 
+        public List<TestTemplate> GetTestTemplatesByLogin(string login)
+        {
+            return dataFunctions.GetTestTemplatesByLogin(login);
+        }
+
         public IQueryable<TestTemplate> GetTestTemplates(string login)
         {
             return GetTestTemplateDbSet()
@@ -50,24 +55,11 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionTemplateStatisticsDbSet();
         }
 
-        public List<TestTemplate> GetTestTemplateList()
-        {
-            return GetTestTemplateDbSet().ToList();
-        }
-
-        public List<TestTemplate> GetTestTemplateList(string login)
-        {
-            return GetTestTemplateDbSet()
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
-                .Where(t => t.OwnerLogin == login).ToList();
-        }
-
         public async Task<string> AddTestTemplates(string login)
         {
             List<TestTemplate> testTemplates = LoadTestTemplates(login);
 
-            return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner, false);
+            return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner);
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -232,14 +224,15 @@ namespace BusinessLayer
                 case SubquestionType.MultiChoiceMultipleCorrectAnswers:
                     correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Length;
                     break;
-                case SubquestionType n when (n == SubquestionType.MatchingElements || n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
+                case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
                     correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Length / 2);
+                    break;
+                case SubquestionType.MatchingElements:
+                    correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Length / 2) / 2;
                     break;
             }
             return Math.Round(correctChoicePoints, 2);
         }
-
-
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
         {
@@ -284,7 +277,7 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
 
             //create subquestion template records
-            var testTemplates = GetTestTemplateList(login);
+            var testTemplates = dataFunctions.GetTestTemplateList(login);
 
             var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
@@ -321,7 +314,8 @@ namespace BusinessLayer
         public async Task<string> CreateTemplateTestingData(string action, string amountOfSubquestionTemplates)
         {
             string message;
-            User? owner = dataFunctions.GetUserByLoginAsNoTracking();
+            await TestingUsersCheck();
+            User? owner = dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = GetTestingDataTestTemplates();
 
             List<TestTemplate> testTemplates = new List<TestTemplate>();
@@ -333,7 +327,7 @@ namespace BusinessLayer
             {
                 testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
             }
-            message = await dataFunctions.AddTestTemplates(testTemplates, owner, true);//todo: error?
+            message = await dataFunctions.AddTestTemplates(testTemplates, owner);//todo: error?
             string login = "login";
             owner = dataFunctions.GetUserByLoginAsNoTracking();
 
@@ -342,7 +336,7 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
 
             //create subquestion template records
-            var testTemplatesToRecord = GetTestTemplateList(login);
+            var testTemplatesToRecord = dataFunctions.GetTestTemplateList(login);
 
             var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplatesToRecord);
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
@@ -369,11 +363,21 @@ namespace BusinessLayer
             return message;
         }
 
+        public async Task TestingUsersCheck()
+        {
+            User? owner = dataFunctions.GetUserByLogin("login");
+            if(owner == null)
+            {
+                owner = new User() { Login = "login", Email = "email", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
+                await dataFunctions.AddUser(owner);
+            }
+        }
+
         public async Task DeleteTemplateTestingData()
         {
             dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
-            dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
-            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord");//todo
+            //dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where OwnerLogin = 'login'");//todo
             await dataFunctions.SaveChangesAsync();
         }
 
@@ -1254,10 +1258,10 @@ namespace BusinessLayer
 
         public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner)
         {
-            var testTemplates = GetTestTemplateList(owner.Login);
+            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAveragePoints(testTemplates);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAveragePoints(testTemplates);
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
@@ -1317,8 +1321,6 @@ namespace BusinessLayer
             }
 
             return subquestionTemplateRecord;
-
         }
-
     }
 }

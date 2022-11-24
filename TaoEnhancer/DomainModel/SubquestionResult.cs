@@ -11,6 +11,7 @@ namespace DomainModel
         public string[] StudentsAnswerList { get; set; } = default!;
         public double? StudentsPoints { get; set; } = default!;
         public double? DefaultStudentsPoints { get; set; } = default!;
+        public double AnswerCorrectness { get; set; }
         public EnumTypes.AnswerCorrect AnswerCorrect { get; set; }
         public SubquestionTemplate SubquestionTemplate { get; set; } = default!;
         public QuestionResult QuestionResult { get; set; } = default!;

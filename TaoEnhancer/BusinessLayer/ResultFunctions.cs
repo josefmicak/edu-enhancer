@@ -2,6 +2,7 @@
 using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
+using NeuralNetworkTools;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -42,6 +43,18 @@ namespace BusinessLayer
                 Include(s => s.Student).
                 Include(t => t.TestTemplate).
                 Where(t => t.OwnerLogin == login);
+        }
+
+        public List<TestResult> GetTestResultList(string login)
+        {
+            return GetTestResultDbSet()
+                .Include(s => s.Student)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(q => q.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionResultList)
+                .ThenInclude(q => q.SubquestionResultList)
+                .Where(t => t.OwnerLogin == login).ToList();
         }
 
         public IQueryable<TestResult> GetTestResultsByStudentLogin(string login)
@@ -121,8 +134,21 @@ namespace BusinessLayer
         public SubquestionResult GetSubquestionResult(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
         {
             return GetSubquestionResultDbSet()
+                .Include(s => s.SubquestionTemplate)
+                .Include(s => s.SubquestionTemplate.QuestionTemplate)
+                .Include(s => s.SubquestionTemplate.QuestionTemplate.TestTemplate)
                 .First(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier
                 && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+        }
+
+        public IQueryable<SubquestionResult> GetSubquestionResults(string login, string testResultIdentifier, string questionNumberIdentifier)
+        {
+            return GetSubquestionResultDbSet()
+                .Include(s => s.QuestionResult)
+                .Include(s => s.QuestionResult.TestResult)
+                .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                    && s.OwnerLogin == login
+                    && s.TestResultIdentifier == testResultIdentifier).AsQueryable();
         }
 
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
@@ -294,6 +320,7 @@ namespace BusinessLayer
                         //the student did not answer this question - he gets no points for this question
                         if (studentsAnswers[0] == "Nevyplněno" && studentsAnswers.Length == 1)
                         {
+                            answerCorrect = AnswerCorrect.NotAnswered;
                             break;
                         }
 
@@ -310,16 +337,19 @@ namespace BusinessLayer
                         }
                     }
 
-                    //increase points for every correct answer
-                    defaultStudentPoints += studentsCorrectAnswers * ((double)subquestionPoints / (double)correctAnswersArray.Length);
-                    //decrease points for every incorrect answer
-                    defaultStudentPoints -= (studentsAnswers.Length - studentsCorrectAnswers) * (wrongChoicePoints);
+                    if(answerCorrect != AnswerCorrect.NotAnswered)
+                    {
+                        //increase points for every correct answer
+                        defaultStudentPoints += studentsCorrectAnswers * ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                        //decrease points for every incorrect answer
+                        defaultStudentPoints -= (studentsAnswers.Length - studentsCorrectAnswers) * Math.Abs(wrongChoicePoints.Value);
+                    }
 
-                    if(studentsAnswers.Length > 0 && studentsCorrectAnswers == correctAnswersArray.Length)
+                    if (studentsAnswers.Length > 0 && studentsCorrectAnswers == correctAnswersArray.Length)
                     {
                         answerCorrect = AnswerCorrect.Correct;
                     }
-                    else if(studentsAnswers.Length > 0 && studentsCorrectAnswers == 0)
+                    else if (studentsAnswers.Length > 0 && studentsCorrectAnswers == 0)
                     {
                         answerCorrect = AnswerCorrect.Incorrect;
                     }
@@ -329,11 +359,10 @@ namespace BusinessLayer
                     }
                     break;
                     /*case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
-
                         break;*/
             }
 
-            if(subquestionType == SubquestionType.FreeAnswer)
+            if (subquestionType == SubquestionType.FreeAnswer)
             {
                 answerCorrect = AnswerCorrect.CannotBeDetermined;
             }
@@ -357,6 +386,152 @@ namespace BusinessLayer
                 subquestionResult.StudentsPoints = defaultStudentsPoints;
             }
             await dataFunctions.SaveChangesAsync();
+        }
+
+        public List<TestTemplate> GetTestingDataTestTemplates()
+        {
+            var testTemplates = dataFunctions.GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .Where(t => t.IsTestingData).ToList();
+            return testTemplates;
+        }
+
+        public List<TestResult> GetTestingDataTestResults()
+        {
+            var testResults = GetTestResultDbSet()
+                .Include(t => t.QuestionResultList)
+                .ThenInclude(q => q.SubquestionResultList)
+                .Where(t => t.IsTestingData).ToList();
+            return testResults;
+        }
+
+        public int GetTestingDataSubquestionResultsCount()
+        {
+            int testingDataSubquestionResults = 0;
+            var testResults = GetTestingDataTestResults();
+            for (int i = 0; i < testResults.Count; i++)
+            {
+                TestResult testResult = testResults[i];
+                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    {
+                        testingDataSubquestionResults++;
+                    }
+                }
+            }
+            return testingDataSubquestionResults;
+        }
+
+        public async Task<string> CreateResultTestingData(string action, string amountOfSubquestionResults)
+        {
+            string message;
+            await TestingUsersCheck();
+            User? owner = dataFunctions.GetUserByLogin("login");
+            var existingTestTemplates = GetTestingDataTestTemplates();
+            int testingDataTestResultsCount = GetTestingDataTestResults().Count;
+
+            List<TestResult> testResults = new List<TestResult>();
+            if (action == "addSubquestionResultRandomData")
+            {
+                testResults = DataGenerator.GenerateRandomTestResults(existingTestTemplates, testingDataTestResultsCount, Convert.ToInt32(amountOfSubquestionResults));
+            }
+            else if (action == "addSubquestionResultCorrelationalData")
+            {
+                testResults = DataGenerator.GenerateCorrelationalTestResults(existingTestTemplates, testingDataTestResultsCount, Convert.ToInt32(amountOfSubquestionResults));
+            }
+            message = await dataFunctions.AddTestResults(testResults);
+            string login = "login";
+            owner = dataFunctions.GetUserByLoginAsNoTracking();
+
+            //delete existing subquestion template records of this user
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where 'login' = '" + login + "'");
+            await dataFunctions.SaveChangesAsync();
+
+            //create subquestion template records
+            var testResultsToRecord = GetTestResultList(login);
+
+            var subquestionResultRecords = DataGenerator.GetSubquestionResultRecords(testResultsToRecord);
+            await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
+
+     /*       dataFunctions.ClearChargeTracker();
+            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            var subquestionResultStatistics = GetSubquestionResultStatistics(owner.Login);
+            if (subquestionResultStatistics == null)
+            {
+                subquestionResultStatistics = new SubquestionResultStatistics();
+                subquestionResultStatistics.User = owner;
+                subquestionResultStatistics.UserLogin = owner.Login;
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
+                dataFunctions.AttachUser(subquestionResultStatistics.User);
+                await dataFunctions.SaveChangesAsync();
+            }
+            else
+            {
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                await dataFunctions.SaveChangesAsync();
+            }*/
+
+            return message;
+        }
+
+        public async Task TestingUsersCheck()
+        {
+            Student? student = dataFunctions.GetStudentByLogin("testingstudent");
+            if (student == null)
+            {
+                student = new Student() { Login = "testingstudent", Email = "email", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+                await dataFunctions.AddStudent(student);
+            }
+        }
+
+        public async Task DeleteResultTestingData()
+        {
+            dataFunctions.ExecuteSqlRaw("delete from TestResult where IsTestingData = 1");
+            //dataFunctions.ExecuteSqlRaw("delete from [User] where IsTestingData = 1");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");//todo
+            await dataFunctions.SaveChangesAsync();
+        }
+
+        public string GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        {
+            User owner = dataFunctions.GetUserByLogin(login);
+
+            //check if enough subquestion templates have been added to warrant new model training
+            bool retrainModel = false;
+         /*   int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(login).SubquestionTemplatesAdded;
+            if (subquestionTemplatesAdded >= 100)
+            {
+                retrainModel = true;
+                await RetrainSubquestionTemplateModel(owner);
+            }*/
+
+            var subquestionResults = GetSubquestionResults(login, testResultIdentifier, questionNumberIdentifier);
+
+            if (subquestionIdentifier == null)
+            {
+                subquestionIdentifier = subquestionResults.First().SubquestionIdentifier;
+            }
+
+            var subquestionResult = GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+
+            SubquestionResultRecord currentSubquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner);
+            string suggestedSubquestionPoints = string.Empty;
+        //    int subquestionType = (int)subquestionResult.SubquestionTemplate.SubquestionType;
+
+            suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord);
+        /*    if (subquestionTemplatesAdded >= 100)
+            {
+                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                await dataFunctions.SaveChangesAsync();
+            }*/
+
+            return suggestedSubquestionPoints;
         }
 
         /// <summary>
@@ -534,8 +709,9 @@ namespace BusinessLayer
                                 subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                                 subquestionResult.StudentsPoints = defaultStudentsPoints;
                             }
-                            subquestionResult.AnswerCorrect = answerCorrect;
+                            subquestionResult.AnswerCorrect = answerCorrect;//TODO: AnswerCorrectStatus?
                             subquestionResult.OwnerLogin = login;
+                            //subquestionResult.AnswerCorrectness = 0.5;//TODO
                             subquestionResults.Add(subquestionResult);
                         }
                     }
@@ -633,5 +809,39 @@ namespace BusinessLayer
             throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
         }
 
+        public SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner)
+        {
+            SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+            //var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
+            var testResults = GetTestResultList(owner.Login);
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
+            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
+            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+
+            SubquestionResultRecord subquestionResultRecord = new SubquestionResultRecord();
+            subquestionResultRecord.SubquestionResult = subquestionResult;
+            subquestionResultRecord.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+            subquestionResultRecord.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
+            subquestionResultRecord.TestResultIdentifier = subquestionResult.TestResultIdentifier;
+            subquestionResultRecord.Owner = owner;
+            subquestionResultRecord.OwnerLogin = owner.Login;
+            EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
+            subquestionResultRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
+            string? subject = testTemplate.Subject;
+            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
+            subquestionResultRecord.SubjectAveragePoints = Math.Round(subquestionTypeAveragePoints[subjectId], 2);
+            subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
+            subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
+            double? minimumPointsShareRound = minimumPointsShare.HasValue
+                ? (double?)Math.Round(minimumPointsShare.Value, 2)
+                : null;
+            subquestionResultRecord.MinimumPointsShare = minimumPointsShareRound;
+            subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;
+            subquestionResultRecord.StudentsPoints = subquestionResult.StudentsPoints;
+            //todo: SubjectAveragePoints a SubquestionTypeAveragePoints jsou prilis vysoke
+            return subquestionResultRecord;
+        }
     }
 }

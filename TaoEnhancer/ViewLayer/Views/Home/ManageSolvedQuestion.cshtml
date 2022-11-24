@@ -122,6 +122,34 @@
             answerCorrectString = "Správnost odpovědi nelze určit.";
             break;
     }
+
+    bool userRequestedPointsSuggestion = false;
+    if (ViewBag.SuggestedSubquestionPoints != null)
+    {
+        userRequestedPointsSuggestion = true;
+    }
+
+    int subquestionType = (int)subquestionTemplate.SubquestionType;
+    string suggestedSubquestionPointsString = ViewBag.SuggestedSubquestionPoints;
+    double? suggestedSubquestionPoints = 0;
+    if (userRequestedPointsSuggestion)
+    {
+        if (subquestionType == 0 || subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
+        {
+            suggestedSubquestionPointsString = "Chyba: pro tento typ podotázky není tato funkce dostupná";
+        }
+        else
+        {
+            suggestedSubquestionPoints = double.Parse(suggestedSubquestionPointsString.Replace(".", ","));
+            //with some combinations of variables, the AI could award the student more points than the subquestion's points
+            if (suggestedSubquestionPoints > subquestionTemplate.SubquestionPoints)
+            {
+                suggestedSubquestionPoints = subquestionTemplate.SubquestionPoints;
+            }
+            suggestedSubquestionPointsString = suggestedSubquestionPoints.ToString();
+        }
+    }
+    
 }
 
 <div class="text-center">
@@ -264,7 +292,7 @@
                 <p>@answer</p>
             }
         }
-
+        
         <p>@answerCorrectString</p>
     </div>
 
@@ -276,9 +304,21 @@
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionPoints" name="subquestionPoints">
             <input type="hidden" value="@negativePoints" name="negativePoints">
+            <input type="hidden" value="@subquestionType" name="subquestionType">
 
             <p>Počet bodů získaných studentem: <input class="input" id="students-points" required name="studentsPoints" onchange="limitDecimalPlaces(this, 2)" value="@subquestionResult.StudentsPoints.ToString()"></p>
-            <input class="button" id="setStudentsPointsBtn" title="Uložit" type="submit" value="Uložit">
+            <p>Počet bodů (automatické vyhodnocení): @subquestionResult.DefaultStudentsPoints</p>
+            @{
+                if (userRequestedPointsSuggestion)
+                {
+                    <p>Počet bodů (doporučení AI): @suggestedSubquestionPointsString</p>
+                }
+                else
+                {
+                    <p>Počet bodů (doporučení AI): <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
+                }
+            }
+            <button type="submit" value="setPoints" name="action">Uložit</button>
         </form>
     </div>
 </div>
