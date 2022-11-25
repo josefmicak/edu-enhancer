@@ -221,7 +221,7 @@
         <form method="POST">
             <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
             <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
-            <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
+            <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString().Replace(",", ".")"></p>
             @{
                 if (userRequestedPointsSuggestion)
                 {

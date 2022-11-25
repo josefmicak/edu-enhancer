@@ -463,7 +463,7 @@ namespace BusinessLayer
             //create subquestion template records
             var testResultsToRecord = GetTestResultList(login);
 
-            var subquestionResultRecords = DataGenerator.GetSubquestionResultRecords(testResultsToRecord);
+            var subquestionResultRecords = DataGenerator.CreateSubquestionResultRecords(testResultsToRecord);
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
 
             dataFunctions.ClearChargeTracker();
@@ -527,8 +527,18 @@ namespace BusinessLayer
             }
 
             var subquestionResult = GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+            SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
 
-            SubquestionResultRecord currentSubquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner);
+            var testResults = GetTestResultList(owner.Login);
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
+            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
+            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+
+            //SubquestionResultRecord currentSubquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner);
+            SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
+                subjectsArray, subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord);
             if (subquestionResultsAdded >= 100)
             {
@@ -551,7 +561,7 @@ namespace BusinessLayer
             //create subquestion template records
             var testResults = GetTestResultList(login);
 
-            var subquestionResultRecords = DataGenerator.GetSubquestionResultRecords(testResults);
+            var subquestionResultRecords = DataGenerator.CreateSubquestionResultRecords(testResults);
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
         }
 
@@ -828,41 +838,6 @@ namespace BusinessLayer
                 }
             }
             throw Exceptions.StudentsAnswerNotFoundException(testNameIdentifier, questionNumberIdentifier, subquestionIdentifier);
-        }
-
-        public SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner)
-        {
-            SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-            //var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
-            var testResults = GetTestResultList(owner.Login);
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
-            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
-            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
-
-            SubquestionResultRecord subquestionResultRecord = new SubquestionResultRecord();
-            subquestionResultRecord.SubquestionResult = subquestionResult;
-            subquestionResultRecord.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
-            subquestionResultRecord.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
-            subquestionResultRecord.TestResultIdentifier = subquestionResult.TestResultIdentifier;
-            subquestionResultRecord.Owner = owner;
-            subquestionResultRecord.OwnerLogin = owner.Login;
-            EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
-            subquestionResultRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
-            string? subject = testTemplate.Subject;
-            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
-            subquestionResultRecord.SubjectAveragePoints = Math.Round(subquestionTypeAveragePoints[subjectId], 2);
-            subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
-            subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            double? minimumPointsShareRound = minimumPointsShare.HasValue
-                ? (double?)Math.Round(minimumPointsShare.Value, 2)
-                : null;
-            subquestionResultRecord.MinimumPointsShare = minimumPointsShareRound;
-            subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;
-            subquestionResultRecord.StudentsPoints = subquestionResult.StudentsPoints;
-            //todo: SubjectAveragePoints a SubquestionTypeAveragePoints jsou prilis vysoke
-            return subquestionResultRecord;
         }
     }
 }

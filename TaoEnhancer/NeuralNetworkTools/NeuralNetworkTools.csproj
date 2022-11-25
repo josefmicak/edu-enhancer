@@ -17,13 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TemplateNeuralNetwork.py">
+    <None Update="PythonScripts\TemplateNeuralNetwork.py">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="model\results\" />
   </ItemGroup>
 
 </Project>

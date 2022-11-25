@@ -162,8 +162,8 @@ namespace BusinessLayer
                     subquestionTemplateStatistics.SubquestionTemplatesAdded++;
                 }
 
-                double subquestionPointsDouble = Math.Round(Convert.ToDouble(subquestionPoints), 2);
-                double wrongChoicePointsDouble = Math.Round(Convert.ToDouble(wrongChoicePoints), 2);
+                double subquestionPointsDouble = Math.Round(double.Parse(subquestionPoints, CultureInfo.InvariantCulture), 2);
+                double wrongChoicePointsDouble = Math.Round(double.Parse(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
 
                 if (subquestionPoints == null)
                 {
@@ -185,7 +185,7 @@ namespace BusinessLayer
                 {
                     message = "Počet bodů byl úspěšně změněn.";
                     subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
-                    subquestionTemplate.CorrectChoicePoints = CalculateCorrectChoicePoints(
+                    subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
                         Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
 
                     if(subquestionTemplate.WrongChoicePoints == null)
@@ -212,28 +212,6 @@ namespace BusinessLayer
             return message;
         }
 
-        public double CalculateCorrectChoicePoints(double subquestionPoints, string[] correctChoiceArray, SubquestionType subquestionType)
-        {
-            double correctChoicePoints = 0;
-            switch (subquestionType)
-            {
-                case SubquestionType n when (n == SubquestionType. OrderingElements || n == SubquestionType.FreeAnswer || n == SubquestionType.MultiChoiceSingleCorrectAnswer
-                || n == SubquestionType.MultiChoiceTextFill || n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || n == SubquestionType.Slider):
-                    correctChoicePoints = subquestionPoints;
-                    break;
-                case SubquestionType.MultiChoiceMultipleCorrectAnswers:
-                    correctChoicePoints = (double)subquestionPoints / (double)correctChoiceArray.Length;
-                    break;
-                case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
-                    correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Length / 2);
-                    break;
-                case SubquestionType.MatchingElements:
-                    correctChoicePoints = (double)subquestionPoints / (double)(correctChoiceArray.Length / 2) / 2;
-                    break;
-            }
-            return Math.Round(correctChoicePoints, 2);
-        }
-
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
         {
             User owner = dataFunctions.GetUserByLogin(login);
@@ -255,8 +233,15 @@ namespace BusinessLayer
             }
 
             var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
+            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
+            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
+            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
-            SubquestionTemplateRecord currentSubquestionTemplateRecord = CreateSubquestionTemplateRecord(subquestionTemplate, owner);
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
+                subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord);
             if (subquestionTemplatesAdded >= 100)
             {
@@ -279,7 +264,7 @@ namespace BusinessLayer
             //create subquestion template records
             var testTemplates = dataFunctions.GetTestTemplateList(login);
 
-            var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplates);
+            var subquestionTemplateRecords = DataGenerator.CreateSubquestionTemplateRecords(testTemplates);
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
         }
 
@@ -338,7 +323,7 @@ namespace BusinessLayer
             //create subquestion template records
             var testTemplatesToRecord = dataFunctions.GetTestTemplateList(login);
 
-            var subquestionTemplateRecords = DataGenerator.GetSubquestionTemplateRecords(testTemplatesToRecord);
+            var subquestionTemplateRecords = DataGenerator.CreateSubquestionTemplateRecords(testTemplatesToRecord);
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
 
             dataFunctions.ClearChargeTracker();
@@ -378,6 +363,10 @@ namespace BusinessLayer
             dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where OwnerLogin = 'login'");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateStatistics where UserLogin = 'login'");
+
+            //since results are directly linked to templates, they are deleted as well
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");
+            dataFunctions.ExecuteSqlRaw("delete from SubquestionResultStatistics where UserLogin = 'login'");
             await dataFunctions.SaveChangesAsync();
         }
 
@@ -1254,73 +1243,6 @@ namespace BusinessLayer
                 }
             }
             return correctAnswerList.ToArray();
-        }
-
-        public SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner)
-        {
-            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
-            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
-            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
-
-            SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
-            subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
-            subquestionTemplateRecord.SubquestionIdentifier = "SubquestionIdentifier_0_0_0";
-            subquestionTemplateRecord.QuestionNumberIdentifier = "QuestionNumberIdentifier_0_0";
-            subquestionTemplateRecord.Owner = owner;
-            subquestionTemplateRecord.OwnerLogin = owner.Login;
-            EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
-            //subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[subquestionType - 1], 2);
-            subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
-            int possibleAnswersCount = 0;
-            int correctAnswersCount = 0;
-            if (subquestionTemplate.PossibleAnswerList != null)
-            {
-                possibleAnswersCount = subquestionTemplate.PossibleAnswerList.Count();
-            }
-            if (subquestionTemplate.CorrectAnswerList != null)
-            {
-                correctAnswersCount = subquestionTemplate.CorrectAnswerList.Count();
-            }
-
-            if (possibleAnswersCount != 0)
-            {
-                //This type of subquestion typically contains 2 possible answers and many correct answers, so we set CorrectAnswersShare manually instead
-                if (subquestionType == EnumTypes.SubquestionType.MultipleQuestions)
-                {
-                    subquestionTemplateRecord.CorrectAnswersShare = 0.5;
-                }
-                //These type of subquestion are about sorting elements - the more elements there are, the harder it is to answer correctly
-                else if (subquestionType == EnumTypes.SubquestionType.OrderingElements || subquestionType == EnumTypes.SubquestionType.GapMatch)
-                {
-                    subquestionTemplateRecord.CorrectAnswersShare = 1 / (double)possibleAnswersCount;
-                }
-                //This type of subquestion uses slider - typically tens to hunders of possible answers
-                else if (subquestionType == EnumTypes.SubquestionType.Slider)
-                {
-                    subquestionTemplateRecord.CorrectAnswersShare = 0;
-                }
-                else
-                {
-                    subquestionTemplateRecord.CorrectAnswersShare = (double)correctAnswersCount / (double)possibleAnswersCount;
-                }
-                subquestionTemplateRecord.CorrectAnswersShare = Math.Round(subquestionTemplateRecord.CorrectAnswersShare, 2);
-            }
-
-            string? subject = testTemplate.Subject;
-            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
-            subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subquestionTypeAveragePoints[subjectId], 2);
-            subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
-            subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            subquestionTemplateRecord.MinimumPointsShare = minimumPointsShare;
-            if (subquestionTemplate.SubquestionPoints != null)
-            {
-                subquestionTemplateRecord.SubquestionPoints = Math.Round((double)subquestionTemplate.SubquestionPoints, 2);
-            }
-
-            return subquestionTemplateRecord;
         }
     }
 }
