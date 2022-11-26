@@ -130,9 +130,7 @@ namespace BusinessLayer
             }
             if (minimumPoints < 0 || minimumPoints > totalTestPoints)
             {
-                double? totalTestPointsRound = totalTestPoints.HasValue
-                ? (double?)Math.Round(totalTestPoints.Value, 2)
-                : null;
+                double? totalTestPointsRound = CommonFunctions.RoundDecimal(totalTestPoints);
                 message = "Chyba: Hodnota musí být mezi 0 a " + totalTestPointsRound.ToString();
             }
             else if (testPointsDetermined == "False")//todo: parse to bool
@@ -162,8 +160,16 @@ namespace BusinessLayer
                     subquestionTemplateStatistics.SubquestionTemplatesAdded++;
                 }
 
-                double subquestionPointsDouble = Math.Round(double.Parse(subquestionPoints, CultureInfo.InvariantCulture), 2);
-                double wrongChoicePointsDouble = Math.Round(double.Parse(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
+                double? subquestionPointsDouble = null;
+                if (subquestionPoints != null)
+                {
+                    subquestionPointsDouble = Math.Round(double.Parse(subquestionPoints, CultureInfo.InvariantCulture), 2);
+                }
+                double? wrongChoicePointsDouble = null;
+                if(wrongChoicePoints != null)
+                {
+                    wrongChoicePointsDouble = Math.Round(double.Parse(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
+                }
 
                 if (subquestionPoints == null)
                 {

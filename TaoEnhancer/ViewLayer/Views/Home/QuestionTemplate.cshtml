@@ -63,9 +63,7 @@
     }
     else
     {
-        double? questionPointsRound = questionPoints.HasValue
-        ? (double?)Math.Round(questionPoints.Value, 2)
-        : null;
+        double? questionPointsRound = CommonFunctions.RoundDecimal(questionPoints);
         questionPointsString = questionPointsRound.ToString();
     }
 

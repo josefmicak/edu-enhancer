@@ -97,28 +97,30 @@
     }
     else
     {
+        studentsQuestionPoints = CommonFunctions.RoundDecimal(studentsQuestionPoints);
+        questionPoints = CommonFunctions.RoundDecimal(questionPoints);
         studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
     }
 
     string answerCorrectString = "";
-    switch(subquestionResult.AnswerCorrect)
+    switch(subquestionResult.AnswerStatus)
     {
-        case EnumTypes.AnswerCorrect.NotDetermined:
+        case EnumTypes.AnswerStatus.NotDetermined:
             answerCorrectString = "Správnost odpovědi nebyla určena.";
             break;
-        case EnumTypes.AnswerCorrect.Correct:
+        case EnumTypes.AnswerStatus.Correct:
             answerCorrectString = "Správná odpověď.";
             break;
-        case EnumTypes.AnswerCorrect.PartiallyCorrect:
+        case EnumTypes.AnswerStatus.PartiallyCorrect:
             answerCorrectString = "Částečně správná odpověď.";
             break;
-        case EnumTypes.AnswerCorrect.Incorrect:
+        case EnumTypes.AnswerStatus.Incorrect:
             answerCorrectString = "Nesprávná odpověď.";
             break;
-        case EnumTypes.AnswerCorrect.NotAnswered:
+        case EnumTypes.AnswerStatus.NotAnswered:
             answerCorrectString = "Správnost odpovědi nebyla určena - otázka nezodpovězena";
             break;
-        case EnumTypes.AnswerCorrect.CannotBeDetermined:
+        case EnumTypes.AnswerStatus.CannotBeDetermined:
             answerCorrectString = "Správnost odpovědi nelze určit.";
             break;
     }
@@ -134,7 +136,8 @@
     double? suggestedSubquestionPoints = 0;
     if (userRequestedPointsSuggestion)
     {
-        if (subquestionType == 0 || subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
+        //if (subquestionType == 0 || subquestionType == 5 || subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
+        if (subquestionType == 0 || subquestionType == 5)
         {
             suggestedSubquestionPointsString = "Chyba: pro tento typ podotázky není tato funkce dostupná";
         }

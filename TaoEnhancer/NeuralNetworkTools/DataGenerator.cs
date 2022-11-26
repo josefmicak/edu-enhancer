@@ -3,6 +3,8 @@ using Common;
 using CsvHelper;
 using System.Globalization;
 using DataLayer;
+using static Common.EnumTypes;
+using System;
 
 namespace NeuralNetworkTools
 {
@@ -160,7 +162,7 @@ namespace NeuralNetworkTools
             subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
             subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            subquestionTemplateRecord.MinimumPointsShare = minimumPointsShare;
+            subquestionTemplateRecord.MinimumPointsShare = CommonFunctions.RoundDecimal(minimumPointsShare);
             if (subquestionTemplate.SubquestionPoints != null)
             {
                 subquestionTemplateRecord.SubquestionPoints = Math.Round((double)subquestionTemplate.SubquestionPoints, 2);
@@ -254,7 +256,9 @@ namespace NeuralNetworkTools
                         subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
-                        subquestionTemplate.SubquestionText = "SubquestionText" + testId + "_" + questionId + "_" + subquestionId;
+                        (string subquestionText, _, _, string[] possibleAnswers, string[] correctAnswers) =
+                            CreateSubquestionAnswers(subquestionType, random);
+                        subquestionTemplate.SubquestionText = subquestionText;
                         bool containsImage = random.NextDouble() < 0.25;
                         if (containsImage)
                         {
@@ -265,66 +269,19 @@ namespace NeuralNetworkTools
                             subquestionTemplate.ImageSource = "";
                         }
 
-                        int possibleAnswersCount = random.Next(2, 11);
-                        if (subquestionType == 4)
-                        {
-                            if (possibleAnswersCount % 2 == 1)
-                            {
-                                possibleAnswersCount = 2;
-                            }
-                        }
-                        string[] possibleAnswers = new string[possibleAnswersCount];
-                        for (int l = 0; l < possibleAnswersCount; l++)
-                        {
-                            possibleAnswers[l] = "PossibleAnswer_" + testId + "_" + questionId + "_" + subquestionId + "_" + l.ToString();
-                        }
-                        if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 4 ||
-                            subquestionType == 6 || subquestionType == 7 || subquestionType == 9)
-                        {
-                            subquestionTemplate.PossibleAnswerList = possibleAnswers;
-                        }
-                        else
-                        {
-                            subquestionTemplate.PossibleAnswerList = new string[0];
-                        }
-
-                        int correctAnswersCount = 0;
-                        if (subquestionType == 1 || subquestionType == 9)
-                        {
-                            correctAnswersCount = possibleAnswersCount;
-                        }
-                        else if (subquestionType == 2)
-                        {
-                            correctAnswersCount = random.Next(1, possibleAnswersCount + 1);
-                        }
-                        else if (subquestionType == 3)
-                        {
-                            correctAnswersCount = possibleAnswersCount / 2;
-                        }
-                        else if (subquestionType == 4)
-                        {
-                            correctAnswersCount = random.Next(2, 11);
-                            if (correctAnswersCount % 2 == 1)
-                            {
-                                correctAnswersCount++;
-                            }
-                        }
-                        else if (subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
-                        {
-                            correctAnswersCount = 1;
-                        }
-                        string[] correctAnswers = new string[correctAnswersCount];
-                        for (int l = 0; l < correctAnswersCount; l++)
-                        {
-                            correctAnswers[l] = "CorrectAnswer_" + testId + "_" + questionId + "_" + subquestionId + "_" + l.ToString();
-                        }
+                        subquestionTemplate.PossibleAnswerList = possibleAnswers;
                         subquestionTemplate.CorrectAnswerList = correctAnswers;
 
-                        subquestionTemplate.SubquestionPoints = random.Next(1, 16);
+                        int subquestionPoints = random.Next(1, 16);
+                        subquestionTemplate.SubquestionPoints = subquestionPoints;
                         totalSubquestionPoints += subquestionTemplate.SubquestionPoints;
                         subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
+                        subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
+                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
 
@@ -338,9 +295,7 @@ namespace NeuralNetworkTools
                 }
 
                 double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                double? minimumPointsRound = minimumPoints.HasValue
-                ? (double?)Math.Round(minimumPoints.Value, 2)
-                : null;
+                double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
                 testTemplate.MinimumPoints = minimumPointsRound;
                 testTemplate.QuestionTemplateList = questionTemplates;
                 testTemplates.Add(testTemplate);
@@ -432,177 +387,8 @@ namespace NeuralNetworkTools
                         {
                             subquestionTemplate.ImageSource = "";
                         }
-
-                        string subquestionText = "(TESTOVACÍ OTÁZKA): ";
-                        int possibleAnswersCount = 0;
-                        int correctAnswersCount = 0;
-                        string[] possibleAnswers;
-                        string[] correctAnswers;
-                        switch (subquestionType)
-                        {
-                            case 1:
-                                possibleAnswersCount = random.Next(2, 11);
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[possibleAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                    correctAnswers[l] = "možnost " + (l + 1);
-                                }
-
-                                subquestionText += "Seřaďte následující možnosti.";
-                                break;
-                            case 2:
-                                possibleAnswersCount = random.Next(2, 11);
-                                correctAnswersCount = random.Next(2, possibleAnswersCount);
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                }
-                                for (int l = 0; l < correctAnswersCount; l++)
-                                {
-                                    correctAnswers[l] = "možnost " + (l + 1);
-                                }
-
-                                subquestionText += "Zvolte z možností správné odpovědi.";
-                                break;
-                            case 3:
-                                possibleAnswersCount = random.Next(4, 11);
-                                //for this type of subquestion, there has to be an even number of possible answers
-                                if(possibleAnswersCount % 2 == 1)
-                                {
-                                    possibleAnswersCount++;
-                                }
-                                correctAnswersCount = possibleAnswersCount / 2;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                }
-                                int choiceCounter = 0;
-                                for (int l = 0; l < correctAnswersCount; l++)
-                                {
-                                    correctAnswers[l] = "možnost " + (choiceCounter + 1) + " -> " + "možnost " + (choiceCounter + 2);
-                                    choiceCounter += 2;
-                                }
-
-                                subquestionText += "Přiřaďte k sobě následující možnosti.";
-                                break;
-                            case 4:
-                                possibleAnswersCount = 2;
-                                correctAnswersCount = random.Next(1, 11);
-
-                                possibleAnswers = new string[2];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                possibleAnswers[0] = "Ano";
-                                possibleAnswers[1] = "Ne";
-                                string answersToText = string.Empty;
-                                for (int l = 0; l < correctAnswersCount; l++)
-                                {
-                                    answersToText += "možnost " + (l + 1) + ", ";
-                                    correctAnswers[l] = "možnost " + (l + 1) + " -> " + possibleAnswers[random.Next(0, 2)];
-                                }
-
-                                answersToText = answersToText.Substring(0, answersToText.Length - 2);
-                                subquestionText += "Je u těchto možností odpověď ano nebo ne? (" + answersToText + ")";
-                                break;
-                            case 5:
-                                possibleAnswersCount = 0;
-                                correctAnswersCount = 0;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                subquestionText += "Volná odpověď - text.";
-                                break;
-                            case 6:
-                                possibleAnswersCount = random.Next(2, 11);
-                                correctAnswersCount = 1;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                }
-                                correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
-                                subquestionText += "Která z možností je správná?";
-                                break;
-                            case 7:
-                                possibleAnswersCount = random.Next(2, 11);
-                                correctAnswersCount = 1;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                }
-                                correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
-                                subquestionText += "<Text> (DOPLŇTE) <text>";
-                                break;
-                            case 8:
-                                possibleAnswersCount = 0;
-                                correctAnswersCount = 1;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                correctAnswers[0] = "možnost - správná odpověď";
-                                subquestionText += "<Text> (DOPLŇTE) <text>";
-                                break;
-                            case 9:
-                                int gapCounter = random.Next(2, 11);
-                                possibleAnswersCount = random.Next(gapCounter, 11);
-                                correctAnswersCount = gapCounter;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                for (int l = 0; l < possibleAnswersCount; l++)
-                                {
-                                    possibleAnswers[l] = "možnost " + (l + 1);
-                                }
-                                string gapsToText = string.Empty;
-                                for (int l = 0; l < correctAnswersCount; l++)
-                                {
-                                    gapsToText += "(DOPLŇTE[" + (l + 1) + "]) <text>";
-                                    correctAnswers[l] = "[" + (l + 1) + "] - " + "možnost " + (l + 1);
-                                }
-                                subquestionText += "<Text>" + gapsToText;
-                                break;
-                            case 10:
-                                int range = random.Next(1, 500);
-                                possibleAnswersCount = 1;
-                                correctAnswersCount = 1;
-
-                                possibleAnswers = new string[possibleAnswersCount];
-                                correctAnswers = new string[correctAnswersCount];
-
-                                possibleAnswers[0] = "0 - " + range.ToString();
-                                correctAnswers[0] = random.Next(1, range).ToString();
-
-                                subquestionText += "Vyberte hodnotu od 0 do " + range.ToString();
-                                break;
-                            default:
-                                possibleAnswers = new string[0];
-                                correctAnswers = new string[0];
-                                subquestionText += "Chyba: neznámý typ otázky.";
-                                break;
-                        }
-
+                        (string subquestionText, int possibleAnswersCount, int correctAnswersCount, string[] possibleAnswers, string[] correctAnswers) =
+                            CreateSubquestionAnswers(subquestionType, random);
                         subquestionTemplate.PossibleAnswerList = possibleAnswers;
                         subquestionTemplate.CorrectAnswerList = correctAnswers;
                         subquestionTemplate.SubquestionText = subquestionText;
@@ -662,9 +448,7 @@ namespace NeuralNetworkTools
                 }
 
                 double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                double? minimumPointsRound = minimumPoints.HasValue
-                ? (double?)Math.Round(minimumPoints.Value, 2)
-                : null;
+                double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
                 testTemplate.MinimumPoints = minimumPointsRound;
                 testTemplate.QuestionTemplateList = questionTemplates;
                 testTemplates.Add(testTemplate);
@@ -716,7 +500,6 @@ namespace NeuralNetworkTools
                         break;
                     }
 
-                    string questionId = j.ToString();
                     QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
@@ -733,7 +516,6 @@ namespace NeuralNetworkTools
                             break;
 
                         }
-                        string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
@@ -742,18 +524,15 @@ namespace NeuralNetworkTools
                         subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
                         subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
-                        int answerCount = random.Next(0, 5);
-                        string[] studentsAnswerList = new string[answerCount];
-                        for (int l = 0; l < answerCount; l++)
-                        {
-                            studentsAnswerList[l] = "Answer_" + testId + "_" + questionId + "_" + subquestionId + "_" + l;
-                        }
-                        subquestionResult.StudentsAnswerList = studentsAnswerList;
-                        int points = random.Next(0, (int)subquestionTemplate.SubquestionPoints.Value);
-                        subquestionResult.StudentsPoints = points;
-                        subquestionResult.DefaultStudentsPoints = points;
-                        int answerCorrect = random.Next(0, 6);
-                        subquestionResult.AnswerCorrect = (EnumTypes.AnswerCorrect)answerCorrect;
+                        subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
+                        (double? defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
+                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                        int studentsPoints = random.Next(0, (int)subquestionTemplate.SubquestionPoints.Value);
+                        subquestionResult.StudentsPoints = studentsPoints;
+                        subquestionResult.AnswerCorrectness = answerCorrectness;
+                        subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
+                        subquestionResult.AnswerStatus = answerStatus;
                         subquestionResults.Add(subquestionResult);
                         subquestionCount++;
 
@@ -827,7 +606,6 @@ namespace NeuralNetworkTools
                         break;
                     }
 
-                    string questionId = j.ToString();
                     QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
@@ -844,7 +622,6 @@ namespace NeuralNetworkTools
                             break;
                         }
 
-                        string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
@@ -853,54 +630,51 @@ namespace NeuralNetworkTools
                         subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
                         subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
-                        int answerCount = random.Next(0, 5);
-                        string[] studentsAnswerList = new string[answerCount];
-                        for (int l = 0; l < answerCount; l++)
-                        {
-                            studentsAnswerList[l] = "Answer_" + testId + "_" + questionId + "_" + subquestionId + "_" + l;
-                        }
-                        subquestionResult.StudentsAnswerList = studentsAnswerList;
+                        subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
+                        (double? defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerCorrect) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
+                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
 
-                        double answerCorectness = (double)(random.Next(0, 101)) / 100;
-                        int subquestionType = (int)subquestionTemplate.SubquestionType;
-                        double? studentsPoints;
-                        //for some subquestion types the answer is either entirely correct or entirely incorrect
-                        if (subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
-                        {
-                            if(answerCorectness > 0.25)
-                            {
-                                answerCorectness = 1;
-                                subquestionResult.DefaultStudentsPoints = subquestionTemplate.SubquestionPoints;
-                                studentsPoints = subquestionTemplate.SubquestionPoints;
-                            }
-                            else
-                            {
-                                answerCorectness = 0;
-                                subquestionResult.DefaultStudentsPoints = 0;
-                                studentsPoints = 0;
-                            }
-                        }
-                        else
-                        {
-                            subquestionResult.DefaultStudentsPoints = subquestionTemplate.SubquestionPoints * answerCorectness;
-                            studentsPoints = subquestionResult.DefaultStudentsPoints;
-                            studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
-                            int subject = Array.IndexOf(subjectsArray, testTemplate.Subject);//subjectAveragePoints modifier
-                            studentsPoints += subquestionPointsBySubjectArray[subject];//subjectAveragePoints modifier
-                            //containsImage variable is not correlational
-                            studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
-                            studentsPoints += ((double)testTemplate.MinimumPoints / 100) * 4;//minimumPointsShare modifier
-                        }
-
-                        subquestionResult.AnswerCorrectness = answerCorectness;
+                        subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
+                        double? studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
+                        studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
+                        int subject = Array.IndexOf(subjectsArray, testTemplate.Subject);//subjectAveragePoints modifier
+                        studentsPoints += subquestionPointsBySubjectArray[subject];//subjectAveragePoints modifier
+                        //containsImage variable is not correlational
+                        studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
+                        studentsPoints += ((double)testTemplate.MinimumPoints / 100) * 4;//minimumPointsShare modifier
 
                         //for certain combinations of variables, student could potentially get awarded more points than the original subquestion points
-                        if(studentsPoints > subquestionTemplate.SubquestionPoints)
+                        if (studentsPoints > subquestionTemplate.SubquestionPoints)
                         {
                             studentsPoints = subquestionTemplate.SubquestionPoints;
                         }
+                        else if (studentsPoints < subquestionTemplate.SubquestionPoints * (-1))
+                        {
+                            studentsPoints = subquestionTemplate.SubquestionPoints * (-1);
+                        }
 
-                        subquestionResult.StudentsPoints = Math.Round(studentsPoints.Value, 2);
+                        //for certain combinations of variables, students may not get full points despite his answer being entirely correct
+                        if (answerCorrectness == 1)
+                        {
+                            studentsPoints = subquestionTemplate.SubquestionPoints;
+                        }
+                        else if (answerCorrectness == -1)
+                        {
+                            studentsPoints = subquestionTemplate.SubquestionPoints * (-1);
+                        }
+                        else if(answerCorrectness < 0 && studentsPoints > 0)
+                        {
+                            studentsPoints = 0;
+                        }
+                        else if(answerCorrectness > 0 && studentsPoints < 0)
+                        {
+                            studentsPoints = 0;
+                        }
+
+                        subquestionResult.StudentsPoints = CommonFunctions.RoundDecimal(studentsPoints);
+                        subquestionResult.AnswerCorrectness = answerCorrectness;
+                        subquestionResult.AnswerStatus = answerCorrect;
                         subquestionResults.Add(subquestionResult);
                         subquestionCount++;
 
@@ -974,13 +748,266 @@ namespace NeuralNetworkTools
             subquestionResultRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
             subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            double? minimumPointsShareRound = minimumPointsShare.HasValue
-                ? (double?)Math.Round(minimumPointsShare.Value, 2)
-                : null;
+            double? minimumPointsShareRound = CommonFunctions.RoundDecimal(minimumPointsShare);
             subquestionResultRecord.MinimumPointsShare = minimumPointsShareRound;
             subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;
             subquestionResultRecord.StudentsPoints = subquestionResult.StudentsPoints;
             return subquestionResultRecord;
+        }
+
+        public static (string, int, int, string[], string[]) CreateSubquestionAnswers(int subquestionType, Random random)
+        {
+            string subquestionText = "(TESTOVACÍ OTÁZKA): ";
+            int possibleAnswersCount = 0;
+            int correctAnswersCount = 0;
+            string[] possibleAnswers;
+            string[] correctAnswers;
+            switch (subquestionType)
+            {
+                case 1:
+                    possibleAnswersCount = random.Next(2, 11);
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[possibleAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                        correctAnswers[l] = "možnost " + (l + 1);
+                    }
+
+                    subquestionText += "Seřaďte následující možnosti.";
+                    break;
+                case 2:
+                    possibleAnswersCount = random.Next(2, 11);
+                    correctAnswersCount = random.Next(2, possibleAnswersCount);
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    for (int l = 0; l < correctAnswersCount; l++)
+                    {
+                        correctAnswers[l] = "možnost " + (l + 1);
+                    }
+
+                    subquestionText += "Zvolte z možností správné odpovědi.";
+                    break;
+                case 3:
+                    possibleAnswersCount = random.Next(4, 11);
+                    //for this type of subquestion, there has to be an even number of possible answers
+                    if (possibleAnswersCount % 2 == 1)
+                    {
+                        possibleAnswersCount++;
+                    }
+                    correctAnswersCount = possibleAnswersCount / 2;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    int choiceCounter = 0;
+                    for (int l = 0; l < correctAnswersCount; l++)
+                    {
+                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + " -> " + "možnost " + (choiceCounter + 2);
+                        choiceCounter += 2;
+                    }
+
+                    subquestionText += "Přiřaďte k sobě následující možnosti.";
+                    break;
+                case 4:
+                    possibleAnswersCount = 2;
+                    correctAnswersCount = random.Next(1, 11);
+
+                    possibleAnswers = new string[2];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    possibleAnswers[0] = "Ano";
+                    possibleAnswers[1] = "Ne";
+                    string answersToText = string.Empty;
+                    for (int l = 0; l < correctAnswersCount; l++)
+                    {
+                        answersToText += "možnost " + (l + 1) + ", ";
+                        correctAnswers[l] = "možnost " + (l + 1) + " -> " + possibleAnswers[random.Next(0, 2)];
+                    }
+
+                    answersToText = answersToText.Substring(0, answersToText.Length - 2);
+                    subquestionText += "Je u těchto možností odpověď ano nebo ne? (" + answersToText + ")";
+                    break;
+                case 5:
+                    possibleAnswersCount = 0;
+                    correctAnswersCount = 0;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    subquestionText += "Volná odpověď - text.";
+                    break;
+                case 6:
+                    possibleAnswersCount = random.Next(2, 11);
+                    correctAnswersCount = 1;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
+                    subquestionText += "Která z možností je správná?";
+                    break;
+                case 7:
+                    possibleAnswersCount = random.Next(2, 11);
+                    correctAnswersCount = 1;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
+                    subquestionText += "<Text> (DOPLŇTE) <text>";
+                    break;
+                case 8:
+                    possibleAnswersCount = 0;
+                    correctAnswersCount = 1;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    correctAnswers[0] = "možnost - správná odpověď";
+                    subquestionText += "<Text> (DOPLŇTE) <text>";
+                    break;
+                case 9:
+                    int gapCounter = random.Next(2, 11);
+                    possibleAnswersCount = random.Next(gapCounter, 11);
+                    correctAnswersCount = gapCounter;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    for (int l = 0; l < possibleAnswersCount; l++)
+                    {
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    string gapsToText = string.Empty;
+                    for (int l = 0; l < correctAnswersCount; l++)
+                    {
+                        gapsToText += "(DOPLŇTE[" + (l + 1) + "]) <text>";
+                        correctAnswers[l] = "[" + (l + 1) + "] - " + "možnost " + (l + 1);
+                    }
+                    subquestionText += "<Text>" + gapsToText;
+                    break;
+                case 10:
+                    int range = random.Next(1, 500);
+                    possibleAnswersCount = 1;
+                    correctAnswersCount = 1;
+
+                    possibleAnswers = new string[possibleAnswersCount];
+                    correctAnswers = new string[correctAnswersCount];
+
+                    possibleAnswers[0] = "0 - " + range.ToString();
+                    correctAnswers[0] = random.Next(1, range).ToString();
+
+                    subquestionText += "Vyberte hodnotu od 0 do " + range.ToString();
+                    break;
+                default:
+                    possibleAnswers = new string[0];
+                    correctAnswers = new string[0];
+                    subquestionText += "Chyba: neznámý typ otázky.";
+                    break;
+            }
+            return (subquestionText, possibleAnswersCount, correctAnswersCount, possibleAnswers, correctAnswers);
+        }
+
+        public static string[] CreateStudentsAnswers(SubquestionTemplate subquestionTemplate, Random random)
+        {
+            string[] possibleAnswerArray = subquestionTemplate.PossibleAnswerList;
+            string[] correctAnswerArray = subquestionTemplate.CorrectAnswerList;
+            List<string> studentsAnswers = new List<string>();
+            switch (subquestionTemplate.SubquestionType)
+            {
+                case SubquestionType n when (n == SubquestionType.MultiChoiceSingleCorrectAnswer ||
+                    n == SubquestionType.MultiChoiceTextFill || n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer):
+                    //student will have answered correctly in at least 50% of cases
+                    int correctAnswerProbability = random.Next(0, 101);
+                    if (correctAnswerProbability >= 50)
+                    {
+                        studentsAnswers.Add(correctAnswerArray[0]);
+                    }
+                    else
+                    {
+                        if (n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
+                        {
+                            studentsAnswers.Add("možnost - správná odpověď");
+                        }
+                        else
+                        {
+                            studentsAnswers.Add(possibleAnswerArray[random.Next(0, possibleAnswerArray.Length)]);
+                        }
+                    }
+                    break;
+                case SubquestionType.MultiChoiceMultipleCorrectAnswers:
+                    int studentsAnswersCount = random.Next(1, possibleAnswerArray.Length + 1);
+                    IEnumerable<string> studentsAnswersList = possibleAnswerArray.ToList().OrderBy(x => random.Next()).Take(studentsAnswersCount);
+                    studentsAnswers = studentsAnswersList.ToList();
+                    break;
+                case SubquestionType.MultipleQuestions:
+                    for (int l = 0; l < correctAnswerArray.Length; l++)
+                    {
+                        string[] correctAnswerSplit = correctAnswerArray[l].Split(" -> ");
+                        studentsAnswers.Add(correctAnswerSplit[0] + " -> " + possibleAnswerArray[random.Next(0, possibleAnswerArray.Length)]);
+                    }
+                    break;
+                case SubquestionType.GapMatch:
+                    for (int l = 0; l < correctAnswerArray.Length; l++)
+                    {
+                        studentsAnswers.Add("[" + (l + 1) + "] - " + possibleAnswerArray[l]);
+                    }
+                    break;
+                case SubquestionType.MatchingElements:
+                    int answerIndex = 0;
+                    while (true)
+                    {
+                        if (answerIndex == possibleAnswerArray.Length)
+                        {
+                            break;
+                        }
+                        studentsAnswers.Add(possibleAnswerArray[answerIndex] + " -> " + possibleAnswerArray[answerIndex + 1]);
+                        answerIndex += 2;
+                    }
+                    break;
+                case SubquestionType.Slider:
+                    string possibleAnswerString = possibleAnswerArray[0];
+                    string[] possibleAnswerStringSplit = possibleAnswerString.Split(" - ");
+                    int lowerBound = int.Parse(possibleAnswerStringSplit[0]);
+                    int upperBound = int.Parse(possibleAnswerStringSplit[1]);
+                    studentsAnswers.Add(random.Next(lowerBound, upperBound + 1).ToString());
+                    break;
+                case SubquestionType.OrderingElements:
+                    answerIndex = 0;
+                    while (true)
+                    {
+                        if (answerIndex == possibleAnswerArray.Length || answerIndex + 1 == possibleAnswerArray.Length)
+                        {
+                            break;
+                        }
+                        studentsAnswers.Add(possibleAnswerArray[answerIndex + 1]);
+                        studentsAnswers.Add(possibleAnswerArray[answerIndex]);
+                        answerIndex += 2;
+                    }
+                    break;
+            }
+            return studentsAnswers.ToArray();
         }
 
         /// <summary>

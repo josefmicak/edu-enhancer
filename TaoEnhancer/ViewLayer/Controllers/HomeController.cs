@@ -9,8 +9,6 @@ using System.Net.Mail;
 using System.Dynamic;
 using Common;
 using BusinessLayer;
-using NuGet.Protocol.Plugins;
-using NeuralNetworkTools;
 
 namespace ViewLayer.Controllers
 {
@@ -434,14 +432,23 @@ namespace ViewLayer.Controllers
             else if(action == "getPointsSuggestion")
             {
                 int subquestionTypeInt = Convert.ToInt32(subquestionType);
-                //for these types of subquestion AI can't predict the amount of points, as their results are always entirely correct or entirely incorrect
-                if(subquestionTypeInt == 0 || subquestionTypeInt == 6 || subquestionTypeInt == 7 || subquestionTypeInt == 8)
+                //for these types of subquestion AI can't predict the amount of points
+                if (subquestionTypeInt == 0 || subquestionTypeInt == 5)
                 {
                     TempData["SuggestedSubquestionPoints"] = "0";
                 }
                 else
                 {
-                    TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+                    var subquestionResult = businessLayerFunctions.GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+                    double answerCorrectness = subquestionResult.AnswerCorrectness;
+                    if(answerCorrectness == 1)//in case student's answer is entirely correct, full amount of subquestion points gets recommended
+                    {
+                        TempData["SuggestedSubquestionPoints"] = subquestionPoints;
+                    }
+                    else
+                    {
+                        TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+                    }
                 }
             }
             TempData["Message"] = message;

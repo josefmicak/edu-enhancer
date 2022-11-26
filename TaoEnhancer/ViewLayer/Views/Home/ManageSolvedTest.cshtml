@@ -107,6 +107,8 @@
                         {
                             studentsQuestionPoints = 0;
                         }
+                        studentsQuestionPoints = CommonFunctions.RoundDecimal(studentsQuestionPoints);
+                        questionPoints = CommonFunctions.RoundDecimal(questionPoints);
                         studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
                     }
 
@@ -135,6 +137,8 @@
             {
                 studentsTestPoints = 0;
             }
+            studentsTestPoints = CommonFunctions.RoundDecimal(studentsTestPoints);
+            testPoints = CommonFunctions.RoundDecimal(testPoints);
             studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
         }
 

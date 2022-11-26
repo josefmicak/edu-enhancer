@@ -66,7 +66,7 @@
         /// <summary>
         /// Whether student's answer is correct (Correct/PartiallyCorrect/Incorrect/NotDetermined)
         /// </summary>
-        public enum AnswerCorrect
+        public enum AnswerStatus
         {
             NotDetermined = 0,
             Correct = 1, 
