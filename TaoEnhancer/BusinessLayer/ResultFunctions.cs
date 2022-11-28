@@ -206,7 +206,6 @@ namespace BusinessLayer
                 SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
                 (double? defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList,
                     subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
-                //(double? defaultStudentsPoints, _, _) = CalculateStudentsAnswerAttributes(subquestionTemplate, subquestionResult.StudentsAnswerList);
                 subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                 subquestionResult.StudentsPoints = defaultStudentsPoints;
             }
@@ -289,14 +288,32 @@ namespace BusinessLayer
                 subquestionResultStatistics = new SubquestionResultStatistics();
                 subquestionResultStatistics.User = owner;
                 subquestionResultStatistics.UserLogin = owner.Login;
-                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultNeuralNetwork.py");
+                subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
+                if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
+                {
+                    subquestionResultStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionResultStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
                 dataFunctions.AttachUser(subquestionResultStatistics.User);
                 await dataFunctions.SaveChangesAsync();
             }
             else
             {
-                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultNeuralNetwork.py");
+                subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
+                if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
+                {
+                    subquestionResultStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionResultStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.SaveChangesAsync();
             }
 
@@ -351,15 +368,25 @@ namespace BusinessLayer
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
-            //SubquestionResultRecord currentSubquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner);
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
                 subjectsArray, subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
-            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord);
+            SubquestionResultStatistics? currectSubquestionResultStatistics = GetSubquestionResultStatistics(login);
+            Model usedModel = currectSubquestionResultStatistics.UsedModel;
+            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);
             if (subquestionResultsAdded >= 100)
             {
                 SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
                 subquestionResultStatistics.SubquestionResultsAdded = 0;
-                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "ResultNeuralNetwork.py");
+                subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
+                if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
+                {
+                    subquestionResultStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionResultStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.SaveChangesAsync();
             }
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace DomainModel
 {
@@ -9,5 +10,7 @@ namespace DomainModel
         public User User { get; set; } = default!;
         public int SubquestionTemplatesAdded { get; set; } = 0;
         public double NeuralNetworkAccuracy { get; set; } = 0;
+        public double MachineLearningAccuracy { get; set; } = 0;
+        public EnumTypes.Model UsedModel { get; set; } = 0;
     }
 }

@@ -1333,7 +1333,7 @@ namespace ViewLayer.Controllers
             return RedirectToAction(nameof(GlobalSettings));
         }
 
-        public async Task<IActionResult> ManageNeuralNetworks()
+        public async Task<IActionResult> ManageArtificialIntelligence()
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             if (!businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
@@ -1363,7 +1363,7 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ManageNeuralNetworks(string action, string amountOfSubquestionTemplates, string amountOfSubquestionResults)
+        public async Task<IActionResult> ManageArtificialIntelligence(string action, string amountOfSubquestionTemplates, string amountOfSubquestionResults)
         {
             if(action == "addSubquestionTemplateRandomData" || action == "addSubquestionTemplateCorrelationalData")
             {
@@ -1388,7 +1388,7 @@ namespace ViewLayer.Controllers
                 TempData["DeviceName"] = businessLayerFunctions.GetAIDeviceName();
             }
 
-            return RedirectToAction(nameof(ManageNeuralNetworks));
+            return RedirectToAction(nameof(ManageArtificialIntelligence));
         }
 
         public IActionResult AccessDeniedAction()

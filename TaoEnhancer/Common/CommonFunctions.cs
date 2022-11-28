@@ -233,8 +233,8 @@ namespace Common
                         int maxDifference = Math.Max(Math.Abs(lowerBound - correctAnswer), Math.Abs(upperBound - correctAnswer));
                         int studentsAnswer = int.Parse(studentsAnswers[0]);
                         int studentsAnswerDifference = Math.Abs(correctAnswer - studentsAnswer);
-                        int studentsAnswerDifferenceVar = (maxDifference / 2) - studentsAnswerDifference;
-                        answerCorrectness = studentsAnswerDifferenceVar / (maxDifference / 2);
+                        double studentsAnswerDifferenceVar = ((double)maxDifference / 2) - studentsAnswerDifference;
+                        answerCorrectness = studentsAnswerDifferenceVar / ((double)maxDifference / 2);
                     }
                     break;
                 case SubquestionType.OrderingElements:

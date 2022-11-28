@@ -75,5 +75,15 @@
             NotAnswered = 4,
             CannotBeDetermined = 5
         }
+
+        /// <summary>
+        /// Artificial intelligence model (NotDetermined/NeuralNetwork/MachineLearning)
+        /// </summary>
+        public enum Model
+        {
+            NotDetermined = 0,
+            NeuralNetwork = 1,
+            MachineLearning = 2
+        }
     }
 }

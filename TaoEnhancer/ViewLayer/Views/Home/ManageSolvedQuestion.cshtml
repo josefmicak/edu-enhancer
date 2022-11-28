@@ -2,6 +2,7 @@
 
 @using DomainModel;
 @using Common;
+@using System.Globalization
 
 @{
     SubquestionResult subquestionResult = new SubquestionResult();
@@ -143,7 +144,7 @@
         }
         else
         {
-            suggestedSubquestionPoints = double.Parse(suggestedSubquestionPointsString.Replace(".", ","));
+            suggestedSubquestionPoints = double.Parse(suggestedSubquestionPointsString, CultureInfo.InvariantCulture);
             //with some combinations of variables, the AI could award the student more points than the subquestion's points
             if (suggestedSubquestionPoints > subquestionTemplate.SubquestionPoints)
             {

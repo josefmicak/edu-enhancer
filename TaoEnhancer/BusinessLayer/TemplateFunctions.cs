@@ -248,12 +248,23 @@ namespace BusinessLayer
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
                 subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
-            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord);
+            SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+            Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
+            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
             if (subquestionTemplatesAdded >= 100)
             {
                 SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
                 subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login);
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
+                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                if(subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.SaveChangesAsync();
             }
 
@@ -340,14 +351,32 @@ namespace BusinessLayer
                 subquestionTemplateStatistics = new SubquestionTemplateStatistics();
                 subquestionTemplateStatistics.User = owner;
                 subquestionTemplateStatistics.UserLogin = owner.Login;
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
+                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
                 dataFunctions.AttachUser(subquestionTemplateStatistics.User);
                 await dataFunctions.SaveChangesAsync();
             }
             else
             {
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login);
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
+                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
+                }
                 await dataFunctions.SaveChangesAsync();
             }
 

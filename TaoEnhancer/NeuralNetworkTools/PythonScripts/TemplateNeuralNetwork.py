@@ -125,8 +125,8 @@ def main(arguments):
     sql = "SELECT * FROM SubquestionTemplateRecord WHERE OwnerLogin = '" + login + "'"
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
-    df = df.drop('QuestionNumberIdentifier', axis=1)  # owner login is irrelevant in this context
-    df = df.drop('SubquestionIdentifier', axis=1)  # owner login is irrelevant in this context
+    df = df.drop('QuestionNumberIdentifier', axis=1)  # question number identifier is irrelevant in this context
+    df = df.drop('SubquestionIdentifier', axis=1)  # subqustion identifier is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -147,16 +147,11 @@ def main(arguments):
     model = NeuralNetwork(X.shape[1], 32, 16)
     model = load_model(model, login, x, y, retrainModel)
 
-    #train(model, 0.05, 500, x, y)
-
     y_train_pred = model(torch.tensor(X_train, dtype=torch.float))
     y_test_pred = model(torch.tensor(X_test, dtype=torch.float))
 
     y_train_pred = y_train_pred.detach().numpy()
     y_test_pred = y_test_pred.detach().numpy()
-
-    R2 = r2_score(y_test, y_test_pred)
-    #print(R2)
 
     if len(arguments) > 1:
         if function_name == 'get_accuracy':

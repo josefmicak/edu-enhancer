@@ -1,8 +1,9 @@
 ﻿@using DomainModel
+@using Common
 @model dynamic
 
 @{
-    ViewData["Title"] = "Správa neuronových sítí";
+    ViewData["Title"] = "Správa umělé inteligence";
 
     bool userRequestedDeviceName = false;
     if (ViewBag.DeviceName != null)
@@ -52,14 +53,31 @@
         <table>
             <tr>
                 <th>Login</th>
-                <th>Přesnost</th>
+                <th>Přesnost - neuronová síť</th>
+                <th>Přesnost - strojové učení</th>
+                <th>Použitý model</th>
             </tr>
             @{
                 foreach (SubquestionTemplateStatistics item in Model.SubquestionTemplateStatistics)
                 {
+                    string usedModel = string.Empty;
+                    if(item.UsedModel == EnumTypes.Model.NeuralNetwork)
+                    {
+                        usedModel = "Neuronová síť";
+                    }
+                    else if(item.UsedModel == EnumTypes.Model.MachineLearning)
+                    {
+                        usedModel = "Strojové učení";
+                    }
+                    if (item.UsedModel == EnumTypes.Model.NotDetermined)
+                    {
+                        usedModel = "Neurčeno";
+                    }
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.UserLogin)</td>
                         <td>@Html.DisplayFor(modelItem => item.NeuralNetworkAccuracy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MachineLearningAccuracy)</td>
+                        <td>@usedModel</td>
                     </tr>
                 }
             }
@@ -89,14 +107,31 @@
         <table>
             <tr>
                 <th>Login</th>
-                <th>Přesnost</th>
+                <th>Přesnost - neuronová síť</th>
+                <th>Přesnost - strojové učení</th>
+                <th>Použitý model</th>
             </tr>
             @{
                 foreach (SubquestionResultStatistics item in Model.SubquestionResultStatistics)
                 {
+                    string usedModel = string.Empty;
+                    if (item.UsedModel == EnumTypes.Model.NeuralNetwork)
+                    {
+                        usedModel = "Neuronová síť";
+                    }
+                    else if (item.UsedModel == EnumTypes.Model.MachineLearning)
+                    {
+                        usedModel = "Strojové učení";
+                    }
+                    if (item.UsedModel == EnumTypes.Model.NotDetermined)
+                    {
+                        usedModel = "Neurčeno";
+                    }
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.UserLogin)</td>
                         <td>@Html.DisplayFor(modelItem => item.NeuralNetworkAccuracy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.MachineLearningAccuracy)</td>
+                        <td>@usedModel</td>
                     </tr>
                 }
             }
