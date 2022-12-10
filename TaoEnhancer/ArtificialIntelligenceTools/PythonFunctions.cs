@@ -2,7 +2,7 @@
 using DomainModel;
 using System.Diagnostics;
 
-namespace NeuralNetworkTools
+namespace ArtificialIntelligenceTools
 {
     public class PythonFunctions
     {
@@ -32,7 +32,7 @@ namespace NeuralNetworkTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -74,7 +74,7 @@ namespace NeuralNetworkTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -102,7 +102,7 @@ namespace NeuralNetworkTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -131,13 +131,41 @@ namespace NeuralNetworkTools
             }
         }
 
+        /// <summary>
+        /// Predicts the amount of points that the average student will get for the test
+        /// <param name="retrainModel">Indicates whether the model should be retrained or not</param>
+        /// <param name="login">Login of the user</param>
+        /// <param name="fileName">File containing the model to be tested</param>
+        /// <param name="testNumberIdentifier">Identifier of the test</param>
+        /// </summary>
+        public static string GetTestTemplatePredictedPoints(bool retrainModel, string login, string fileName, string testNumberIdentifier)
+        {
+            ProcessStartInfo start = new ProcessStartInfo();
+            start.FileName = Config.GetPythonPath();
+            start.Arguments = string.Format("{0} {1} {2} {3} {4}",
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, testNumberIdentifier);
+            start.UseShellExecute = false;
+            start.CreateNoWindow = true;
+            start.RedirectStandardOutput = true;
+            start.RedirectStandardError = true;
+            using (Process process = Process.Start(start))
+            {
+                using (StreamReader reader = process.StandardOutput)
+                {
+                    string stderr = process.StandardError.ReadToEnd();
+                    string result = reader.ReadToEnd();
+                    return result;
+                }
+            }
+        }
+
         public static string GetDevice()
         {
             string function = "device_name";
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "NeuralNetworkTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + "OtherFunctions.py ", function);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + "OtherFunctions.py ", function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;

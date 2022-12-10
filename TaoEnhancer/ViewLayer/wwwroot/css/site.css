@@ -126,7 +126,7 @@ img {
 #negative-points {
     position: absolute;
     left: 20%;
-    top: 50%;
+    top: 35%;
     border: 1px;
     border-style: solid;
 }
@@ -134,10 +134,19 @@ img {
 #minimum-points {
     position: absolute;
     left: 20%;
+    top: 55%;
+    border: 1px;
+    border-style: solid;
+}
+
+#test-difficulty {
+    position: absolute;
+    left: 20%;
     top: 70%;
     border: 1px;
     border-style: solid;
 }
+
 
 /*QuestionTemplate.cshtml*/
 

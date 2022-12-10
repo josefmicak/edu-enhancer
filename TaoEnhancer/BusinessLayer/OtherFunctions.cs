@@ -3,7 +3,7 @@ using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using NeuralNetworkTools;
+using ArtificialIntelligenceTools;
 using System.Runtime.InteropServices;
 
 namespace BusinessLayer

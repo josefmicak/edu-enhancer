@@ -174,6 +174,11 @@ namespace DataLayer
             return _context.SubquestionResultStatistics;
         }
 
+        public DbSet<TestDifficultyStatistics> GetTestDifficultyStatisticsDbSet()
+        {
+            return _context.TestDifficultyStatistics;
+        }
+
         public async Task<string> AddTestResults(List<TestResult> testResults)
         {
             int successCount = 0;
@@ -265,6 +270,13 @@ namespace DataLayer
         {
             _context.SubquestionResultStatistics.Add(subquestionResultStatistics);
             AttachUser(subquestionResultStatistics.User);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddTestDifficultyStatistics(TestDifficultyStatistics testDifficultyStatistics)
+        {
+            _context.TestDifficultyStatistics.Add(testDifficultyStatistics);
+            AttachUser(testDifficultyStatistics.User);
             await _context.SaveChangesAsync();
         }
 

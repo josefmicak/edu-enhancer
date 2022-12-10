@@ -2,11 +2,10 @@
 using Common;
 using CsvHelper;
 using System.Globalization;
-using DataLayer;
 using static Common.EnumTypes;
 using System;
 
-namespace NeuralNetworkTools
+namespace ArtificialIntelligenceTools
 {
     public class DataGenerator
     {
@@ -1089,6 +1088,45 @@ namespace NeuralNetworkTools
             }
 
             return subquestionTypePointsShare;
+        }
+
+        public static double[] GetSubquestionTypeAverageAnswerCorrectness(List<TestResult> testResults)
+        {
+            int subquestionTypeCount = 10;//todo: po predelani subquestionType na enum predelat tuto promennou
+            double[] subquestionTypeAnswerCorrectness = new double[subquestionTypeCount];
+            double[] subquestionCountByType = new double[subquestionTypeCount];
+
+            for (int i = 0; i < testResults.Count; i++)
+            {
+                TestResult testResult = testResults[i];
+
+                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+
+                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    {
+                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        EnumTypes.SubquestionType subquestionType = subquestionResult.SubquestionTemplate.SubquestionType;
+                        if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
+                        {
+                            subquestionTypeAnswerCorrectness[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.AnswerCorrectness;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                        subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
+                    }
+                }
+            }
+
+            for (int i = 0; i < subquestionTypeAnswerCorrectness.Length; i++)
+            {
+                subquestionTypeAnswerCorrectness[i] = subquestionTypeAnswerCorrectness[i] / subquestionCountByType[i];
+            }
+
+            return subquestionTypeAnswerCorrectness;
         }
 
         /// <summary>

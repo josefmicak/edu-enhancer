@@ -24,6 +24,7 @@ namespace DataLayer
         public DbSet<SubquestionTemplateStatistics> SubquestionTemplateStatistics { get; set; } = default!;
         public DbSet<SubquestionResultRecord> SubquestionResultRecords { get; set; } = default!;
         public DbSet<SubquestionResultStatistics> SubquestionResultStatistics { get; set; } = default!;
+        public DbSet<TestDifficultyStatistics> TestDifficultyStatistics { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -156,6 +157,13 @@ namespace DataLayer
 
             modelBuilder.Entity<SubquestionResultStatistics>().ToTable("SubquestionResultStatistics");
             modelBuilder.Entity<SubquestionResultStatistics>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserLogin)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TestDifficultyStatistics>().ToTable("TestDifficultyStatistics");
+            modelBuilder.Entity<TestDifficultyStatistics>()
                 .HasOne(s => s.User)
                 .WithMany()
                 .HasForeignKey(s => s.UserLogin)

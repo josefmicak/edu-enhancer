@@ -2,7 +2,7 @@
 using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
-using NeuralNetworkTools;
+using ArtificialIntelligenceTools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -107,6 +107,11 @@ namespace BusinessLayer
         public SubquestionTemplateStatistics? GetSubquestionTemplateStatistics(string login)
         {
             return dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
+        public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
+        {
+            return dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
         }
 
         public async Task SetNegativePoints(TestTemplate testTemplate, EnumTypes.NegativePoints negativePoints)
@@ -403,6 +408,13 @@ namespace BusinessLayer
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultStatistics where UserLogin = 'login'");
             await dataFunctions.SaveChangesAsync();
+        }
+
+        public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
+        {
+            //TODO: "DifficultyMachineLearning.py"
+            string testDifficultyMessage = PythonFunctions.GetTestTemplatePredictedPoints(false, login, "DifficultyNeuralNetwork.py", testNumberIdentifier);
+            return testDifficultyMessage;
         }
 
         /// <summary>

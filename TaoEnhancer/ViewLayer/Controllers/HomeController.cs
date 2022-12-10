@@ -157,6 +157,10 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.MinimumPointsMessage = TempData["MinimumPointsMessage"]!.ToString();
             }
+            if (TempData["TestDifficultyMessage"] != null)
+            {
+                ViewBag.TestDifficultyMessage = TempData["TestDifficultyMessage"]!.ToString();
+            }
             string login = businessLayerFunctions.GetCurrentUserLogin();
 
             var questionTemplates = businessLayerFunctions.GetQuestionTemplates(login, testNumberIdentifier);
@@ -189,6 +193,7 @@ namespace ViewLayer.Controllers
             }
             string? negativePointsMessage = null;
             string? minimumPointsMessage = null;
+            string? testDifficultyMessage = null;
 
             var testTemplate = businessLayerFunctions.GetTestTemplate(login, testNumberIdentifier);
             if (action == "setNegativePoints")
@@ -203,9 +208,14 @@ namespace ViewLayer.Controllers
                     minimumPointsMessage = await businessLayerFunctions.SetMinimumPoints(testTemplate, Math.Round(Convert.ToDouble(minimumPointsAmount), 2), testPointsDetermined);
                 }
             }
+            else if (action == "getDifficultyPrediction")
+            {
+                testDifficultyMessage = businessLayerFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
+            }
 
             TempData["NegativePointsMessage"] = negativePointsMessage;
             TempData["MinimumPointsMessage"] = minimumPointsMessage;
+            TempData["TestDifficultyMessage"] = testDifficultyMessage;
             return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
         }
 

@@ -2,7 +2,7 @@
 using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
-using NeuralNetworkTools;
+using ArtificialIntelligenceTools;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -156,9 +156,19 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultStatisticsDbSet();
         }
 
+        public DbSet<TestDifficultyStatistics> GetTestDifficultyStatisticsDbSet()
+        {
+            return dataFunctions.GetTestDifficultyStatisticsDbSet();
+        }
+
         public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
         {
             return dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
+        public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
+        {
+            return dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
         }
 
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
@@ -282,6 +292,7 @@ namespace BusinessLayer
 
             dataFunctions.ClearChargeTracker();
             owner = dataFunctions.GetUserByLoginAsNoTracking();
+            //managing subquestionResultStatistics
             var subquestionResultStatistics = GetSubquestionResultStatistics(owner.Login);
             if (subquestionResultStatistics == null)
             {
@@ -298,6 +309,7 @@ namespace BusinessLayer
                 {
                     subquestionResultStatistics.UsedModel = Model.MachineLearning;
                 }
+
                 await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
                 dataFunctions.AttachUser(subquestionResultStatistics.User);
                 await dataFunctions.SaveChangesAsync();
@@ -314,6 +326,36 @@ namespace BusinessLayer
                 {
                     subquestionResultStatistics.UsedModel = Model.MachineLearning;
                 }
+
+                await dataFunctions.SaveChangesAsync();
+            }
+
+            //managing testDifficultyStatistics
+            var testDifficultyStatistics = GetTestDifficultyStatistics(owner.Login);
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
+            double[] subquestionTypeAverageAnswerCorrectness = DataGenerator.GetSubquestionTypeAverageAnswerCorrectness(testResults);
+
+            if (testDifficultyStatistics == null)
+            {
+                testDifficultyStatistics = new TestDifficultyStatistics();
+                testDifficultyStatistics.User = owner;
+                testDifficultyStatistics.UserLogin = owner.Login;
+                testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
+                testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
+                await dataFunctions.AddTestDifficultyStatistics(testDifficultyStatistics);
+                dataFunctions.AttachUser(testDifficultyStatistics.User);
+                await dataFunctions.SaveChangesAsync();
+            }
+            else
+            {
+                //TODO: Update techto udaju pro skutecneho ucitele
+                testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
+                testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
+
+                dataFunctions.AttachUser(testDifficultyStatistics.User);
                 await dataFunctions.SaveChangesAsync();
             }
 

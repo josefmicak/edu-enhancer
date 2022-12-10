@@ -3,7 +3,7 @@ using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using NeuralNetworkTools;
+using ArtificialIntelligenceTools;
 using System;
 using System.Diagnostics;
 using static Common.EnumTypes;
@@ -123,6 +123,11 @@ namespace BusinessLayer
         public string[] GetSubquestionTypeTextArray()
         {
             return templateFunctions.GetSubquestionTypeTextArray();
+        }
+
+        public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
+        {
+            return templateFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
         }
 
         //ResultFunctions.cs

@@ -17,6 +17,12 @@
         minimumPointsString = minimumPoints.ToString()!.Replace(",", ".");
     }
 
+    bool userRequestedDifficultyPrediction = false;
+    if (ViewBag.TestDifficultyMessage != null)
+    {
+        userRequestedDifficultyPrediction = true;
+    }
+
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
 
@@ -154,6 +160,23 @@
         <p><input class="button" id="setMinimumPointsBtn" title="Uložit" type="submit" value="Uložit"></p>
         <input type="hidden" value="setMinimumPoints" name="action">
         <input type="hidden" value="@testPointsDetermined.ToString()" name="testPointsDetermined">
+    </form>
+</div>
+
+<div id="test-difficulty">
+    <h2>Obtížnost testu</h2>
+    <form method="POST">
+        <p>@ViewBag.PredictedTestPointsMessage</p>
+        @{
+            if (userRequestedDifficultyPrediction)
+            {
+                <p>Předpokládaný průměrný počet bodů: @ViewBag.TestDifficultyMessage</p>
+            }
+            else
+            {
+                <p>Předpokládaný průměrný počet bodů: <button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button></p>
+            }
+        }
     </form>
 </div>
 
