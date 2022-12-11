@@ -174,6 +174,11 @@ namespace DataLayer
             return _context.SubquestionResultStatistics;
         }
 
+        public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
+        {
+            return GetSubquestionResultStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
         public DbSet<TestDifficultyStatistics> GetTestDifficultyStatisticsDbSet()
         {
             return _context.TestDifficultyStatistics;
@@ -245,6 +250,18 @@ namespace DataLayer
                     .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
                     && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login).ToList();
             return subquestionResults;
+        }
+
+        public List<TestResult> GetTestResultsByLogin(string login)
+        {
+            List<TestResult> testResults = GetTestResultDbSet()
+                .Include(s => s.QuestionResultList)
+                .ThenInclude(s => s.SubquestionResultList)
+                .Include(s => s.TestTemplate)
+                .ThenInclude(s => s.QuestionTemplateList)
+                .ThenInclude(s => s.SubquestionTemplateList)
+                .Where(s => s.OwnerLogin == login).ToList();
+            return testResults;
         }
 
         public async Task SaveSubquestionResultRecords(List<SubquestionResultRecord> subquestionResultRecords, User owner)

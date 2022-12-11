@@ -1,28 +1,16 @@
-﻿import sys
+﻿import pickle
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from pathlib import Path
-
-
-class NeuralNetwork(nn.Module):
-    def __init__(self, variables_count, xA, xB):
-        super(NeuralNetwork, self).__init__()
-        self.linearA = nn.Linear(variables_count, xA)
-        self.linearB = nn.Linear(xA, xB)
-        self.linearC = nn.Linear(xB, 1)
-
-    def forward(self, x):
-        yA = F.relu(self.linearA(x))
-        yB = F.relu(self.linearB(yA))
-        return self.linearC(yB)
 
 
 def train(model, lr, epochs, x, y):
@@ -65,35 +53,35 @@ def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAverageP
     MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
 
     x_unseen = torch.Tensor([SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
-    y_unseen = model(torch.atleast_2d(x_unseen))
-    if round(y_unseen.item(), 2) > subquestionPoints:
+    y_unseen = model.predict(torch.atleast_2d(x_unseen))
+    if round(y_unseen[0], 2) > subquestionPoints:
         return subquestionPoints
     else:
-        return round(y_unseen.item(), 2)
+        return round(y_unseen[0], 2)
 
 
-def load_model(model, login, x, y, retrainModel):
-    base_path = Path(__file__) #Path(__file__).parent
-    file_path_string = "../model/results/" + login + "_NN.pt"
+def load_model(model, login, X_train, y_train, retrainModel):
+    base_path = Path(__file__)
+    file_path_string = "../model/results/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
 
     if retrainModel is True:
-        train(model, 0.05, 500, x, y)
+        model.fit(X_train, y_train)
         save_model(model, login)
     else:
         try:  # a file with trained model already exists for this user
-            model.load_state_dict(torch.load(file_path))
+            model = pickle.load(open(file_path, 'rb'))
         except:  # a file with trained model does not exist for this user - it's necessary to create a new file
-            train(model, 0.05, 500, x, y)
+            model.fit(X_train, y_train)
             save_model(model, login)
     return model
 
 
 def save_model(model, login):
-    base_path = Path(__file__) #Path(__file__).parent
-    file_path_string = "../model/results/" + login + "_NN.pt"
+    base_path = Path(__file__)
+    file_path_string = "../model/results/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
-    torch.save(model.state_dict(), file_path)
+    pickle.dump(model, open(file_path, 'wb'))
 
 
 def main(arguments):
@@ -145,17 +133,11 @@ def main(arguments):
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
-    x = torch.tensor(np.array(X_train), dtype=torch.float)
-    y = torch.tensor(np.array(y_train).reshape(-1, 1), dtype=torch.float)
+    model = LinearRegression()
+    model = load_model(model, login, X_train, y_train, retrainModel)
 
-    model = NeuralNetwork(X.shape[1], 32, 16)
-    model = load_model(model, login, x, y, retrainModel)
-
-    y_train_pred = model(torch.tensor(X_train, dtype=torch.float))
-    y_test_pred = model(torch.tensor(X_test, dtype=torch.float))
-
-    y_train_pred = y_train_pred.detach().numpy()
-    y_test_pred = y_test_pred.detach().numpy()
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
 
     #selected testTemplate
     sql = "SELECT * FROM TestTemplate WHERE OwnerLogin = '" + login + "' AND TestNumberIdentifier = '" + testNumberIdentifier + "'"

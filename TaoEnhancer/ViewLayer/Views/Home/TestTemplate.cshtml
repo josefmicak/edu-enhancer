@@ -18,9 +18,17 @@
     }
 
     bool userRequestedDifficultyPrediction = false;
+    string testDifficultyMessage = string.Empty;
+    string[] testDifficultyMessageArray;
+    string testTemplatePredictedPoints = string.Empty;
+    string difficultyText = string.Empty;
     if (ViewBag.TestDifficultyMessage != null)
     {
         userRequestedDifficultyPrediction = true;
+        testDifficultyMessage = ViewBag.TestDifficultyMessage;
+        testDifficultyMessageArray = testDifficultyMessage.Split(";");
+        testTemplatePredictedPoints = testDifficultyMessageArray[0];
+        difficultyText = testDifficultyMessageArray[1];
     }
 
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
@@ -170,7 +178,8 @@
         @{
             if (userRequestedDifficultyPrediction)
             {
-                <p>Předpokládaný průměrný počet bodů: @ViewBag.TestDifficultyMessage</p>
+                <p>Předpokládaný průměrný počet bodů: @testTemplatePredictedPoints</p>
+                <p>@difficultyText</p>
             }
             else
             {

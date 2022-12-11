@@ -412,9 +412,107 @@ namespace BusinessLayer
 
         public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
         {
-            //TODO: "DifficultyMachineLearning.py"
-            string testDifficultyMessage = PythonFunctions.GetTestTemplatePredictedPoints(false, login, "DifficultyNeuralNetwork.py", testNumberIdentifier);
+            string testDifficultyMessage;
+            SubquestionResultStatistics? subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
+            //check whether there are enough result statistics to go by
+            if(subquestionResultStatistics == null)
+            {
+                return "Chyba: nedostatečný počet výsledků testů.;";
+            }
+
+            //predicted amount of points that the average student will get for this test
+            double testTemplatePredictedPoints = PythonFunctions.GetTestTemplatePredictedPoints(false, login, subquestionResultStatistics.UsedModel, testNumberIdentifier);
+
+            List<TestResult> testResults = dataFunctions.GetTestResultsByLogin(login);
+            List<(string, int, double?)> testResultsPointsShare = new List<(string, int, double?)>();
+            
+            //iterate through every test result to obtain the share between student's points and test total points
+            for(int i = 0; i < testResults.Count; i++)
+            {
+                TestResult testResult = testResults[i];
+                TestTemplate testTemplate = testResult.TestTemplate;
+
+                //skip the test that's currently being predicted as we want it to compare to other tests
+                if(testTemplate.TestNumberIdentifier == testNumberIdentifier)
+                {
+                    continue;
+                }
+
+                double? testTemplatePointsSum = GetTestTemplatePointsSum(testTemplate);
+                double? studentsPoints = 0;
+
+                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+
+                    for(int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    {
+                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        studentsPoints += subquestionResult.StudentsPoints;
+                    }
+                }
+
+                bool matchFound = false;
+                for(int l = 0; l < testResultsPointsShare.Count; l++)
+                {
+                    //record of this test template is already in the testResultPointsShare list - we modify it
+                    if (testResultsPointsShare[l].Item1 == testTemplate.TestNumberIdentifier)
+                    {
+                        matchFound = true;
+                        testResultsPointsShare[l] = (testResultsPointsShare[l].Item1, testResultsPointsShare[l].Item2 + 1, testResultsPointsShare[l].Item3 + studentsPoints);
+                    }
+                }
+
+                //record of this test template is not in the testResultPointsShare list - we add a new one
+                if (!matchFound)
+                {
+                    testResultsPointsShare.Add((testTemplate.TestNumberIdentifier, 1, studentsPoints / testTemplatePointsSum));
+                }
+            }
+
+            double?[] testTemplatesPointsShare = new double?[testResultsPointsShare.Count];
+            for (int i = 0; i < testResultsPointsShare.Count; i++)
+            {
+                testTemplatesPointsShare[i] = testResultsPointsShare[i].Item3 / testResultsPointsShare[i].Item2;
+            }
+            TestTemplate currentTestTemplate = GetTestTemplate(login, testNumberIdentifier);
+            double? currentTestTemplatePointsShare = testTemplatePredictedPoints / GetTestTemplatePointsSum(currentTestTemplate);
+            //compare the ratio of predicted test points to total test points with the average points of all test templates (as measured by existing test results)
+            double? difficulty = currentTestTemplatePointsShare / testTemplatesPointsShare.Average();
+
+            testDifficultyMessage = testTemplatePredictedPoints + ";";
+            if (difficulty < 1)//easier than the average test
+            {
+                difficulty *= 100;
+                difficulty = Math.Round(difficulty.Value, 0);
+                testDifficultyMessage += "Test je o " + (100 - difficulty) + "% lehčí než průměrný test.";
+            }
+            else//harder than the average test
+            {
+                difficulty -= 1;
+                difficulty *= 100;
+                difficulty = Math.Round(difficulty.Value, 0);
+                testDifficultyMessage += "Test je o " + difficulty + "% těžší než průměrný test.";
+            }
+
             return testDifficultyMessage;
+        }
+
+        public double? GetTestTemplatePointsSum(TestTemplate testTemplate)
+        {
+            double? testPoints = 0;
+            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+
+                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                {
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    testPoints += subquestionTemplate.SubquestionPoints;
+                }
+            }
+
+            return testPoints;
         }
 
         /// <summary>

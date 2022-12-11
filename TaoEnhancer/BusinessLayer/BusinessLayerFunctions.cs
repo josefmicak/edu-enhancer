@@ -217,6 +217,11 @@ namespace BusinessLayer
             return await resultFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
         }
 
+        public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
+        {
+            return resultFunctions.GetSubquestionResultStatistics(login);
+        }
+
         public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
         {
             return resultFunctions.GetSubquestionResultStatisticsDbSet();

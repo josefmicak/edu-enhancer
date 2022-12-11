@@ -1,6 +1,7 @@
 ﻿using Common;
 using DomainModel;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace ArtificialIntelligenceTools
 {
@@ -138,8 +139,18 @@ namespace ArtificialIntelligenceTools
         /// <param name="fileName">File containing the model to be tested</param>
         /// <param name="testNumberIdentifier">Identifier of the test</param>
         /// </summary>
-        public static string GetTestTemplatePredictedPoints(bool retrainModel, string login, string fileName, string testNumberIdentifier)
+        public static double GetTestTemplatePredictedPoints(bool retrainModel, string login, EnumTypes.Model usedModel, string testNumberIdentifier)
         {
+            string fileName = string.Empty;
+            if(usedModel == EnumTypes.Model.MachineLearning)
+            {
+                fileName = "DifficultyMachineLearning.py";
+            }
+            else
+            {
+                fileName = "DifficultyNeuralNetwork.py";
+            }
+
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
@@ -154,7 +165,7 @@ namespace ArtificialIntelligenceTools
                 {
                     string stderr = process.StandardError.ReadToEnd();
                     string result = reader.ReadToEnd();
-                    return result;
+                    return double.Parse(result, CultureInfo.InvariantCulture);
                 }
             }
         }

@@ -265,6 +265,10 @@ namespace BusinessLayer
             await TestingUsersCheck();
             User? owner = dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = GetTestingDataTestTemplates();
+            if(existingTestTemplates.Count == 0)
+            {
+                return "Chyba: nejprve je nutné vytvořit zadání testů.";
+            }
             int testingDataTestResultsCount = GetTestingDataTestResults().Count;
 
             List<TestResult> testResults = new List<TestResult>();

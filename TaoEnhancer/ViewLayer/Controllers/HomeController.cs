@@ -211,6 +211,7 @@ namespace ViewLayer.Controllers
             else if (action == "getDifficultyPrediction")
             {
                 testDifficultyMessage = businessLayerFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
+
             }
 
             TempData["NegativePointsMessage"] = negativePointsMessage;
