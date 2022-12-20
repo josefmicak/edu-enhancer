@@ -55,6 +55,12 @@ namespace BusinessLayer
             return await templateFunctions.AddTestTemplates(login);
         }
 
+        public async Task<string> AddTestTemplate(string title)
+        {
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.AddTestTemplate(title, login);
+        }
+
         public async Task<string> DeleteTestTemplates(string login)
         {
             return await templateFunctions.DeleteTestTemplates(login);
@@ -70,9 +76,25 @@ namespace BusinessLayer
             return templateFunctions.GetQuestionTemplates(login, testNumberIdentifier);
         }
 
+        public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
+        {
+            return templateFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+        }
+
+        public async Task<string> AddQuestionTemplate(string testNumberIdentifier, string title)
+        {
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.AddQuestionTemplate(testNumberIdentifier, title, login);
+        }
+
         public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
         {
             return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
+        }
+
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        {
+            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate);
         }
 
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)

@@ -1,0 +1,16 @@
+﻿@{
+    string testNumberIdentifier = ViewBag.TestNumberIdentifier;
+
+    ViewData["Title"] = "Vytvoření zadání otázky";
+}
+
+<div class="text-center">
+    <h1>Vytvoření zadání otázky</h1>
+
+    <form method="POST">
+        <label for="title">Nadpis:</label>
+        <input type="text" required id="title" name="title"><br>
+        <input class="button" title="Uložit" type="submit" value="Uložit">
+        <input type="hidden" value="@testNumberIdentifier" name="testNumberIdentifier">
+    </form>
+</div>

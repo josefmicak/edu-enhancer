@@ -62,6 +62,20 @@ namespace BusinessLayer
             return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner);
         }
 
+        public async Task<string> AddTestTemplate(string title, string login)
+        {
+            User? owner = dataFunctions.GetUserByLogin(login);
+            TestTemplate testTemplate = new TestTemplate();
+            testTemplate.TestNameIdentifier = "tna";
+            testTemplate.TestNumberIdentifier = "tnu";
+            testTemplate.Title = title;
+            testTemplate.OwnerLogin = owner.Login;
+            testTemplate.Owner = owner;
+            testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
+
+            return await dataFunctions.AddTestTemplate(testTemplate);
+        }
+
         public async Task<string> DeleteTestTemplates(string login)
         {
             return await dataFunctions.DeleteTestTemplates(login);
@@ -81,12 +95,36 @@ namespace BusinessLayer
                  .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier && q.OwnerLogin == login).AsQueryable();
         }
 
+        public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
+        {
+            return dataFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+        }
+
+        public async Task<string> AddQuestionTemplate(string testNumberIdentifier, string title, string login)
+        {
+            User? owner = dataFunctions.GetUserByLogin(login);
+            QuestionTemplate questionTemplate = new QuestionTemplate();
+            questionTemplate.QuestionNameIdentifier = "qna";
+            questionTemplate.QuestionNumberIdentifier = "qnu";
+            questionTemplate.Title = title;
+            questionTemplate.OwnerLogin = owner.Login;
+            questionTemplate.Label = "temp";
+            questionTemplate.SubquestionTemplateList = new List<SubquestionTemplate>();
+
+            return await dataFunctions.AddQuestionTemplate(questionTemplate, testNumberIdentifier);
+        }
+
         public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
         {
             return GetSubquestionTemplateDbSet()
                 .Include(s => s.QuestionTemplate)
                 .Include(s => s.QuestionTemplate.TestTemplate)
                 .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login).AsQueryable();
+        }
+
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        {
+            return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
         }
 
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)

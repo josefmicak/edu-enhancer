@@ -50,6 +50,8 @@
         </form>
     </div>
 
+    <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testNumberIdentifier="@Model.First().TestTemplate.TestNumberIdentifier">Přidat otázku</a>
+
     <div id="question-template-list">
         <h2>Seznam otázek</h2>
         <table>
@@ -64,6 +66,11 @@
                 int i = 0;
                 foreach (var item in Model)
                 {
+                    if(item.QuestionNumberIdentifier == "placeholder")
+                    {
+                        continue;
+                    }
+
                     bool questionPointsDetermined = true;
                     double? questionPoints = 0;
                     foreach(SubquestionTemplate subquestionTemplate in item.SubquestionTemplateList)

@@ -27,6 +27,13 @@
         throw Exceptions.SubquestionTemplateNotFoundException;
     }
 
+    //it's possible that no "real" subquestions exist for this question yet, only one dummy subquestion is added
+    bool subquestionsAdded = true;
+    if(subquestionTemplate.SubquestionIdentifier == "placeholder")
+    {
+        subquestionsAdded = false;
+    }
+
     ViewData["Title"] = "Správa zadání otázky " + subquestionTemplate.QuestionTemplate.QuestionNameIdentifier;
 
     bool singleSubquestion = true;
@@ -36,47 +43,57 @@
     }
 
     string? subquestionPoints = "";
-    if(subquestionTemplate.SubquestionPoints == null)
+    if(subquestionsAdded)//todo: sjednotit (vsechny promenne na zacatek)
     {
-        subquestionPoints = "N/A";
-    }
-    else
-    {
-        subquestionPoints = subquestionTemplate.SubquestionPoints.ToString();
+        if(subquestionTemplate.SubquestionPoints == null)
+        {
+            subquestionPoints = "N/A";
+        }
+        else
+        {
+            subquestionPoints = subquestionTemplate.SubquestionPoints.ToString();
+        }
     }
 
     double? questionPoints = 0;
     bool questionPointsDetermined = true;
     string? questionPointsString = "";
-    foreach(var item in Model)
+    if(subquestionsAdded)
     {
-        if(item.SubquestionPoints == null)
+        foreach(var item in Model)
         {
-            questionPointsDetermined = false;
-            break;
+            if(item.SubquestionPoints == null)
+            {
+                questionPointsDetermined = false;
+                break;
+            }
+            questionPoints += item.SubquestionPoints;
         }
-        questionPoints += item.SubquestionPoints;
-    }
-    if(!questionPointsDetermined)
-    {
-        questionPointsString = "N/A";
-    }
-    else
-    {
-        double? questionPointsRound = CommonFunctions.RoundDecimal(questionPoints);
-        questionPointsString = questionPointsRound.ToString();
+        if(!questionPointsDetermined)
+        {
+            questionPointsString = "N/A";
+        }
+        else
+        {
+            double? questionPointsRound = CommonFunctions.RoundDecimal(questionPoints);
+            questionPointsString = questionPointsRound.ToString();
+        }
     }
 
     bool userRequestedPointsSuggestion = false;
-    if (ViewBag.SuggestedSubquestionPoints != null)
-    {
-        userRequestedPointsSuggestion = true;
-    }
-
     bool defaultWrongChoicePointsChecked = false;
-    if (subquestionTemplate.DefaultWrongChoicePoints == subquestionTemplate.WrongChoicePoints || subquestionTemplate.DefaultWrongChoicePoints == null)
+    if(subquestionsAdded)
     {
-        defaultWrongChoicePointsChecked = true;
+        if (ViewBag.SuggestedSubquestionPoints != null)
+        {
+            userRequestedPointsSuggestion = true;
+        }
+
+    
+        if (subquestionTemplate.DefaultWrongChoicePoints == subquestionTemplate.WrongChoicePoints || subquestionTemplate.DefaultWrongChoicePoints == null)
+        {
+            defaultWrongChoicePointsChecked = true;
+        }
     }
 }
 
@@ -100,7 +117,16 @@
             </tr>
             <tr>
                 <th>Počet podotázek</th>
-                <td>@Model.Count()</td>
+                @{
+                    if(subquestionsAdded)
+                    {
+                        <td>@Model.Count()</td>
+                    }
+                    else
+                    {
+                        <td>0</td>
+                    }
+                }
             </tr>
             <tr>
                 <th>Počet bodů</th>
@@ -111,65 +137,72 @@
 
     <div id="subquestion-template">
         <h2>Parametry podotázky</h2>
-        <table>
-            <tr>
-                <th>Jmenný identifikátor podotázky</th>
-                <td>@subquestionTemplate.SubquestionIdentifier</td>
-            </tr>
-            <tr>
-                <th>Typ podotázky</th>
-                <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
-            </tr>
-            <tr>
-                <th>Počet bodů za podotázku</th>
-                <td>@subquestionPoints</td>
-            </tr>
-            @{
-                string imageSource = Config.GetURL() + subquestionTemplate.ImageSource;
-                if(subquestionTemplate.ImageSource != "")
-                {
-                    <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
-                }
-            }
-            <tr>
-                <th>Text podotázky</th>
-                <td>@subquestionTemplate.SubquestionText</td>
-            </tr>
-            <tr>
-                <th colspan="2">Možné odpovědi</th>
-            </tr>
-            @{
-                if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer)
-                {
-                    <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
-                }
-                else if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
-                {
-                    <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
-                }
-                else
-                {
-                    foreach(string possibleAnswer in @subquestionTemplate.PossibleAnswerList)
-                    {
-                        <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
-                    }
-                }
-            }
-            @{
-                if(@subquestionTemplate.CorrectAnswerList.Length > 0)
-                {
+        @{
+            if (subquestionsAdded)
+            {
+                <table>
                     <tr>
-                        <th colspan="2">Správné odpovědi</th>
+                        <th>Jmenný identifikátor podotázky</th>
+                        <td>@subquestionTemplate.SubquestionIdentifier</td>
                     </tr>
-            
-                    foreach(string correctAnswer in @subquestionTemplate.CorrectAnswerList)
-                    {
-                        <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                    <tr>
+                        <th>Typ podotázky</th>
+                        <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
+                    </tr>
+                    <tr>
+                        <th>Počet bodů za podotázku</th>
+                        <td>@subquestionPoints</td>
+                    </tr>
+                    @{
+                        string imageSource = Config.GetURL() + subquestionTemplate.ImageSource;
+                        if (subquestionTemplate.ImageSource != "")
+                        {
+                            <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
+                        }
                     }
-                }
+                    <tr>
+                        <th>Text podotázky</th>
+                        <td>@subquestionTemplate.SubquestionText</td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Možné odpovědi</th>
+                    </tr>
+                    @{
+                        if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer)
+                        {
+                            <tr><td colspan="2">Jedná se o otevřenou otázku, neobsahuje výběr z možností, odpovědi je nutné ověřit manuálně.</td></tr>
+                        }
+                        else if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
+                        {
+                            <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (string possibleAnswer in @subquestionTemplate.PossibleAnswerList)
+                            {
+                                <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
+                            }
+                        }
+                    }
+                    @{
+                        if (@subquestionTemplate.CorrectAnswerList.Length > 0)
+                        {
+                            <tr>
+                                <th colspan="2">Správné odpovědi</th>
+                            </tr>
+
+                            foreach (string correctAnswer in @subquestionTemplate.CorrectAnswerList)
+                            {
+                                <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                            }
+                        }
+                    }
+                </table>
             }
-        </table>
+        }
     </div>
+
+    <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionNumberIdentifier="@Model.First().QuestionTemplate.QuestionNumberIdentifier">Přidat podotázku</a>
 
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
@@ -194,6 +227,10 @@
                     int i = 0;
                     foreach (var item in Model)
                     {
+                        if(item.SubquestionIdentifier == "placeholder")
+                        {
+                            continue;
+                        }
                         if(item.SubquestionText.Length > 60)
                         {
                             <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@(item.SubquestionText.Substring(0,60) + " ...")</option>
@@ -205,7 +242,7 @@
                         i++;
                     }
                 }
-            }
+            }<!--TODO ? -->
             </select>
 
             <input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat" disabled="@singleSubquestion">
@@ -216,39 +253,44 @@
     <div id="subquestion-template-points">
         <h2>Upravit body za podotázku</h2>
         <p>@ViewBag.Message</p>
-        <form method="POST">
-            <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
-            <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
-            <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString().Replace(",", ".")"></p>
-            @{
-                if (userRequestedPointsSuggestion)
-                {
-                    <p>Doporučený počet bodů za otázku: @ViewBag.SuggestedSubquestionPoints</p>
-                }
-                else
-                {
-                    <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
-                }
-            }
-            <p>Počet bodů za správnou volbu: <input class="input" readonly value="@subquestionTemplate.CorrectChoicePoints.ToString()"></p>
-            <p>Počet bodů za špatnou volbu:</p>
-            <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio" name="wrongChoicePointsRadio" checked="@defaultWrongChoicePointsChecked" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
-            <input class="input" value="@subquestionTemplate.DefaultWrongChoicePoints.ToString()" id="wrongChoicePoints_automatic" readonly> <br />
-            <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio" name="wrongChoicePointsRadio" checked="@(!defaultWrongChoicePointsChecked)" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
+        @{
+            if(subquestionsAdded)
+            {
+                <form method="POST">
+                    <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+                    <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+                    <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString().Replace(",", ".")"></p>
+                    @{
+                        if (userRequestedPointsSuggestion)
+                        {
+                            <p>Doporučený počet bodů za otázku: @ViewBag.SuggestedSubquestionPoints</p>
+                        }
+                        else
+                        {
+                            <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
+                        }
+                    }
+                    <p>Počet bodů za správnou volbu: <input class="input" readonly value="@subquestionTemplate.CorrectChoicePoints.ToString()"></p>
+                    <p>Počet bodů za špatnou volbu:</p>
+                    <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio" name="wrongChoicePointsRadio" checked="@defaultWrongChoicePointsChecked" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
+                    <input class="input" value="@subquestionTemplate.DefaultWrongChoicePoints.ToString()" id="wrongChoicePoints_automatic" readonly> <br />
+                    <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio" name="wrongChoicePointsRadio" checked="@(!defaultWrongChoicePointsChecked)" onchange="setWrongChoicePointsInputs(this)"><label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
 
-            @{
-                if (defaultWrongChoicePointsChecked)
-                {
-                    <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")" readonly>
-                }
-                else
-                {
-                    <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")">
-                }
+                    @{
+                        if (defaultWrongChoicePointsChecked)
+                        {
+                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")" readonly>
+                        }
+                        else
+                        {
+                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")">
+                        }
+                    }
+                    <br />
+                    <button type="submit" value="savePoints" name="action">Uložit</button>
+                </form>
             }
-            <br />
-            <button type="submit" value="savePoints" name="action">Uložit</button>
-        </form>
+        }
     </div>
 </div>
 

@@ -40,10 +40,12 @@
 
     <form method="POST">
         <input type="submit" value="Načíst testy" class="btn btn-primary" />
-        <input type="hidden" value="add" name="action">
+        <input type="hidden" value="addTestTemplates" name="action">
     </form>
 
     <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAllTemplates', null, null, null, null, null, null)">Smazat všechny testy</button>
+
+    <br><a asp-action="AddTestTemplate">Přidat test</a>
 
     <div id="confirm-action">
         <form method="POST">

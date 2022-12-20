@@ -171,7 +171,13 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                return NoElementsFoundAction();
+                //no question templates exist for this test template - we add a dummy question template to hold the test template data
+                List<QuestionTemplate> questionTemplatesPlaceholder = new List<QuestionTemplate>();
+                QuestionTemplate questionTemplate = new QuestionTemplate();
+                questionTemplate.TestTemplate = businessLayerFunctions.GetTestTemplate(login, testNumberIdentifier);
+                questionTemplate.QuestionNumberIdentifier = "placeholder";
+                questionTemplatesPlaceholder.Add(questionTemplate);
+                return View(questionTemplatesPlaceholder);
             }
         }
 
@@ -252,7 +258,13 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                return NoElementsFoundAction();
+                //no subquestion templates exist for this test template - we add a dummy subquestion template to hold the question template data
+                List<SubquestionTemplate> subquestionTemplatesPlaceholder = new List<SubquestionTemplate>();
+                SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+                subquestionTemplate.SubquestionIdentifier = "placeholder";
+                subquestionTemplatesPlaceholder.Add(subquestionTemplate);
+                return View(subquestionTemplatesPlaceholder);
             }
         }
 
@@ -1400,6 +1412,113 @@ namespace ViewLayer.Controllers
             }
 
             return RedirectToAction(nameof(ManageArtificialIntelligence));
+        }
+
+        public IActionResult AddTestTemplate()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddTestTemplate(string title)
+        {
+            string message = await businessLayerFunctions.AddTestTemplate(title);
+            TempData["Message"] = message;
+            return RedirectToAction(nameof(TestTemplateList));
+        }
+
+        public IActionResult AddQuestionTemplate(string testNumberIdentifier)
+        {
+            ViewBag.TestNumberIdentifier = testNumberIdentifier;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddQuestionTemplate(string title, string testNumberIdentifier)
+        {
+            string message = await businessLayerFunctions.AddQuestionTemplate(testNumberIdentifier, title);
+            TempData["Message"] = message;
+            return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
+        }
+
+        public IActionResult AddSubquestionTemplate(string questionNumberIdentifier)
+        {
+            ViewBag.QuestionNumberIdentifier = questionNumberIdentifier;
+            ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
+            if (TempData["SelectedSubquestionType"] != null)
+            {
+                ViewBag.SelectedSubquestionType = TempData["SelectedSubquestionType"]!.ToString();
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate, string questionNumberIdentifier,
+            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual)
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string message = string.Empty;
+
+            if (action == "selectType")
+            {
+                TempData["SubquestionType"] = subquestionTemplate.SubquestionType;
+            }
+            else if (action == "addSubquestion")
+            {
+                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                {
+                    subquestionPoints = subquestionPoints.Replace(".", ",");
+                    correctChoicePoints = correctChoicePoints.Replace(".", ",");
+                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                }
+                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+                {
+                    subquestionPoints = subquestionPoints.Replace(",", ".");
+                    correctChoicePoints = correctChoicePoints.Replace(".", ",");
+                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                }
+                /*SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+                subquestionTemplate.SubquestionIdentifier = "sub";
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+                subquestionTemplate.QuestionNumberIdentifier = questionNumberIdentifier;
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.SubquestionType = EnumTypes.SubquestionType.MultipleQuestions;
+                subquestionTemplate.SubquestionText = subquestionTemplatexxx.SubquestionText;
+                subquestionTemplate.ImageSource = "";
+                subquestionTemplate.PossibleAnswerList = new string[] { "test1", "test2" };
+                subquestionTemplate.CorrectAnswerList = new string[] { "test3", "test4" };
+                subquestionTemplate.SubquestionPoints = 10;
+                subquestionTemplate.CorrectChoicePoints = 10;
+                subquestionTemplate.DefaultWrongChoicePoints = 10;
+                subquestionTemplate.WrongChoicePoints = 10;*/
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+
+                subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
+                subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
+                subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+                if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
+                {
+                    subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+                }
+                else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
+                {
+                    subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
+                }
+                message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
+            }
+
+            TempData["Message"] = message;
+            if (action == "selectType")
+            {
+                TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
+                return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                //return RedirectToAction(nameof(AddSubquestionTemplate));
+            }
+            else
+            {
+                return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+            }
         }
 
         public IActionResult AccessDeniedAction()

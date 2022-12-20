@@ -1,0 +1,150 @@
+﻿@model DomainModel.SubquestionTemplate
+@using Common;
+
+@{
+    string questionNumberIdentifier = ViewBag.QuestionNumberIdentifier;
+    string[] subquestionTypeTextArray = ViewBag.SubquestionTypeTextArray;
+    int selectedSubquestionType;
+    if (ViewBag.SelectedSubquestionType == null)
+    {
+        selectedSubquestionType = 0;
+    }
+    else
+    {
+        selectedSubquestionType = int.Parse(ViewBag.SelectedSubquestionType);
+    }
+    EnumTypes.SubquestionType selectedSubquestionTypeEnum = EnumTypes.SubquestionType.FreeAnswer;
+    Random random = new Random();
+    int tempSubquestionIdentifier = random.Next(1, 1000000);
+    string tempImageSource = "temp";
+
+    ViewData["Title"] = "Vytvoření zadání podotázky";
+}
+
+<div class="text-center">
+    <h1>Vytvoření zadání otázky</h1>
+
+    <div id="subquestion-type">
+        <h2>Typ podotázky</h2>
+        <form method="POST">
+            <select class="input" name="subquestionType" id="subquestionType">
+                @{
+                    int i = 0;
+                    foreach (string type in subquestionTypeTextArray)
+                    {
+                        if (i == 0)
+                        {
+                            i++;
+                            continue;
+                        }
+                        <option id="subquestion-type-@(i+1)" value="@i">@type</option>
+                        i++;
+                    }
+                }
+            </select>
+            <input type="hidden" value="selectType" name="action">
+            <input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat">
+        </form>
+    </div>
+
+    <div id="subquestion-details">
+        <h2>Detaily podotázky</h2>
+        @{
+            switch(selectedSubquestionType)
+            {
+                case 0:
+                    <p>Pro vyplnění detailů podotázky prosím zvolte z nabídky typ podotázky.</p>
+                    break;
+                case 1:
+                    <p>Typ otázky: seřazení pojmů</p>
+                    <form method="POST">
+                        <label for="subquestionText">Text:</label>
+                        <input type="text" required id="SubquestionText" name="SubquestionText"><br>
+
+                        <button type="button" onclick="editPossibleAnswers('enable')" id="possible-answer-edit">Upravit možné odpovědi</button>
+                        <button type="button" onclick="editPossibleAnswers('disable')" id="possible-answer-save">Uložit</button>
+                        <table id="possible-answers-table">
+                            <tr>
+                                <th>Možná odpověď</th>
+                                <th>Nahoru</th>
+                                <th>Dolů</th>
+                                <th>Smazat odpověď</th>
+                            </tr>
+                            <tr id="possible-answer-1">
+                                <td><input required class="possible-answer-input" type="text" name="PossibleAnswerList[]" value="" /></td>
+                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                            </tr>
+                            <tr id="possible-answer-2">
+                                <td><input required class="possible-answer-input" type="text" name="PossibleAnswerList[]" value=""/></td>
+                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                            </tr>
+                        </table>
+                        <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
+                         <br>
+                        <button type="button" onclick="editCorrectAnswers('enable')" id="correct-answer-edit">Upravit správné odpovědi</button>
+                        <button type="button" onclick="editCorrectAnswers('disable')" id="correct-answer-save">Uložit</button>
+                        <br>
+                        <table id="correct-answers-table">
+                            <tr>
+                                <th>Správná odpověď</th>
+                                <th>Nahoru</th>
+                                <th>Dolů</th>
+                            </tr>
+                            <tr id="correct-answer-1">
+                                <td><input required readonly class="correct-answer-input" type="text" name="CorrectAnswerList[]" value="" /></td>
+                                <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                            </tr>
+                        </table>
+                        <br>
+                        <p>Počet bodů za podotázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" 
+                            onchange="updateChoicePoints(this, @selectedSubquestionType)"></p>
+                        <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints"></p>
+                        <p>Počet bodů za špatnou volbu:</p>
+                        <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio"
+                        name="wrongChoicePointsRadio" checked onchange="setWrongChoicePointsInputs(this)">
+                        <label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
+                        <input type="number" id="wrongChoicePoints_automatic" readonly name="defaultWrongChoicePoints"> <br />
+                        <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio"
+                        name="wrongChoicePointsRadio" onchange="setWrongChoicePointsInputs(this)">
+                        <label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
+                        <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints_manual" readonly required value="0">
+                        
+                        <br>
+                        <button type="submit" value="addSubquestion" name="action" id="subquestion-add">Uložit</button>
+                        
+                        <input type="hidden" name="QuestionNumberIdentifier" value="@questionNumberIdentifier">
+                        <input type="hidden" name="SubquestionIdentifier" value="@tempSubquestionIdentifier">
+                        <!--     <input type="hidden" name="SubquestionType" value="@selectedSubquestionTypeEnum">
+                        <input type="hidden" name="CorrectChoicePoints" id="correct-choice-points-hidden">
+                        <input type="hidden" name="defaultWrongChoicePoints" id="default-wrong-choice-points-hidden"> -->
+                        <input type="hidden" name="ImageSource" value="@tempImageSource">
+                        <input type="hidden" name="SubquestionType" value="@selectedSubquestionType">
+                        <input type="hidden" name="action" value="addSubquestion">
+                    </form>
+                    break;
+                case 2:
+                    <p>typ 2</p>
+                    break;
+            }
+        }
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script>
+    //disable elements in the possible answers table on load
+    document.getElementById("possible-answer-add").disabled = true;
+    $(".possible-answer-delete").prop('disabled', true);
+    document.getElementById("possible-answer-save").disabled = true;
+    $(".possible-answer-input").prop('readonly', true);
+    $(".possible-answer-move").prop('disabled', true);
+
+    //disable elements in the correct answers table on load
+    document.getElementById("correct-answer-save").disabled = true;
+    $(".correct-answer-move").prop('disabled', true);
+</script>

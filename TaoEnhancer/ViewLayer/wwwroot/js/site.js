@@ -182,7 +182,6 @@ adminForm.addEventListener('submit', adminFormSubmit);
 function setWrongChoicePointsInputs(el) {
     if (el.value == "wrongChoicePoints_automatic_radio") {
         document.getElementById("wrongChoicePoints_manual").readOnly = true;
-      //  document.getElementById("wrongChoicePoints_manual").value = document.getElementById("wrongChoicePoints_automatic").value;
     }
     else {
         document.getElementById("wrongChoicePoints_manual").readOnly = false;
@@ -250,6 +249,222 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete změnit tohoto správce na hlavního administrátora?" + 
             " (provedením této akce bude váš účet změněn z hlavního administrátora na správce).";
     }
+}
+
+//AddSubquestionTemplate.cshtml
+
+function addPossibleAnswer() {
+    var table = document.getElementById('possible-answers-table');
+    var rowCount = table.rows.length;
+    var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
+    var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
+    var lastRowId = parseInt(lastRowIdArray[2]);
+    lastRowId += 1;
+    var row = table.insertRow(rowCount);
+    row.innerHTML = lastRowInnerHTML;
+    row.id = "possible-answer-" + lastRowId;
+}
+
+function editPossibleAnswers(action) {
+    //users wants to edit possible answers
+    if (action == "enable") {
+        document.getElementById("possible-answer-add").disabled = false;
+        document.getElementById("possible-answer-edit").disabled = true;
+        document.getElementById("correct-answer-edit").disabled = true;
+        document.getElementById("subquestion-add").disabled = true;
+        $(".possible-answer-delete").prop('disabled', false);
+        document.getElementById("possible-answer-save").disabled = false;
+        $(".possible-answer-input").prop('readonly', false);
+        $(".possible-answer-move").prop('disabled', false);
+    }
+    //user is done editing possible answers
+    else if (action == "disable") {
+        var addAnswers = true;
+        var seen = {};
+        $('input[type="text"].possible-answer-input').each(function () {
+            var answer = $(this).val();
+            if (answer.length == 0) {
+                alert("Chyba: nevyplněná možná odpověď.");
+                addAnswers = false;
+            }
+            if (seen[answer]) {
+                alert("Chyba: duplikátní možná odpověď (" + answer + ").");
+                addAnswers = false;
+            }
+            else {
+                seen[answer] = true;
+            }  
+        });
+
+        if (addAnswers) {
+            updateCorrectAnswers();
+            document.getElementById("possible-answer-add").disabled = true;
+            document.getElementById("subquestion-add").disabled = false;
+            $(".possible-answer-delete").prop('disabled', true);
+            document.getElementById("possible-answer-save").disabled = true;
+            document.getElementById("possible-answer-edit").disabled = false;
+            document.getElementById("correct-answer-edit").disabled = false;
+            $(".possible-answer-input").prop('readonly', true);
+            $(".possible-answer-move").prop('disabled', true);
+        }
+    }
+}
+
+function deletePossibleAnswer(clicked_id) {
+    var table = document.getElementById('possible-answers-table');
+    var rowCount = table.rows.length;
+    if (rowCount <= '3') {
+        alert('Chyba: musí existovat alespoň 2 možné odpovědi.');
+    }
+    else {
+        var row = document.getElementById(clicked_id);
+        row.parentNode.removeChild(row);
+    }
+}
+
+//enables the user to move correct answers (upwards or downwards)
+function movePossibleAnswer(direction, clicked_id) {
+    var table = document.getElementById('possible-answers-table');
+    var rowIndex = 0;
+    for (var i = 0, row; row = table.rows[i]; i++) {
+        if (clicked_id == row.id) {
+            rowIndex = i;
+            break;
+        }
+    }
+    var rowCount = table.rows.length;
+    if (direction == 'up') {
+        if (rowIndex > 1) {
+            var temp = table.rows[rowIndex - 1].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex - 1].cells[0].getElementsByTagName("input")[0].value = table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value = temp;
+        }
+    }
+    else if (direction == 'down') {
+        if (rowIndex + 1 < rowCount) {
+            var temp = table.rows[rowIndex + 1].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex + 1].cells[0].getElementsByTagName("input")[0].value = table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value = temp;
+        }
+    }
+}
+
+//after the user updates possible answers, correct answers must be automatically updated as well
+function updateCorrectAnswers() {
+    var possibleAnswerArray = [];
+    possibleAnswerArray.push('-ZVOLTE MOŽNOST-');
+    $('input[type="text"].possible-answer-input').each(function () {
+        var answer = $(this).val();
+        possibleAnswerArray.push(answer);
+    });
+
+    //clear correct answers table
+    var table = document.getElementById('correct-answers-table');
+    var rowCount = table.rows.length;
+    while (--rowCount - 1) {
+        table.deleteRow(rowCount);
+    } 
+    table.rows[1].cells[0].getElementsByTagName("input")[0].value = "";
+
+    for (var i = 0; i < possibleAnswerArray.length - 2; i++) {
+        rowCount = table.rows.length;
+        var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
+        var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
+        var lastRowId = parseInt(lastRowIdArray[2]);
+        lastRowId += 1;
+        var row = table.insertRow(rowCount);
+        row.innerHTML = lastRowInnerHTML;
+        row.id = "correct-answer-" + lastRowId;
+    }
+
+    for (var i = 1; i < possibleAnswerArray.length; i++) {
+        table.rows[i].cells[0].getElementsByTagName("input")[0].value = possibleAnswerArray[i];
+    }
+}
+
+function editCorrectAnswers(action) {
+    //users wants to edit correct answers
+    if (action == "enable") {
+        document.getElementById("possible-answer-edit").disabled = true;
+        document.getElementById("correct-answer-edit").disabled = true;
+        document.getElementById("correct-answer-save").disabled = false;
+        $(".correct-answer-move").prop('disabled', false);
+        document.getElementById("subquestion-add").disabled = true;
+    }
+    //user is done editing correct answers
+    else if (action == "disable") {
+        document.getElementById("possible-answer-edit").disabled = false;
+        document.getElementById("correct-answer-edit").disabled = false;
+        document.getElementById("correct-answer-save").disabled = true;
+        $(".correct-answer-move").prop('disabled', true);
+        document.getElementById("subquestion-add").disabled = false;
+    }
+}
+
+//enables the user to move correct answers (upwards or downwards)
+function moveCorrectAnswer(direction, clicked_id) {
+    var table = document.getElementById('correct-answers-table');
+    var rowIndex = 0;
+    for (var i = 0, row; row = table.rows[i]; i++) {
+        if (clicked_id == row.id) {
+            rowIndex = i;
+            break;
+        }
+    }
+    var rowCount = table.rows.length;
+    if (direction == 'up') {
+        if (rowIndex > 1) {
+            var temp = table.rows[rowIndex - 1].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex - 1].cells[0].getElementsByTagName("input")[0].value = table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value = temp;
+        }
+    }
+    else if (direction == 'down') {
+        if (rowIndex + 1 < rowCount) {
+            var temp = table.rows[rowIndex + 1].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex + 1].cells[0].getElementsByTagName("input")[0].value = table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value;
+            table.rows[rowIndex].cells[0].getElementsByTagName("input")[0].value = temp;
+        }
+    }
+}
+
+//after the user changes subquestion points, correct and wrong choice points are updated automatically
+function updateChoicePoints(subquestionPoints, subquestionType) {
+    subquestionPoints = subquestionPoints.value;
+    var table = document.getElementById('correct-answers-table');
+    var correctChoiceArrayLength = table.rows.length - 1;
+    var correctChoicePoints = 0;
+    switch (subquestionType) {
+        case 1:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 10:
+            correctChoicePoints = subquestionPoints;
+            break;
+        case 2:
+            correctChoicePoints = formatter.format(subquestionPoints) / formatter.format(correctChoiceArrayLength);
+            break;
+        case 3:
+        case 4:
+        case 9:
+            correctChoicePoints = formatter.format(subquestionPoints) / (formatter.format(correctChoiceArrayLength) / 2) / 2;
+            break;
+        default:
+            correctChoicePoints = 0;
+            break;
+    }
+
+    const formatter = new Intl.NumberFormat('en-GB', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    correctChoicePoints = formatter.format(correctChoicePoints);
+    
+    document.getElementById("correct-choice-points").value = correctChoicePoints;
+    document.getElementById("wrongChoicePoints_automatic").value = correctChoicePoints * (-1);
+    document.getElementById("wrongChoicePoints_manual").min = correctChoicePoints * (-1);
 }
 
 //General

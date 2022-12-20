@@ -77,6 +77,22 @@ namespace DataLayer
             return message;
         }
 
+        public async Task<string> AddTestTemplate(TestTemplate testTemplate)
+        {
+            try
+            {
+                _context.Users.Attach(testTemplate.Owner);
+                _context.TestTemplates.Add(testTemplate);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            string message = "Zadání testu bylo úspěšně přidáno.";
+            return message;
+        }
+
         public async Task<string> DeleteTestTemplates(string login)
         {
             var testTemplateList = GetTestTemplateDbSet().Where(t => t.OwnerLogin == login);
@@ -132,6 +148,13 @@ namespace DataLayer
                 .First(t => t.TestNameIdentifier == testNameIdentifier && t.OwnerLogin == login);
         }
 
+        public TestTemplate GetTestTemplate(string login, string testNumberIdentifier, string _)
+        {//todo: sjednotit
+            return GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplateList)
+                .First(t => t.TestNumberIdentifier == testNumberIdentifier && t.OwnerLogin == login);
+        }
+
         public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
         {
             return GetQuestionTemplateDbSet()
@@ -139,10 +162,44 @@ namespace DataLayer
                 .First(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
         }
 
+        public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate, string testNumberIdentifier)
+        {
+            try
+            {
+                TestTemplate testTemplate = GetTestTemplate(questionTemplate.OwnerLogin, testNumberIdentifier, "");
+                ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
+                questionTemplates.Add(questionTemplate);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            string message = "Zadání otázky bylo úspěšně přidáno.";
+            return message;
+        }
+
         public SubquestionTemplate GetSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string login)
         {
             return GetSubquestionTemplateDbSet()
                 .First(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+        }
+
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        {
+            try
+            {
+                QuestionTemplate questionTemplate = GetQuestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionNumberIdentifier);
+                ICollection<SubquestionTemplate> subquestionTemplates = questionTemplate.SubquestionTemplateList;
+                subquestionTemplates.Add(subquestionTemplate);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            string message = "Zadání podotázky bylo úspěšně přidáno.";
+            return message;
         }
 
         public async Task AddSubquestionTemplateStatistics(SubquestionTemplateStatistics subquestionTemplateStatistics)
