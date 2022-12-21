@@ -20,11 +20,13 @@ namespace ViewLayer.Controllers
 
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, CourseContext context)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IWebHostEnvironment environment, CourseContext context)
         {
             _logger = logger;
             _configuration = configuration;
+            _environment = environment;
             _context = context;
             businessLayerFunctions = new BusinessLayerFunctions(context, configuration);
 
@@ -137,7 +139,7 @@ namespace ViewLayer.Controllers
             }
             else if(action == "deleteTemplate")
             {
-                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplate(login, testNumberIdentifier);
+                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplate(login, testNumberIdentifier, _environment.WebRootPath);
             }
             return RedirectToAction(nameof(TestTemplateList));
         }
@@ -161,6 +163,10 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.TestDifficultyMessage = TempData["TestDifficultyMessage"]!.ToString();
             }
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
             string login = businessLayerFunctions.GetCurrentUserLogin();
 
             var questionTemplates = businessLayerFunctions.GetQuestionTemplates(login, testNumberIdentifier);
@@ -183,7 +189,7 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         public async Task<IActionResult> TestTemplate(string action, string testNumberIdentifier, string negativePoints,
-            string minimumPointsAmount, string testPointsDetermined)
+            string minimumPointsAmount, string testPointsDetermined, string questionNumberIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             if (minimumPointsAmount != null)
@@ -200,6 +206,7 @@ namespace ViewLayer.Controllers
             string? negativePointsMessage = null;
             string? minimumPointsMessage = null;
             string? testDifficultyMessage = null;
+            string? message = null;
 
             var testTemplate = businessLayerFunctions.GetTestTemplate(login, testNumberIdentifier);
             if (action == "setNegativePoints")
@@ -217,12 +224,16 @@ namespace ViewLayer.Controllers
             else if (action == "getDifficultyPrediction")
             {
                 testDifficultyMessage = businessLayerFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
-
+            }
+            else if (action == "deleteQuestionTemplate")
+            {
+                message = await businessLayerFunctions.DeleteQuestionTemplate(questionNumberIdentifier, _environment.WebRootPath);
             }
 
             TempData["NegativePointsMessage"] = negativePointsMessage;
             TempData["MinimumPointsMessage"] = minimumPointsMessage;
             TempData["TestDifficultyMessage"] = testDifficultyMessage;
+            TempData["Message"] = message;
             return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
         }
 
@@ -307,6 +318,10 @@ namespace ViewLayer.Controllers
             else if(action == "getPointsSuggestion")
             {
                 TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(login, questionNumberIdentifier, subquestionIdentifier);
+            }
+            else if (action == "deleteSubquestionTemplate")
+            {
+                message = await businessLayerFunctions.DeleteSubquestionTemplate(questionNumberIdentifier, subquestionIdentifier, _environment.WebRootPath);
             }
 
             TempData["Message"] = message;
@@ -1449,15 +1464,20 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.SelectedSubquestionType = TempData["SelectedSubquestionType"]!.ToString();
             }
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate, string questionNumberIdentifier,
-            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual)
+            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual, IFormFile image)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string message = string.Empty;
+            string? imageErrorMessage = null;
 
             if (action == "selectType")
             {
@@ -1465,47 +1485,50 @@ namespace ViewLayer.Controllers
             }
             else if (action == "addSubquestion")
             {
-                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                if(image != null)
                 {
-                    subquestionPoints = subquestionPoints.Replace(".", ",");
-                    correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                    //check image format and size
+                    imageErrorMessage = businessLayerFunctions.ValidateImage(image);
                 }
-                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+                if(imageErrorMessage != null)
                 {
-                    subquestionPoints = subquestionPoints.Replace(",", ".");
-                    correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                    message = imageErrorMessage;
                 }
-                /*SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                subquestionTemplate.SubquestionIdentifier = "sub";
-                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
-                subquestionTemplate.QuestionNumberIdentifier = questionNumberIdentifier;
-                subquestionTemplate.OwnerLogin = login;
-                subquestionTemplate.SubquestionType = EnumTypes.SubquestionType.MultipleQuestions;
-                subquestionTemplate.SubquestionText = subquestionTemplatexxx.SubquestionText;
-                subquestionTemplate.ImageSource = "";
-                subquestionTemplate.PossibleAnswerList = new string[] { "test1", "test2" };
-                subquestionTemplate.CorrectAnswerList = new string[] { "test3", "test4" };
-                subquestionTemplate.SubquestionPoints = 10;
-                subquestionTemplate.CorrectChoicePoints = 10;
-                subquestionTemplate.DefaultWrongChoicePoints = 10;
-                subquestionTemplate.WrongChoicePoints = 10;*/
-                subquestionTemplate.OwnerLogin = login;
-                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+                else
+                {
+                    if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+                    {
+                        subquestionPoints = subquestionPoints.Replace(".", ",");
+                        correctChoicePoints = correctChoicePoints.Replace(".", ",");
+                        wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                    }
+                    else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+                    {
+                        subquestionPoints = subquestionPoints.Replace(",", ".");
+                        correctChoicePoints = correctChoicePoints.Replace(".", ",");
+                        wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                    }
+                    subquestionTemplate.OwnerLogin = login;
+                    subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
 
-                subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
-                subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
-                subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
-                if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
-                {
-                    subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+                    subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
+                    subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
+                    subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+                    if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
+                    {
+                        subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+                    }
+                    else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
+                    {
+                        subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
+                    }
+
+                    if (image != null)
+                    {
+                        subquestionTemplate.ImageSource = businessLayerFunctions.SaveImage(image, _environment.WebRootPath);
+                    }
+                    message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
                 }
-                else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
-                {
-                    subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
-                }
-                message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
             }
 
             TempData["Message"] = message;
@@ -1513,11 +1536,19 @@ namespace ViewLayer.Controllers
             {
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
-                //return RedirectToAction(nameof(AddSubquestionTemplate));
             }
             else
             {
-                return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                if(imageErrorMessage != null)
+                {
+                    return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                }
+                else
+                {
+                    TempData["Message"] = "Podotázka byla úspěšně přidána.";
+                    TempData["subquestionIdentifier"] = subquestionTemplate.SubquestionIdentifier;
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                }
             }
         }
 

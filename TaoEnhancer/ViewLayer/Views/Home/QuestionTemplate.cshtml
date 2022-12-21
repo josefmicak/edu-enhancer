@@ -20,6 +20,13 @@
                 break;
             }
         }
+        
+        //in some cases (such as a subquestion template being deleted) an empty subquestion template may get used by mistake
+        //in these cases it's necessary to use the first subquestion template in the collection
+        if(subquestionTemplate.SubquestionIdentifier == null)
+        {
+            subquestionTemplate = @Model.First();
+        }
     }
 
     if (subquestionTemplate == null)
@@ -154,8 +161,8 @@
                         <td>@subquestionPoints</td>
                     </tr>
                     @{
-                        string imageSource = Config.GetURL() + subquestionTemplate.ImageSource;
-                        if (subquestionTemplate.ImageSource != "")
+                        string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
+                        if (subquestionTemplate.ImageSource != null)
                         {
                             <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                         }
@@ -204,6 +211,7 @@
 
     <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionNumberIdentifier="@Model.First().QuestionTemplate.QuestionNumberIdentifier">Přidat podotázku</a>
 
+    <p>@ViewBag.Message</p>
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
         <form method="POST">
@@ -217,7 +225,15 @@
                 }
                 else
                 {
-                    subquestionLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+                    if(!subquestionsAdded)
+                    {
+                        subquestionLabel = "Tato otázka neobsahuje žádné podotázky.";
+                    }
+                    else
+                    {
+                        subquestionLabel = "Tato otázka obsahuje pouze jednu podotázku.";
+
+                    }
                 }
                 <p>@subquestionLabel</p>
             }
@@ -250,9 +266,15 @@
         </form>
     </div>
 
+    @if(subquestionsAdded)
+    {
+        <div id="delete-subquestion">
+            <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionIdentifier', null, null, null, null, null)">Smazat podotázku</button>
+        </div>
+    }
+
     <div id="subquestion-template-points">
         <h2>Upravit body za podotázku</h2>
-        <p>@ViewBag.Message</p>
         @{
             if(subquestionsAdded)
             {
@@ -292,6 +314,17 @@
             }
         }
     </div>
+</div>
+
+<div id="confirm-action">
+    <form method="POST">
+        <label><div id="confirm-action-label"></div></label><br>
+        <input title="Ano" type="submit" value="Ano"><br>
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="subquestionIdentifierToDelete" name="subquestionIdentifier">
+        <input type="hidden" name="questionNumberIdentifier" value="@Model.First().QuestionNumberIdentifier">
+        <input type="hidden" id="action" name="action">
+    </form>
 </div>
 
 <div id="backBtn"><a asp-action="TestTemplate"

@@ -105,8 +105,20 @@ namespace DataLayer
             return message;
         }
 
-        public async Task<string> DeleteTestTemplate(TestTemplate testTemplate)
+        public async Task<string> DeleteTestTemplate(TestTemplate testTemplate, string webRootPath)
         {
+            for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                for(int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                {
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    if(subquestionTemplate.ImageSource != null)
+                    {
+                        DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                    }
+                }
+            }
             _context.TestTemplates.Remove(testTemplate);
             await _context.SaveChangesAsync();
             string message = "Test byl úspěšně smazán.";
@@ -158,6 +170,7 @@ namespace DataLayer
         public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
         {
             return GetQuestionTemplateDbSet()
+                .Include(q => q.TestTemplate)
                 .Include(q => q.SubquestionTemplateList)
                 .First(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
         }
@@ -176,6 +189,23 @@ namespace DataLayer
                 Debug.WriteLine(ex.Message);
             }
             string message = "Zadání otázky bylo úspěšně přidáno.";
+            return message;
+        }
+
+        public async Task<string> DeleteQuestionTemplate(string login, string questionNumberIdentifier, string webRootPath)
+        {
+            QuestionTemplate questionTemplate = GetQuestionTemplate(login, questionNumberIdentifier);
+            for(int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
+            {
+                SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(i);
+                if(subquestionTemplate.ImageSource != null)
+                {
+                    DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                }
+            }
+            _context.QuestionTemplates.Remove(questionTemplate);
+            await _context.SaveChangesAsync();
+            string message = "Otázka byla úspěšně smazána.";
             return message;
         }
 
@@ -200,6 +230,26 @@ namespace DataLayer
             }
             string message = "Zadání podotázky bylo úspěšně přidáno.";
             return message;
+        }
+
+        public async Task<string> DeleteSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
+        {
+            SubquestionTemplate subquestionTemplate = GetSubquestionTemplate(questionNumberIdentifier, subquestionIdentifier, login);
+            _context.SubquestionTemplates.Remove(subquestionTemplate);
+            await _context.SaveChangesAsync();
+            if(subquestionTemplate.ImageSource != null)
+            {
+                DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+            }
+            
+            string message = "Podotázka byla úspěšně smazána.";
+            return message;
+        }
+
+        public void DeleteSubquestionTemplateImage(string webRootPath, string imageSource)
+        {
+            string uploadsFolder = Path.Combine(webRootPath, "Uploads/");
+            File.Delete(uploadsFolder + imageSource);
         }
 
         public async Task AddSubquestionTemplateStatistics(SubquestionTemplateStatistics subquestionTemplateStatistics)

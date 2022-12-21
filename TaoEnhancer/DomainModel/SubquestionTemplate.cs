@@ -9,7 +9,7 @@ namespace DomainModel
         public string SubquestionIdentifier { get; set; } = default!;
         public EnumTypes.SubquestionType SubquestionType { get; set; }
         public string SubquestionText { get; set; } = default!;
-        public string ImageSource { get; set; } = default!;
+        public string? ImageSource { get; set; }
         public string[] PossibleAnswerList { get; set; } = default!;
         public string[] CorrectAnswerList { get; set; } = default!;
         public double? SubquestionPoints { get; set; }

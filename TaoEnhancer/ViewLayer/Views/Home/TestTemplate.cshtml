@@ -31,6 +31,13 @@
         difficultyText = testDifficultyMessageArray[1];
     }
 
+    //it's possible that no "real" questions exist for this test yet, only one dummy question is added
+    bool questionsAdded = true;
+    if (@Model.First().QuestionNumberIdentifier == "placeholder")
+    {
+        questionsAdded = false;
+    }
+
     ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
 }
 
@@ -53,6 +60,7 @@
     <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testNumberIdentifier="@Model.First().TestTemplate.TestNumberIdentifier">Přidat otázku</a>
 
     <div id="question-template-list">
+        <p>@ViewBag.Message</p>
         <h2>Seznam otázek</h2>
         <table>
             <tr>
@@ -60,6 +68,7 @@
                <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
                <th>Počet bodů</th>
+               <th>Smazat</th>
                <th>Správa otázky</th>
             </tr>
             @{
@@ -99,6 +108,7 @@
                         <td>@Html.DisplayFor(modelItem => item.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td>@questionPointsString</td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionNumberIdentifier', null, null, null, null, null)">Smazat otázku</button></td>
                         <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
                         asp-route-questionNumberIdentifier="@item.QuestionNumberIdentifier">Správa otázky</a></td>
                     </tr>
@@ -158,7 +168,16 @@
         </tr>
         <tr>
             <th>Počet otázek</th>
-            <td>@Model.Count()</td>
+            @{
+                if (!questionsAdded)
+                {
+                    <td>0</td>
+                }
+                else
+                {
+                    <td>@Model.Count()</td>
+                }
+            }
         </tr>
         <tr>
             <th>Počet bodů</th>
@@ -193,6 +212,16 @@
                 <p>Předpokládaný průměrný počet bodů: <button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button></p>
             }
         }
+    </form>
+</div>
+
+<div id="confirm-action">
+    <form method="POST">
+        <label><div id="confirm-action-label"></div></label><br>
+        <input title="Ano" type="submit" value="Ano"><br>
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="questionNumberIdentifier" name="questionNumberIdentifier">
+        <input type="hidden" id="action" name="action">
     </form>
 </div>
 

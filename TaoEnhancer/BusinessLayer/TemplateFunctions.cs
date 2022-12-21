@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Xml;
 using static Common.EnumTypes;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLayer
 {
@@ -81,10 +82,10 @@ namespace BusinessLayer
             return await dataFunctions.DeleteTestTemplates(login);
         }
 
-        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier)
+        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier, string webRootPath)
         {
             TestTemplate testTemplate = GetTestTemplateDbSet().First(t => t.OwnerLogin == login && t.TestNumberIdentifier == testNumberIdentifier);
-            return await dataFunctions.DeleteTestTemplate(testTemplate);
+            return await dataFunctions.DeleteTestTemplate(testTemplate, webRootPath);
         }
 
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, string testNumberIdentifier)
@@ -114,6 +115,11 @@ namespace BusinessLayer
             return await dataFunctions.AddQuestionTemplate(questionTemplate, testNumberIdentifier);
         }
 
+        public async Task<string> DeleteQuestionTemplate(string login, string questionNumberIdentifier, string webRootPath)
+        {
+            return await dataFunctions.DeleteQuestionTemplate(login, questionNumberIdentifier, webRootPath);
+        }
+
         public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
         {
             return GetSubquestionTemplateDbSet()
@@ -125,6 +131,11 @@ namespace BusinessLayer
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
         {
             return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
+        }
+
+        public async Task<string> DeleteSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
+        {
+            return await dataFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
         }
 
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
@@ -551,6 +562,51 @@ namespace BusinessLayer
             }
 
             return testPoints;
+        }
+
+        /// <summary>
+        /// Checks whether the submitted file meets certain conditions (related to file size and file extension)
+        /// </summary>
+        /// <param name="image">Image to be validated</param>
+        public string? ValidateImage(IFormFile image)
+        {
+            if(image.Length > 4000000)
+            {
+                return "Chyba: Maximální povolená velikost obrázku je 4 MB.";
+            }
+            string fileExtension = Path.GetExtension(image.FileName).ToLower();
+            if (fileExtension != ".jpg"
+                && fileExtension != ".png"
+                && fileExtension != ".jpeg"
+                && fileExtension != ".webp")
+            {
+                return "Chyba: nepovolený formát (" + fileExtension + "). Povolené formáty jsou .jpg, .png, .jpeg, .webp";
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Saves image to the wwwroot/Uploads folder
+        /// </summary>
+        /// <param name="image">Image to be saved</param>
+        /// <param name="webRootPath">Path to the wwwroot folder where all images are to be saved</param>
+        public string SaveImage(IFormFile image, string webRootPath)
+        {
+            string newFileName;
+            string uploadsFolder = Path.Combine(webRootPath, "Uploads");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            newFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+            string newFilePath = Path.Combine(uploadsFolder, newFileName);
+            using (var fileStream = new FileStream(newFilePath, FileMode.Create))
+            {
+                image.CopyTo(fileStream);
+            }
+
+            return newFileName;
         }
 
         /// <summary>

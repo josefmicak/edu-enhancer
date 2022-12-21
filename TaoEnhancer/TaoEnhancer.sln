@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataLayer", "DataLayer\Data
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessLayer", "BusinessLayer\BusinessLayer.csproj", "{081E9042-4392-42FE-AC85-07E6D161CC13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArtificialIntelligenceTools", "ArtificialIntelligenceTools\ArtificialIntelligenceTools.csproj", "{2B6F94E3-AD47-47C6-98F6-6262FA4FAC5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArtificialIntelligenceTools", "ArtificialIntelligenceTools\ArtificialIntelligenceTools.csproj", "{2B6F94E3-AD47-47C6-98F6-6262FA4FAC5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

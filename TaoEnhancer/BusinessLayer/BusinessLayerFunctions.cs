@@ -7,6 +7,7 @@ using ArtificialIntelligenceTools;
 using System;
 using System.Diagnostics;
 using static Common.EnumTypes;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLayer
 {
@@ -66,9 +67,9 @@ namespace BusinessLayer
             return await templateFunctions.DeleteTestTemplates(login);
         }
 
-        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier)
+        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier, string webRootPath)
         {
-            return await templateFunctions.DeleteTestTemplate(login, testNumberIdentifier);
+            return await templateFunctions.DeleteTestTemplate(login, testNumberIdentifier, webRootPath);
         }
 
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, string testNumberIdentifier)
@@ -87,6 +88,12 @@ namespace BusinessLayer
             return await templateFunctions.AddQuestionTemplate(testNumberIdentifier, title, login);
         }
 
+        public async Task<string> DeleteQuestionTemplate(string questionNumberIdentifier, string webRootPath)
+        {
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.DeleteQuestionTemplate(login, questionNumberIdentifier, webRootPath);
+        }
+
         public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
         {
             return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
@@ -95,6 +102,12 @@ namespace BusinessLayer
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
         {
             return await templateFunctions.AddSubquestionTemplate(subquestionTemplate);
+        }
+
+        public async Task<string> DeleteSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
+        {
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
         }
 
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
@@ -150,6 +163,16 @@ namespace BusinessLayer
         public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
         {
             return templateFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
+        }
+
+        public string? ValidateImage(IFormFile image)
+        {
+            return templateFunctions.ValidateImage(image);
+        }
+
+        public string SaveImage(IFormFile image, string webRootPath)
+        {
+            return templateFunctions.SaveImage(image, webRootPath);
         }
 
         //ResultFunctions.cs

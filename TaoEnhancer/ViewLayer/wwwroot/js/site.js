@@ -200,6 +200,14 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
     else if (action == "deleteAllTemplates") {
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechny testovací šablony?";
     }
+    else if (action == "deleteQuestionTemplate") {
+        document.getElementById("questionNumberIdentifier").value = identifier;
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání otázky s identifikátorem '" + identifier + "'?";
+    }
+    else if (action == "deleteSubquestionTemplate") {
+        document.getElementById("subquestionIdentifierToDelete").value = identifier;
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání podotázky s identifikátorem '" + identifier + "'?";
+    }
     else if (action == "deleteResult") {
         document.getElementById("testResultIdentifier").value = identifier;
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit výsledek s identifikátorem '" + identifier + "'?";
@@ -465,6 +473,29 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
     document.getElementById("correct-choice-points").value = correctChoicePoints;
     document.getElementById("wrongChoicePoints_automatic").value = correctChoicePoints * (-1);
     document.getElementById("wrongChoicePoints_manual").min = correctChoicePoints * (-1);
+}
+
+function setSubquestionTypeDetails(subquestionType) {
+    var subquestionTypeDetailsArray = [
+        "Neznámý nebo nepodporovaný typ otázky!",
+        "Úkolem je seřadit pojmy v daném pořadí (např. od nejnižšího po nejvyšší, od nejmenšího po největší).",
+        "Úkolem je z daných možných odpovědí vybrat jednu nebo více správných odpovědí.",
+        "Úkolem je spojit nějakým způsobem související pojmy do dvojic.",
+        "Úkolem je odpovědět Ano / Ne u několika různých pojmů v rámci jedné podotázky.",
+        "Úkolem je volně odpovědět na otázku do textového pole.",
+        "Úkolem je z daných možných odpovědí vybrat jednu správnou odpověď.",
+        "Úkolem je z daných možných odpovědí doplnit do věty jednu správnou odpověď.",
+        "Úkolem je doplnit do věty správnou odpověď, přičemž student nevybírá z možností.",
+        "Úkolem je dané možné odpovědi doplnit na správná místa ve větách.",
+        "Úkolem je zvolit z posuvníku správnou odpověď (v číselné formě)."
+    ];
+    var index = subquestionType.selectedIndex;
+    console.log(index);
+    document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[index + 1];
+}
+
+function removeImage() {
+    document.getElementById("imagePath").value = "";
 }
 
 //General

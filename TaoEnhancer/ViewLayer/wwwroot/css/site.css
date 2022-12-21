@@ -154,12 +154,16 @@ img {
     position: absolute;
     left: 20%;
     top: 20%;
+    border: 1px;
+    border-style: solid;
 }
 
 #subquestion-template {
     position: absolute;
     left: 45%;
     top: 30%;
+    border: 1px;
+    border-style: solid;
 }
 
 #subquestion-selection {
@@ -169,6 +173,14 @@ img {
     border: 1px;
     border-style: solid;
     width: 600px;
+}
+
+#delete-subquestion {
+    position: absolute;
+    left: 20%;
+    top: 45%;
+    border: 1px;
+    border-style: solid;
 }
 
 #subquestion-template-points {

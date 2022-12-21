@@ -201,7 +201,7 @@
                 <td>@studentsSubquestionPoints</td>
             </tr>
             @{
-                if(subquestionTemplate.ImageSource != "")
+                if (subquestionTemplate.ImageSource != null)
                 {
                     <tr><td colspan="2"><img class="image" src="@subquestionTemplate.ImageSource"></td></tr>
                 }
