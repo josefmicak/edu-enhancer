@@ -79,17 +79,20 @@ namespace DataLayer
 
         public async Task<string> AddTestTemplate(TestTemplate testTemplate)
         {
+            string message;
             try
             {
                 _context.Users.Attach(testTemplate.Owner);
                 _context.TestTemplates.Add(testTemplate);
                 await _context.SaveChangesAsync();
+                message = "Zadání testu bylo úspěšně přidáno.";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
+                message = "Při přidání testu nastala neočekávaná chyba.";
+
             }
-            string message = "Zadání testu bylo úspěšně přidáno.";
             return message;
         }
 
@@ -177,18 +180,20 @@ namespace DataLayer
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate, string testNumberIdentifier)
         {
+            string message;
             try
             {
                 TestTemplate testTemplate = GetTestTemplate(questionTemplate.OwnerLogin, testNumberIdentifier, "");
                 ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
                 questionTemplates.Add(questionTemplate);
                 await _context.SaveChangesAsync();
+                message = "Zadání otázky bylo úspěšně přidáno.";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
+                message = "Při přidání otázky nastala neočekávaná chyba.";
             }
-            string message = "Zadání otázky bylo úspěšně přidáno.";
             return message;
         }
 
@@ -217,18 +222,20 @@ namespace DataLayer
 
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
         {
+            string message;
             try
             {
                 QuestionTemplate questionTemplate = GetQuestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionNumberIdentifier);
                 ICollection<SubquestionTemplate> subquestionTemplates = questionTemplate.SubquestionTemplateList;
                 subquestionTemplates.Add(subquestionTemplate);
                 await _context.SaveChangesAsync();
+                message = "Zadání podotázky bylo úspěšně přidáno.";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
+                message = "Při přidání podotázky nastala neočekávaná chyba.";
             }
-            string message = "Zadání podotázky bylo úspěšně přidáno.";
             return message;
         }
 

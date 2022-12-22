@@ -35,7 +35,7 @@
                             i++;
                             continue;
                         }
-                            <option id="subquestion-type-@(i+1)" value="@i">@type</option>
+                        <option id="subquestion-type-@(i+1)" value="@i">@type</option>
                         i++;
                     }
                 }
@@ -50,86 +50,135 @@
         <h2>Detaily podotázky</h2>
         @{
             <p>@ViewBag.Message</p>
-            switch(selectedSubquestionType)
+            if (selectedSubquestionType != 0)
             {
-                case 0:
-                    <p>Pro vyplnění detailů podotázky prosím zvolte z nabídky typ podotázky.</p>
-                    break;
-                case 1:
-                    <p>Typ otázky: seřazení pojmů</p>
-                    <form method="POST" enctype="multipart/form-data">
-                        <label for="subquestionText">Text:</label>
-                        <input type="text" required id="SubquestionText" name="SubquestionText"><br>
+                <p>Typ otázky: @subquestionTypeTextArray[selectedSubquestionType]</p>
+            }
+            if (selectedSubquestionType == 0)
+            {
+                <p>Pro vyplnění detailů podotázky prosím zvolte z nabídky typ podotázky.</p>
+            }
+            else
+            {
+                <form method="POST" enctype="multipart/form-data" id="add-subquestion-form">
+                    <label for="subquestionText">Text:</label>
+                    <input type="text" required id="SubquestionText" name="SubquestionText"><br>
+                    @{
+                        switch (selectedSubquestionType)
+                        {
+                            case 1:
+                                <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
+                                <button type="button" onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možná odpověď</th>
+                                        <th>Nahoru</th>
+                                        <th>Dolů</th>
+                                        <th>Smazat odpověď</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                        <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                        <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                                    </tr>
+                                    <tr id="possible-answer-2">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                        <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                        <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                                    </tr>
+                                </table>
+                                <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
+                                <br>
+                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Správná odpověď</th>
+                                        <th>Nahoru</th>
+                                        <th>Dolů</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><input readonly class="correct-answer-input" type="text" name="CorrectAnswerList[]"></td>
+                                        <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                        <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                    </tr>
+                                </table>
+                                break;
 
-                        <button type="button" onclick="editPossibleAnswers('enable')" id="possible-answer-edit">Upravit možné odpovědi</button>
-                        <button type="button" onclick="editPossibleAnswers('disable')" id="possible-answer-save">Uložit</button>
-                        <table id="possible-answers-table">
-                            <tr>
-                                <th>Možná odpověď</th>
-                                <th>Nahoru</th>
-                                <th>Dolů</th>
-                                <th>Smazat odpověď</th>
-                            </tr>
-                            <tr id="possible-answer-1">
-                                <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
-                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
-                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
-                                <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
-                            </tr>
-                            <tr id="possible-answer-2">
-                                <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
-                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
-                                <td><button type="button" class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
-                                <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
-                            </tr>
-                        </table>
-                        <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
-                            <br>
-                        <button type="button" onclick="editCorrectAnswers('enable')" id="correct-answer-edit">Upravit správné odpovědi</button>
-                        <button type="button" onclick="editCorrectAnswers('disable')" id="correct-answer-save">Uložit</button>
-                        <br>
-                        <table id="correct-answers-table">
-                            <tr>
-                                <th>Správná odpověď</th>
-                                <th>Nahoru</th>
-                                <th>Dolů</th>
-                            </tr>
-                            <tr id="correct-answer-1">
-                                <td><input readonly class="correct-answer-input" type="text" name="CorrectAnswerList[]"></td>
-                                <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
-                                <td><button type="button" class="correct-answer-move" onclick="moveCorrectAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
-                            </tr>
-                        </table>
-                        <br>
-                        <p>Počet bodů za podotázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" 
-                            onchange="updateChoicePoints(this, @selectedSubquestionType)"></p>
-                        <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints"></p>
-                        <p>Počet bodů za špatnou volbu:</p>
-                        <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio"
-                        name="wrongChoicePointsRadio" checked onchange="setWrongChoicePointsInputs(this)">
-                        <label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
-                        <input type="number" id="wrongChoicePoints_automatic" readonly name="defaultWrongChoicePoints"> <br />
-                        <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio"
-                        name="wrongChoicePointsRadio" onchange="setWrongChoicePointsInputs(this)">
-                        <label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
-                        <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints_manual" readonly required value="0">
-                        <br>
-                        <p>Obrázek:</p>
-                        <input type="file" id="imagePath" name="image">
-                        <br>
-                        <button type="button" onclick="removeImage()">Odebrat obrázek</button>
-                        <p>Maximální velikost: 4 MB. Povolené formáty: .jpg, .png, .jpeg, .webp</p>
-                        <br>
-                        <button disabled type="submit" value="addSubquestion" name="action" id="subquestion-add">Uložit</button>
-                        <input type="hidden" name="QuestionNumberIdentifier" value="@questionNumberIdentifier">
-                        <input type="hidden" name="SubquestionIdentifier" value="@tempSubquestionIdentifier">
-                        <input type="hidden" name="SubquestionType" value="@selectedSubquestionType">
-                        <input type="hidden" name="action" value="addSubquestion">
-                    </form>
-                    break;
-                case 2:
-                    <p>typ 2</p>
-                    break;
+                            case 2:
+                                <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
+                                <button type="button" onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možná odpověď</th>
+                                        <th>Smazat odpověď</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                                    </tr>
+                                    <tr id="possible-answer-2">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td><button type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                                    </tr>
+                                </table>
+                                <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
+                                <br>
+                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Správná odpověď</th>
+                                        <th>Smazat odpověď</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><select class="correct-answer-select" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select></td>
+                                        <td><button type="button" class="correct-answer-delete" onclick="deleteCorrectAnswer(this.parentNode.parentNode.id)">Smazat</button></td>
+                                    </tr>
+                                </table>
+                                <br>
+                                <button type="button" onclick="addCorrectAnswer()" id="correct-answer-add">Přidat správnou odpověď</button>
+                                break;
+                        }
+                    }
+                    <br>
+                    <p>
+                        Počet bodů za podotázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints"
+                                                    onchange="updateChoicePoints(this, @selectedSubquestionType)">
+                    </p>
+                    <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints"></p>
+                    <p>Počet bodů za špatnou volbu:</p>
+                    <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio"
+                       name="wrongChoicePointsRadio" checked onchange="setWrongChoicePointsInputs(this)">
+                    <label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
+                    <input type="number" id="wrongChoicePoints_automatic" readonly name="defaultWrongChoicePoints"> <br />
+                    <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio"
+                       name="wrongChoicePointsRadio" onchange="setWrongChoicePointsInputs(this)">
+                    <label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
+                    <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints_manual" readonly required value="0">
+                    <br>
+                    <p>Obrázek:</p>
+                    <input type="file" id="imagePath" name="image">
+                    <br>
+                    <button type="button" onclick="removeImage()">Odebrat obrázek</button>
+                    <p>Maximální velikost: 4 MB. Povolené formáty: .jpg, .png, .jpeg, .webp</p>
+                    <br>
+                    <button disabled type="submit" value="addSubquestion" name="action" id="subquestion-add">Uložit</button>
+                    <input type="hidden" name="QuestionNumberIdentifier" value="@questionNumberIdentifier">
+                    <input type="hidden" name="SubquestionIdentifier" value="@tempSubquestionIdentifier">
+                    <input type="hidden" name="SubquestionType" value="@selectedSubquestionType">
+                    <input type="hidden" name="action" value="addSubquestion">
+                    @{
+                        if (selectedSubquestionType == 2)
+                        {
+                            <input type="hidden" name="CorrectAnswerList[]" id="hidden-correct-answer-list">
+                        }
+                    }
+                </form>
             }
         }
     </div>
@@ -147,3 +196,14 @@
     document.getElementById("correct-answer-save").disabled = true;
     $(".correct-answer-move").prop('disabled', true);
 </script>
+
+@{
+    if (selectedSubquestionType == 2)
+    {
+        <script>
+            document.getElementById("correct-answer-add").disabled = true;
+            $(".correct-answer-delete").prop('disabled', true);
+            $('.correct-answer-select').prop('disabled', true);
+        </script>
+    }
+}

@@ -1545,7 +1545,6 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    TempData["Message"] = "Podotázka byla úspěšně přidána.";
                     TempData["subquestionIdentifier"] = subquestionTemplate.SubquestionIdentifier;
                     return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
                 }
