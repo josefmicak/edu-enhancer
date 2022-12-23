@@ -316,8 +316,9 @@ function editPossibleAnswers(action, subquestionType) {
                 updateCorrectAnswersInput();
                 document.getElementById("subquestion-add").disabled = false;
             }
-            else if (subquestionType == 2) {
-                updateCorrectAnswersSelect("possibleAnswersModified");
+            else if (subquestionType == 2 || subquestionType == 3) {
+                document.getElementById("subquestion-add").disabled = true;
+                updateCorrectAnswersSelect("possibleAnswersModified", subquestionType);
             }
             document.getElementById("possible-answer-add").disabled = true;
             $(".possible-answer-delete").prop('disabled', true);
@@ -332,11 +333,12 @@ function editPossibleAnswers(action, subquestionType) {
     }
 }
 
-function deletePossibleAnswer(clicked_id) {
+function deletePossibleAnswer(clicked_id, subquestionType) {
+    var minPossibleAnswers = [0, 2, 2, 4, 0, 0, 0, 0, 0, 0, 0];
     var table = document.getElementById('possible-answers-table');
     var rowCount = table.rows.length;
-    if (rowCount <= '3') {
-        alert('Chyba: musí existovat alespoň 2 možné odpovědi.');
+    if (rowCount <= minPossibleAnswers[subquestionType] + 1) {
+        alert('Chyba: musí existovat alespoň ' + minPossibleAnswers[subquestionType] + ' možné odpovědi.');
     }
     else {
         var row = document.getElementById(clicked_id);
@@ -415,7 +417,7 @@ function updateCorrectAnswersInput() {
     } 
     table.rows[1].cells[0].getElementsByTagName("input")[0].value = "";
 
-    for (var i = 0; i < possibleAnswerArray.length - 2; i++) {
+    for (var i = 0; i < possibleAnswerArray.length - 2; i++) {//todo: -1 ?
         rowCount = table.rows.length;
         var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
         var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
@@ -432,8 +434,8 @@ function updateCorrectAnswersInput() {
 }
 
 //automatic update of correct answers when dropdown menus are used after possible answers are modified
-//subquestion types - 2
-function updateCorrectAnswersSelect(performedAction) {
+//subquestion types - 2, 3
+function updateCorrectAnswersSelect(performedAction, subquestionType) {
     //user modified possible answers - all correct answers are deleted and replaced by new possible answers
     if (performedAction == "possibleAnswersModified") {
         var possibleAnswerArray = [];
@@ -443,10 +445,28 @@ function updateCorrectAnswersSelect(performedAction) {
             possibleAnswerArray.push(answer);
         });
 
-        //clear all existing correct answers
-        $('select.correct-answer-select').each(function () {
-            $(this).empty();
-        });
+        //clear correct answers table
+        var table = document.getElementById('correct-answers-table');
+        var rowCount = table.rows.length;
+        while (--rowCount - 1) {
+            table.deleteRow(rowCount);
+        } 
+        $(".correct-answer-select").empty();
+
+        //for some subquestion types, new rows must be added to the correct answer table
+        if (subquestionType == 3) {
+            //var table = document.getElementById('correct-answers-table');
+            for (var i = 0; i < Math.floor((possibleAnswerArray.length - 3) / 2); i++) {//-3 because of 1 already existing row and 1 possible answer containing placeholder text
+                rowCount = table.rows.length;
+                var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
+                var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
+                var lastRowId = parseInt(lastRowIdArray[2]);
+                lastRowId += 1;
+                var row = table.insertRow(rowCount);
+                row.innerHTML = lastRowInnerHTML;
+                row.id = "correct-answer-" + lastRowId;
+            }
+        }
 
         var correctAnswerSelect = document.getElementsByClassName('correct-answer-select');
         for (var i = 0; i < correctAnswerSelect.length; i++) {
@@ -476,9 +496,7 @@ function updateCorrectAnswersSelect(performedAction) {
         var correctAnswerArray = [];
         $('select.correct-answer-select').each(function () {
             var answer = $(this).val();
-            if (answer != getOptionPlaceholderText()) {
-                correctAnswerArray.push(answer);
-            }
+            correctAnswerArray.push(answer);
         });
 
         var availableCorrectAnswerArray = possibleAnswerArray.filter((item) => !correctAnswerArray.includes(item));
@@ -496,14 +514,6 @@ function updateCorrectAnswersSelect(performedAction) {
             opt.value = correctAnswerArray[i];
             opt.innerHTML = correctAnswerArray[i];
             correctAnswerSelect.item(i).appendChild(opt);
-
-            /*if (correctAnswerArray[i] != "-ZVOLTE MOŽNOST-") {
-                //add placeholder option to each element
-                var opt = document.createElement('option');
-                opt.value = "-ZVOLTE MOŽNOST-";
-                opt.innerHTML = "-ZVOLTE MOŽNOST-";
-                correctAnswerSelect.item(i).appendChild(opt);
-            }*/
 
             //add remaining available options to each element
             for (var j = 0; j < availableCorrectAnswerArray.length; j++) {
@@ -527,6 +537,9 @@ function editCorrectAnswers(action, subquestionType) {
         if (subquestionType == 2) {
             document.getElementById("correct-answer-add").disabled = false;
             $(".correct-answer-delete").prop('disabled', false);
+            $('.correct-answer-select').prop('disabled', false);
+        }
+        else if (subquestionType == 3) {
             $('.correct-answer-select').prop('disabled', false);
         }
     }
@@ -557,9 +570,12 @@ function editCorrectAnswers(action, subquestionType) {
                 var subquestionPoints = document.getElementById("subquestion-points");
                 updateChoicePoints(subquestionPoints, subquestionType);
                 document.getElementById("subquestion-add").disabled = false;
-
-                //because the correct answer selects are disabled during form submission, a hidden field must be used instead to bind correct answers
-                document.getElementById("hidden-correct-answer-list").value = correctAnswerList;
+            }
+            else if (subquestionType == 3) {
+                $('.correct-answer-select').prop('disabled', true);
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
+                document.getElementById("subquestion-add").disabled = false;
             }
         }
     }
@@ -592,7 +608,7 @@ function moveCorrectAnswer(direction, clicked_id) {
     }
 }
 
-function deleteCorrectAnswer(clicked_id) {
+function deleteCorrectAnswer(clicked_id, subquestionType) {
     var table = document.getElementById('correct-answers-table');
     var rowCount = table.rows.length;
     if (rowCount <= '2') {
@@ -601,10 +617,14 @@ function deleteCorrectAnswer(clicked_id) {
     else {
         var row = document.getElementById(clicked_id);
         row.parentNode.removeChild(row);
-        updateCorrectAnswersSelect("correctAnswerChosen");
+        updateCorrectAnswersSelect("correctAnswerChosen", subquestionType);
     }
 }
 
+//just before form submission, correct answer selects are enabled so that they get binded to subquestionTemplate
+function enableCorrectAnswers() {
+    $('.correct-answer-select').prop('disabled', false);
+}
 
 //after the user changes subquestion points, correct and wrong choice points are updated automatically
 function updateChoicePoints(subquestionPoints, subquestionType) {
@@ -663,7 +683,6 @@ function setSubquestionTypeDetails(subquestionType) {
         "Úkolem je zvolit z posuvníku správnou odpověď (v číselné formě)."
     ];
     var index = subquestionType.selectedIndex;
-    console.log(index);
     document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[index + 1];
 }
 
