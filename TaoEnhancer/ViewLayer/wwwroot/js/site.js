@@ -316,7 +316,7 @@ function editPossibleAnswers(action, subquestionType) {
                 updateCorrectAnswersInput();
                 document.getElementById("subquestion-add").disabled = false;
             }
-            else if (subquestionType == 2 || subquestionType == 3) {
+            else if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
                 document.getElementById("subquestion-add").disabled = true;
                 updateCorrectAnswersSelect("possibleAnswersModified", subquestionType);
             }
@@ -334,7 +334,7 @@ function editPossibleAnswers(action, subquestionType) {
 }
 
 function deletePossibleAnswer(clicked_id, subquestionType) {
-    var minPossibleAnswers = [0, 2, 2, 4, 0, 0, 0, 0, 0, 0, 0];
+    var minPossibleAnswers = [0, 2, 2, 4, 0, 0, 2, 2, 0, 2, 0];
     var table = document.getElementById('possible-answers-table');
     var rowCount = table.rows.length;
     if (rowCount <= minPossibleAnswers[subquestionType] + 1) {
@@ -396,38 +396,38 @@ function addCorrectAnswer(subquestionType) {
         var lastRowId = parseInt(lastRowIdArray[2]);
         lastRowId += 1;
 
-        var lastRowRadioNameArray = correctAnswersTable.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].name.split("-");
-        var lastRowRadioNumber = parseInt(lastRowRadioNameArray[3]);
-
-        var yesChecked = true;//incicates whether the "yes" option is checked on the last row
-        if (correctAnswersTable.rows[rowCount - 1].cells[2].getElementsByTagName("input")[0].checked) {
-            yesChecked = false;
-        }
-
-        var row = correctAnswersTable.insertRow(rowCount);
-        row.innerHTML = lastRowInnerHTML;
-        row.id = "correct-answer-" + lastRowId;
-        row.cells[1].getElementsByTagName("input")[0].name = "correct-answer-radio-" + parseInt(lastRowRadioNumber + 1);
-        row.cells[2].getElementsByTagName("input")[0].name = "correct-answer-radio-" + parseInt(lastRowRadioNumber + 1);
-
-        //after the new row is added, we check the previously checked radio button on the row that has been copied
-        if (yesChecked) {
-            correctAnswersTable.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].checked = true;
-        }
-        else {
-            correctAnswersTable.rows[rowCount - 1].cells[2].getElementsByTagName("input")[0].checked = true;
-        }
-
         if (subquestionType == 2) {
-            //replace currently selected option with placeholder option
-            var correctAnswerSelects = document.getElementsByClassName('correct-answer-select');
-            correctAnswerSelects[correctAnswerSelects.length - 1].options[0].innerHTML = getOptionPlaceholderText();
+            var row = correctAnswersTable.insertRow(rowCount);
+            row.innerHTML = lastRowInnerHTML;
+            row.id = "correct-answer-" + lastRowId;
         }
         else if (subquestionType == 4) {
-       //     console.log(correctAnswersTable.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].name);
-          //  var correctAnswerRadios = document.getElementsByClassName('correct-answer-radio');
-          //  correctAnswerRadios[correctAnswerRadios.length - 1].options[0].innerHTML = getOptionPlaceholderText();
+            var lastRowRadioNameArray = correctAnswersTable.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].name.split("-");
+            var lastRowRadioNumber = parseInt(lastRowRadioNameArray[3]);
+
+            var yesChecked = true;//incicates whether the "yes" option is checked on the last row
+            if (correctAnswersTable.rows[rowCount - 1].cells[2].getElementsByTagName("input")[0].checked) {
+                yesChecked = false;
+            }
+
+            var row = correctAnswersTable.insertRow(rowCount);
+            row.innerHTML = lastRowInnerHTML;
+            row.id = "correct-answer-" + lastRowId;
+            row.cells[1].getElementsByTagName("input")[0].name = "correct-answer-radio-" + parseInt(lastRowRadioNumber + 1);
+            row.cells[2].getElementsByTagName("input")[0].name = "correct-answer-radio-" + parseInt(lastRowRadioNumber + 1);
+
+            //after the new row is added, we check the previously checked radio button on the row that has been copied
+            if (yesChecked) {
+                correctAnswersTable.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].checked = true;
+            }
+            else {
+                correctAnswersTable.rows[rowCount - 1].cells[2].getElementsByTagName("input")[0].checked = true;
+            }
         }
+
+        //replace currently selected option with placeholder option
+        var correctAnswerSelects = document.getElementsByClassName('correct-answer-select');
+        correctAnswerSelects[correctAnswerSelects.length - 1].options[0].innerHTML = getOptionPlaceholderText();
     }
 }
 
@@ -466,7 +466,7 @@ function updateCorrectAnswersInput() {
 }
 
 //automatic update of correct answers when dropdown menus are used after possible answers are modified
-//subquestion types - 2, 3
+//subquestion types - 2, 3, 6
 function updateCorrectAnswersSelect(performedAction, subquestionType) {
     //user modified possible answers - all correct answers are deleted and replaced by new possible answers
     if (performedAction == "possibleAnswersModified") {
@@ -537,10 +537,8 @@ function updateCorrectAnswersSelect(performedAction, subquestionType) {
         $('select.correct-answer-select').each(function () {
             $(this).empty();
         });
-
         var correctAnswerSelect = document.getElementsByClassName('correct-answer-select');
         for (var i = 0; i < correctAnswerSelect.length; i++) {
-
             //add currently selected option to each element
             var opt = document.createElement('option');
             opt.value = correctAnswerArray[i];
@@ -586,12 +584,15 @@ function editCorrectAnswers(action, subquestionType) {
             $('.correct-answer-delete').prop('disabled', false);
             document.getElementById("correct-answer-add").disabled = false;
         }
+        else if (subquestionType == 6 || subquestionType == 7) {
+            $('.correct-answer-select').prop('disabled', false);
+        }
     }
     //user is done editing correct answers
     else if (action == "disable") {
         var addAnswers = true;
         var correctAnswerList = [];
-        if (subquestionType == 2 || subquestionType == 3) {
+        if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
             $('.correct-answer-select').each(function () {
                 var answer = $(this).val();
                 correctAnswerList.push(answer);
@@ -655,6 +656,15 @@ function editCorrectAnswers(action, subquestionType) {
                 $('.correct-answer-delete').prop('disabled', true);
                 document.getElementById("correct-answer-add").disabled = true;
             }
+            else if (subquestionType == 6 || subquestionType == 7) {
+                $('.correct-answer-select').prop('disabled', true);
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
+                document.getElementById("subquestion-add").disabled = false;
+                if (subquestionType == 7) {
+                    document.getElementById("gap-text").value = document.getElementsByClassName("correct-answer-select")[0].value;
+                }
+            }
         }
     }
 }
@@ -708,10 +718,10 @@ function deleteCorrectAnswer(clicked_id, subquestionType) {
 
 //just before form submission, correct answer selects are enabled so that they get binded to subquestionTemplate
 function enableCorrectAnswers(subquestionType) {
-    if (subquestionType == 3) {
-        $('.correct-answer-select').prop('disabled', false);
+    if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6) {
     }
     else if (subquestionType == 4) {
+        //for this type of subquestion, correct answers must be preprocessed before form submission
         $('.correct-answer-input').prop('disabled', false);
         $('.correct-answer-radio').prop('disabled', false);
         var correctAnswerArray = [];
@@ -731,9 +741,21 @@ function enableCorrectAnswers(subquestionType) {
         var answerNumber = 0;
         $('input[type="text"].correct-answer-input').each(function () {
             $(this).val(correctAnswerArray[answerNumber]);
-            //$(this).val() = correctAnswerArray[answerNumber];
             answerNumber++;
         });
+    }
+    else if (subquestionType == 7 || subquestionType == 8) {
+        if (subquestionType == 7) {
+            $('.correct-answer-select').prop('disabled', false);
+        }
+        //for this type of subquestion, subquestion text must be preprocessed before form submission
+        var subquestionText = document.getElementById("SubquestionText").value;
+        console.log(subquestionText);
+        var subquestionTextContinuation = document.getElementById("SubquestionTextContinuation").value;
+        subquestionText += " (DOPLŇTE) " + subquestionTextContinuation;
+        console.log(subquestionText);
+        document.getElementById("SubquestionText").value = subquestionText;
+        console.log("done");
     }
 }
 
@@ -745,16 +767,19 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
     });
     subquestionPoints = subquestionPoints.value;
     var possibleChoiceArrayLength = 0;
-    if (subquestionType != 4) {
+    if (subquestionType != 4 && subquestionType != 5 && subquestionType != 8) {
         var possibleAnswersTable = document.getElementById('possible-answers-table');
         possibleChoiceArrayLength = possibleAnswersTable.rows.length - 1;
     }
-    var correctAnswersTable = document.getElementById('correct-answers-table');
-    var correctChoiceArrayLength = correctAnswersTable.rows.length - 1;
+    if (subquestionType != 5 && subquestionType != 8) {
+        var correctAnswersTable = document.getElementById('correct-answers-table');
+        var correctChoiceArrayLength = correctAnswersTable.rows.length - 1;
+    }
 
     //check if points can be updated or not
     if (subquestionPoints != null && subquestionPoints != "" &&
-        (possibleChoiceArrayLength >= 1 || subquestionType == 4) && correctChoiceArrayLength >= 1) {
+        (possibleChoiceArrayLength >= 1 || (subquestionType == 4 || subquestionType == 5 || subquestionType == 8)) &&
+        (correctChoiceArrayLength >= 1 || subquestionType == 5 || subquestionType == 8)) {
         var correctChoicePoints = 0;
         switch (subquestionType) {
             case 1:
@@ -779,7 +804,9 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
 
         document.getElementById("correct-choice-points").value = correctChoicePoints;
         document.getElementById("wrongChoicePoints_automatic").value = correctChoicePoints * (-1);
-        document.getElementById("wrongChoicePoints_manual").min = correctChoicePoints * (-1);
+        if (subquestionType != 5) {
+            document.getElementById("wrongChoicePoints_manual").min = correctChoicePoints * (-1);
+        }
     }
 }
 
@@ -803,6 +830,10 @@ function setSubquestionTypeDetails(subquestionType) {
 
 function removeImage() {
     document.getElementById("imagePath").value = "";
+}
+
+function fillGapText(correctAnswerInput) {
+    document.getElementById("gap-text").value = correctAnswerInput.value;
 }
 
 //General

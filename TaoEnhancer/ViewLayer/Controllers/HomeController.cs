@@ -1500,13 +1500,20 @@ namespace ViewLayer.Controllers
                     {
                         subquestionPoints = subquestionPoints.Replace(".", ",");
                         correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                        wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                        if(subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer)
+                        {
+                            wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                        }
                     }
                     else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
                     {
                         subquestionPoints = subquestionPoints.Replace(",", ".");
-                        correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                        wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                        correctChoicePoints = correctChoicePoints.Replace(",", ".");
+                        if(subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer)
+                        {
+                            wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(",", ".");
+                        }
+                            
                     }
                     subquestionTemplate.OwnerLogin = login;
                     subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);

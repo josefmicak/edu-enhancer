@@ -61,8 +61,8 @@
             else
             {
                 <form method="POST" enctype="multipart/form-data" onsubmit="enableCorrectAnswers(@selectedSubquestionType)">
-                    <label for="subquestionText">Text:</label>
-                    <input type="text" required id="SubquestionText" name="SubquestionText"><br>
+                    <label for="subquestionText">Zadání:</label>
+                    <input type="text" required id="SubquestionText" name="SubquestionText" placeholder="Textové zadání"><br>
                     @{
                         switch (selectedSubquestionType)
                         {
@@ -99,8 +99,8 @@
                                 </table>
                                 <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
                                 <br>
-                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
-                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
                                 <br>
                                 <table id="correct-answers-table">
                                     <tr>
@@ -143,8 +143,8 @@
                                 </table>
                                 <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
                                 <br>
-                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
-                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
                                 <br>
                                 <table id="correct-answers-table">
                                     <tr>
@@ -201,8 +201,8 @@
                                 </table>
                                 <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
                                 <br>
-                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
-                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
                                 <br>
                                 <table id="correct-answers-table">
                                     <tr>
@@ -241,6 +241,107 @@
                                 <br>
                                 <button type="button" onclick="addCorrectAnswer(@selectedSubquestionType)" id="correct-answer-add">Přidat pojem</button>
                                 break;
+                            case 5:
+                                <input type="hidden" name="PossibleAnswerList[]">
+                                <input type="hidden" name="CorrectAnswerList[]">
+                                break;
+                            case 6:
+                                <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
+                                <button type="button" onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možná odpověď</th>
+                                        <th>Smazat odpověď</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td>
+                                            <button type="button" class="possible-answer-delete"
+                                        onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
+                                                Smazat
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr id="possible-answer-2">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td>
+                                            <button type="button" class="possible-answer-delete"
+                                        onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
+                                                Smazat
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
+                                <br>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Správná odpověď</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><select class="correct-answer-select" name="CorrectAnswerList[]"></select></td>
+                                    </tr>
+                                </table>
+                                <br>
+                                break;
+                            case 7:
+                                <input type="text" disabled id="gap-text" value="(DOPLŇTE)">
+                                <br>
+                                <input type="text" required id="SubquestionTextContinuation" placeholder="Druhá část věty">
+                                <br>
+                                <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
+                                <button type="button" onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možná odpověď</th>
+                                        <th>Smazat odpověď</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td>
+                                            <button type="button" class="possible-answer-delete"
+                                        onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
+                                                Smazat
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr id="possible-answer-2">
+                                        <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                        <td>
+                                            <button type="button" class="possible-answer-delete"
+                                        onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
+                                                Smazat
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <button type="button" onclick="addPossibleAnswer()" id="possible-answer-add">Přidat možnou odpověď</button>
+                                <br>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Správná odpověď</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><select class="correct-answer-select" name="CorrectAnswerList[]"></select></td>
+                                    </tr>
+                                </table>
+                                <br>
+                                break;
+                            case 8:
+                                <input type="hidden" name="PossibleAnswerList[]">
+                                <input type="text" disabled id="gap-text" value="(DOPLŇTE)">
+                                <br>
+                                <input type="text" required id="SubquestionTextContinuation" placeholder="Druhá část věty">
+                                <br>
+                                <input type="text" required id="correct-answer-input" name="CorrectAnswerList[]" placeholder="Správná odpověď" onchange="fillGapText(this)">
+                                <br>
+                                break;
                         }
                     }
                     <br>
@@ -277,11 +378,6 @@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-<script>
-    //disable elements in the correct answers table on load
-    document.getElementById("correct-answer-save").disabled = true;
-</script>
-
 @{
     if(selectedSubquestionType == 1)
     {
@@ -312,14 +408,47 @@
             document.getElementById("correct-answer-add").disabled = true;
         </script>
     }
+    else if (selectedSubquestionType == 5)
+    {
+        <script>
+            document.getElementById("wrongChoicePoints_manual").disabled = true;
+            document.getElementById("subquestion-add").disabled = false;
+        </script>
+    }
+    else if (selectedSubquestionType == 6)
+    {
+        <script>
+            $('.correct-answer-select').prop('disabled', true);
+        </script>
+    }
+    else if (selectedSubquestionType == 7)
+    {
+        <script>
+            $('.correct-answer-select').prop('disabled', true);
+            document.getElementById("SubquestionText").placeholder = "První část věty";
+        </script>
+    }
+    else if (selectedSubquestionType == 8)
+    {
+        <script>
+            document.getElementById("SubquestionText").placeholder = "První část věty";
+            document.getElementById("subquestion-add").disabled = false;
+        </script>
+    }
 
-    if(selectedSubquestionType != 4)
+    if (selectedSubquestionType != 0 && selectedSubquestionType != 4 && selectedSubquestionType != 5 && selectedSubquestionType != 8)
     {
         <script>
             //disable elements in the possible answers table on load
             document.getElementById("possible-answer-add").disabled = true;
             $(".possible-answer-delete").prop('disabled', true);
             document.getElementById("possible-answer-save").disabled = true;
+        </script>
+    }
+    if (selectedSubquestionType != 0 && selectedSubquestionType != 5 && selectedSubquestionType != 8)
+    {
+        <script>
+            document.getElementById("correct-answer-save").disabled = true;
         </script>
     }
 }
