@@ -1527,6 +1527,13 @@ namespace ViewLayer.Controllers
                     {
                         subquestionTemplate.ImageSource = businessLayerFunctions.SaveImage(image, _environment.WebRootPath);
                     }
+
+                    if(subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultipleQuestions)
+                    {
+                        string[] possibleAnswerList = new string[] { "Ano", "Ne" };
+                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                    }
+
                     message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
                 }
             }

@@ -60,7 +60,7 @@
             }
             else
             {
-                <form method="POST" enctype="multipart/form-data" onsubmit="enableCorrectAnswers()">
+                <form method="POST" enctype="multipart/form-data" onsubmit="enableCorrectAnswers(@selectedSubquestionType)">
                     <label for="subquestionText">Text:</label>
                     <input type="text" required id="SubquestionText" name="SubquestionText"><br>
                     @{
@@ -158,7 +158,7 @@
                                     </tr>
                                 </table>
                                 <br>
-                                <button type="button" onclick="addCorrectAnswer()" id="correct-answer-add">Přidat správnou odpověď</button>
+                                <button type="button" onclick="addCorrectAnswer(@selectedSubquestionType)" id="correct-answer-add">Přidat správnou odpověď</button>
                                 break;
                             case 3:
                                 <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
@@ -215,6 +215,32 @@
                                     </tr>
                                 </table>
                                 break;
+                            case 4:
+                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit pojmy</button>
+                                <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Pojem</th>
+                                        <th>Ano (platí)</th>
+                                        <th>Ne (neplatí)</th>
+                                        <th>Smazat pojem</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><input required class="correct-answer-input" type="text" name="CorrectAnswerList[]"></td>
+                                        <td><input checked class="correct-answer-radio" type="radio" name="correct-answer-radio-1">Ano</td>
+                                        <td><input class="correct-answer-radio" type="radio" name="correct-answer-radio-1">Ne</td>
+                                        <td>
+                                            <button type="button" class="correct-answer-delete"
+                                        onclick="deleteCorrectAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
+                                                Smazat
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br>
+                                <button type="button" onclick="addCorrectAnswer(@selectedSubquestionType)" id="correct-answer-add">Přidat pojem</button>
+                                break;
                         }
                     }
                     <br>
@@ -252,19 +278,18 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script>
-    //disable elements in the possible answers table on load
-    document.getElementById("possible-answer-add").disabled = true;
-    $(".possible-answer-delete").prop('disabled', true);
-    document.getElementById("possible-answer-save").disabled = true;
-    $(".possible-answer-move").prop('disabled', true);
-
     //disable elements in the correct answers table on load
     document.getElementById("correct-answer-save").disabled = true;
-    $(".correct-answer-move").prop('disabled', true);
 </script>
 
 @{
-    if (selectedSubquestionType == 2)
+    if(selectedSubquestionType == 1)
+    {
+        <script>
+            $(".correct-answer-move").prop('disabled', true);
+        </script>
+    }
+    else if (selectedSubquestionType == 2)
     {
         <script>
             document.getElementById("correct-answer-add").disabled = true;
@@ -276,6 +301,25 @@
     {
         <script>
             $('.correct-answer-select').prop('disabled', true);
+        </script>
+    }
+    else if (selectedSubquestionType == 4)
+    {
+        <script>
+            $('.correct-answer-input').prop('disabled', true);
+            $('.correct-answer-radio').prop('disabled', true);
+            $('.correct-answer-delete').prop('disabled', true);
+            document.getElementById("correct-answer-add").disabled = true;
+        </script>
+    }
+
+    if(selectedSubquestionType != 4)
+    {
+        <script>
+            //disable elements in the possible answers table on load
+            document.getElementById("possible-answer-add").disabled = true;
+            $(".possible-answer-delete").prop('disabled', true);
+            document.getElementById("possible-answer-save").disabled = true;
         </script>
     }
 }
