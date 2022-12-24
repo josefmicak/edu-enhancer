@@ -221,10 +221,10 @@
                                 <br>
                                 <table id="correct-answers-table">
                                     <tr>
-                                        <th>Pojem</th>
+                                        <th>Otázka</th>
                                         <th>Ano (platí)</th>
                                         <th>Ne (neplatí)</th>
-                                        <th>Smazat pojem</th>
+                                        <th>Smazat otázku</th>
                                     </tr>
                                     <tr id="correct-answer-1">
                                         <td><input required class="correct-answer-input" type="text" name="CorrectAnswerList[]"></td>
@@ -239,7 +239,7 @@
                                     </tr>
                                 </table>
                                 <br>
-                                <button type="button" onclick="addCorrectAnswer(@selectedSubquestionType)" id="correct-answer-add">Přidat pojem</button>
+                                <button type="button" onclick="addCorrectAnswer(@selectedSubquestionType)" id="correct-answer-add">Přidat otázku</button>
                                 break;
                             case 5:
                                 <input type="hidden" name="PossibleAnswerList[]">
@@ -342,6 +342,47 @@
                                 <input type="text" required id="correct-answer-input" name="CorrectAnswerList[]" placeholder="Správná odpověď" onchange="fillGapText(this)">
                                 <br>
                                 break;
+                            case 9:
+                                <input type="hidden" name="SubquestionText" id="SubquestionTextHidden">
+                                <button type="button" id="subquestion-text-edit" onclick="editSubquestionText('enable')">Upravit zadání</button>
+                                <button type="button" disabled id="subquestion-text-save" onclick="editSubquestionText('disable')">Uložit</button>
+                                <br>
+                                <input type="text" required class="subquestion-text" placeholder="1. část věty"><br>
+                                <input type="text" disabled class="gap-text" value="[1] - (DOPLŇTE)">
+                                <input type="text" required class="subquestion-text" placeholder="2. část věty">
+                                <br>
+                                <div id="additional-questions"></div>
+                                <button type="button" disabled onclick="addGap()" id="gap-add">Přidat otázku</button>
+                                <button type="button" disabled onclick="removeGap()" id="gap-remove">Odstranit otázku</button>
+                                <br>
+                                <table id="correct-answers-table">
+                                    <tr>
+                                        <th>Správné odpovědi</th>
+                                    </tr>
+                                    <tr id="correct-answer-1">
+                                        <td><input type="text" required class="correct-answer-input" name="PossibleAnswerList[]" placeholder="[1] - Správná odpověď"></td>
+                                    </tr>
+                                </table>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                break;
+                            case 10:
+                                <input type="hidden" name="PossibleAnswerList[]" id="possible-answer-list-hidden">
+                                <input type="hidden" name="CorrectAnswerList[]" id="correct-answer-list-hidden">
+                                <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
+                                <button type="button" onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
+                                <br>
+                                <input type="number" disabled class="slider-input" id="slider-min" placeholder="Minimální hodnota">
+                                <input type="range" disabled value="50" min="1" max="100">
+                                <input type="number" disabled class="slider-input" id="slider-max" placeholder="Maximální hodnota">
+                                <br>
+                                <input type="range" disabled id="slider-question" value="50" min="1" max="100" 
+                                oninput="this.nextElementSibling.value = this.value">
+                                <output>50</output>
+                                <br>
+                                <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správnou odpověď</button>
+                                <button disabled type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
+                                break;
                         }
                     }
                     <br>
@@ -435,15 +476,30 @@
             document.getElementById("subquestion-add").disabled = false;
         </script>
     }
+    else if (selectedSubquestionType == 9)
+    {
+        <script>
+            document.getElementById("SubquestionText").outerHTML = "";
+            //document.getElementById("SubquestionText").placeholder = "1. část věty";
+            //document.getElementById("SubquestionText").classList.add("subquestion-text");
+            $('.subquestion-text').prop('disabled', true);
+            $('.correct-answer-input').prop('disabled', true);
+        </script>
+    }
 
-    if (selectedSubquestionType != 0 && selectedSubquestionType != 4 && selectedSubquestionType != 5 && selectedSubquestionType != 8)
+    if (selectedSubquestionType != 0 && selectedSubquestionType != 4 && selectedSubquestionType != 5 && selectedSubquestionType != 8 && selectedSubquestionType != 9)
     {
         <script>
             //disable elements in the possible answers table on load
-            document.getElementById("possible-answer-add").disabled = true;
-            $(".possible-answer-delete").prop('disabled', true);
             document.getElementById("possible-answer-save").disabled = true;
         </script>
+        if(selectedSubquestionType != 10)
+        {
+            <script>
+            document.getElementById("possible-answer-add").disabled = true;
+            $(".possible-answer-delete").prop('disabled', true); 
+            </script>
+        }
     }
     if (selectedSubquestionType != 0 && selectedSubquestionType != 5 && selectedSubquestionType != 8)
     {

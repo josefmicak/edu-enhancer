@@ -1540,6 +1540,16 @@ namespace ViewLayer.Controllers
                         string[] possibleAnswerList = new string[] { "Ano", "Ne" };
                         subquestionTemplate.PossibleAnswerList = possibleAnswerList;
                     }
+                    if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.GapMatch)
+                    {
+                        string[] correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
+                        for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+                        {
+                            string answer = "[" + (i + 1) + "] - " + subquestionTemplate.PossibleAnswerList[i];
+                            correctAnswerList[i] = answer;
+                        }
+                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    }
 
                     message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
                 }

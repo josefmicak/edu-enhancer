@@ -281,19 +281,31 @@ function addPossibleAnswer() {
 function editPossibleAnswers(action, subquestionType) {
     //users wants to edit possible answers
     if (action == "enable") {
-        document.getElementById("possible-answer-add").disabled = false;
-        document.getElementById("possible-answer-edit").disabled = true;
-        document.getElementById("correct-answer-edit").disabled = true;
-        document.getElementById("subquestion-add").disabled = true;
-        $(".possible-answer-delete").prop('disabled', false);
-        document.getElementById("possible-answer-save").disabled = false;
-        $(".possible-answer-input").prop('readonly', false);
-        $(".possible-answer-move").prop('disabled', false);
+        if (subquestionType == 10) {
+            $(".slider-input").prop('disabled', false);
+            document.getElementById("subquestion-add").disabled = true;
+            document.getElementById("possible-answer-save").disabled = false;
+            document.getElementById("correct-answer-edit").disabled = true;
+            document.getElementById("possible-answer-edit").disabled = true;
+        }
+        else {
+            document.getElementById("possible-answer-add").disabled = false;
+            document.getElementById("possible-answer-edit").disabled = true;
+            document.getElementById("correct-answer-edit").disabled = true;
+            document.getElementById("subquestion-add").disabled = true;
+            $(".possible-answer-delete").prop('disabled', false);
+            document.getElementById("possible-answer-save").disabled = false;
+            $(".possible-answer-input").prop('readonly', false);
+            $(".possible-answer-move").prop('disabled', false);
+        }
     }
     //user is done editing possible answers
     else if (action == "disable") {
         var addAnswers = true;
         var seen = {};
+        var min = 0;
+        var max = 0;
+
         $('input[type="text"].possible-answer-input').each(function () {
             var answer = $(this).val();
             if (answer.length == 0) {
@@ -311,24 +323,62 @@ function editPossibleAnswers(action, subquestionType) {
             }  
         });
 
+        if (subquestionType == 10) {
+            min = document.getElementById("slider-min").value;
+            max = document.getElementById("slider-max").value;
+            if (min.length == 0 || max.length == 0) {
+                alert("Chyba: nevyplněná možná odpověď.");
+                addAnswers = false;
+            }
+            if (min >= max) {
+                alert("Chyba: maximální hodnota musí být vyšší než minimální hodnota.");
+                addAnswers = false;
+            }
+        }
+
         if (addAnswers) {
             if (subquestionType == 1) {
                 updateCorrectAnswersInput();
                 document.getElementById("subquestion-add").disabled = false;
+
+                document.getElementById("possible-answer-add").disabled = true;
+                $(".possible-answer-delete").prop('disabled', true);
+                document.getElementById("possible-answer-save").disabled = true;
+                document.getElementById("possible-answer-edit").disabled = false;
+                document.getElementById("correct-answer-edit").disabled = false;
+                $(".possible-answer-input").prop('readonly', true);
+                $(".possible-answer-move").prop('disabled', true);
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
             }
             else if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
                 document.getElementById("subquestion-add").disabled = true;
                 updateCorrectAnswersSelect("possibleAnswersModified", subquestionType);
+
+                document.getElementById("possible-answer-add").disabled = true;
+                $(".possible-answer-delete").prop('disabled', true);
+                document.getElementById("possible-answer-save").disabled = true;
+                document.getElementById("possible-answer-edit").disabled = false;
+                document.getElementById("correct-answer-edit").disabled = false;
+                $(".possible-answer-input").prop('readonly', true);
+                $(".possible-answer-move").prop('disabled', true);
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
             }
-            document.getElementById("possible-answer-add").disabled = true;
-            $(".possible-answer-delete").prop('disabled', true);
-            document.getElementById("possible-answer-save").disabled = true;
-            document.getElementById("possible-answer-edit").disabled = false;
-            document.getElementById("correct-answer-edit").disabled = false;
-            $(".possible-answer-input").prop('readonly', true);
-            $(".possible-answer-move").prop('disabled', true);
-            var subquestionPoints = document.getElementById("subquestion-points");
-            updateChoicePoints(subquestionPoints, subquestionType);
+            else if (subquestionType == 10) {
+                $(".slider-input").prop('disabled', true);
+                document.getElementById("slider-question").min = min;
+                document.getElementById("slider-question").max = max;
+                var sliderQuestion = document.getElementById("slider-question");
+                sliderQuestion.value = Math.round((parseInt(min) + parseInt(max)) / 2);
+                sliderQuestion.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
+                document.getElementById("possible-answer-save").disabled = true;
+                document.getElementById("possible-answer-edit").disabled = false;
+                document.getElementById("correct-answer-edit").disabled = false;
+
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
+            }
         }
     }
 }
@@ -424,10 +474,6 @@ function addCorrectAnswer(subquestionType) {
                 correctAnswersTable.rows[rowCount - 1].cells[2].getElementsByTagName("input")[0].checked = true;
             }
         }
-
-        //replace currently selected option with placeholder option
-        var correctAnswerSelects = document.getElementsByClassName('correct-answer-select');
-        correctAnswerSelects[correctAnswerSelects.length - 1].options[0].innerHTML = getOptionPlaceholderText();
     }
 }
 
@@ -462,6 +508,32 @@ function updateCorrectAnswersInput() {
 
     for (var i = 1; i < possibleAnswerArray.length; i++) {
         table.rows[i].cells[0].getElementsByTagName("input")[0].value = possibleAnswerArray[i];
+    }
+}
+
+//after the user updates subquestion text, an appropriate number of correct ansers is added to the correct answers table
+//subquestion types - 9
+function updateCorrectAnswersInputFreeAnswer() {
+    var additionalQuestions = document.getElementById("additional-questions");
+    var table = document.getElementById('correct-answers-table');
+    var rowCount = table.rows.length;
+    while (--rowCount - 1) {
+        table.deleteRow(rowCount);
+    }
+    table.rows[1].cells[0].getElementsByTagName("input")[0].value = "";
+    table.rows[1].cells[0].getElementsByTagName("input")[0].placeholder = "[1] - Správná odpověď";
+
+    var gapTexts = additionalQuestions.getElementsByClassName("gap-text");
+    for (var i = 0; i < gapTexts.length; i++) {
+        rowCount = table.rows.length;
+        var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
+        var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
+        var lastRowId = parseInt(lastRowIdArray[2]);
+        lastRowId += 1;
+        var row = table.insertRow(rowCount);
+        row.innerHTML = lastRowInnerHTML;
+        row.id = "correct-answer-" + lastRowId;
+        row.cells[0].getElementsByTagName("input")[0].placeholder = "[" + parseInt(i + 2) + "] - Správná odpověď";
     }
 }
 
@@ -559,7 +631,7 @@ function updateCorrectAnswersSelect(performedAction, subquestionType) {
 function editCorrectAnswers(action, subquestionType) {
     //users wants to edit correct answers
     if (action == "enable") {
-        if (subquestionType != 4) {
+        if (subquestionType != 4 && subquestionType != 9) {
             document.getElementById("possible-answer-edit").disabled = true;
         }
         
@@ -587,6 +659,13 @@ function editCorrectAnswers(action, subquestionType) {
         else if (subquestionType == 6 || subquestionType == 7) {
             $('.correct-answer-select').prop('disabled', false);
         }
+        else if (subquestionType == 9) {
+            $('.correct-answer-input').prop('disabled', false);
+            document.getElementById("subquestion-text-edit").disabled = true;
+        } 
+        else if (subquestionType == 10) {
+            document.getElementById("slider-question").disabled = false;
+        }
     }
     //user is done editing correct answers
     else if (action == "disable") {
@@ -603,18 +682,18 @@ function editCorrectAnswers(action, subquestionType) {
                 }
             });
         }
-        else if (subquestionType == 4) {
+        else if (subquestionType == 4 || subquestionType == 9) {
             var seen = {};
             $('.correct-answer-input').each(function () {
                 var answer = $(this).val();
                 correctAnswerList.push(answer);
                 if (answer.length == 0) {
-                    alert("Chyba: nevyplněný pojem.");
+                    alert("Chyba: nevyplněná otázka.");
                     addAnswers = false;
                     return false;
                 }
                 if (seen[answer]) {
-                    alert("Chyba: duplikátní pojem (" + answer + ").");
+                    alert("Chyba: duplikátní otázka (" + answer + ").");
                     addAnswers = false;
                     return false;
                 }
@@ -625,7 +704,7 @@ function editCorrectAnswers(action, subquestionType) {
         }
 
         if (addAnswers) {
-            if (subquestionType != 4) {
+            if (subquestionType != 4 && subquestionType != 9) {
                 document.getElementById("possible-answer-edit").disabled = false;
             }
 
@@ -665,6 +744,22 @@ function editCorrectAnswers(action, subquestionType) {
                     document.getElementById("gap-text").value = document.getElementsByClassName("correct-answer-select")[0].value;
                 }
             }
+            else if (subquestionType == 9) {
+                $('.correct-answer-input').prop('disabled', true);
+                var subquestionPoints = document.getElementById("subquestion-points");
+                updateChoicePoints(subquestionPoints, subquestionType);
+                document.getElementById("subquestion-add").disabled = false;
+                document.getElementById("subquestion-text-edit").disabled = false;
+
+                var answerNumber = 0;
+                $('.gap-text').each(function () {
+                    $(this).val(correctAnswerList[answerNumber]);
+                    answerNumber++;
+                });
+            }
+            else if (subquestionType == 10) {
+                document.getElementById("slider-question").disabled = true;
+            }
         }
     }
 }
@@ -701,7 +796,7 @@ function deleteCorrectAnswer(clicked_id, subquestionType) {
     var rowCount = table.rows.length;
     if (rowCount <= '2') {
         if (subquestionType == 4) {
-            alert('Chyba: musí existovat alespoň 1 pojem.');
+            alert('Chyba: musí existovat alespoň 1 otázka.');
         }
         else {
             alert('Chyba: musí existovat alespoň 1 správná odpověď.');
@@ -719,6 +814,7 @@ function deleteCorrectAnswer(clicked_id, subquestionType) {
 //just before form submission, correct answer selects are enabled so that they get binded to subquestionTemplate
 function enableCorrectAnswers(subquestionType) {
     if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6) {
+        $('.correct-answer-select').prop('disabled', false);
     }
     else if (subquestionType == 4) {
         //for this type of subquestion, correct answers must be preprocessed before form submission
@@ -750,12 +846,28 @@ function enableCorrectAnswers(subquestionType) {
         }
         //for this type of subquestion, subquestion text must be preprocessed before form submission
         var subquestionText = document.getElementById("SubquestionText").value;
-        console.log(subquestionText);
         var subquestionTextContinuation = document.getElementById("SubquestionTextContinuation").value;
         subquestionText += " (DOPLŇTE) " + subquestionTextContinuation;
-        console.log(subquestionText);
         document.getElementById("SubquestionText").value = subquestionText;
-        console.log("done");
+    }
+    else if (subquestionType == 9) {
+        $('.subquestion-text').prop('disabled', false);
+        $('.correct-answer-input').prop('disabled', false);
+        var subquestionTexts = document.getElementsByClassName("subquestion-text");
+        var subquestionText = "";
+        for (var i = 0; i < subquestionTexts.length; i++) {
+            subquestionText += subquestionTexts[i].value;
+            if (i != subquestionTexts.length - 1) {
+                subquestionText += "(DOPLŇTE[" + (i + 1) + "])";
+            }
+        }
+        document.getElementById("SubquestionTextHidden").value = subquestionText;
+    }
+    else if (subquestionType == 10) {
+        var min = document.getElementById("slider-min").value;
+        var max = document.getElementById("slider-max").value;
+        document.getElementById("possible-answer-list-hidden").value = min + " - " + max;
+        document.getElementById("correct-answer-list-hidden").value = document.getElementById("slider-question").value;
     }
 }
 
@@ -767,19 +879,19 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
     });
     subquestionPoints = subquestionPoints.value;
     var possibleChoiceArrayLength = 0;
-    if (subquestionType != 4 && subquestionType != 5 && subquestionType != 8) {
+    if (subquestionType != 4 && subquestionType != 5 && subquestionType != 8 && subquestionType != 9 && subquestionType != 10) {
         var possibleAnswersTable = document.getElementById('possible-answers-table');
         possibleChoiceArrayLength = possibleAnswersTable.rows.length - 1;
     }
-    if (subquestionType != 5 && subquestionType != 8) {
+    if (subquestionType != 5 && subquestionType != 8 && subquestionType != 10) {
         var correctAnswersTable = document.getElementById('correct-answers-table');
         var correctChoiceArrayLength = correctAnswersTable.rows.length - 1;
     }
 
     //check if points can be updated or not
     if (subquestionPoints != null && subquestionPoints != "" &&
-        (possibleChoiceArrayLength >= 1 || (subquestionType == 4 || subquestionType == 5 || subquestionType == 8)) &&
-        (correctChoiceArrayLength >= 1 || subquestionType == 5 || subquestionType == 8)) {
+        (possibleChoiceArrayLength >= 1 || (subquestionType == 4 || subquestionType == 5 || subquestionType == 8 || subquestionType == 9 || subquestionType == 10)) &&
+        (correctChoiceArrayLength >= 1 || subquestionType == 5 || subquestionType == 8 || subquestionType == 10)) {
         var correctChoicePoints = 0;
         switch (subquestionType) {
             case 1:
@@ -834,6 +946,78 @@ function removeImage() {
 
 function fillGapText(correctAnswerInput) {
     document.getElementById("gap-text").value = correctAnswerInput.value;
+}
+
+//adds another gap (another question) to the subquestion text of subquestion of type 9
+function addGap() {
+    var br = document.createElement("br");
+    var additionalQuestions = document.getElementById("additional-questions");
+    additionalQuestions.appendChild(br);
+
+    var gapTexts = document.getElementsByClassName("gap-text");
+    var gapText = gapTexts[gapTexts.length - 1];
+    var clonedGapText = gapText.cloneNode(true);
+    clonedGapText.value = "[" + parseInt(gapTexts.length + 1) + "] - (DOPLŇTE)";
+    additionalQuestions.appendChild(clonedGapText);
+
+    var subquestionTexts = document.getElementsByClassName("subquestion-text");
+    var subquestionText = subquestionTexts[subquestionTexts.length - 1];
+    var clonedSubquestionText = subquestionText.cloneNode(true);
+    clonedSubquestionText.value = "";
+    clonedSubquestionText.placeholder = parseInt(subquestionTexts.length + 1) + ". část věty";
+    additionalQuestions.appendChild(clonedSubquestionText);
+    additionalQuestions.appendChild(br);
+}
+
+function removeGap() {
+    var additionalQuestions = document.getElementById("additional-questions");
+    var gapTexts = additionalQuestions.getElementsByClassName("gap-text");
+    var gapText = gapTexts[gapTexts.length - 1];
+    if (gapTexts.length > 0) {//only remove gap in case more than 1 gap exists
+        additionalQuestions.removeChild(gapText);
+
+        var subquestionTexts = additionalQuestions.getElementsByClassName("subquestion-text");
+        var subquestionText = subquestionTexts[subquestionTexts.length - 1];
+        additionalQuestions.removeChild(subquestionText);
+
+        var brs = additionalQuestions.getElementsByTagName("br");
+        additionalQuestions.removeChild(brs[brs.length - 1]);
+    }
+}
+
+function editSubquestionText(action) {
+    //users wants to edit subquestion text
+    if (action == "enable") {
+        $('.subquestion-text').prop('disabled', false);
+        document.getElementById("gap-add").disabled = false;
+        document.getElementById("gap-remove").disabled = false;
+        document.getElementById("subquestion-text-edit").disabled = true;
+        document.getElementById("subquestion-text-save").disabled = false;
+        document.getElementById("correct-answer-edit").disabled = true;
+    }
+    //user is done editing subquestion text
+    else if (action == "disable") {
+        var addAnswers = true;
+        $('.subquestion-text').each(function () {
+            var answer = $(this).val();
+            if (answer.length == 0) {
+                alert("Chyba: nevyplněná správná odpověď.");
+                addAnswers = false;
+                return false;
+            } 
+        });
+
+        if(addAnswers){
+            $('.subquestion-text').prop('disabled', true);
+            updateCorrectAnswersInputFreeAnswer();
+            document.getElementById("correct-answer-edit").disabled = false;
+            document.getElementById("gap-add").disabled = true;
+            document.getElementById("gap-remove").disabled = true;
+            document.getElementById("subquestion-text-edit").disabled = false;
+            document.getElementById("subquestion-text-save").disabled = true;
+            document.getElementById("correct-answer-edit").disabled = false;
+        }
+    }
 }
 
 //General
