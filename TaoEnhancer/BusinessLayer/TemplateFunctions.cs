@@ -63,15 +63,10 @@ namespace BusinessLayer
             return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner);
         }
 
-        public async Task<string> AddTestTemplate(string title, string login)
+        public async Task<string> AddTestTemplate(TestTemplate testTemplate)
         {
-            User? owner = dataFunctions.GetUserByLogin(login);
-            TestTemplate testTemplate = new TestTemplate();
-            testTemplate.TestNameIdentifier = "tna";
-            testTemplate.TestNumberIdentifier = "tnu";
-            testTemplate.Title = title;
-            testTemplate.OwnerLogin = owner.Login;
-            testTemplate.Owner = owner;
+            testTemplate.TestNameIdentifier = "tnaTODEL";
+            testTemplate.TestNumberIdentifier = "tnuTODEL";
             testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
 
             return await dataFunctions.AddTestTemplate(testTemplate);
@@ -101,18 +96,14 @@ namespace BusinessLayer
             return dataFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
         }
 
-        public async Task<string> AddQuestionTemplate(string testNumberIdentifier, string title, string login)
+        public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            User? owner = dataFunctions.GetUserByLogin(login);
-            QuestionTemplate questionTemplate = new QuestionTemplate();
-            questionTemplate.QuestionNameIdentifier = "qna";
-            questionTemplate.QuestionNumberIdentifier = "qnu";
-            questionTemplate.Title = title;
-            questionTemplate.OwnerLogin = owner.Login;
+            questionTemplate.QuestionNameIdentifier = "qnaTODEL";
+            questionTemplate.QuestionNumberIdentifier = "qnuTODEL";
             questionTemplate.Label = "temp";
             questionTemplate.SubquestionTemplateList = new List<SubquestionTemplate>();
 
-            return await dataFunctions.AddQuestionTemplate(questionTemplate, testNumberIdentifier);
+            return await dataFunctions.AddQuestionTemplate(questionTemplate);
         }
 
         public async Task<string> DeleteQuestionTemplate(string login, string questionNumberIdentifier, string webRootPath)
@@ -312,6 +303,61 @@ namespace BusinessLayer
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
                 subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
                 if(subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
+                }
+                else
+                {
+                    subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
+                }
+                await dataFunctions.SaveChangesAsync();
+            }
+
+            return suggestedSubquestionPoints;
+        }
+
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate)
+        {
+            //TODO: Uprava funkce - pouziti pouze 1 funkce
+            string login = subquestionTemplate.OwnerLogin;
+            User owner = dataFunctions.GetUserByLogin(login);
+
+            //check if enough subquestion templates have been added to warrant new model training
+            bool retrainModel = false;
+            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin).SubquestionTemplatesAdded;
+            if (subquestionTemplatesAdded >= 100)
+            {
+                retrainModel = true;
+                await RetrainSubquestionTemplateModel(owner);
+            }
+
+      /*      var subquestionTemplates = GetSubquestionTemplates(login, questionNumberIdentifier);
+
+            if (subquestionIdentifier == null)
+            {
+                subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
+            }
+
+            var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);*/
+            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
+            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
+            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
+            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
+            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
+                subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+            SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+            Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
+            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
+            if (subquestionTemplatesAdded >= 100)
+            {
+                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
+                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
                 {
                     subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
                 }

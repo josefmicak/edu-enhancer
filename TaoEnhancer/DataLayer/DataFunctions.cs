@@ -110,15 +110,18 @@ namespace DataLayer
 
         public async Task<string> DeleteTestTemplate(TestTemplate testTemplate, string webRootPath)
         {
-            for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            if(testTemplate.QuestionTemplateList != null)
             {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
-                for(int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
                 {
-                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
-                    if(subquestionTemplate.ImageSource != null)
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                    for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
                     {
-                        DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                        if (subquestionTemplate.ImageSource != null)
+                        {
+                            DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                        }
                     }
                 }
             }
@@ -178,12 +181,12 @@ namespace DataLayer
                 .First(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
         }
 
-        public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate, string testNumberIdentifier)
+        public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
             string message;
             try
             {
-                TestTemplate testTemplate = GetTestTemplate(questionTemplate.OwnerLogin, testNumberIdentifier, "");
+                TestTemplate testTemplate = questionTemplate.TestTemplate;
                 ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
                 questionTemplates.Add(questionTemplate);
                 await _context.SaveChangesAsync();
@@ -200,12 +203,15 @@ namespace DataLayer
         public async Task<string> DeleteQuestionTemplate(string login, string questionNumberIdentifier, string webRootPath)
         {
             QuestionTemplate questionTemplate = GetQuestionTemplate(login, questionNumberIdentifier);
-            for(int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
+            if(questionTemplate.SubquestionTemplateList != null)
             {
-                SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(i);
-                if(subquestionTemplate.ImageSource != null)
+                for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
                 {
-                    DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(i);
+                    if (subquestionTemplate.ImageSource != null)
+                    {
+                        DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                    }
                 }
             }
             _context.QuestionTemplates.Remove(questionTemplate);

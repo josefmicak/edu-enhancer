@@ -56,10 +56,12 @@ namespace BusinessLayer
             return await templateFunctions.AddTestTemplates(login);
         }
 
-        public async Task<string> AddTestTemplate(string title)
+        public async Task<string> AddTestTemplate(TestTemplate testTemplate)
         {
             string login = GetCurrentUserLogin();
-            return await templateFunctions.AddTestTemplate(title, login);
+            testTemplate.OwnerLogin = login;
+            testTemplate.Owner = GetUserByLogin(login);
+            return await templateFunctions.AddTestTemplate(testTemplate);
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -82,10 +84,9 @@ namespace BusinessLayer
             return templateFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
         }
 
-        public async Task<string> AddQuestionTemplate(string testNumberIdentifier, string title)
+        public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            string login = GetCurrentUserLogin();
-            return await templateFunctions.AddQuestionTemplate(testNumberIdentifier, title, login);
+            return await templateFunctions.AddQuestionTemplate(questionTemplate);
         }
 
         public async Task<string> DeleteQuestionTemplate(string questionNumberIdentifier, string webRootPath)
@@ -138,6 +139,11 @@ namespace BusinessLayer
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
         {
             return await templateFunctions.GetSubquestionTemplatePointsSuggestion(login, questionNumberIdentifier, subquestionIdentifier);
+        }
+
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate)
+        {
+            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
         }
 
         public int GetTestingDataSubquestionTemplatesCount()

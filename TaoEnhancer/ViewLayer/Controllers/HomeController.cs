@@ -1435,9 +1435,9 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTestTemplate(string title)
+        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate)
         {
-            string message = await businessLayerFunctions.AddTestTemplate(title);
+            string message = await businessLayerFunctions.AddTestTemplate(testTemplate);
             TempData["Message"] = message;
             return RedirectToAction(nameof(TestTemplateList));
         }
@@ -1449,16 +1449,29 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddQuestionTemplate(string title, string testNumberIdentifier)
+        public async Task<IActionResult> AddQuestionTemplate(QuestionTemplate questionTemplate, string testNumberIdentifier)
         {
-            string message = await businessLayerFunctions.AddQuestionTemplate(testNumberIdentifier, title);
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            questionTemplate.OwnerLogin = login;
+            questionTemplate.TestTemplate = businessLayerFunctions.GetTestTemplate(login, testNumberIdentifier);
+            string message = await businessLayerFunctions.AddQuestionTemplate(questionTemplate);
             TempData["Message"] = message;
             return RedirectToAction("TestTemplate", "Home", new { testNumberIdentifier = testNumberIdentifier });
         }
 
-        public IActionResult AddSubquestionTemplate(string questionNumberIdentifier)
+        public IActionResult AddSubquestionTemplate(string? questionNumberIdentifier, SubquestionTemplate? subquestionTemplate)
         {
-            ViewBag.QuestionNumberIdentifier = questionNumberIdentifier;
+            if(subquestionTemplate != null)
+            {
+                if (subquestionTemplate.QuestionNumberIdentifier != null)
+                {
+                    ViewBag.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
+                }
+            }
+            else
+            {
+                ViewBag.QuestionNumberIdentifier = questionNumberIdentifier;
+            }
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
             if (TempData["SelectedSubquestionType"] != null)
             {
@@ -1468,7 +1481,19 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
-            return View();
+            if (TempData["SuggestedSubquestionPoints"] != null)
+            {
+                ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
+            }
+            return View(subquestionTemplate);
+            /*    if (subquestionTemplate == null)
+                {
+                    return View();
+                }
+                else
+                {
+                    return View(subquestionTemplate);
+                }*/
         }
 
         [HttpPost]
@@ -1496,39 +1521,10 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
-                    {
-                        subquestionPoints = subquestionPoints.Replace(".", ",");
-                        correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                        if(subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer)
-                        {
-                            wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
-                        }
-                    }
-                    else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
-                    {
-                        subquestionPoints = subquestionPoints.Replace(",", ".");
-                        correctChoicePoints = correctChoicePoints.Replace(",", ".");
-                        if(subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer)
-                        {
-                            wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(",", ".");
-                        }
-                            
-                    }
+                    subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
+
                     subquestionTemplate.OwnerLogin = login;
                     subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
-
-                    subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
-                    subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
-                    subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
-                    if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
-                    {
-                        subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
-                    }
-                    else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
-                    {
-                        subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
-                    }
 
                     if (image != null)
                     {
@@ -1554,6 +1550,13 @@ namespace ViewLayer.Controllers
                     message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
                 }
             }
+            else if (action == "getPointsSuggestion")
+            {
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+                //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
+                TempData["SuggestedSubquestionPoints"] = "todo - subject";
+            }
 
             TempData["Message"] = message;
             if (action == "selectType")
@@ -1561,7 +1564,7 @@ namespace ViewLayer.Controllers
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
             }
-            else
+            else if(action == "addSubquestion")
             {
                 if(imageErrorMessage != null)
                 {
@@ -1573,6 +1576,49 @@ namespace ViewLayer.Controllers
                     return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
                 }
             }
+            else //getPointsSuggestion redirection
+            {
+                subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
+                TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
+                return RedirectToAction("AddSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
+            }
+        }
+
+        public SubquestionTemplate ReworkPoints(SubquestionTemplate subquestionTemplate, string subquestionPoints, string correctChoicePoints, 
+            string wrongChoicePointsRadio, string wrongChoicePoints_manual)
+        {
+            if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
+            {
+                subquestionPoints = subquestionPoints.Replace(".", ",");
+                correctChoicePoints = correctChoicePoints.Replace(".", ",");
+                if (subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer && wrongChoicePoints_manual != null)
+                {
+                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
+                }
+            }
+            else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
+            {
+                subquestionPoints = subquestionPoints.Replace(",", ".");
+                correctChoicePoints = correctChoicePoints.Replace(",", ".");
+                if (subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer && wrongChoicePoints_manual != null)
+                {
+                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(",", ".");
+                }
+            }
+
+            subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
+            subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
+            subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+            if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
+            {
+                subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
+            }
+            else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
+            {
+                subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
+            }
+
+            return subquestionTemplate;
         }
 
         public IActionResult AccessDeniedAction()
