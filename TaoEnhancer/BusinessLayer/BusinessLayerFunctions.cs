@@ -100,15 +100,20 @@ namespace BusinessLayer
             return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
         {
-            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate);
+            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
         }
 
         public async Task<string> DeleteSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
         {
             string login = GetCurrentUserLogin();
             return await templateFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
+        }
+
+        public List<SubquestionTemplate> ProcessSubquestionTemplateForView(List<SubquestionTemplate> subquestionTemplates)
+        {
+            return templateFunctions.ProcessSubquestionTemplateForView(subquestionTemplates);
         }
 
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)

@@ -9,6 +9,7 @@ using System.Net.Mail;
 using System.Dynamic;
 using Common;
 using BusinessLayer;
+using System.Collections.Generic;
 
 namespace ViewLayer.Controllers
 {
@@ -262,10 +263,12 @@ namespace ViewLayer.Controllers
             }
 
             var subquestionTemplates = businessLayerFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
+            List<SubquestionTemplate> subquestionTemplateList = await subquestionTemplates.ToListAsync();
+            subquestionTemplateList = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionTemplateList);
 
             if (subquestionTemplates.Count() > 0)
             {
-                return View(await subquestionTemplates.ToListAsync());
+                return View(subquestionTemplateList);
             }
             else
             {
@@ -1498,7 +1501,8 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate, string questionNumberIdentifier,
-            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual, IFormFile image)
+            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual, IFormFile image,
+            string[] subquestionTextArray, string sliderValues)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string message = string.Empty;
@@ -1531,23 +1535,7 @@ namespace ViewLayer.Controllers
                         subquestionTemplate.ImageSource = businessLayerFunctions.SaveImage(image, _environment.WebRootPath);
                     }
 
-                    if(subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.MultipleQuestions)
-                    {
-                        string[] possibleAnswerList = new string[] { "Ano", "Ne" };
-                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
-                    }
-                    if (subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.GapMatch)
-                    {
-                        string[] correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
-                        for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
-                        {
-                            string answer = "[" + (i + 1) + "] - " + subquestionTemplate.PossibleAnswerList[i];
-                            correctAnswerList[i] = answer;
-                        }
-                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
-                    }
-
-                    message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
+                    message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
                 }
             }
             else if (action == "getPointsSuggestion")

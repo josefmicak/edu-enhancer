@@ -65,8 +65,8 @@ namespace BusinessLayer
 
         public async Task<string> AddTestTemplate(TestTemplate testTemplate)
         {
-            testTemplate.TestNameIdentifier = "tnaTODEL";
-            testTemplate.TestNumberIdentifier = "tnuTODEL";
+            testTemplate.TestNameIdentifier = "tna";
+            testTemplate.TestNumberIdentifier = "tnu";
             testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
 
             return await dataFunctions.AddTestTemplate(testTemplate);
@@ -98,8 +98,8 @@ namespace BusinessLayer
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            questionTemplate.QuestionNameIdentifier = "qnaTODEL";
-            questionTemplate.QuestionNumberIdentifier = "qnuTODEL";
+            questionTemplate.QuestionNameIdentifier = "qna";
+            questionTemplate.QuestionNumberIdentifier = "qnu";
             questionTemplate.Label = "temp";
             questionTemplate.SubquestionTemplateList = new List<SubquestionTemplate>();
 
@@ -119,9 +119,168 @@ namespace BusinessLayer
                 .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login).AsQueryable();
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
         {
-            return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
+            string? errorMessage;
+            (subquestionTemplate, errorMessage) = ValidateAddedSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+            if(errorMessage != null)
+            {
+                return errorMessage;
+            }
+            else
+            {
+                return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
+            }
+        }
+
+        /// <summary>
+        /// Validates the integrity of added subquestion template and changes certain fields before adding
+        /// </summary>
+        public (SubquestionTemplate, string?) ValidateAddedSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        {
+            string? errorMessage = null;
+
+            if(subquestionTextArray.Length > 0)
+            {
+                subquestionTemplate.SubquestionText = "";
+                for (int i = 0; i < subquestionTextArray.Length; i++)
+                {
+                    subquestionTextArray[i].Replace("\\", "");//replace gap separator
+                    subquestionTextArray[i].Replace(";", "");//replace answer separator
+                    if (i != subquestionTextArray.Length - 1)
+                    {
+                        subquestionTemplate.SubquestionText += subquestionTextArray[i] + "\\";
+                    }
+                    else
+                    {
+                        subquestionTemplate.SubquestionText += subquestionTextArray[i];
+                    }
+                }
+            }
+            else
+            {
+                subquestionTemplate.SubquestionText.Replace("\\", "");//replace gap separator
+                subquestionTemplate.SubquestionText.Replace(";", "");//replace answer separator
+            }
+
+            switch (subquestionTemplate.SubquestionType)
+            {
+                case SubquestionType.MatchingElements:
+                    string[] correctAnswerList = new string[(subquestionTemplate.CorrectAnswerList.Length) / 2];
+                    for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    {
+                        if(i % 2 == 1)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            int index = i / 2;
+                            correctAnswerList[index] = subquestionTemplate.CorrectAnswerList[i] + "\\" + subquestionTemplate.CorrectAnswerList[i + 1];
+                        }
+                    }
+                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    break;
+                case SubquestionType.FreeAnswer:
+                    subquestionTemplate.PossibleAnswerList = new string[0];
+                    subquestionTemplate.CorrectAnswerList = new string[0];
+                    break;
+                case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
+                    subquestionTemplate.PossibleAnswerList = new string[0];
+                    break;
+                case SubquestionType.GapMatch:
+                    subquestionTemplate.PossibleAnswerList = new string[0];
+                    break;
+                case SubquestionType.Slider:
+                    string[] sliderValuesSplit = sliderValues.Split(",");
+                    subquestionTemplate.PossibleAnswerList = new string[] { sliderValuesSplit[0], sliderValuesSplit[1] };
+                    subquestionTemplate.CorrectAnswerList = new string[] { sliderValuesSplit[2] };
+                    break;
+            }
+
+            return (subquestionTemplate, errorMessage);
+        }
+
+        /// <summary>
+        /// Changes certain fields of subquestion template before finally sending them to the presentation layer
+        /// </summary>
+        public List<SubquestionTemplate> ProcessSubquestionTemplateForView(List<SubquestionTemplate> subquestionTemplates)
+        {
+            List<SubquestionTemplate> processedSubquestionTemplates = new List<SubquestionTemplate>();
+            string[] possibleAnswerList;
+            string[] correctAnswerList;
+
+            foreach (SubquestionTemplate subquestionTemplate in subquestionTemplates)
+            {
+                switch (subquestionTemplate.SubquestionType)
+                {
+                    case SubquestionType.MatchingElements:
+                        correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
+                        for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                        {
+                            correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("\\", " -> ");
+                        }
+                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                        break;
+                    case SubquestionType.MultipleQuestions:
+                        possibleAnswerList = new string[2] { "Ano", "Ne" };
+                        correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
+                        for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+                        {
+                            string answer = "";
+                            if (subquestionTemplate.CorrectAnswerList[i] == "1")
+                            {
+                                answer = "Ano";
+                            }
+                            else if (subquestionTemplate.CorrectAnswerList[i] == "0")
+                            {
+                                answer = "Ne";
+                            }
+                            correctAnswerList[i] = subquestionTemplate.PossibleAnswerList[i] + " -> " + answer;
+                        }
+                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                        break;
+                    case SubquestionType.MultiChoiceTextFill:
+                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("\\", " (DOPLŇTE) ");
+                        break;
+                    case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
+                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("\\", " (DOPLŇTE) ");
+                        break;
+                    case SubquestionType.GapMatch:
+                        string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('\\');
+                        subquestionTemplate.SubquestionText = "";
+                        for (int i = 0; i < subquestionTextSplit.Length; i++)
+                        {
+                            if (i != subquestionTextSplit.Length - 1)
+                            {
+                                subquestionTemplate.SubquestionText += subquestionTextSplit[i] + " (DOPLŇTE[" + (i + 1) + "]) ";
+                            }
+                            else
+                            {
+                                subquestionTemplate.SubquestionText += subquestionTextSplit[i];
+                            }
+                        }
+
+                        subquestionTemplate.PossibleAnswerList = subquestionTemplate.CorrectAnswerList;
+                        correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
+                        for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                        {
+                            correctAnswerList[i] = "[" + (i + 1) + "] - " + subquestionTemplate.CorrectAnswerList[i];
+                        }
+                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                        break;
+                    case SubquestionType.Slider:
+                        possibleAnswerList = new string[] { subquestionTemplate.PossibleAnswerList[0] + " - " + subquestionTemplate.PossibleAnswerList[1] };
+                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                        break;
+                }
+
+                processedSubquestionTemplates.Add(subquestionTemplate);
+            }
+
+
+            return processedSubquestionTemplates;
         }
 
         public async Task<string> DeleteSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)

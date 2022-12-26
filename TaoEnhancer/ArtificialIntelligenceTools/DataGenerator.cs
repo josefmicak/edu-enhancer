@@ -814,26 +814,28 @@ namespace ArtificialIntelligenceTools
                     int choiceCounter = 0;
                     for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + " -> " + "možnost " + (choiceCounter + 2);
+                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + "\\" + "možnost " + (choiceCounter + 2);
                         choiceCounter += 2;
                     }
 
                     subquestionText += "Přiřaďte k sobě následující možnosti.";
                     break;
                 case 4:
-                    possibleAnswersCount = 2;
-                    correctAnswersCount = random.Next(1, 11);
+                    possibleAnswersCount = random.Next(1, 11);
+                    correctAnswersCount = possibleAnswersCount;
 
-                    possibleAnswers = new string[2];
+                    possibleAnswers = new string[possibleAnswersCount];
                     correctAnswers = new string[correctAnswersCount];
 
-                    possibleAnswers[0] = "Ano";
-                    possibleAnswers[1] = "Ne";
                     string answersToText = string.Empty;
-                    for (int l = 0; l < correctAnswersCount; l++)
+                    for (int l = 0; l < possibleAnswersCount; l++)
                     {
                         answersToText += "možnost " + (l + 1) + ", ";
-                        correctAnswers[l] = "možnost " + (l + 1) + " -> " + possibleAnswers[random.Next(0, 2)];
+                        possibleAnswers[l] = "možnost " + (l + 1);
+                    }
+                    for (int l = 0; l < correctAnswersCount; l++)
+                    {
+                        correctAnswers[l] = random.Next(0, 2).ToString();
                     }
 
                     answersToText = answersToText.Substring(0, answersToText.Length - 2);
@@ -874,7 +876,7 @@ namespace ArtificialIntelligenceTools
                         possibleAnswers[l] = "možnost " + (l + 1);
                     }
                     correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
-                    subquestionText += "<Text> (DOPLŇTE) <text>";
+                    subquestionText += "<Text>\\<text>";
                     break;
                 case 8:
                     possibleAnswersCount = 0;
@@ -884,37 +886,36 @@ namespace ArtificialIntelligenceTools
                     correctAnswers = new string[correctAnswersCount];
 
                     correctAnswers[0] = "možnost - správná odpověď";
-                    subquestionText += "<Text> (DOPLŇTE) <text>";
+                    subquestionText += "<Text>\\<text>";
                     break;
                 case 9:
-                    int gapCounter = random.Next(2, 11);
-                    possibleAnswersCount = random.Next(gapCounter, 11);
-                    correctAnswersCount = gapCounter;
+                    possibleAnswersCount = 0;
+                    correctAnswersCount = random.Next(2, 11);
 
                     possibleAnswers = new string[possibleAnswersCount];
                     correctAnswers = new string[correctAnswersCount];
 
-                    for (int l = 0; l < possibleAnswersCount; l++)
+                    for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        possibleAnswers[l] = "možnost " + (l + 1);
+                        correctAnswers[l] = "možnost " + (l + 1);
                     }
                     string gapsToText = string.Empty;
                     for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        gapsToText += "(DOPLŇTE[" + (l + 1) + "]) <text>";
-                        correctAnswers[l] = "[" + (l + 1) + "] - " + "možnost " + (l + 1);
+                        gapsToText += "\\<text>";
                     }
                     subquestionText += "<Text>" + gapsToText;
                     break;
                 case 10:
                     int range = random.Next(1, 500);
-                    possibleAnswersCount = 1;
+                    possibleAnswersCount = 2;
                     correctAnswersCount = 1;
 
                     possibleAnswers = new string[possibleAnswersCount];
                     correctAnswers = new string[correctAnswersCount];
 
-                    possibleAnswers[0] = "0 - " + range.ToString();
+                    possibleAnswers[0] = "0";
+                    possibleAnswers[1] = range.ToString();
                     correctAnswers[0] = random.Next(1, range).ToString();
 
                     subquestionText += "Vyberte hodnotu od 0 do " + range.ToString();

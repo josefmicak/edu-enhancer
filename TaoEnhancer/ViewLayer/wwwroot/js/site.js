@@ -379,6 +379,7 @@ function editPossibleAnswers(action, subquestionType) {
                 document.getElementById("possible-answer-save").disabled = true;
                 document.getElementById("possible-answer-edit").disabled = false;
                 document.getElementById("correct-answer-edit").disabled = false;
+                document.getElementById("subquestion-add").disabled = false;
 
                 var subquestionPoints = document.getElementById("subquestion-points");
                 updateChoicePoints(subquestionPoints, subquestionType);
@@ -835,40 +836,24 @@ function onAddSubquestionFormSubmission(subquestionType) {
     }
     else if (subquestionType == 3) {
         $('.correct-answer-select').prop('disabled', false);
-        var correctAnswerArray = [];
-        var correctAnswersTable = document.getElementById('correct-answers-table');
-        var rowCount = correctAnswersTable.rows.length;
-        for (var i = 1; i < rowCount; i++) {
-            var firstAnswer = correctAnswersTable.rows[i].cells[0].getElementsByTagName("select")[0].value;
-            var secondAnswer = correctAnswersTable.rows[i].cells[0].getElementsByTagName("select")[1].value;
-            correctAnswerArray.push(firstAnswer + " -> " + secondAnswer);
-        }
-
-        for (var i = 1; i < rowCount; i++) {
-            correctAnswersTable.rows[i].cells[0].getElementsByTagName("select")[0].value = correctAnswerArray[i];
-            correctAnswersTable.rows[i].cells[0].getElementsByTagName("select")[1].value = correctAnswerArray[i];
-        }//todo: edit
     }
     else if (subquestionType == 4) {
         //for this type of subquestion, correct answers must be preprocessed before form submission
         $('.correct-answer-input').prop('disabled', false);
         $('.correct-answer-radio').prop('disabled', false);
         var correctAnswerArray = [];
-        $('input[type="text"].correct-answer-input').each(function () {
-            var answer = $(this).val();
-            correctAnswerArray.push(answer);
-        });
+
         var correctAnswersTable = document.getElementById('correct-answers-table');
-        for (var i = 0; i < correctAnswerArray.length; i++) {
+        for (var i = 0; i < correctAnswersTable.rows.length - 1; i++) {
             if (correctAnswersTable.rows[i + 1].cells[1].getElementsByTagName("input")[0].checked) {
-                correctAnswerArray[i] = correctAnswerArray[i] + " -> Ano";
+                correctAnswerArray.push("1");
             }
             else {
-                correctAnswerArray[i] = correctAnswerArray[i] + " -> Ne";
+                correctAnswerArray.push("0");
             }
         }
         var answerNumber = 0;
-        $('input[type="text"].correct-answer-input').each(function () {
+        $('.correct-answer-hidden').each(function () {
             $(this).val(correctAnswerArray[answerNumber]);
             answerNumber++;
         });
@@ -877,30 +862,24 @@ function onAddSubquestionFormSubmission(subquestionType) {
         if (subquestionType == 7) {
             $('.correct-answer-select').prop('disabled', false);
         }
-        //for this type of subquestion, subquestion text must be preprocessed before form submission
-        var subquestionText = document.getElementById("SubquestionText").value;
-        var subquestionTextContinuation = document.getElementById("SubquestionTextContinuation").value;
-        subquestionText += " (DOPLŇTE) " + subquestionTextContinuation;
-        document.getElementById("SubquestionText").value = subquestionText;
     }
     else if (subquestionType == 9) {
         $('.subquestion-text').prop('disabled', false);
         $('.correct-answer-input').prop('disabled', false);
-        var subquestionTexts = document.getElementsByClassName("subquestion-text");
-        var subquestionText = "";
-        for (var i = 0; i < subquestionTexts.length; i++) {
-            subquestionText += subquestionTexts[i].value;
-            if (i != subquestionTexts.length - 1) {
-                subquestionText += "(DOPLŇTE[" + (i + 1) + "])";
-            }
-        }
-        document.getElementById("SubquestionTextHidden").value = subquestionText;
     }
     else if (subquestionType == 10) {
+        var sliderValues = [];
         var min = document.getElementById("slider-min").value;
         var max = document.getElementById("slider-max").value;
-        document.getElementById("possible-answer-list-hidden").value = min + " - " + max;
-        document.getElementById("correct-answer-list-hidden").value = document.getElementById("slider-question").value;
+        var sliderQuestion = document.getElementById("slider-question").value;
+        sliderValues.push(min);
+        sliderValues.push(max);
+        sliderValues.push(sliderQuestion);
+        document.getElementById("sliderValues").value = sliderValues;
+     //   document.getElementsByName("sliderValues[]").value = sliderValues;
+        /*var min = document.getElementById("slider-min").value;
+        var max = document.getElementById("slider-max").value;
+        document.getElementById("correct-answer-list-hidden").value = document.getElementById("slider-question").value;*/
     }
 }
 
@@ -969,8 +948,7 @@ function setSubquestionTypeDetails(subquestionType) {
         "Úkolem je dané možné odpovědi doplnit na správná místa ve větách.",
         "Úkolem je zvolit z posuvníku správnou odpověď (v číselné formě)."
     ];
-    var index = subquestionType.selectedIndex;
-    document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[index + 1];
+    document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[subquestionType + 1];
 }
 
 function removeImage() {
@@ -1058,6 +1036,7 @@ function addSubquestionTemplatePagePostProcessing(subquestionType) {
     if (subquestionType != 0)
     {
         document.getElementById("subquestionType").selectedIndex = parseInt(subquestionType - 1);
+        setSubquestionTypeDetails(subquestionType - 1);
     }
 
     if (subquestionType == 1) {
@@ -1080,10 +1059,10 @@ function addSubquestionTemplatePagePostProcessing(subquestionType) {
     }
     else if (subquestionType == 7) {
         addPossibleAnswer();
-        document.getElementById("SubquestionText").placeholder = "První část věty";
+        document.getElementById("SubquestionText").outerHTML = "";
     }
     else if (subquestionType == 8) {
-        document.getElementById("SubquestionText").placeholder = "První část věty";
+        document.getElementById("SubquestionText").outerHTML = "";
         document.getElementById("subquestion-add").disabled = false;
     }
     else if (subquestionType == 9) {
