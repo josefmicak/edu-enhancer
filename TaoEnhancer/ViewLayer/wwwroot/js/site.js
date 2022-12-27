@@ -192,6 +192,17 @@ function setWrongChoicePointsInputs(el) {
     }
 }
 
+//function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
+function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount) {
+    document.getElementById("subquestionIdentifier").selectedIndex = subquestionNumber;
+    if (subquestionNumber == 0) {
+        document.getElementById("previousSubquestion").disabled = true;
+    }
+    else if (subquestionNumber == subquestionsCount - 1) {
+        document.getElementById("nextSubquestion").disabled = true;
+    }
+}
+
 //show form which prompts user to confirm the action
 
 function showConfirmActionForm(action, identifier, email, login, firstName, lastName, role) {
@@ -371,9 +382,9 @@ function editPossibleAnswers(action, subquestionType) {
             }
             else if (subquestionType == 10) {
                 $(".slider-input").prop('disabled', true);
-                document.getElementById("slider-question").min = min;
-                document.getElementById("slider-question").max = max;
                 var sliderQuestion = document.getElementById("slider-question");
+                sliderQuestion.min = min;
+                sliderQuestion.max = max;
                 sliderQuestion.value = Math.round((parseInt(min) + parseInt(max)) / 2);
                 sliderQuestion.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
                 document.getElementById("possible-answer-save").disabled = true;
@@ -451,7 +462,7 @@ function addCorrectAnswer(subquestionType, isProgramatical) {
         var lastRowId = parseInt(lastRowIdArray[2]);
         lastRowId += 1;
 
-        if (subquestionType == 1) {//programmer use only
+        if (subquestionType == 1 || subquestionType == 9) {//programmer use only
             var row = correctAnswersTable.insertRow(rowCount);
             row.innerHTML = lastRowInnerHTML;
             row.id = "correct-answer-" + lastRowId;
@@ -699,7 +710,7 @@ function editCorrectAnswers(action, subquestionType) {
                 }
             });
         }
-        else if (subquestionType == 4) {
+        else if (subquestionType == 4 || subquestionType == 9) {
             var seen = {};
             $('.correct-answer-input').each(function () {
                 var answer = $(this).val();
@@ -1012,7 +1023,7 @@ function editSubquestionText(action) {
         $('.subquestion-text').each(function () {
             var answer = $(this).val();
             if (answer.length == 0) {
-                alert("Chyba: nevyplněná správná odpověď.");
+                alert("Chyba: nevyplněná otázka.");
                 addAnswers = false;
                 return false;
             } 
@@ -1070,31 +1081,45 @@ function addSubquestionTemplatePagePostProcessing(subquestionType) {
     }
 }
 
-function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListString, correctAnswerListString) {
-    var possibleAnswerTable = document.getElementById('possible-answers-table');
-    var possibleAnswerTableLength = document.getElementById('possible-answers-table').rows.length;
-    var possibleAnswerList = [];
-    var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
-    for (var i = 0; i < possibleAnswerListStringSplit.length; i++) {
-        possibleAnswerList.push(possibleAnswerListStringSplit[i]);
-    }
-    var possibleAnswerListLength = possibleAnswerList.length;
+//function that is called after the user requests points recommendation in the AddSubquestionTemplate page
+function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListString, correctAnswerListString, subquestionText,
+    defaultWrongChoicePoints, wrongChoicePoints) {
+    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
+        var possibleAnswerTable = document.getElementById('possible-answers-table');
+        var possibleAnswerTableLength = document.getElementById('possible-answers-table').rows.length;
+        var possibleAnswerList = [];
+        var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
+        for (var i = 0; i < possibleAnswerListStringSplit.length; i++) {
+            possibleAnswerList.push(possibleAnswerListStringSplit[i]);
+        }
+        var possibleAnswerListLength = possibleAnswerList.length;
 
-    if (possibleAnswerListLength > possibleAnswerTableLength) {
-        var difference = possibleAnswerListLength - possibleAnswerTableLength;
-        for (var i = 0; i < difference; i++) {
-            addPossibleAnswer();
+        if (possibleAnswerListLength > possibleAnswerTableLength) {
+            var difference = possibleAnswerListLength - possibleAnswerTableLength;
+            for (var i = 0; i < difference; i++) {
+                addPossibleAnswer();
+            }
         }
     }
+    else if (subquestionType == 4 || subquestionType == 10) {
+        var possibleAnswerList = [];
+        var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
+        for (var i = 0; i < possibleAnswerListStringSplit.length; i++) {
+            possibleAnswerList.push(possibleAnswerListStringSplit[i]);
+        }
+        var possibleAnswerListLength = possibleAnswerList.length;
+    }
 
-    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3) {
+    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
         for (var i = 1; i < possibleAnswerListLength; i++) {
             possibleAnswerTable.rows[i].cells[0].getElementsByTagName("input")[0].value = possibleAnswerList[i - 1];
         }
     }
 
-    var correctAnswerTable = document.getElementById('correct-answers-table');
-    var correctAnswerTableLength = document.getElementById('correct-answers-table').rows.length;
+    if (subquestionType != 5 && subquestionType != 8 && subquestionType != 10) {
+        var correctAnswerTable = document.getElementById('correct-answers-table');
+        var correctAnswerTableLength = document.getElementById('correct-answers-table').rows.length;
+    }
     var correctAnswerList = [];
     var correctAnswerListStringSplit = correctAnswerListString.split(";");
     for (var i = 0; i < correctAnswerListStringSplit.length; i++) {
@@ -1102,7 +1127,7 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     }
     var correctAnswerListLength = correctAnswerList.length;
 
-    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3) {
+    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 4 || subquestionType == 9) {
         if (correctAnswerListLength > correctAnswerTableLength) {
             var difference = correctAnswerListLength - correctAnswerTableLength;
             for (var i = 0; i < difference; i++) {
@@ -1110,13 +1135,21 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
             }
         }
     }
+    else if (subquestionType == 3) {
+        if (correctAnswerListLength > correctAnswerTableLength) {
+            var difference = (correctAnswerListLength / 2) - correctAnswerTableLength;
+            for (var i = 0; i < difference; i++) {
+                addCorrectAnswer(subquestionType, true);
+            }
+        }
+    }
 
-    if (subquestionType == 1) {
+    if (subquestionType == 1 || subquestionType == 9) {
         for (var i = 1; i < correctAnswerListLength; i++) {
             correctAnswerTable.rows[i].cells[0].getElementsByTagName("input")[0].value = correctAnswerList[i - 1];
         }
     }
-    else if (subquestionType == 2 || subquestionType == 3) {
+    else if (subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
         var correctAnswerSelects = document.getElementsByClassName('correct-answer-select');
         for (var i = 0; i < correctAnswerListLength - 1; i++) {
             var opt = document.createElement('option');
@@ -1125,8 +1158,60 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
             correctAnswerSelects.item(i).appendChild(opt);
         }
     }
+    else if (subquestionType == 4) {
+        for (var i = 1; i < correctAnswerListLength; i++) {
+            correctAnswerTable.rows[i].cells[0].getElementsByTagName("input")[0].value = possibleAnswerList[i - 1];
+            if (correctAnswerList[i - 1] == "1") {
+                correctAnswerTable.rows[i].cells[1].getElementsByTagName("input")[0].checked = true;
+            }
+            else if (correctAnswerList[i - 1] == "0") {
+                correctAnswerTable.rows[i].cells[2].getElementsByTagName("input")[0].checked = true;
+            }
+        }
+    }
 
-    $('.correct-answer-select').prop('disabled', true);
+    if (subquestionType != 4 && subquestionType != 5 && subquestionType != 8 && subquestionType != 9 && subquestionType != 10) {
+        $('.correct-answer-select').prop('disabled', true);
+    }
+
+    //in case the subquestion text includes gaps, we must divide it and assign it to appropriate gaps
+    if (subquestionType == 7 || subquestionType == 8) {
+        var subquestionTextSplit = subquestionText.split("|");
+        document.getElementsByName("subquestionTextArray[]")[0].value = subquestionTextSplit[0];
+        document.getElementById("gap-text").value = correctAnswerList[0];
+        document.getElementsByName("subquestionTextArray[]")[1].value = subquestionTextSplit[1];
+
+        if (subquestionType == 8) {
+            document.getElementById("correct-answer-input").value = correctAnswerList[0];
+        }
+    }
+    else if (subquestionType == 9) {
+        var subquestionTextSplit = subquestionText.split("|");
+        for (var i = 0; i < subquestionTextSplit.length; i++) {
+            if (i > 0 && i < subquestionTextSplit.length - 1) {//due to gap that exist by default
+                addGap();
+            }
+            document.getElementsByClassName("subquestion-text")[i].value = subquestionTextSplit[i];
+            if (i != subquestionTextSplit.length - 1) {//there is one less gap than subquestion text input
+                document.getElementsByClassName("gap-text")[i].value = correctAnswerList[i];
+            }
+        }
+    }
+
+    if (subquestionType == 10) {
+        document.getElementById("slider-min").value = possibleAnswerList[0];
+        document.getElementById("slider-max").value = possibleAnswerList[1];
+        var sliderQuestion = document.getElementById("slider-question");
+        sliderQuestion.min = possibleAnswerList[0];
+        sliderQuestion.max = possibleAnswerList[1];
+        sliderQuestion.value = correctAnswerList[0];
+        sliderQuestion.nextElementSibling.value = correctAnswerList[0];
+    }
+
+    //set manual wrong choice points radio to checked in case it was checked before
+    if (defaultWrongChoicePoints != wrongChoicePoints) {
+        document.getElementById("wrongChoicePoints_manual_radio").checked = true;
+    }
 }
 
 //General

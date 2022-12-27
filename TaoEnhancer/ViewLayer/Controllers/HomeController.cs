@@ -10,6 +10,7 @@ using System.Dynamic;
 using Common;
 using BusinessLayer;
 using System.Collections.Generic;
+using System;
 
 namespace ViewLayer.Controllers
 {
@@ -264,6 +265,29 @@ namespace ViewLayer.Controllers
 
             var subquestionTemplates = businessLayerFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
             List<SubquestionTemplate> subquestionTemplateList = await subquestionTemplates.ToListAsync();
+
+            //users wants to browse either the previous or the following subquestion
+            if(ViewBag.Message == "previousSubquestion" || ViewBag.Message == "nextSubquestion")
+            {
+                for(int i = 0; i < subquestionTemplateList.Count; i++)
+                {
+                    if (subquestionTemplateList[i].SubquestionIdentifier == ViewBag.subquestionIdentifier)
+                    {
+                        if (ViewBag.Message == "previousSubquestion" && i != 0)
+                        {
+                            ViewBag.subquestionIdentifier = subquestionTemplateList[i - 1].SubquestionIdentifier;
+                            break;
+                        }
+                        if (ViewBag.Message == "nextSubquestion" && i != subquestionTemplateList.Count - 1)
+                        {
+                            ViewBag.subquestionIdentifier = subquestionTemplateList[i + 1].SubquestionIdentifier;
+                            break;
+                        }
+                    }
+                }
+                ViewBag.Message = null;
+            }
+
             subquestionTemplateList = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionTemplateList);
 
             if (subquestionTemplates.Count() > 0)
@@ -283,7 +307,8 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> QuestionTemplate(string action, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, string wrongChoicePointsRadio)
+        public async Task<IActionResult> QuestionTemplate(string action, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, 
+            string wrongChoicePoints, string wrongChoicePointsRadio, string currentSubquestionIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             if (subquestionPoints != null)
@@ -325,6 +350,11 @@ namespace ViewLayer.Controllers
             else if (action == "deleteSubquestionTemplate")
             {
                 message = await businessLayerFunctions.DeleteSubquestionTemplate(questionNumberIdentifier, subquestionIdentifier, _environment.WebRootPath);
+            }
+            else if(action == "previousSubquestion" || action == "nextSubquestion")
+            {
+                subquestionIdentifier = currentSubquestionIdentifier;
+                message = action;
             }
 
             TempData["Message"] = message;
@@ -1489,14 +1519,6 @@ namespace ViewLayer.Controllers
                 ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
             }
             return View(subquestionTemplate);
-            /*    if (subquestionTemplate == null)
-                {
-                    return View();
-                }
-                else
-                {
-                    return View(subquestionTemplate);
-                }*/
         }
 
         [HttpPost]
@@ -1535,7 +1557,15 @@ namespace ViewLayer.Controllers
                         subquestionTemplate.ImageSource = businessLayerFunctions.SaveImage(image, _environment.WebRootPath);
                     }
 
-                    message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+                    (subquestionTemplate, string? errorMessage) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+                    if(errorMessage != null)
+                    {
+                        message = errorMessage;
+                    }
+                    else
+                    {
+                        message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+                    }
                 }
             }
             else if (action == "getPointsSuggestion")
@@ -1567,6 +1597,7 @@ namespace ViewLayer.Controllers
             else //getPointsSuggestion redirection
             {
                 subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
+                (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
             }

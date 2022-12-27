@@ -6,9 +6,10 @@
 
 @{
     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+    int subquestionNumber = 0;
     if(ViewBag.subquestionIdentifier == null)
     {
-        subquestionTemplate = @Model.First();
+        subquestionTemplate = Model.First();
     }
     else
     {
@@ -19,6 +20,7 @@
                 subquestionTemplate = item;
                 break;
             }
+            subquestionNumber++;
         }
         
         //in some cases (such as a subquestion template being deleted) an empty subquestion template may get used by mistake
@@ -216,7 +218,9 @@
         <h2>Výběr podotázky</h2>
         <form method="POST">
             <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
-
+            <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="currentSubquestionIdentifier">
+            <button type="submit" id="previousSubquestion"  value="previousSubquestion" name="action">Předchozí</button>
+            <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
             @{
                 string subquestionLabel = "";
                 if(Model.Count() > 1)
@@ -332,3 +336,10 @@
         asp-route-testNumberIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+
+<script src="/js/site.js"></script>
+@{
+    <script>
+        questionTemplatePagePostProcessing(@subquestionNumber, @Model.Count());
+    </script>
+}

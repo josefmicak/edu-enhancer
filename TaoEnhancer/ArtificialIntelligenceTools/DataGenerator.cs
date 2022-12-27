@@ -814,7 +814,7 @@ namespace ArtificialIntelligenceTools
                     int choiceCounter = 0;
                     for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + "\\" + "možnost " + (choiceCounter + 2);
+                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + "|" + "možnost " + (choiceCounter + 2);
                         choiceCounter += 2;
                     }
 

@@ -121,22 +121,23 @@ namespace BusinessLayer
 
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
         {
-            string? errorMessage;
-            (subquestionTemplate, errorMessage) = ValidateAddedSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
-            if(errorMessage != null)
+            return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
+            /*string? errorMessage;
+            (subquestionTemplate, errorMessage) = ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+            if (errorMessage != null)
             {
                 return errorMessage;
             }
             else
             {
                 return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
-            }
+            }*/
         }
 
         /// <summary>
         /// Validates the integrity of added subquestion template and changes certain fields before adding
         /// </summary>
-        public (SubquestionTemplate, string?) ValidateAddedSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
         {
             string? errorMessage = null;
 
@@ -145,11 +146,11 @@ namespace BusinessLayer
                 subquestionTemplate.SubquestionText = "";
                 for (int i = 0; i < subquestionTextArray.Length; i++)
                 {
-                    subquestionTextArray[i].Replace("\\", "");//replace gap separator
+                    subquestionTextArray[i].Replace("|", "");//replace gap separator
                     subquestionTextArray[i].Replace(";", "");//replace answer separator
                     if (i != subquestionTextArray.Length - 1)
                     {
-                        subquestionTemplate.SubquestionText += subquestionTextArray[i] + "\\";
+                        subquestionTemplate.SubquestionText += subquestionTextArray[i] + "|";
                     }
                     else
                     {
@@ -159,7 +160,7 @@ namespace BusinessLayer
             }
             else
             {
-                subquestionTemplate.SubquestionText.Replace("\\", "");//replace gap separator
+                subquestionTemplate.SubquestionText.Replace("|", "");//replace gap separator
                 subquestionTemplate.SubquestionText.Replace(";", "");//replace answer separator
             }
 
@@ -176,7 +177,7 @@ namespace BusinessLayer
                         else
                         {
                             int index = i / 2;
-                            correctAnswerList[index] = subquestionTemplate.CorrectAnswerList[i] + "\\" + subquestionTemplate.CorrectAnswerList[i + 1];
+                            correctAnswerList[index] = subquestionTemplate.CorrectAnswerList[i] + "|" + subquestionTemplate.CorrectAnswerList[i + 1];
                         }
                     }
                     subquestionTemplate.CorrectAnswerList = correctAnswerList;
@@ -218,7 +219,7 @@ namespace BusinessLayer
                         correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
                         for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
                         {
-                            correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("\\", " -> ");
+                            correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("|", " -> ");
                         }
                         subquestionTemplate.CorrectAnswerList = correctAnswerList;
                         break;
@@ -242,10 +243,10 @@ namespace BusinessLayer
                         subquestionTemplate.CorrectAnswerList = correctAnswerList;
                         break;
                     case SubquestionType.MultiChoiceTextFill:
-                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("\\", " (DOPLŇTE) ");
+                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
                         break;
                     case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
-                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("\\", " (DOPLŇTE) ");
+                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
                         break;
                     case SubquestionType.GapMatch:
                         string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('\\');

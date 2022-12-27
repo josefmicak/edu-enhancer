@@ -74,14 +74,14 @@
     <div id="subquestion-details">
         <h2>Detaily podotázky</h2>
         @{
-                <p>@ViewBag.Message</p>
+            <p>@ViewBag.Message</p>
             if (selectedSubquestionType != 0)
             {
-                    <p>Typ otázky: @subquestionTypeTextArray[selectedSubquestionType]</p>
+                <p>Typ otázky: @subquestionTypeTextArray[selectedSubquestionType]</p>
             }
             if (selectedSubquestionType == 0)
             {
-                    <p>Pro vyplnění detailů podotázky prosím zvolte z nabídky typ podotázky.</p>
+                <p>Pro vyplnění detailů podotázky prosím zvolte z nabídky typ podotázky.</p>
             }
             else
             {
@@ -199,7 +199,7 @@
                                 </table>
                                 break;
                             case 4:
-                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit pojmy</button>
+                                <button type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit otázky</button>
                                 <button type="button" onclick="editCorrectAnswers('disable', @selectedSubquestionType)" id="correct-answer-save">Uložit</button>
                                 <br>
                                 <table id="correct-answers-table">
@@ -260,10 +260,10 @@
                                 <br>
                                 break;
                             case 7:
-                                <input type="text" required placeholder="První část věty" name="subquestionTextArray[]">
+                                <input type="text" required class="subquestion-text" placeholder="První část věty" name="subquestionTextArray[]">
                                 <input type="text" disabled id="gap-text" value="(DOPLŇTE)">
                                 <br>
-                                <input type="text" required placeholder="Druhá část věty" name="subquestionTextArray[]">
+                                <input type="text" required class="subquestion-text" placeholder="Druhá část věty" name="subquestionTextArray[]">
                                 <br>
                                 <button type="button" onclick="editPossibleAnswers('enable', @selectedSubquestionType)" id="possible-answer-edit">Upravit možné odpovědi</button>
                                 <button type="button" disabled onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button>
@@ -399,18 +399,28 @@
     if (ViewBag.SuggestedSubquestionPoints != null)
     {
         string possibleAnswerListString = "";
-        for (int j = 0; j < Model.PossibleAnswerList.Count(); j++)
+
+        if(Model.PossibleAnswerList != null)
         {
-            possibleAnswerListString += Model.PossibleAnswerList[j] + ";";
+            for (int j = 0; j < Model.PossibleAnswerList.Count(); j++)
+            {
+                possibleAnswerListString += Model.PossibleAnswerList[j] + ";";
+            }
         }
+
         string correctAnswerListString = "";
-        for (int j = 0; j < Model.CorrectAnswerList.Count(); j++)
+        if(Model.CorrectAnswerList != null)
         {
-            correctAnswerListString += Model.CorrectAnswerList[j] + ";";
+            for (int j = 0; j < Model.CorrectAnswerList.Count(); j++)
+            {
+                correctAnswerListString += Model.CorrectAnswerList[j] + ";";
+            }
         }
 
         <script>
-            pointsRecommendationPostProcessing(@selectedSubquestionType, '@possibleAnswerListString', '@correctAnswerListString');
+            pointsRecommendationPostProcessing(@selectedSubquestionType, '@possibleAnswerListString', '@correctAnswerListString', '@Model.SubquestionText',
+            '@Model.DefaultWrongChoicePoints', '@Model.WrongChoicePoints');
+            document.getElementById("subquestion-add").disabled = false;
         </script>
     }
 }
