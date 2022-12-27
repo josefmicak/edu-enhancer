@@ -26,18 +26,12 @@
     }
 
     //TODO: decimal parsing
-    string? subquestionPointsParsed = null;
-    string? correctChoicePointsParsed = null;
-    string? defaultWrongChoicePointsParsed = null;
-    string? wrongChoicePointsParsed = null;
+    string? wrongChoicePoints = null;
     if (ViewBag.SuggestedSubquestionPoints != null)
     {
-        subquestionPointsParsed = Model.SubquestionPoints.ToString().Replace(",", ".");
-        correctChoicePointsParsed = Model.CorrectChoicePoints.ToString().Replace(",", ".");
-        defaultWrongChoicePointsParsed = Model.DefaultWrongChoicePoints.ToString().Replace(",", ".");
         if (Model.DefaultWrongChoicePoints != Model.WrongChoicePoints)
         {
-            wrongChoicePointsParsed = Model.WrongChoicePoints.ToString().Replace(",", ".");
+            wrongChoicePoints = Model.WrongChoicePoints.ToString();
         }
     }
 
@@ -360,18 +354,18 @@
                     }
                     <p>
                         Počet bodů za podotázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints"
-                                                    onchange="updateChoicePoints(this, @selectedSubquestionType)" value="@subquestionPointsParsed">
+                                                    onchange="updateChoicePoints(this, @selectedSubquestionType)" value="@Model.SubquestionPoints">
                     </p>
-                    <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints" value="@correctChoicePointsParsed"></p>
+                    <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints" value="@Model.CorrectChoicePoints"></p>
                     <p>Počet bodů za špatnou volbu:</p>
                     <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio"
                         name="wrongChoicePointsRadio" checked onchange="setWrongChoicePointsInputs(this)">
                     <label class="radio-label" title="Automatický" for="wrongChoicePoints_automatic_radio">Automatický</label>
-                    <input type="number" id="wrongChoicePoints_automatic" readonly name="defaultWrongChoicePoints" value="@defaultWrongChoicePointsParsed"> <br />
+                    <input type="number" id="wrongChoicePoints_automatic" readonly name="defaultWrongChoicePoints" value="@Model.DefaultWrongChoicePoints"> <br />
                     <input class="radio input" title="Vlastní" type="radio" id="wrongChoicePoints_manual_radio" value="wrongChoicePoints_manual_radio"
                         name="wrongChoicePointsRadio" onchange="setWrongChoicePointsInputs(this)">
                     <label class="radio-label" title="Vlastní" for="wrongChoicePoints_manual_radio">Vlastní</label>
-                    <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints_manual" readonly required value="@wrongChoicePointsParsed">
+                    <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints_manual" readonly value="@wrongChoicePoints">
                     <br>
                     <p>Obrázek:</p>
                     <input type="file" id="imagePath" name="image">

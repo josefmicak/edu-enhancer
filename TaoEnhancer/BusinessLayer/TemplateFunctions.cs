@@ -119,7 +119,7 @@ namespace BusinessLayer
                 .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login).AsQueryable();
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
         {
             return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
             /*string? errorMessage;

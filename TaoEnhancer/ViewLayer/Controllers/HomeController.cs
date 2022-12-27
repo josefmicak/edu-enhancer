@@ -194,17 +194,6 @@ namespace ViewLayer.Controllers
             string minimumPointsAmount, string testPointsDetermined, string questionNumberIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            if (minimumPointsAmount != null)
-            {
-                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
-                {
-                    minimumPointsAmount = minimumPointsAmount.Replace(".", ",");
-                }
-                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
-                {
-                    minimumPointsAmount = minimumPointsAmount.Replace(",", ".");
-                }
-            }
             string? negativePointsMessage = null;
             string? minimumPointsMessage = null;
             string? testDifficultyMessage = null;
@@ -311,17 +300,6 @@ namespace ViewLayer.Controllers
             string wrongChoicePoints, string wrongChoicePointsRadio, string currentSubquestionIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            if (subquestionPoints != null)
-            {
-                if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
-                {
-                    subquestionPoints = subquestionPoints.Replace(".", ",");
-                }
-                else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
-                {
-                    subquestionPoints = subquestionPoints.Replace(",", ".");
-                }
-            }
             string? message = null;
 
             if (action == "savePoints")
@@ -483,12 +461,7 @@ namespace ViewLayer.Controllers
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string? message = null;
             if (action == "setPoints") 
-            {
-                if (studentsPoints != null)
-                {
-                    studentsPoints = studentsPoints.Replace(".", ",");//todo: formatting
-                }
-                
+            { 
                 //the teacher is changing student's points
                 if (studentsPoints != null)
                 {
@@ -1547,7 +1520,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
+                    //subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
 
                     subquestionTemplate.OwnerLogin = login;
                     subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
@@ -1564,7 +1537,7 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+                        message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
                     }
                 }
             }
@@ -1596,48 +1569,10 @@ namespace ViewLayer.Controllers
             }
             else //getPointsSuggestion redirection
             {
-                subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
                 (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
             }
-        }
-
-        public SubquestionTemplate ReworkPoints(SubquestionTemplate subquestionTemplate, string subquestionPoints, string correctChoicePoints, 
-            string wrongChoicePointsRadio, string wrongChoicePoints_manual)
-        {
-            if (Config.SelectedPlatform == EnumTypes.Platform.Windows)
-            {
-                subquestionPoints = subquestionPoints.Replace(".", ",");
-                correctChoicePoints = correctChoicePoints.Replace(".", ",");
-                if (subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer && wrongChoicePoints_manual != null)
-                {
-                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(".", ",");
-                }
-            }
-            else if (Config.SelectedPlatform == EnumTypes.Platform.Linux)
-            {
-                subquestionPoints = subquestionPoints.Replace(",", ".");
-                correctChoicePoints = correctChoicePoints.Replace(",", ".");
-                if (subquestionTemplate.SubquestionType != EnumTypes.SubquestionType.FreeAnswer && wrongChoicePoints_manual != null)
-                {
-                    wrongChoicePoints_manual = wrongChoicePoints_manual.Replace(",", ".");
-                }
-            }
-
-            subquestionTemplate.SubquestionPoints = double.Parse(subquestionPoints);
-            subquestionTemplate.CorrectChoicePoints = double.Parse(correctChoicePoints);
-            subquestionTemplate.DefaultWrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
-            if (wrongChoicePointsRadio == "wrongChoicePoints_automatic_radio")
-            {
-                subquestionTemplate.WrongChoicePoints = double.Parse(correctChoicePoints) * (-1);
-            }
-            else if (wrongChoicePointsRadio == "wrongChoicePoints_manual_radio")
-            {
-                subquestionTemplate.WrongChoicePoints = double.Parse(wrongChoicePoints_manual);
-            }
-
-            return subquestionTemplate;
         }
 
         public IActionResult AccessDeniedAction()

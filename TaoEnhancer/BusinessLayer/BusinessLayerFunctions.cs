@@ -100,9 +100,9 @@ namespace BusinessLayer
             return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
         {
-            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate);
         }
 
         public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)

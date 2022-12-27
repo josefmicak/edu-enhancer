@@ -17,8 +17,8 @@ namespace ArtificialIntelligenceTools
         public static string GetSubquestionTemplateSuggestedPoints(string login, bool retrainModel, SubquestionTemplateRecord subquestionTemplateRecord, EnumTypes.Model usedModel)
         {
             string function = "predict_new";
-            string[] arguments = new string[] { subquestionTemplateRecord.SubquestionTypeAveragePoints.ToString().Replace(",", "."), subquestionTemplateRecord.CorrectAnswersShare.ToString().Replace(",", "."),
-            subquestionTemplateRecord.SubjectAveragePoints.ToString().Replace(",", "."), subquestionTemplateRecord.ContainsImage.ToString().Replace(",", "."), subquestionTemplateRecord.NegativePoints.ToString().Replace(",", "."), subquestionTemplateRecord.MinimumPointsShare.ToString().Replace(",", ".")};
+            string[] arguments = new string[] { subquestionTemplateRecord.SubquestionTypeAveragePoints.ToString(), subquestionTemplateRecord.CorrectAnswersShare.ToString(),
+            subquestionTemplateRecord.SubjectAveragePoints.ToString(), subquestionTemplateRecord.ContainsImage.ToString(), subquestionTemplateRecord.NegativePoints.ToString(), subquestionTemplateRecord.MinimumPointsShare.ToString()};
             string fileName;
             if(usedModel == EnumTypes.Model.MachineLearning)
             {
@@ -59,8 +59,8 @@ namespace ArtificialIntelligenceTools
         public static string GetSubquestionResultSuggestedPoints(string login, bool retrainModel, SubquestionResultRecord subquestionResultRecord, EnumTypes.Model usedModel)
         {
             string function = "predict_new";
-            string[] arguments = new string[] { subquestionResultRecord.SubquestionTypeAveragePoints.ToString().Replace(",", "."), subquestionResultRecord.AnswerCorrectness.ToString().Replace(",", "."),
-            subquestionResultRecord.SubjectAveragePoints.ToString().Replace(",", "."), subquestionResultRecord.ContainsImage.ToString().Replace(",", "."), subquestionResultRecord.NegativePoints.ToString().Replace(",", "."), subquestionResultRecord.MinimumPointsShare.ToString().Replace(",", ".")};
+            string[] arguments = new string[] { subquestionResultRecord.SubquestionTypeAveragePoints.ToString(), subquestionResultRecord.AnswerCorrectness.ToString(),
+            subquestionResultRecord.SubjectAveragePoints.ToString(), subquestionResultRecord.ContainsImage.ToString(), subquestionResultRecord.NegativePoints.ToString(), subquestionResultRecord.MinimumPointsShare.ToString()};
             string fileName;
             if (usedModel == EnumTypes.Model.MachineLearning)
             {
@@ -117,10 +117,6 @@ namespace ArtificialIntelligenceTools
                     try
                     {
                         result = result.Substring(0, result.Length - 4);//remove new line from the result
-                        if(Config.SelectedPlatform == EnumTypes.Platform.Windows)
-                        {
-                            result = result.Replace(".", ",");
-                        }
                         return Math.Round(Convert.ToDouble(result), 4);
                     }
                     catch

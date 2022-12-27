@@ -285,7 +285,7 @@
                 <form method="POST">
                     <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
                     <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
-                    <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString().Replace(",", ".")"></p>
+                    <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
                     @{
                         if (userRequestedPointsSuggestion)
                         {
@@ -305,11 +305,11 @@
                     @{
                         if (defaultWrongChoicePointsChecked)
                         {
-                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")" readonly>
+                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString()" readonly>
                         }
                         else
                         {
-                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString().Replace(",", ".")">
+                            <input class="input" type="number" step="any" min="-@subquestionTemplate.CorrectChoicePoints.ToString()" max="0" id="wrongChoicePoints_manual" name="wrongChoicePoints" value="@subquestionTemplate.WrongChoicePoints.ToString()">
                         }
                     }
                     <br />
