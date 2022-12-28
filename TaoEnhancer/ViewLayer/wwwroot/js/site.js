@@ -185,20 +185,23 @@ if (elementExists) {
 
 function setWrongChoicePointsInputs(el) {
     if (el.value == "wrongChoicePoints_automatic_radio") {
-        document.getElementById("wrongChoicePoints_manual").readOnly = true;
+        document.getElementById("wrongChoicePoints_automatic").disabled = false;
+        document.getElementById("wrongChoicePoints_manual").disabled = true;
     }
     else {
-        document.getElementById("wrongChoicePoints_manual").readOnly = false;
+        document.getElementById("wrongChoicePoints_automatic").disabled = true;
+        document.getElementById("wrongChoicePoints_manual").disabled = false;
     }
 }
 
 //function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
 function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount) {
+    console.log(subquestionsCount);
     document.getElementById("subquestionIdentifier").selectedIndex = subquestionNumber;
-    if (subquestionNumber == 0) {
+    if (subquestionNumber == 0 || subquestionsCount == 1) {
         document.getElementById("previousSubquestion").disabled = true;
     }
-    else if (subquestionNumber == subquestionsCount - 1) {
+    if ((subquestionNumber == subquestionsCount - 1) || subquestionsCount <= 1) {
         document.getElementById("nextSubquestion").disabled = true;
     }
 }
@@ -887,10 +890,6 @@ function onAddSubquestionFormSubmission(subquestionType) {
         sliderValues.push(max);
         sliderValues.push(sliderQuestion);
         document.getElementById("sliderValues").value = sliderValues;
-     //   document.getElementsByName("sliderValues[]").value = sliderValues;
-        /*var min = document.getElementById("slider-min").value;
-        var max = document.getElementById("slider-max").value;
-        document.getElementById("correct-answer-list-hidden").value = document.getElementById("slider-question").value;*/
     }
 }
 

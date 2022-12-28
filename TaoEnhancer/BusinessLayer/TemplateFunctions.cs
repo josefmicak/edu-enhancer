@@ -10,6 +10,8 @@ using System.Globalization;
 using System.Xml;
 using static Common.EnumTypes;
 using Microsoft.AspNetCore.Http;
+using Microsoft.VisualBasic;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BusinessLayer
 {
@@ -119,28 +121,37 @@ namespace BusinessLayer
                 .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login).AsQueryable();
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
         {
-            return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
-            /*string? errorMessage;
-            (subquestionTemplate, errorMessage) = ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
-            if (errorMessage != null)
-            {
-                return errorMessage;
-            }
-            else
-            {
-                return await dataFunctions.AddSubquestionTemplate(subquestionTemplate);
-            }*/
+            return await dataFunctions.AddSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
         /// <summary>
         /// Validates the integrity of added subquestion template and changes certain fields before adding
         /// </summary>
-        public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues,
+            IFormFile? image)
         {
             string? errorMessage = null;
 
+            //validate image
+            if(image != null)
+            {
+                if (image.Length > 4000000)
+                {
+                    return(subquestionTemplate, "Chyba: Maximální povolená velikost obrázku je 4 MB.");
+                }
+                string fileExtension = Path.GetExtension(image.FileName).ToLower();
+                if (fileExtension != ".jpg"
+                    && fileExtension != ".png"
+                    && fileExtension != ".jpeg"
+                    && fileExtension != ".webp")
+                {
+                    return (subquestionTemplate, "Chyba: nepovolený formát (" + fileExtension + "). Povolené formáty jsou .jpg, .png, .jpeg, .webp");
+                }
+            }
+
+            //remove any separators that are used in the database from the subquestion text
             if(subquestionTextArray.Length > 0)
             {
                 subquestionTemplate.SubquestionText = "";
@@ -164,6 +175,7 @@ namespace BusinessLayer
                 subquestionTemplate.SubquestionText.Replace(";", "");//replace answer separator
             }
 
+            //change possible and correct answer lists if necessary
             switch (subquestionTemplate.SubquestionType)
             {
                 case SubquestionType.MatchingElements:
@@ -197,6 +209,184 @@ namespace BusinessLayer
                     subquestionTemplate.PossibleAnswerList = new string[] { sliderValuesSplit[0], sliderValuesSplit[1] };
                     subquestionTemplate.CorrectAnswerList = new string[] { sliderValuesSplit[2] };
                     break;
+            }
+
+            //todo: remove convert
+            //set choice points
+            if(subquestionTemplate.SubquestionPoints != null || subquestionTemplate.SubquestionPoints <= 0)
+            {
+                double correctChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(Convert.ToDouble(subquestionTemplate.SubquestionPoints),
+                    subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                subquestionTemplate.CorrectChoicePoints = correctChoicePoints;
+                subquestionTemplate.DefaultWrongChoicePoints = correctChoicePoints * (-1);
+                if (subquestionTemplate.WrongChoicePoints != subquestionTemplate.DefaultWrongChoicePoints)//user manually set different wrong choice points than default
+                {
+                    if (subquestionTemplate.WrongChoicePoints < subquestionTemplate.DefaultWrongChoicePoints)//invalid value - cannot be lesser than default
+                    {
+                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.DefaultWrongChoicePoints;
+                    }
+                }
+            }
+            else
+            {
+                errorMessage = "Chyba: nekompletní zadání podotázky (body).";
+            }
+
+            //validate integrity of the subquestion regarding amount of possible/correct answers, subquestion type and subquestion text content
+            if(subquestionTemplate.SubquestionText.Length == 0)
+            {
+                errorMessage = "Chyba: nekompletní zadání podotázky (text).";
+            }
+
+            if(subquestionTemplate.SubquestionType == SubquestionType.Error)
+            {
+                errorMessage = "Chyba: nekompletní zadání podotázky (typ podotázky).";
+            }
+
+            for(int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+            {
+                if (subquestionTemplate.PossibleAnswerList[i].Length == 0)
+                {
+                    errorMessage = "Chyba: nekompletní zadání podotázky (možná odpověď).";
+                }
+            }
+
+            for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+            {
+                if (subquestionTemplate.CorrectAnswerList[i].Length == 0)
+                {
+                    errorMessage = "Chyba: nekompletní zadání podotázky (správná odpověď).";
+                }
+            }
+
+            if (subquestionTemplate.PossibleAnswerList.Distinct().Count() != subquestionTemplate.PossibleAnswerList.Count())
+            {
+                errorMessage = "Chyba: duplikátní možná odpověď.";
+            }
+
+            if (subquestionTemplate.CorrectAnswerList.Distinct().Count() != subquestionTemplate.CorrectAnswerList.Count() &&
+                subquestionTemplate.SubquestionType != SubquestionType.MultipleQuestions)
+            {
+                errorMessage = "Chyba: duplikátní správná odpověď.";
+            }
+
+            if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers
+                 || subquestionTemplate.SubquestionType == SubquestionType.MatchingElements || subquestionTemplate.SubquestionType == SubquestionType.MultipleQuestions
+                  || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill
+                   || subquestionTemplate.SubquestionType == SubquestionType.Slider)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length == 0)
+                {
+                    errorMessage = "Chyba: nekompletní zadání podotázky (možné odpovědi).";
+                }
+            }
+
+            if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers
+                 || subquestionTemplate.SubquestionType == SubquestionType.MatchingElements || subquestionTemplate.SubquestionType == SubquestionType.MultipleQuestions
+                  || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill
+                   || subquestionTemplate.SubquestionType == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.GapMatch
+                    || subquestionTemplate.SubquestionType == SubquestionType.Slider)
+            {
+                if (subquestionTemplate.CorrectAnswerList.Length == 0)
+                {
+                    errorMessage = "Chyba: nekompletní zadání podotázky (správné odpovědi).";
+                }
+            }
+
+            if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers
+                 || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill)
+            {
+                for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                {
+                    if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionTemplate.CorrectAnswerList[i]))
+                    {
+                        errorMessage = "Chyba: nekompletní zadání podotázky (možné a správné odpovědi).";
+                    }
+                }
+            }
+
+            if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements)
+            {
+                if(subquestionTemplate.PossibleAnswerList.Length != subquestionTemplate.CorrectAnswerList.Length)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length < subquestionTemplate.CorrectAnswerList.Length)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.MatchingElements)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length / 2 < subquestionTemplate.CorrectAnswerList.Length)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.MultipleQuestions)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length != subquestionTemplate.CorrectAnswerList.Length)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.FreeAnswer)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length > 0)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length <= 1 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length <= 1 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
+            {
+                string[] subquestionTextGapSplit = subquestionTemplate.SubquestionText.Split("|");
+                if (subquestionTextGapSplit.Length > 2)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.GapMatch)
+            {
+                string[] subquestionTextGapSplit = subquestionTemplate.SubquestionText.Split("|");
+                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length != subquestionTextGapSplit.Length - 1)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+            }
+            else if (subquestionTemplate.SubquestionType == SubquestionType.Slider)
+            {
+                if (subquestionTemplate.PossibleAnswerList.Length != 2 || subquestionTemplate.CorrectAnswerList.Length != 1)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
+                }
+                int lowerBound = int.Parse(subquestionTemplate.PossibleAnswerList[0]);
+                int upperBound = int.Parse(subquestionTemplate.PossibleAnswerList[1]);
+                int answer = int.Parse(subquestionTemplate.CorrectAnswerList[0]);
+                if (answer < lowerBound || answer > upperBound || lowerBound > upperBound)
+                {
+                    errorMessage = "Chyba: neplatné zadání podotázky (hodnoty posuvníku).";
+                }
             }
 
             return (subquestionTemplate, errorMessage);
@@ -249,7 +439,7 @@ namespace BusinessLayer
                         subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
                         break;
                     case SubquestionType.GapMatch:
-                        string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('\\');
+                        string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('|');
                         subquestionTemplate.SubquestionText = "";
                         for (int i = 0; i < subquestionTextSplit.Length; i++)
                         {
@@ -768,51 +958,6 @@ namespace BusinessLayer
             }
 
             return testPoints;
-        }
-
-        /// <summary>
-        /// Checks whether the submitted file meets certain conditions (related to file size and file extension)
-        /// </summary>
-        /// <param name="image">Image to be validated</param>
-        public string? ValidateImage(IFormFile image)
-        {
-            if(image.Length > 4000000)
-            {
-                return "Chyba: Maximální povolená velikost obrázku je 4 MB.";
-            }
-            string fileExtension = Path.GetExtension(image.FileName).ToLower();
-            if (fileExtension != ".jpg"
-                && fileExtension != ".png"
-                && fileExtension != ".jpeg"
-                && fileExtension != ".webp")
-            {
-                return "Chyba: nepovolený formát (" + fileExtension + "). Povolené formáty jsou .jpg, .png, .jpeg, .webp";
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Saves image to the wwwroot/Uploads folder
-        /// </summary>
-        /// <param name="image">Image to be saved</param>
-        /// <param name="webRootPath">Path to the wwwroot folder where all images are to be saved</param>
-        public string SaveImage(IFormFile image, string webRootPath)
-        {
-            string newFileName;
-            string uploadsFolder = Path.Combine(webRootPath, "Uploads");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
-            newFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
-            string newFilePath = Path.Combine(uploadsFolder, newFileName);
-            using (var fileStream = new FileStream(newFilePath, FileMode.Create))
-            {
-                image.CopyTo(fileStream);
-            }
-
-            return newFileName;
         }
 
         /// <summary>

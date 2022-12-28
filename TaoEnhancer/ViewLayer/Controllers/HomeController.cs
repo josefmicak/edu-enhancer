@@ -1495,13 +1495,11 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate, string questionNumberIdentifier,
-            string subquestionPoints, string correctChoicePoints, string wrongChoicePointsRadio, string wrongChoicePoints_manual, IFormFile image,
-            string[] subquestionTextArray, string sliderValues)
+        public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate,
+            IFormFile image, string[] subquestionTextArray, string sliderValues)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string message = string.Empty;
-            string? imageErrorMessage = null;
 
             if (action == "selectType")
             {
@@ -1509,42 +1507,23 @@ namespace ViewLayer.Controllers
             }
             else if (action == "addSubquestion")
             {
-                if(image != null)
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionNumberIdentifier);
+
+                (subquestionTemplate, string? errorMessage) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, image);
+                if (errorMessage != null)
                 {
-                    //check image format and size
-                    imageErrorMessage = businessLayerFunctions.ValidateImage(image);
-                }
-                if(imageErrorMessage != null)
-                {
-                    message = imageErrorMessage;
+                    message = errorMessage;
                 }
                 else
                 {
-                    //subquestionTemplate = ReworkPoints(subquestionTemplate, subquestionPoints, correctChoicePoints, wrongChoicePointsRadio, wrongChoicePoints_manual);
-
-                    subquestionTemplate.OwnerLogin = login;
-                    subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
-
-                    if (image != null)
-                    {
-                        subquestionTemplate.ImageSource = businessLayerFunctions.SaveImage(image, _environment.WebRootPath);
-                    }
-
-                    (subquestionTemplate, string? errorMessage) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
-                    if(errorMessage != null)
-                    {
-                        message = errorMessage;
-                    }
-                    else
-                    {
-                        message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate);
-                    }
+                    message = await businessLayerFunctions.AddSubquestionTemplate(subquestionTemplate, image, _environment.WebRootPath);
                 }
             }
             else if (action == "getPointsSuggestion")
             {
                 subquestionTemplate.OwnerLogin = login;
-                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionNumberIdentifier);
                 //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
                 TempData["SuggestedSubquestionPoints"] = "todo - subject";
             }
@@ -1553,23 +1532,23 @@ namespace ViewLayer.Controllers
             if (action == "selectType")
             {
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
-                return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier });
             }
             else if(action == "addSubquestion")
             {
-                if(imageErrorMessage != null)
+                if(message != "Zadání podotázky bylo úspěšně přidáno.")
                 {
-                    return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                    return RedirectToAction("AddSubquestionTemplate", "Home", new { questionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier });
                 }
                 else
                 {
                     TempData["subquestionIdentifier"] = subquestionTemplate.SubquestionIdentifier;
-                    return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = questionNumberIdentifier });
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier });
                 }
             }
             else //getPointsSuggestion redirection
             {
-                (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+                (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, null);
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
             }

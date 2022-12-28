@@ -100,14 +100,14 @@ namespace BusinessLayer
             return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
         {
-            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate);
+            return await templateFunctions.AddSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
-        public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues)
+        public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues, IFormFile? image)
         {
-            return templateFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues);
+            return templateFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, image);
         }
 
         public async Task<string> DeleteSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
@@ -179,16 +179,6 @@ namespace BusinessLayer
         public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
         {
             return templateFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
-        }
-
-        public string? ValidateImage(IFormFile image)
-        {
-            return templateFunctions.ValidateImage(image);
-        }
-
-        public string SaveImage(IFormFile image, string webRootPath)
-        {
-            return templateFunctions.SaveImage(image, webRootPath);
         }
 
         //ResultFunctions.cs
