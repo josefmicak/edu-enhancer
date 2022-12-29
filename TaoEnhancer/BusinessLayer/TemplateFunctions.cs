@@ -126,6 +126,55 @@ namespace BusinessLayer
             return await dataFunctions.AddSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
+        public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
+        {
+            string message;
+            try
+            {
+                SubquestionTemplate oldSubquestionTemplate = GetSubquestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionNumberIdentifier, subquestionTemplate.SubquestionIdentifier);
+                oldSubquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText;
+                oldSubquestionTemplate.PossibleAnswerList = subquestionTemplate.PossibleAnswerList;
+                oldSubquestionTemplate.CorrectAnswerList = subquestionTemplate.CorrectAnswerList;
+                oldSubquestionTemplate.SubquestionPoints = subquestionTemplate.SubquestionPoints;
+                oldSubquestionTemplate.CorrectChoicePoints = subquestionTemplate.CorrectChoicePoints;
+                oldSubquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.DefaultWrongChoicePoints;
+                oldSubquestionTemplate.WrongChoicePoints = subquestionTemplate.WrongChoicePoints;
+
+                bool subquestionContainedImage = false;
+                string oldImagePath = "";
+                if ((image != null || subquestionTemplate.ImageSource == null) && oldSubquestionTemplate.ImageSource != null)
+                {
+                    oldImagePath = oldSubquestionTemplate.ImageSource;
+                    oldSubquestionTemplate.ImageSource = null;
+                    subquestionContainedImage = true;
+                }
+                string newFileName = "";
+                if (image != null)
+                {
+                    newFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+                    oldSubquestionTemplate.ImageSource = newFileName;
+                }
+                await dataFunctions.SaveChangesAsync();
+                message = "Zadání podotázky bylo úspěšně upraveno.";
+
+                //only edit images in case all validity checks have already been passed
+                if ((image != null || subquestionTemplate.ImageSource == null) && subquestionContainedImage)
+                {
+                    dataFunctions.DeleteSubquestionTemplateImage(webRootPath, oldImagePath);
+                }
+                if(image != null)
+                {
+                    dataFunctions.SaveImage(image, webRootPath, newFileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při úpravě podotázky nastala neočekávaná chyba.";
+            }
+            return message;
+        }
+
         /// <summary>
         /// Validates the integrity of added subquestion template and changes certain fields before adding
         /// </summary>

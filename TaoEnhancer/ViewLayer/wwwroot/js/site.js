@@ -196,7 +196,6 @@ function setWrongChoicePointsInputs(el) {
 
 //function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
 function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount) {
-    console.log(subquestionsCount);
     document.getElementById("subquestionIdentifier").selectedIndex = subquestionNumber;
     if (subquestionNumber == 0 || subquestionsCount == 1) {
         document.getElementById("previousSubquestion").disabled = true;
@@ -963,6 +962,8 @@ function setSubquestionTypeDetails(subquestionType) {
 
 function removeImage() {
     document.getElementById("imagePath").value = "";
+    document.getElementById("ImageSource").value = "";
+    fileLabel.innerHTML = "Obrázek nebyl vybrán.";
 }
 
 function fillGapText(correctAnswerInput) {
@@ -1042,8 +1043,8 @@ function editSubquestionText(action) {
 }
 
 //function that is called after the AddSubquestionTemplate page is loaded - disables or enables certain fields, adds possible answer rows..
-function addSubquestionTemplatePagePostProcessing(subquestionType) {
-    if (subquestionType != 0)
+function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) {
+    if (subquestionType != 0 && !changeIndex)
     {
         document.getElementById("subquestionType").selectedIndex = parseInt(subquestionType - 1);
         setSubquestionTypeDetails(subquestionType - 1);
@@ -1077,6 +1078,23 @@ function addSubquestionTemplatePagePostProcessing(subquestionType) {
     }
     else if (subquestionType == 9) {
         document.getElementById("SubquestionText").outerHTML = "";
+    }
+}
+
+function changeImagePath(imageSource) {
+    var imagePath = document.getElementById('imagePath');
+    if (imageSource != null) {
+        fileLabel.innerHTML = imageSource;
+        document.getElementById("ImageSource").value = imageSource;
+    }
+    else if (imagePath.value == "") {
+        fileLabel.innerHTML = "Obrázek nebyl vybrán";
+        document.getElementById("ImageSource").value = "";
+    }
+    else {
+        var theSplit = imagePath.value.split('\\');
+        fileLabel.innerHTML = theSplit[theSplit.length - 1];
+        document.getElementById("ImageSource").value = theSplit[theSplit.length - 1];
     }
 }
 

@@ -367,7 +367,7 @@
                     <input class="input" type="number" step="any" max="0" id="wrongChoicePoints_manual" name="WrongChoicePoints" disabled value="@wrongChoicePoints">
                     <br>
                     <p>Obrázek:</p>
-                    <input type="file" id="imagePath" name="image">
+                    <input type="file" id="imagePath" name="image" onchange="changeImagePath()"><label id="fileLabel">Obrázek nebyl vybrán</label>
                     <br>
                     <button type="button" onclick="removeImage()">Odebrat obrázek</button>
                     <p>Maximální velikost: 4 MB. Povolené formáty: .jpg, .png, .jpeg, .webp</p>
@@ -382,10 +382,9 @@
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script src="/js/site.js"></script>
 <script>
-    addSubquestionTemplatePagePostProcessing(@selectedSubquestionType);
+    addSubquestionTemplatePagePostProcessing(@selectedSubquestionType, 'true');
 </script>
 
 @{

@@ -110,6 +110,11 @@ namespace BusinessLayer
             return templateFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, image);
         }
 
+        public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
+        {
+            return await templateFunctions.EditSubquestionTemplate(subquestionTemplate, image, webRootPath);
+        }
+
         public async Task<string> DeleteSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
         {
             string login = GetCurrentUserLogin();

@@ -241,7 +241,7 @@ namespace DataLayer
                 //only save image in case one has been uploaded, and all validity checks have already been passed
                 if(image != null)
                 {
-                    subquestionTemplate.ImageSource = SaveImage(image, webRootPath);
+                    subquestionTemplate.ImageSource = SaveImage(image, webRootPath, null);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -258,17 +258,21 @@ namespace DataLayer
         /// </summary>
         /// <param name="image">Image to be saved</param>
         /// <param name="webRootPath">Path to the wwwroot folder where all images are to be saved</param>
-        public string SaveImage(IFormFile image, string webRootPath)
+        /// <param name="newFileName">Indicates whether file name should be changed (in case the subquestion is being edited, it's done in advance)</param>
+        public string SaveImage(IFormFile image, string webRootPath, string? newFileName)
         {
-            string newFileName;
             string uploadsFolder = Path.Combine(webRootPath, "Uploads");
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
             }
-
-            newFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
-            string newFilePath = Path.Combine(uploadsFolder, newFileName);
+           
+            string newFilePath;
+            if (newFileName == null)
+            {
+                newFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
+            }
+            newFilePath = Path.Combine(uploadsFolder, newFileName);
             using (var fileStream = new FileStream(newFilePath, FileMode.Create))
             {
                 image.CopyTo(fileStream);

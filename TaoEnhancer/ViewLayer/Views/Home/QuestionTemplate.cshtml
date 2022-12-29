@@ -272,6 +272,12 @@
 
     @if(subquestionsAdded)
     {
+        <div id="edit-subquestion">
+            <form method="POST">
+                <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+                <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" name="action">Upravit podotázku</button>
+            </form>
+        </div>
         <div id="delete-subquestion">
             <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionIdentifier', null, null, null, null, null)">Smazat podotázku</button>
         </div>

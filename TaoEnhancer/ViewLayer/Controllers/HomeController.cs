@@ -325,6 +325,10 @@ namespace ViewLayer.Controllers
             {
                 TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(login, questionNumberIdentifier, subquestionIdentifier);
             }
+            else if (action == "editSubquestionTemplate")
+            {
+                return RedirectToAction("EditSubquestionTemplate", "Home", new { subquestionIdentifier = subquestionIdentifier });
+            }
             else if (action == "deleteSubquestionTemplate")
             {
                 message = await businessLayerFunctions.DeleteSubquestionTemplate(questionNumberIdentifier, subquestionIdentifier, _environment.WebRootPath);
@@ -1551,6 +1555,73 @@ namespace ViewLayer.Controllers
                 (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, null);
                 TempData["SelectedSubquestionType"] = subquestionTemplate.SubquestionType;
                 return RedirectToAction("AddSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
+            }
+        }
+
+        public IActionResult EditSubquestionTemplate(string subquestionIdentifier)
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            //todo: zmenit "qnu"
+            SubquestionTemplate subquestionTemplate = businessLayerFunctions.GetSubquestionTemplate(login, "qnu", subquestionIdentifier);
+            ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+            if (TempData["SuggestedSubquestionPoints"] != null)
+            {
+                ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
+            }
+            return View(subquestionTemplate);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate,
+            IFormFile image, string[] subquestionTextArray, string sliderValues)
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string message = string.Empty;
+
+            if (action == "editSubquestion")
+            {
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionNumberIdentifier);
+
+                (subquestionTemplate, string? errorMessage) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, image);
+                if (errorMessage != null)
+                {
+                    message = errorMessage;
+                }
+                else
+                {
+                    message = await businessLayerFunctions.EditSubquestionTemplate(subquestionTemplate, image, _environment.WebRootPath);
+                }
+            }
+            else if (action == "getPointsSuggestion")
+            {
+                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionNumberIdentifier);
+                //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
+                TempData["SuggestedSubquestionPoints"] = "todo - subject";
+            }
+
+            TempData["Message"] = message;
+            if (action == "editSubquestion")
+            {
+                if (message != "Zadání podotázky bylo úspěšně upraveno.")
+                {
+                    return RedirectToAction("EditSubquestionTemplate", "Home", new { subquestionIdentifier = subquestionTemplate.SubquestionIdentifier });
+                }
+                else
+                {
+                    TempData["subquestionIdentifier"] = subquestionTemplate.SubquestionIdentifier;
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier });
+                }
+            }
+            else //getPointsSuggestion redirection
+            {
+                (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, null);
+                return RedirectToAction("EditSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
             }
         }
 

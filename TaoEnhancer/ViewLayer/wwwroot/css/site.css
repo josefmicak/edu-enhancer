@@ -175,6 +175,14 @@ img {
     width: 600px;
 }
 
+#edit-subquestion {
+    position: absolute;
+    left: 20%;
+    top: 40%;
+    border: 1px;
+    border-style: solid;
+}
+
 #delete-subquestion {
     position: absolute;
     left: 20%;
@@ -355,4 +363,9 @@ img {
     top: 30%;
     border: 1px;
     border-style: solid;
+}
+
+input[type=file] {
+    width: 150px;
+    color: transparent;
 }
