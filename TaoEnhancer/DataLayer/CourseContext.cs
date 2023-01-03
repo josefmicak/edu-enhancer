@@ -25,6 +25,7 @@ namespace DataLayer
         public DbSet<SubquestionResultRecord> SubquestionResultRecords { get; set; } = default!;
         public DbSet<SubquestionResultStatistics> SubquestionResultStatistics { get; set; } = default!;
         public DbSet<TestDifficultyStatistics> TestDifficultyStatistics { get; set; } = default!;
+        public DbSet<Subject> Subjects { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,9 +33,13 @@ namespace DataLayer
 
             modelBuilder.Entity<TestTemplate>().ToTable("TestTemplate");
             modelBuilder.Entity<TestTemplate>()
-                .HasOne(q => q.Owner)
+                .HasOne(t => t.Owner)
                 .WithMany()
-                .HasForeignKey(q => q.OwnerLogin)
+                .HasForeignKey(t => t.OwnerLogin)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<TestTemplate>()
+                .HasOne(t => t.Subject)
+                .WithMany()
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<TestTemplate>().HasKey(t => new { t.TestNumberIdentifier, t.OwnerLogin });
 
@@ -62,6 +67,9 @@ namespace DataLayer
             modelBuilder.Entity<User>().ToTable("User");
 
             modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<Student>()
+                .HasMany(s => s.SubjectList)
+                .WithMany(st => st.StudentList);
 
             modelBuilder.Entity<TestResult>().ToTable("TestResult");
             modelBuilder.Entity<TestResult>()
@@ -168,6 +176,19 @@ namespace DataLayer
                 .WithMany()
                 .HasForeignKey(s => s.UserLogin)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subject>().ToTable("Subject");
+            modelBuilder.Entity<Subject>().HasKey(s => new { s.Id });
+            modelBuilder.Entity<Subject>()
+                .HasOne(s => s.Guarantor)
+                .WithMany()
+                .HasForeignKey(s => s.GuarantorLogin)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Subject>()
+                .HasMany(s => s.StudentList)
+                .WithMany(st => st.SubjectList);
+               /* .HasForeignKey(s => s.GuarantorLogin)
+                .OnDelete(DeleteBehavior.Restrict);*/
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

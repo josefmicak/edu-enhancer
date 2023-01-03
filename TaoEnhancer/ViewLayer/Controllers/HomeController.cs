@@ -11,6 +11,7 @@ using Common;
 using BusinessLayer;
 using System.Collections.Generic;
 using System;
+using NuGet.Protocol.Plugins;
 
 namespace ViewLayer.Controllers
 {
@@ -241,7 +242,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            if (TempData["subquestionIdentifier"] != null)//the user selected a subquestion from the dropdown menu
+            if (ViewBag.Message != "Podotázka byla úspěšně smazána." && TempData["subquestionIdentifier"] != null)//the user selected a subquestion from the dropdown menu
             {
                 ViewBag.subquestionIdentifier = TempData["subquestionIdentifier"]!.ToString();
             }
@@ -1622,6 +1623,103 @@ namespace ViewLayer.Controllers
             {
                 (subquestionTemplate, string? _) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, null);
                 return RedirectToAction("EditSubquestionTemplate", "Home", new RouteValueDictionary(subquestionTemplate));
+            }
+        }
+
+        public async Task<IActionResult> ManageSubjects()
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            ViewBag.login = login;
+            var user = businessLayerFunctions.GetUserByLogin(login);
+            if (user != null)
+            {
+                if (user.Role == EnumTypes.Role.Teacher)
+                {
+                    ViewBag.Return = "TeacherMenu";
+                }
+                else if (user.Role == EnumTypes.Role.Admin)
+                {
+                    ViewBag.Return = "AdminMenu";
+                }
+                else if (user.Role == EnumTypes.Role.MainAdmin)
+                {
+                    ViewBag.Return = "MainAdminMenu";
+                }
+            }
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
+            var subjects = businessLayerFunctions.GetSubjects();
+            return businessLayerFunctions.GetSubjectDbSet() != null ?
+                View(await subjects.Include(s => s.Guarantor).ToListAsync()) :
+                Problem("Entity set 'CourseContext.Subjects'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageSubjects(string action, string subjectId)
+        {
+            if(action == "deleteSubject")
+            {
+                string message = await businessLayerFunctions.DeleteSubject(int.Parse(subjectId));
+                TempData["Message"] = message;
+                return RedirectToAction(nameof(ManageSubjects));
+            }
+            else
+            {
+                return RedirectToAction(nameof(ManageSubjects));
+            }
+        }
+
+        public async Task<IActionResult> AddSubject()
+        {
+            dynamic model = new ExpandoObject();
+            model.Subject = new Subject();
+            model.Students = await businessLayerFunctions.GetStudentDbSet().ToListAsync();
+            return (businessLayerFunctions.GetStudentDbSet() != null) ?
+                View(model) :
+            Problem("Entity set 'CourseContext.Students'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddSubject(Subject subject, string[] enrolledStudentLogin)
+        {
+            string message = await businessLayerFunctions.AddSubject(subject, enrolledStudentLogin);
+            TempData["Message"] = message;
+            return RedirectToAction(nameof(ManageSubjects));
+        }
+
+        public async Task<IActionResult> EditSubject(string subjectIdentifier)
+        {
+            Subject? subject = businessLayerFunctions.GetSubjectById(int.Parse(subjectIdentifier));
+            dynamic model = new ExpandoObject();
+            model.Subject = subject;
+            model.Students = await businessLayerFunctions.GetStudentDbSet().ToListAsync();
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
+            return (businessLayerFunctions.GetStudentDbSet() != null) ?
+                View(model) :
+            Problem("Entity set 'CourseContext.Students'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditSubject(Subject subject, string[] enrolledStudentLogin, string subjectIdentifier)
+        {
+            string message = await businessLayerFunctions.EditSubject(subject, enrolledStudentLogin);
+            TempData["Message"] = message;
+            if(message == "Předmět byl úspěšně upraven.")
+            {
+                return RedirectToAction(nameof(ManageSubjects));
+            }
+            else
+            {
+                return RedirectToAction("EditSubject", "Home", new { subjectIdentifier = subject.Id });
             }
         }
 

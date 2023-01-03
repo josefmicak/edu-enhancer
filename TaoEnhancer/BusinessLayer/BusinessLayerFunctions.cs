@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using static Common.EnumTypes;
 using Microsoft.AspNetCore.Http;
+using System.Xml.Linq;
 
 namespace BusinessLayer
 {
@@ -186,6 +187,66 @@ namespace BusinessLayer
             return templateFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
         }
 
+        public DbSet<Subject> GetSubjectDbSet()
+        {
+            return templateFunctions.GetSubjectDbSet();
+        }
+
+        public IQueryable<Subject> GetSubjects()
+        {
+            return templateFunctions.GetSubjects();
+        }
+
+        public Subject? GetSubjectById(int subjectId)
+        {
+            return templateFunctions.GetSubjectById(subjectId);
+        }
+
+        public async Task<string> AddSubject(Subject subject, string[] enrolledStudentLogin)
+        {
+            string login = GetCurrentUserLogin();
+            subject.GuarantorLogin = login;
+            subject.Guarantor = GetUserByLogin(login);
+
+            List<Student> studentList = new List<Student>();
+            for(int i = 0; i < enrolledStudentLogin.Length; i++)
+            {
+                Student? student = GetStudentByLogin(enrolledStudentLogin[i]);
+                if(student != null)
+                {
+                    studentList.Add(student);
+                }
+            }
+            subject.StudentList = studentList;
+            return await templateFunctions.AddSubject(subject);
+        }
+
+        public async Task<string> EditSubject(Subject subject, string[] enrolledStudentLogin)
+        {
+            string login = GetCurrentUserLogin();
+            User user = GetUserByLogin(login);
+
+            List<Student> studentList = new List<Student>();
+            for (int i = 0; i < enrolledStudentLogin.Length; i++)
+            {
+                Student? student = GetStudentByLogin(enrolledStudentLogin[i]);
+                if (student != null)
+                {
+                    studentList.Add(student);
+                }
+            }
+            subject.StudentList = studentList;
+            return await templateFunctions.EditSubject(subject, user);
+        }
+
+        public async Task<string> DeleteSubject(int subjectId)
+        {
+            string login = GetCurrentUserLogin();
+            Subject? subject = GetSubjectById(subjectId);
+            User user = GetUserByLogin(login);
+            return await templateFunctions.DeleteSubject(subject, user);
+        }
+
         //ResultFunctions.cs
 
         public DbSet<TestResult> GetTestResultDbSet()
@@ -308,6 +369,11 @@ namespace BusinessLayer
         public DbSet<Student> GetStudentDbSet()
         {
             return userFunctions.GetStudentDbSet();
+        }
+
+        public IQueryable<Student> GetStudents()
+        {
+            return userFunctions.GetStudents();
         }
 
         public List<Student> GetStudentList()

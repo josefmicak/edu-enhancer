@@ -1,0 +1,83 @@
+﻿@model IEnumerable<DomainModel.Subject>
+
+@{
+    string login = ViewBag.login;
+    ViewData["Title"] = "Správa předmětů";
+}
+
+<div class="text-center">
+    <h1>Správa předmětů</h1>
+
+    <p>@ViewBag.Message</p>
+
+    <br><a asp-controller="Home" asp-action="AddSubject">Přidat předmět</a>
+
+    <div id="user-subjects-list">
+        <h2>Vámi garantované předměty</h2>
+        <table>
+            <tr>
+                <th>Zkratka</th>
+                <th>Jméno předmětu</th>
+                <th>Upravit</th>
+                <th>Smazat</th>
+            </tr>
+            @{
+                foreach (var item in Model)
+                {
+                    if(item.GuarantorLogin != login)
+                    {
+                        continue;
+                    }
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td>
+                            <a class="button" title="Správa testu"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="EditSubject"
+                               asp-route-subjectIdentifier="@item.Id">Upravit předmět</a>
+                        </td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.Id', null, null, null, null, null)">Smazat předmět</button></td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+
+    <div id="all-subjects-list">
+        <h2>Všechny předměty</h2>
+        <table>
+            <tr>
+                <th>Zkratka</th>
+                <th>Jméno předmětu</th>
+                <th>Garant</th>
+            </tr>
+            @{
+                foreach (var item in Model)
+                {
+                    string fullName = item.Guarantor.FullName();
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+
+    <div id="confirm-action">
+        <form method="POST">
+            <label><div id="confirm-action-label"></div></label><br>
+            <input title="Ano" type="submit" value="Ano"><br>
+            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+            <input type="hidden" id="subjectId" name="subjectId">
+            <input type="hidden" id="action" name="action">
+        </form>
+    </div>
+</div>
+
+<div id="backBtn"><a asp-action="@ViewBag.Return">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

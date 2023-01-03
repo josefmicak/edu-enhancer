@@ -274,6 +274,11 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete změnit tohoto správce na hlavního administrátora?" + 
             " (provedením této akce bude váš účet změněn z hlavního administrátora na správce).";
     }
+    else if (action == "deleteSubject") {
+        document.getElementById("subjectId").value = identifier;
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit tento předmět?" +
+            " (provedením této akce budou smazány všechny testy patřící pod tento předmět).";
+    }
 }
 
 //AddSubquestionTemplate.cshtml
@@ -995,7 +1000,7 @@ function removeGap() {
     var additionalQuestions = document.getElementById("additional-questions");
     var gapTexts = additionalQuestions.getElementsByClassName("gap-text");
     var gapText = gapTexts[gapTexts.length - 1];
-    if (gapTexts.length > 0) {//only remove gap in case more than 1 gap exists
+    if (gapTexts.length > 1) {//only remove gap in case more than 2 gaps exist
         additionalQuestions.removeChild(gapText);
 
         var subquestionTexts = additionalQuestions.getElementsByClassName("subquestion-text");
@@ -1078,6 +1083,9 @@ function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) 
     }
     else if (subquestionType == 9) {
         document.getElementById("SubquestionText").outerHTML = "";
+        addGap();
+        //addCorrectAnswer(9, true);
+        updateCorrectAnswersInputFreeAnswer();
     }
 }
 
@@ -1228,6 +1236,42 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     //set manual wrong choice points radio to checked in case it was checked before
     if (defaultWrongChoicePoints != wrongChoicePoints) {
         document.getElementById("wrongChoicePoints_manual_radio").checked = true;
+    }
+}
+
+//AddSubject.cshtml
+
+function addStudentsToSubject() {
+    var unenrolledStudentsTable = document.getElementById("unenrolled-students-table");
+    var enrolledStudentsTable = document.getElementById("enrolled-students-table");
+
+    for (var i = 1; i < unenrolledStudentsTable.rows.length; i++) {
+        if (unenrolledStudentsTable.rows[i].cells[2].getElementsByTagName("input")[0].checked == true) {
+            var unenrolledRowInnerHTML = unenrolledStudentsTable.rows[i].innerHTML;
+            var enrolledRow = enrolledStudentsTable.insertRow(enrolledStudentsTable.rows.length);
+            enrolledRow.innerHTML = unenrolledRowInnerHTML;
+            enrolledRow.cells[1].getElementsByTagName("input")[0].name = "enrolledStudentLogin[]";
+
+            unenrolledStudentsTable.deleteRow(i);
+            i--;
+        }
+    }
+}
+
+function removeStudentsFromSubject() {
+    var unenrolledStudentsTable = document.getElementById("unenrolled-students-table");
+    var enrolledStudentsTable = document.getElementById("enrolled-students-table");
+
+    for (var i = 1; i < enrolledStudentsTable.rows.length; i++) {
+        if (enrolledStudentsTable.rows[i].cells[2].getElementsByTagName("input")[0].checked == true) {
+            var enrolledRowInnerHTML = enrolledStudentsTable.rows[i].innerHTML;
+            var unenrolledRow = unenrolledStudentsTable.insertRow(unenrolledStudentsTable.rows.length);
+            unenrolledRow.innerHTML = enrolledRowInnerHTML;
+            unenrolledRow.cells[1].getElementsByTagName("input")[0].name = "unenrolledStudentLogin[]";
+
+            enrolledStudentsTable.deleteRow(i);
+            i--;
+        }
     }
 }
 

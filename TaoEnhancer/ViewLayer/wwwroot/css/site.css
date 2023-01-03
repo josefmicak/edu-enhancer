@@ -147,7 +147,6 @@ img {
     border-style: solid;
 }
 
-
 /*QuestionTemplate.cshtml*/
 
 #question-template {
@@ -368,4 +367,22 @@ img {
 input[type=file] {
     width: 150px;
     color: transparent;
+}
+
+/*ManageSubjects.cshtml*/
+
+#user-subjects-list {
+    position: absolute;
+    left: 15%;
+    top: 10%;
+    border: 1px;
+    border-style: solid;
+}
+
+#all-subjects-list {
+    position: absolute;
+    left: 55%;
+    top: 10%;
+    border: 1px;
+    border-style: solid;
 }

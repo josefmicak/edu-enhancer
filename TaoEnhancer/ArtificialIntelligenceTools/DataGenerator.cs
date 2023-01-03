@@ -156,7 +156,7 @@ namespace ArtificialIntelligenceTools
                 subquestionTemplateRecord.CorrectAnswersShare = Math.Round(subquestionTemplateRecord.CorrectAnswersShare, 2);
             }
 
-            string? subject = testTemplate.Subject;
+            string? subject = testTemplate.SubjectToDelete;
             int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
             subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
             subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
@@ -220,7 +220,7 @@ namespace ArtificialIntelligenceTools
                 double? totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
-                testTemplate.Subject = subjectsArray[subject];
+                testTemplate.SubjectToDelete = subjectsArray[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
                 testTemplate.IsTestingData = true;
@@ -341,7 +341,7 @@ namespace ArtificialIntelligenceTools
                 double? totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
-                testTemplate.Subject = subjectsArray[subject];
+                testTemplate.SubjectToDelete = subjectsArray[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
                 testTemplate.IsTestingData = true;
@@ -637,7 +637,7 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                         double? studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
                         studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
-                        int subject = Array.IndexOf(subjectsArray, testTemplate.Subject);//subjectAveragePoints modifier
+                        int subject = Array.IndexOf(subjectsArray, testTemplate.SubjectToDelete);//subjectAveragePoints modifier
                         studentsPoints += subquestionPointsBySubjectArray[subject];//subjectAveragePoints modifier
                         //containsImage variable is not correlational
                         studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
@@ -742,7 +742,7 @@ namespace ArtificialIntelligenceTools
             subquestionResultRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
             subquestionResultRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
-            string? subject = testTemplate.Subject;
+            string? subject = testTemplate.SubjectToDelete;
             int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
             subquestionResultRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
             subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
@@ -1151,7 +1151,7 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
-                        string? subject = testTemplate.Subject;
+                        string? subject = testTemplate.SubjectToDelete;
                         int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
                         if (subquestionTemplate.SubquestionPoints != null)
                         {
@@ -1192,7 +1192,7 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
-                        string? subject = testResult.TestTemplate.Subject;
+                        string? subject = testResult.TestTemplate.SubjectToDelete;
                         int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
                         if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
                         {

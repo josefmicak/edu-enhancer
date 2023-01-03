@@ -45,6 +45,11 @@ namespace BusinessLayer
             return dataFunctions.GetStudentDbSet();
         }
 
+        public IQueryable<Student> GetStudents()
+        {
+            return GetStudentDbSet();
+        }
+
         public List<Student> GetStudentList()
         {
             return GetStudentDbSet().ToList();

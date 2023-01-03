@@ -42,6 +42,67 @@ namespace DataLayer
             return _context.SubquestionTemplateStatistics;
         }
 
+        public DbSet<Subject> GetSubjectDbSet()
+        {
+            return _context.Subjects;
+        }
+
+        public async Task<string> AddSubject(Subject subject)
+        {
+            string message;
+            try
+            {
+                _context.Users.Attach(subject.Guarantor);
+                _context.Subjects.Add(subject);
+                await _context.SaveChangesAsync();
+                message = "Předmět byl úspěšně přidán.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při přidání předmětu nastala neočekávaná chyba.";
+
+            }
+            return message;
+        }
+
+        public async Task<string> EditSubject(Subject subject)
+        {
+            string message;
+            try
+            {
+                _context.Users.Attach(subject.Guarantor);
+                _context.Subjects.Add(subject);
+                await _context.SaveChangesAsync();
+                message = "Předmět byl úspěšně přidán.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při přidání předmětu nastala neočekávaná chyba.";
+
+            }
+            return message;
+        }
+
+        public async Task<string> DeleteSubject(Subject subject)
+        {
+            string message;
+            try
+            {
+                _context.Subjects.Remove(subject);
+                await _context.SaveChangesAsync();
+                message = "Předmět byl úspěšně smazán.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při mazání předmětu nastala neočekávaná chyba.";
+
+            }
+            return message;
+        }
+
         public List<TestTemplate> GetTestTemplateList(string login)
         {
             return GetTestTemplateDbSet()

@@ -12,6 +12,7 @@ using static Common.EnumTypes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualBasic;
 using static System.Net.Mime.MediaTypeNames;
+using System.Xml.Linq;
 
 namespace BusinessLayer
 {
@@ -56,6 +57,90 @@ namespace BusinessLayer
         public DbSet<SubquestionTemplateStatistics> GetSubquestionTemplateStatisticsDbSet()
         {
             return dataFunctions.GetSubquestionTemplateStatisticsDbSet();
+        }
+
+        public DbSet<Subject> GetSubjectDbSet()
+        {
+            return dataFunctions.GetSubjectDbSet();
+        }
+
+        public IQueryable<Subject> GetSubjects()
+        {
+            return GetSubjectDbSet();
+        }
+
+        public Subject? GetSubjectById(int subjectId)
+        {
+            return GetSubjectDbSet().Include(s => s.StudentList).FirstOrDefault(s => s.Id == subjectId);
+        }
+
+        public async Task<string> AddSubject(Subject subject)
+        {
+            return await dataFunctions.AddSubject(subject);
+        }
+
+        public async Task<string> EditSubject(Subject subject, User user)
+        {
+            Subject? oldSubject = GetSubjectById(subject.Id);
+            if(oldSubject == null)
+            {
+                return "Chyba: předmět nebyl nalezen.";
+            }
+            else if(oldSubject.GuarantorLogin != user.Login && user.Role != Role.MainAdmin)
+            {
+                return "Chyba: na tuto akci nemáte oprávnění";
+            }
+            else if (ValidateSubject(subject) != null)
+            {
+                return ValidateSubject(subject)!;
+            }
+            else
+            {
+                try
+                {
+                    oldSubject.Name = subject.Name;
+                    oldSubject.Abbreviation = subject.Abbreviation;
+                    oldSubject.StudentList = subject.StudentList;
+
+                    await dataFunctions.SaveChangesAsync();
+                    return "Předmět byl úspěšně upraven.";
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    return "Při úpravě předmětu došlo k nečekané chybě.";
+                }
+            }
+        }
+
+        public string? ValidateSubject(Subject subject)
+        {
+            string? errorMessage = null;
+            if(subject.Name == null || subject.Abbreviation == null)
+            {
+                errorMessage = "Chyba: U předmětu schází určité údaje.";
+            }
+
+            return errorMessage;
+        }
+
+        public async Task<string> DeleteSubject(Subject? subject, User user)
+        {
+            if(subject != null)
+            {
+                if (subject.GuarantorLogin != user.Login && user.Role != Role.MainAdmin)
+                {
+                    return "Chyba: na tuto akci nemáte oprávnění.";
+                }
+                else
+                {
+                    return await dataFunctions.DeleteSubject(subject);
+                }
+            }
+            else
+            {
+                return "Chyba: neplatná operace.";
+            }
         }
 
         public async Task<string> AddTestTemplates(string login)

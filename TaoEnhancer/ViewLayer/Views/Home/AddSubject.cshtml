@@ -1,0 +1,57 @@
+﻿@model dynamic
+
+@using DomainModel
+
+@{
+    ViewData["Title"] = "Vytvoření předmětu";
+}
+
+<div class="text-center">
+    <h1>Vytvoření předmětu</h1>
+
+    <form method="POST">
+        <label for="abbreviation">Zkratka předmětu:</label>
+        <input type="text" required id="abbreviation" name="Abbreviation"><br>
+        <label for="name">Jméno předmětu:</label>
+        <input type="text" required id="name" name="Name"><br>
+
+        <h2>Seznam studentů</h2>
+        <table id="unenrolled-students-table">
+            <tr>
+                <th>Jméno studenta</th>
+                <th>Login studenta</th>
+                <th>Přidat</th>
+            </tr>
+            @{
+                foreach (Student item in Model.Students)
+                {
+                    string fullName = item.FullName();
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                        <td><input type="text" name="unenrolledStudentLogin[]" value="@item.Login" readonly></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                }
+            }
+        </table>
+        <button type="button" class="btn btn-primary" onclick="addStudentsToSubject()">Zapsat studenty</button>
+
+        <h2>Seznam studentů zapsaných do předmětu</h2>
+        <table id="enrolled-students-table">
+            <tr>
+                <th>Jméno studenta</th>
+                <th>Login studenta</th>
+                <th>Odebrat</th>
+            </tr>
+        </table>
+        <button type="button" class="btn btn-primary" onclick="removeStudentsFromSubject()">Odebrat studenty</button>
+        <br>
+        <input class="button" title="Uložit" type="submit" value="Uložit">
+    </form>
+</div>
+
+<div id="backBtn">
+    <a asp-action="ManageSubjects">Zpět</a>
+</div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
