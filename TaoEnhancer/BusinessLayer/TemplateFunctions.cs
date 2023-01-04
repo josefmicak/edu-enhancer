@@ -150,13 +150,29 @@ namespace BusinessLayer
             return await dataFunctions.AddTestTemplates(testTemplates, testTemplates[0].Owner);
         }
 
-        public async Task<string> AddTestTemplate(TestTemplate testTemplate)
+        public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            testTemplate.TestNameIdentifier = "tna";
-            testTemplate.TestNumberIdentifier = "tnu";
-            testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
+            if(subjectId == "")
+            {
+                return "Chyba: nevyplněný předmět.";
+            }
+            else
+            {
+                Subject? subject = GetSubjectById(int.Parse(subjectId));
+                if(subject == null)
+                {
+                    return "Chyba: předmět nenalezen.";
+                }
+                else
+                {
+                    testTemplate.TestNameIdentifier = "tna";
+                    testTemplate.TestNumberIdentifier = "tnu";
+                    testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
+                    testTemplate.Subject = subject;
 
-            return await dataFunctions.AddTestTemplate(testTemplate);
+                    return await dataFunctions.AddTestTemplate(testTemplate);
+                }
+            }
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -173,8 +189,9 @@ namespace BusinessLayer
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, string testNumberIdentifier)
         {
              return GetQuestionTemplateDbSet()
-                 .Include(q => q.TestTemplate)
                  .Include(q => q.SubquestionTemplateList)
+                 .Include(q => q.TestTemplate)
+                 .ThenInclude(q => q.Subject)
                  .Where(q => q.TestTemplate.TestNumberIdentifier == testNumberIdentifier && q.OwnerLogin == login).AsQueryable();
         }
 
@@ -613,9 +630,20 @@ namespace BusinessLayer
             return await dataFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
         }
 
+        public TestTemplate GetTestTemplate(string testNumberIdentifier)
+        {
+            return GetTestTemplateDbSet()
+                .Include(t => t.Subject)
+                .Include(t => t.Owner)
+                .Include(t => t.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .First(t => t.TestNumberIdentifier == testNumberIdentifier);
+        }
+
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
         {
             return GetTestTemplateDbSet()
+                .Include(t => t.Subject)
                 .Include(t => t.QuestionTemplateList)
                 .ThenInclude(q => q.SubquestionTemplateList)
                 .First(t => t.TestNumberIdentifier == testNumberIdentifier && t.OwnerLogin == login);
@@ -647,16 +675,7 @@ namespace BusinessLayer
         public async Task<string> SetMinimumPoints(TestTemplate testTemplate, double minimumPoints, string testPointsDetermined)
         {
             string message = string.Empty;
-            double? totalTestPoints = 0;
-            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
-            {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
-                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
-                {
-                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
-                    totalTestPoints += subquestionTemplate.SubquestionPoints;
-                }
-            }
+            double? totalTestPoints = GetTestTemplatePointsSum(testTemplate);
             if (minimumPoints < 0 || minimumPoints > totalTestPoints)
             {
                 double? totalTestPointsRound = CommonFunctions.RoundDecimal(totalTestPoints);
@@ -1092,6 +1111,22 @@ namespace BusinessLayer
             }
 
             return testPoints;
+        }
+
+        public int GetTestTemplateSubquestionsCount(TestTemplate testTemplate)
+        {
+            int subquestionsCount = 0;
+            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+
+                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                {
+                    subquestionsCount++;
+                }
+            }
+
+            return subquestionsCount;
         }
 
         /// <summary>

@@ -57,12 +57,12 @@ namespace BusinessLayer
             return await templateFunctions.AddTestTemplates(login);
         }
 
-        public async Task<string> AddTestTemplate(TestTemplate testTemplate)
+        public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string login = GetCurrentUserLogin();
             testTemplate.OwnerLogin = login;
             testTemplate.Owner = GetUserByLogin(login);
-            return await templateFunctions.AddTestTemplate(testTemplate);
+            return await templateFunctions.AddTestTemplate(testTemplate, subjectId);
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -127,6 +127,11 @@ namespace BusinessLayer
             return templateFunctions.ProcessSubquestionTemplateForView(subquestionTemplates);
         }
 
+        public TestTemplate GetTestTemplate(string testNumberIdentifier)
+        {
+            return templateFunctions.GetTestTemplate(testNumberIdentifier);
+        }
+
         public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
         {
             return templateFunctions.GetTestTemplate(login, testNumberIdentifier);
@@ -150,6 +155,18 @@ namespace BusinessLayer
         public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
         {
             return await templateFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints, wrongChoicePoints, defaultWrongChoicePoints);
+        }
+
+        public double? GetTestTemplatePointsSum(string testNumberIdentifier)
+        {
+            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            return templateFunctions.GetTestTemplatePointsSum(testTemplate);
+        }
+
+        public int GetTestTemplateSubquestionsCount(string testNumberIdentifier)
+        {
+            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            return templateFunctions.GetTestTemplateSubquestionsCount(testTemplate);
         }
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
@@ -245,6 +262,19 @@ namespace BusinessLayer
             Subject? subject = GetSubjectById(subjectId);
             User user = GetUserByLogin(login);
             return await templateFunctions.DeleteSubject(subject, user);
+        }
+
+        public IQueryable<TestTemplate> GetStudentAvailableTestList(string login)
+        {
+            Student? student = GetStudentByLogin(login);
+            if(student != null)
+            {
+                return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.SubjectList.Contains(t.Subject));
+            }
+            else
+            {
+                throw Exceptions.UserNotFoundException;
+            }
         }
 
         //ResultFunctions.cs
@@ -505,6 +535,20 @@ namespace BusinessLayer
         public bool CanUserAccessPage(EnumTypes.Role requiredRole)
         {
             return userFunctions.CanUserAccessPage(requiredRole);
+        }
+
+        public bool CanStudentAccessTest(string login, string testNumberIdentifier)
+        {
+            Student? student = GetStudentByLogin(login);
+            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            if(student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                return userFunctions.CanStudentAccessTest(student, testTemplate);
+            }
         }
 
         //OtherFunctions.cs

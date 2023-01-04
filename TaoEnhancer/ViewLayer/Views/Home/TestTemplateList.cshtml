@@ -13,6 +13,7 @@
                 <th>Jmenný identifikátor testu</th>
                 <th>Číselný identifikátor testu</th>
                 <th>Nadpis</th>
+                <th>Předmět</th>
                 <th>Smazat</th>
                 <th>Správa</th>
             </tr>
@@ -20,10 +21,12 @@
                 int i = 0;
                 foreach (var item in Model)
                 {
+                    string subjectString = item.Subject.SubjectString();
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.TestNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                        <td>@Html.DisplayFor(modelItem => subjectString)</td>
                         <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTemplate', '@item.TestNumberIdentifier', null, null, null, null, null)">Smazat test</button></td>
                         <td><a class="button" id="testTemplateBtn_@i" title="Správa testu"
                             asp-area="" 

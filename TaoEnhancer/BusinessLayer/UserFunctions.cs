@@ -57,7 +57,7 @@ namespace BusinessLayer
         
         public Student? GetStudentByLogin(string login)
         {
-            return GetStudentDbSet().FirstOrDefault(s => s.Login == login);
+            return GetStudentDbSet().Include(s => s.SubjectList).FirstOrDefault(s => s.Login == login);
         }
 
         public Student? GetStudentByEmail(string email)
@@ -422,6 +422,15 @@ namespace BusinessLayer
                 }
                 return true;
             }
+        }
+
+        public bool CanStudentAccessTest(Student student, TestTemplate testTemplate)
+        {
+            if (student.SubjectList.Contains(testTemplate.Subject))
+            {
+                return true;
+            }
+            return false;
         }
 
         public List<Student> LoadStudents()

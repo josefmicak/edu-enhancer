@@ -123,7 +123,7 @@ namespace ViewLayer.Controllers
 
             var testTemplates = businessLayerFunctions.GetTestTemplates(login);
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
-            View(await testTemplates.ToListAsync()) :
+            View(await testTemplates.Include(t => t.Subject).ToListAsync()) :
             Problem("Entity set 'CourseContext.TestTemplates'  is null.");
         }
 
@@ -1440,15 +1440,18 @@ namespace ViewLayer.Controllers
             return RedirectToAction(nameof(ManageArtificialIntelligence));
         }
 
-        public IActionResult AddTestTemplate()
+        public async Task<IActionResult> AddTestTemplate()
         {
-            return View();
+            dynamic model = new ExpandoObject();
+            model.TestTemplate = new TestTemplate();
+            model.Subjects = await businessLayerFunctions.GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate)
+        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            string message = await businessLayerFunctions.AddTestTemplate(testTemplate);
+            string message = await businessLayerFunctions.AddTestTemplate(testTemplate, subjectId);
             TempData["Message"] = message;
             return RedirectToAction(nameof(TestTemplateList));
         }
@@ -1721,6 +1724,39 @@ namespace ViewLayer.Controllers
             {
                 return RedirectToAction("EditSubject", "Home", new { subjectIdentifier = subject.Id });
             }
+        }
+
+        public async Task<IActionResult> StudentMenu()
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            return businessLayerFunctions.GetStudentDbSet() != null ?
+                View(await businessLayerFunctions.GetStudentDbSet().FirstOrDefaultAsync(s => s.Login == login)) :
+                Problem("Entity set 'CourseContext.Students'  is null.");
+        }
+
+        public async Task<IActionResult> StudentAvailableTestList()
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            return businessLayerFunctions.GetTestTemplateDbSet() != null ?
+                View(await businessLayerFunctions.GetStudentAvailableTestList(login).ToListAsync()) :
+                Problem("Entity set 'CourseContext.TestTemplates'  is null.");
+        }
+        
+        public IActionResult StudentAvailableTest(string testNumberIdentifier)
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            TestTemplate testTemplate = new TestTemplate();
+            if(businessLayerFunctions.CanStudentAccessTest(login, testNumberIdentifier))
+            {
+                testTemplate = businessLayerFunctions.GetTestTemplate(testNumberIdentifier);
+            }
+            else
+            {
+                ViewBag.Message = "K tomuto testu nemáte přístup.";
+            }
+            return businessLayerFunctions.GetTestTemplateDbSet() != null ?
+                View(testTemplate) :
+                Problem("Entity set 'CourseContext.TestTemplates'  is null.");
         }
 
         public IActionResult AccessDeniedAction()

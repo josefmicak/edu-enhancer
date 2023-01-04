@@ -1,6 +1,10 @@
-﻿@model DomainModel.TestTemplate
+﻿@model dynamic
+
+@using DomainModel
 
 @{
+    List<Subject> subjectList = Model.Subjects;
+
     ViewData["Title"] = "Vytvoření zadání testu";
 }
 
@@ -10,8 +14,27 @@
     <form method="POST">
         <label for="title">Nadpis:</label>
         <input type="text" required id="title" name="Title"><br>
-        <label for="subject">Předmět:</label> TODO<br>
-        <input class="button" title="Uložit" type="submit" value="Uložit">
+        @{
+            if (subjectList.Count == 0)
+            {
+                <p>Chyba: v systému neexistuje žádný předmět. Před přidáním testu přidejte do systému alespoň jeden předmět.</p>
+            }
+            else
+            {
+                <label for="subject">Předmět:</label><br> 
+                <select class="input" name="subjectId" id="subject">
+                    @{
+                        for (int i = 0; i < subjectList.Count; i++)
+                        {
+                            string optionString = "(" + subjectList[i].Abbreviation + ") " + subjectList[i].Name + " - garant " + subjectList[i].Guarantor.FullName();
+                            <option value="@subjectList[i].Id">@optionString</option>
+                        }
+                    }
+                </select>
+
+                <input class="button" title="Uložit" type="submit" value="Uložit">
+            }
+        }
     </form>
 </div>
 

@@ -1,0 +1,34 @@
+﻿@model DomainModel.Student
+
+@{
+    ViewData["Title"] = "Student";
+}
+
+<div class="text-center">
+    <h1>Student</h1>
+    <br>
+    <a asp-action="StudentAvailableTestList">Vyřešit test</a>
+    <br>
+    <a asp-action="BrowseSolvedTestList">Prohlížení vyřešených testů</a>
+
+    <div id="user-information">
+        <table>
+            <tr>
+                <th>Jméno</th>
+                <td>@Model.FullName()</td>
+            </tr>
+            <tr>
+                <th>Login</th>
+                <td>@Model.Login</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>@Model.Email</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div id="backBtn"><a asp-action="Index">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

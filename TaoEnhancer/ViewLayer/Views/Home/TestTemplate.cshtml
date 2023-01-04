@@ -167,6 +167,10 @@
             <td>@Model.First().TestTemplate.Title</td>
         </tr>
         <tr>
+            <th>Předmět</th>
+            <td>@Model.First().TestTemplate.Subject.SubjectString()</td>
+        </tr>
+        <tr>
             <th>Počet otázek</th>
             @{
                 if (!questionsAdded)

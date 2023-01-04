@@ -1,0 +1,56 @@
+﻿@model DomainModel.TestTemplate
+
+@using DomainModel
+
+@{
+    TestTemplate testTemplate = Model;
+    double? testPoints = 0;
+    int subquestionsCount = 0;
+    for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+    {
+        QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+
+        for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+        {
+            SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+            testPoints += subquestionTemplate.SubquestionPoints;
+            subquestionsCount++;
+        }
+    }
+
+    ViewData["Title"] = "Test k vyřešení";
+}
+
+<div class="text-center">
+    <h1>Test k vyřešení</h1>
+
+    <p>@ViewBag.Message</p>
+
+    <div id="test-template">
+        <h2>Parametry testu</h2>
+        <table>
+            <tr>
+                <th>Nadpis</th>
+                <td>@testTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Předmět</th>
+                <td>@testTemplate.Subject.SubjectString()</td>
+            </tr>
+            <tr>
+                <th>Předmět</th>
+                <td>@testTemplate.Owner.FullName()</td>
+            </tr>
+            <tr>
+                <th>Počet otázek</th>
+                <td>@subquestionsCount.ToString()</td>
+            </tr>
+            <tr>
+                <th>Počet bodů</th>
+                <td>@testPoints.ToString()</td>
+            </tr>
+        </table>
+    </div>
+
+    <a asp-controller="Home" asp-action="SolveQuestion">Začít pokus</a>
+</div>

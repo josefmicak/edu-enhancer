@@ -118,7 +118,7 @@ namespace ViewLayer.Controllers
                 else if(student != null)
                 {
                     Config.Application["login"] = student.Login;
-                    return RedirectToAction("BrowseSolvedTestList", "Home");
+                    return RedirectToAction("StudentMenu", "Home");
                 }
                 //throw an exception in case no user or student with this email exists
                 throw Exceptions.UserNotFoundException;
