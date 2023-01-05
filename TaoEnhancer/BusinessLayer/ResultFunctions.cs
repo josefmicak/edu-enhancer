@@ -225,6 +225,7 @@ namespace BusinessLayer
         public List<TestTemplate> GetTestingDataTestTemplates()
         {
             var testTemplates = dataFunctions.GetTestTemplateDbSet()
+                .Include(t => t.Subject)
                 .Include(t => t.QuestionTemplateList)
                 .ThenInclude(q => q.SubquestionTemplateList)
                 .Where(t => t.IsTestingData).ToList();
@@ -337,8 +338,13 @@ namespace BusinessLayer
             //managing testDifficultyStatistics
             var testDifficultyStatistics = GetTestDifficultyStatistics(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
+            List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             double[] subquestionTypeAverageAnswerCorrectness = DataGenerator.GetSubquestionTypeAverageAnswerCorrectness(testResults);
+            double[] subjectAveragePointsToDelete = new double[subjectAveragePointsTuple.Count];
+            for(int i = 0; i < subjectAveragePointsTuple.Count; i++)
+            {
+                subjectAveragePointsToDelete[i] = subjectAveragePointsTuple[i].Item2;
+            }
 
             if (testDifficultyStatistics == null)
             {
@@ -346,7 +352,7 @@ namespace BusinessLayer
                 testDifficultyStatistics.User = owner;
                 testDifficultyStatistics.UserLogin = owner.Login;
                 testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
-                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePointsToDelete;//todo: pouzit tuple
                 testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
                 await dataFunctions.AddTestDifficultyStatistics(testDifficultyStatistics);
                 dataFunctions.AttachUser(testDifficultyStatistics.User);
@@ -356,7 +362,7 @@ namespace BusinessLayer
             {
                 //TODO: Update techto udaju pro skutecneho ucitele
                 testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
-                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePointsToDelete;//todo: pouzit tuple
                 testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
 
                 dataFunctions.AttachUser(testDifficultyStatistics.User);
@@ -410,12 +416,12 @@ namespace BusinessLayer
             var testResults = GetTestResultList(owner.Login);
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
+            List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
-                subjectsArray, subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+                subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
             SubquestionResultStatistics? currectSubquestionResultStatistics = GetSubquestionResultStatistics(login);
             Model usedModel = currectSubquestionResultStatistics.UsedModel;
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);

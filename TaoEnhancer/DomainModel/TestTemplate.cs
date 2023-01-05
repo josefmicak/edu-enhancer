@@ -9,7 +9,6 @@ namespace DomainModel
         public string Title { get; set; } = default!;
         public EnumTypes.NegativePoints NegativePoints { get; set; } = EnumTypes.NegativePoints.Disabled;
         public double? MinimumPoints { get; set; }
-        public string? SubjectToDelete { get; set; }
         public Subject Subject { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
         public User Owner { get; set; } = default!;

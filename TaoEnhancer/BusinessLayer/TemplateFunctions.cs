@@ -788,14 +788,13 @@ namespace BusinessLayer
 
             var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
             var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
+            List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
-            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
-                subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
+                subquestionTypeAveragePoints, minimumPointsShare);
             SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
             Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
@@ -843,14 +842,13 @@ namespace BusinessLayer
 
             var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);*/
             var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
-            double[] subjectAveragePoints = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
+            List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
-            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
-                subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
+                subquestionTypeAveragePoints, minimumPointsShare);
             SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
             Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
@@ -922,15 +920,20 @@ namespace BusinessLayer
             await TestingUsersCheck();
             User? owner = dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = GetTestingDataTestTemplates();
-
+            if (existingTestTemplates.Count() == 0)//no templates exist - we have to add subjects
+            {
+                await CreateSubjectTestingData(owner);
+            }
+            List<Subject> testingDataSubjects = dataFunctions.GetTestingDataSubjects();
             List<TestTemplate> testTemplates = new List<TestTemplate>();
+
             if (action == "addSubquestionTemplateRandomData")
             {
-                testTemplates = DataGenerator.GenerateRandomTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+                testTemplates = DataGenerator.GenerateRandomTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates), testingDataSubjects);
             }
             else if (action == "addSubquestionTemplateCorrelationalData")
             {
-                testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates));
+                testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates), testingDataSubjects);
             }
             message = await dataFunctions.AddTestTemplates(testTemplates, owner);//todo: error?
             string login = "login";
@@ -986,6 +989,20 @@ namespace BusinessLayer
             return message;
         }
 
+        public async Task CreateSubjectTestingData(User owner)
+        {
+            Subject[] testingDataSubjects = new Subject[] { 
+                new Subject("Ch", "Chemie", owner, owner.Login, new List<Student>(), true),
+                new Subject("Z", "Zeměpis", owner, owner.Login, new List<Student>(), true),
+                new Subject("M", "Matematika", owner, owner.Login, new List<Student>(), true),
+                new Subject("D", "Dějepis", owner, owner.Login, new List<Student>(), true),
+                new Subject("I", "Informatika", owner, owner.Login, new List<Student>(), true) };
+            for(int i = 0; i < testingDataSubjects.Length; i++)
+            {
+                await dataFunctions.AddSubject(testingDataSubjects[i]);
+            }
+        }
+
         public async Task TestingUsersCheck()
         {
             User? owner = dataFunctions.GetUserByLogin("login");
@@ -1001,6 +1018,7 @@ namespace BusinessLayer
             dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where OwnerLogin = 'login'");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateStatistics where UserLogin = 'login'");
+            dataFunctions.ExecuteSqlRaw("delete from Subject where IsTestingData = 1");
 
             //since results are directly linked to templates, they are deleted as well
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");

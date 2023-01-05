@@ -63,6 +63,7 @@ namespace DataLayer
                 message = "Při přidání předmětu nastala neočekávaná chyba.";
 
             }
+            _context.ChangeTracker.Clear();
             return message;
         }
 
@@ -103,9 +104,16 @@ namespace DataLayer
             return message;
         }
 
+        public List<Subject> GetTestingDataSubjects()
+        {
+            return GetSubjectDbSet().AsNoTracking().Where(s => s.IsTestingData == true).ToList();
+            //return GetSubjectDbSet().AsNoTracking().Include(s => s.Guarantor).Where(s => s.IsTestingData == true).ToList();
+        }
+
         public List<TestTemplate> GetTestTemplateList(string login)
         {
             return GetTestTemplateDbSet()
+                .Include(t => t.Subject)
                 .Include(t => t.QuestionTemplateList)
                 .ThenInclude(q => q.SubquestionTemplateList)
                 .Where(t => t.OwnerLogin == login).ToList();
@@ -124,6 +132,7 @@ namespace DataLayer
                     TestTemplate testTemplate = testTemplates[i];
                     _context.ChangeTracker.Clear();
                     _context.Users.Attach(testTemplate.Owner);
+                    _context.Subjects.Attach(testTemplate.Subject);
                     _context.TestTemplates.Add(testTemplate);
                     await _context.SaveChangesAsync();
                     successCount++;

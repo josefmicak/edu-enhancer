@@ -14,6 +14,16 @@ namespace DomainModel
         public string GuarantorLogin { get; set; } = default!;
         public List<Student> StudentList { get; set; } = default!;
         public bool IsTestingData { get; set; } = false;
+        public Subject() { }
+        public Subject(string abbreviation, string name, User guarantor, string guarantorLogin, List<Student> studentList, bool isTestingData)
+        {
+            Abbreviation = abbreviation;
+            Name = name;
+            Guarantor = guarantor;
+            GuarantorLogin = guarantorLogin;
+            StudentList = studentList;
+            IsTestingData = isTestingData;
+        }
         public string SubjectString()
         {
             return "(" + Abbreviation + ") " + Name;

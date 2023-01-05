@@ -4,6 +4,7 @@ using CsvHelper;
 using System.Globalization;
 using static Common.EnumTypes;
 using System;
+using System.Collections.Generic;
 
 namespace ArtificialIntelligenceTools
 {
@@ -18,11 +19,11 @@ namespace ArtificialIntelligenceTools
             List<TestTemplate> testTemplates = new List<TestTemplate>();
             if (dataColleration == "none")
             {
-                testTemplates = GenerateRandomTestTemplates(testTemplates, 500);
+                testTemplates = GenerateRandomTestTemplates(testTemplates, 500, null);//todo: predat List<Subject> testingDataSubjects
             }
             else if (dataColleration == "on")
             {
-                testTemplates = GenerateCorrelationalTestTemplates(testTemplates, 500);
+                testTemplates = GenerateCorrelationalTestTemplates(testTemplates, 500, null);
             }
             var subquestionTemplateRecords = CreateSubquestionTemplateRecords(testTemplates);
 
@@ -80,9 +81,8 @@ namespace ArtificialIntelligenceTools
         public static List<SubquestionTemplateRecord> CreateSubquestionTemplateRecords(List<TestTemplate> testTemplates)
         {
             List<SubquestionTemplateRecord> subquestionTemplateRecords = new List<SubquestionTemplateRecord>();
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = GetSubquestionTypeAverageTemplatePoints(testTemplates);
-            double[] subjectAveragePoints = GetSubjectAverageTemplatePoints(testTemplates);
+            List<(Subject, double)> subjectAveragePointsTuple = GetSubjectAverageTemplatePoints(testTemplates);
             int subquestionTemplateRecordId = 0;
             User owner = testTemplates[0].Owner;
 
@@ -98,8 +98,8 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
-                        SubquestionTemplateRecord subquestionTemplateRecord = CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectsArray,
-                            subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+                        SubquestionTemplateRecord subquestionTemplateRecord = CreateSubquestionTemplateRecord(subquestionTemplate, owner,
+                            subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
                         subquestionTemplateRecords.Add(subquestionTemplateRecord);
                         subquestionTemplateRecordId++;
                     }
@@ -109,8 +109,8 @@ namespace ArtificialIntelligenceTools
             return subquestionTemplateRecords;
         }
 
-        public static SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner, string[] subjectsArray,
-            double[] subquestionTypeAveragePoints, double[] subjectAveragePoints, double? minimumPointsShare)
+        public static SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner, 
+            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double? minimumPointsShare)
         {
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -156,9 +156,14 @@ namespace ArtificialIntelligenceTools
                 subquestionTemplateRecord.CorrectAnswersShare = Math.Round(subquestionTemplateRecord.CorrectAnswersShare, 2);
             }
 
-            string? subject = testTemplate.SubjectToDelete;
-            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
-            subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
+            for(int i = 0; i < subjectAveragePointsTuple.Count; i++)
+            {
+                if (subjectAveragePointsTuple[i].Item1 == testTemplate.Subject)
+                {
+                    subquestionTemplateRecord.SubjectAveragePoints = Math.Round(subjectAveragePointsTuple[i].Item2, 2);
+                    break;
+                }
+            }
             subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionTemplateRecord.MinimumPointsShare = CommonFunctions.RoundDecimal(minimumPointsShare);
@@ -194,7 +199,8 @@ namespace ArtificialIntelligenceTools
         /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
         /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
         /// </summary>
-        public static List<TestTemplate> GenerateRandomTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated)
+        public static List<TestTemplate> GenerateRandomTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated,
+            List<Subject> testingDataSubjects)
         {
             List<TestTemplate> testTemplates = existingTestTemplates;
             int existingTestTemplatesCount = existingTestTemplates.Count;
@@ -202,7 +208,6 @@ namespace ArtificialIntelligenceTools
             User owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
             bool stopDataGeneration = false;
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
 
             for (int i = existingTestTemplates.Count; ; i++)
             {
@@ -220,7 +225,7 @@ namespace ArtificialIntelligenceTools
                 double? totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
-                testTemplate.SubjectToDelete = subjectsArray[subject];
+                testTemplate.Subject = testingDataSubjects[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
                 testTemplate.IsTestingData = true;
@@ -309,7 +314,8 @@ namespace ArtificialIntelligenceTools
         /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
         /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
         /// </summary>
-        public static List<TestTemplate> GenerateCorrelationalTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated)
+        public static List<TestTemplate> GenerateCorrelationalTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated,
+            List<Subject> testingDataSubjects)
         {
             //existing test templates have to be added here because otherwise newly created test templates would not be related to the old ones
             List<TestTemplate> testTemplates = existingTestTemplates;
@@ -318,7 +324,6 @@ namespace ArtificialIntelligenceTools
             User owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
             bool stopDataGeneration = false;
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             //int[] subquestionPointsByTypeArray = { 0, 2, -4, -3, -4, 5, -1, -1, 2, -3, 0 };
             int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
             int[] subquestionPointsBySubjectArray = { 3, -1, 3, 1, 1 };
@@ -341,7 +346,7 @@ namespace ArtificialIntelligenceTools
                 double? totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
-                testTemplate.SubjectToDelete = subjectsArray[subject];
+                testTemplate.Subject = testingDataSubjects[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
                 testTemplate.IsTestingData = true;
@@ -564,7 +569,7 @@ namespace ArtificialIntelligenceTools
             List<TestResult> testResults = new List<TestResult>();
             Student student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
             Random random = new Random();
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
+            List<Subject> subjectList = existingTestTemplates.Select(t => t.Subject).Distinct().ToList();
             int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
             int[] subquestionPointsBySubjectArray = { 3, -1, 3, 1, 1 };
             int[] negativePointsArray = { -4, -2, 0 };
@@ -637,8 +642,8 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                         double? studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
                         studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
-                        int subject = Array.IndexOf(subjectsArray, testTemplate.SubjectToDelete);//subjectAveragePoints modifier
-                        studentsPoints += subquestionPointsBySubjectArray[subject];//subjectAveragePoints modifier
+                        int subjectIndex = subjectList.FindIndex(s => s.Id == testTemplate.Subject.Id);//subjectAveragePoints modifier
+                        studentsPoints += subquestionPointsBySubjectArray[subjectIndex];//subjectAveragePoints modifier
                         //containsImage variable is not correlational
                         studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
                         studentsPoints += ((double)testTemplate.MinimumPoints / 100) * 4;//minimumPointsShare modifier
@@ -700,8 +705,7 @@ namespace ArtificialIntelligenceTools
             List<SubquestionResultRecord> subquestionResultRecords = new List<SubquestionResultRecord>();
             string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = GetSubquestionTypeAverageStudentsPoints(testResults);
-            double[] subjectAveragePoints = GetSubjectAverageStudentsPoints(testResults);
-            int subquestionResultRecordId = 0;
+            List<(Subject, double)> subjectAveragePointsTuple = GetSubjectAverageStudentsPoints(testResults);
             User owner = testResults[0].TestTemplate.Owner;
 
             for (int i = 0; i < testResults.Count; i++)
@@ -717,8 +721,8 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
-                        SubquestionResultRecord subquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner, subjectsArray,
-                            subquestionTypeAveragePoints, subjectAveragePoints, minimumPointsShare);
+                        SubquestionResultRecord subquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner, subjectAveragePointsTuple,
+                            subquestionTypeAveragePoints, minimumPointsShare);
                         subquestionResultRecords.Add(subquestionResultRecord);
                     }
                 }
@@ -727,8 +731,8 @@ namespace ArtificialIntelligenceTools
             return subquestionResultRecords;
         }
 
-        public static SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner, string[] subjectsArray,
-            double[] subquestionTypeAveragePoints, double[] subjectAveragePoints, double? minimumPointsShare)
+        public static SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner, 
+            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double? minimumPointsShare)
         {
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -742,9 +746,14 @@ namespace ArtificialIntelligenceTools
             subquestionResultRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
             subquestionResultRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
-            string? subject = testTemplate.SubjectToDelete;
-            int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
-            subquestionResultRecord.SubjectAveragePoints = Math.Round(subjectAveragePoints[subjectId], 2);
+            for (int i = 0; i < subjectAveragePointsTuple.Count; i++)
+            {
+                if (subjectAveragePointsTuple[i].Item1 == testTemplate.Subject)
+                {
+                    subquestionResultRecord.SubjectAveragePoints = Math.Round(subjectAveragePointsTuple[i].Item2, 2);
+                    break;
+                }
+            }
             subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             double? minimumPointsShareRound = CommonFunctions.RoundDecimal(minimumPointsShare);
@@ -1133,12 +1142,11 @@ namespace ArtificialIntelligenceTools
         /// <summary>
         /// Returns array of average points for each subject
         /// </summary>
-        public static double[] GetSubjectAverageTemplatePoints(List<TestTemplate> testTemplates)
+        public static List<(Subject, double)> GetSubjectAverageTemplatePoints(List<TestTemplate> testTemplates)
         {
-            int subjectsCount = 5;//todo: predelat
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            double[] subjectPointsShare = new double[subjectsCount];
-            double[] subquestionCountBySubject = new double[subjectsCount];
+            List<Subject> subjectList = testTemplates.Select(t => t.Subject).Distinct().ToList();
+            double[] subjectPointsShare = new double[subjectList.Count()];
+            double[] subquestionCountBySubject = new double[subjectList.Count()];
 
             for (int i = 0; i < testTemplates.Count; i++)
             {
@@ -1151,17 +1159,16 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
-                        string? subject = testTemplate.SubjectToDelete;
-                        int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
+                        int subjectIndex = subjectList.FindIndex(s => s.Id == testTemplate.Subject.Id);
                         if (subquestionTemplate.SubquestionPoints != null)
                         {
-                            subjectPointsShare[subjectId] += (double)subquestionTemplate.SubquestionPoints;
+                            subjectPointsShare[subjectIndex] += (double)subquestionTemplate.SubquestionPoints;
                         }
                         else
                         {
                             continue;
                         }
-                        subquestionCountBySubject[subjectId] += 1;
+                        subquestionCountBySubject[subjectIndex] += 1;
                     }
                 }
             }
@@ -1171,15 +1178,20 @@ namespace ArtificialIntelligenceTools
                 subjectPointsShare[i] = subjectPointsShare[i] / subquestionCountBySubject[i];
             }
 
-            return subjectPointsShare;
+            List<(Subject, double)> subjectAveragePointsTuple = new List<(Subject, double)>();
+            for(int i = 0; i < subjectList.Count; i++)
+            {
+                subjectAveragePointsTuple.Add((subjectList[i], subjectPointsShare[i]));
+            }
+
+            return subjectAveragePointsTuple;
         }
 
-        public static double[] GetSubjectAverageStudentsPoints(List<TestResult> testResults)
+        public static List<(Subject, double)> GetSubjectAverageStudentsPoints(List<TestResult> testResults)
         {
-            int subjectsCount = 5;//todo: predelat
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
-            double[] subjectPointsShare = new double[subjectsCount];
-            double[] subquestionCountBySubject = new double[subjectsCount];
+            List<Subject> subjectList = testResults.Select(t => t.TestTemplate.Subject).Distinct().ToList();
+            double[] subjectPointsShare = new double[subjectList.Count()];
+            double[] subquestionCountBySubject = new double[subjectList.Count()];
 
             for (int i = 0; i < testResults.Count; i++)
             {
@@ -1192,18 +1204,17 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
-                        string? subject = testResult.TestTemplate.SubjectToDelete;
-                        int subjectId = Array.FindIndex(subjectsArray, x => x.Contains(subject));
+                        int subjectIndex = subjectList.FindIndex(s => s.Id == testResult.TestTemplate.Subject.Id);
                         if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
                         {
                             //when it comes to subquestion results, we have to consider the difference between subquestion's and student's points
-                            subjectPointsShare[subjectId] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
+                            subjectPointsShare[subjectIndex] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
                         }
                         else
                         {
                             continue;
                         }
-                        subquestionCountBySubject[subjectId] += 1;
+                        subquestionCountBySubject[subjectIndex] += 1;
                     }
                 }
             }
@@ -1213,7 +1224,13 @@ namespace ArtificialIntelligenceTools
                 subjectPointsShare[i] = subjectPointsShare[i] / subquestionCountBySubject[i];
             }
 
-            return subjectPointsShare;
+            List<(Subject, double)> subjectAveragePointsTuple = new List<(Subject, double)>();
+            for (int i = 0; i < subjectList.Count; i++)
+            {
+                subjectAveragePointsTuple.Add((subjectList[i], subjectPointsShare[i]));
+            }
+
+            return subjectAveragePointsTuple;
         }
     }
 }
