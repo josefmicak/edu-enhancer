@@ -1,9 +1,14 @@
 ﻿using Common;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace DomainModel
 {
     public class SubquestionResult
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         public string TestResultIdentifier { get; set; } = default!;
         public string QuestionNumberIdentifier { get; set; } = default!;
         public string SubquestionIdentifier { get; set; } = default!;

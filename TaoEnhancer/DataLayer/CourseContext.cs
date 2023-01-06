@@ -108,7 +108,7 @@ namespace DataLayer
                 .WithMany()
                 .HasForeignKey(q => new { q.SubquestionIdentifier, q.QuestionNumberIdentifier, q.OwnerLogin})
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<SubquestionResult>().HasKey(s => new { s.TestResultIdentifier, s.QuestionNumberIdentifier, s.SubquestionIdentifier, s.OwnerLogin });
+            modelBuilder.Entity<SubquestionResult>().HasKey(s => new { s.Id });
             modelBuilder.Entity<SubquestionResult>()
                 .Property(e => e.StudentsAnswerList)
                 .HasConversion(
@@ -160,7 +160,7 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionResultRecord>()
                 .HasOne(s => s.SubquestionResult)
                 .WithMany()
-                .HasForeignKey(s => new { s.TestResultIdentifier, s.QuestionNumberIdentifier, s.SubquestionIdentifier, s.OwnerLogin })
+                .HasForeignKey(s => new { s.Id })
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubquestionResultStatistics>().ToTable("SubquestionResultStatistics");

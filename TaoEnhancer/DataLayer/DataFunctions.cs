@@ -410,6 +410,36 @@ namespace DataLayer
             return _context.TestDifficultyStatistics;
         }
 
+        public async Task<string?> AddTestResult(TestResult testResult)
+        {
+            try
+            {
+                _context.ChangeTracker.Clear();
+                _context.Students.Attach(testResult.Student);
+                _context.TestTemplates.Attach(testResult.TestTemplate);
+                _context.TestResults.Add(testResult);
+                await _context.SaveChangesAsync();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return "Při načítání testu došlo k nečekané chybě";
+            }
+        }
+
+        public async Task<TestResult> LoadLastStudentAttempt(Student student)
+        {
+            return await GetTestResultDbSet()
+                .Include(t => t.QuestionResultList)
+                .ThenInclude(q => q.SubquestionResultList)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(q => q.QuestionTemplateList)
+                .ThenInclude(q => q.SubquestionTemplateList)
+                .OrderByDescending(t => t.TimeStamp)
+                .FirstAsync(t => t.StudentLogin == student.Login);
+        }
+
         public async Task<string> AddTestResults(List<TestResult> testResults)
         {
             int successCount = 0;

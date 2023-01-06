@@ -12,6 +12,8 @@ using BusinessLayer;
 using System.Collections.Generic;
 using System;
 using NuGet.Protocol.Plugins;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using System.Collections;
 
 namespace ViewLayer.Controllers
 {
@@ -1746,7 +1748,13 @@ namespace ViewLayer.Controllers
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             TestTemplate testTemplate = new TestTemplate();
-            if(businessLayerFunctions.CanStudentAccessTest(login, testNumberIdentifier))
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
+            if (businessLayerFunctions.CanStudentAccessTest(login, testNumberIdentifier))
             {
                 testTemplate = businessLayerFunctions.GetTestTemplate(testNumberIdentifier);
             }
@@ -1757,6 +1765,113 @@ namespace ViewLayer.Controllers
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
                 View(testTemplate) :
                 Problem("Entity set 'CourseContext.TestTemplates'  is null.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> StudentAvailableTest(string action, string testNumberIdentifier)
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string? errorMessage = null;
+            if (action == "beginAttempt")
+            {
+                if (businessLayerFunctions.CanStudentAccessTest(login, testNumberIdentifier))
+                {
+                    errorMessage = await businessLayerFunctions.BeginStudentAttempt(testNumberIdentifier, login);
+                }
+            }
+            else
+            {
+                return RedirectToAction("StudentAvailableTest", "Home", new { testNumberIdentifier = testNumberIdentifier });
+            }
+            if(errorMessage == null)
+            {
+                return RedirectToAction("SolveQuestion", "Home");
+            }
+            else
+            {
+                TempData["Message"] = errorMessage;
+                return RedirectToAction("StudentAvailableTest", "Home", new { testNumberIdentifier = testNumberIdentifier });
+            }
+        }
+
+        public async Task<IActionResult> SolveQuestion()
+        {
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            TestResult testResult = await businessLayerFunctions.LoadLastStudentAttempt(login);
+            List<int> subquestionResultIdList = businessLayerFunctions.GetSubquestionResultIdList(testResult);
+            SubquestionResult subquestionResult = new SubquestionResult();
+            string? action = null;
+            if(TempData["action"] != null)
+            {
+                action = TempData["action"]!.ToString();
+            }
+
+            //the user has just started the attempt - the very first subquestion is shown to him then
+            if(businessLayerFunctions.GetStudentSubquestionResultId() == null)
+            {
+                for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                    //the question must include at least one subquestion
+                    if(questionResult.SubquestionResultList.Count > 0)
+                    {
+                        subquestionResult = questionResult.SubquestionResultList.ElementAt(0);
+                        break;
+                    }
+                }
+                businessLayerFunctions.SetStudentSubquestionResultId(subquestionResult.Id);
+
+                ViewBag.SubquestionsCount = subquestionResultIdList.Count;
+                ViewBag.SubquestionResultIdIndex = 0;
+            }
+            else
+            {
+                int oldSubquestionResultIdIndex = subquestionResultIdList.IndexOf(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId()!));
+                int newSubquestionResultIdIndex = oldSubquestionResultIdIndex;
+                if (action == "previousSubquestion")
+                {
+                    if(oldSubquestionResultIdIndex > 0)
+                    {
+                        newSubquestionResultIdIndex--;
+                    }
+                }
+                else if (action == "nextSubquestion")
+                {
+                    if (oldSubquestionResultIdIndex < subquestionResultIdList.Count - 1)
+                    {
+                        newSubquestionResultIdIndex++;
+                    }
+                }
+                int newSubquestionResultId = subquestionResultIdList.ElementAt(newSubquestionResultIdIndex);
+                businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
+
+                for (int i = 0; i < testResult.QuestionResultList.Count; i++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                    for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                    {
+                        SubquestionResult subquestionResultTemp = questionResult.SubquestionResultList.ElementAt(j);
+                        if(subquestionResultTemp.Id == newSubquestionResultId)
+                        {
+                            subquestionResult = subquestionResultTemp;
+                            break;
+                        }
+                    }
+                }
+
+                ViewBag.SubquestionsCount = subquestionResultIdList.Count;
+                ViewBag.SubquestionResultIdIndex = newSubquestionResultIdIndex;
+            }
+            return View(subquestionResult);
+        }
+
+        [HttpPost]
+        public IActionResult SolveQuestion(string action)
+        {
+            TempData["action"] = action;
+            return RedirectToAction(nameof(SolveQuestion));
         }
 
         public IActionResult AccessDeniedAction()

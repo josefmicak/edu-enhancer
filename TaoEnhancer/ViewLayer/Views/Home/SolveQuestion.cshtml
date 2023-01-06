@@ -1,0 +1,51 @@
+﻿@model DomainModel.SubquestionResult
+
+@using DomainModel
+
+@{
+    SubquestionResult subquestionResult = Model;
+    SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+    int subquestionType;
+    if (subquestionTemplate == null)
+    {
+        subquestionType = 0;
+    }
+    else
+    {
+        subquestionType = (int)subquestionTemplate.SubquestionType;
+    }
+    int subquestionsCount = ViewBag.SubquestionsCount;
+    int subquestionResultIdIndex = ViewBag.SubquestionResultIdIndex;
+
+    ViewData["Title"] = "Řešení testové otázky";
+}
+
+<div class="text-center">
+    <h1>Řešení testové otázky</h1>
+
+    <div id="subquestion-details">
+        <h2>Otázka @(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
+        @{
+            if (subquestionTemplate == null)
+            {
+                <p>Chyba: otázku nelze zobrazit.</p>
+            }
+            else
+            {
+                <form method="POST">
+                    <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
+                    <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+                    <p>@subquestionTemplate.SubquestionText</p>
+                </form>
+            }
+        }
+        
+    </div>
+</div>
+
+<script src="/js/site.js"></script>
+<script>
+    solveQuestionPagePostProcessing(@subquestionsCount, @subquestionResultIdIndex);
+</script>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

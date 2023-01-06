@@ -15,6 +15,7 @@ namespace DomainModel
         [Ignore]
         public User Owner { get; set; } = default!;
         [Ignore]
+        public int Id { get; set; }
         public string OwnerLogin { get; set; } = default!;
         public double SubquestionTypeAveragePoints { get; set; }
         public double AnswerCorrectness { get; set; }

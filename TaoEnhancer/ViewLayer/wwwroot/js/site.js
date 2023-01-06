@@ -1275,6 +1275,17 @@ function removeStudentsFromSubject() {
     }
 }
 
+//SolveQuestion.cshtml
+
+function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdIndex) {
+    if (subquestionResultIdIndex == 0) {
+        document.getElementById("previousSubquestion").disabled = true;
+    }
+    if (subquestionResultIdIndex == subquestionsCount - 1) {
+        document.getElementById("nextSubquestion").disabled = true;
+    }
+}
+
 //General
 
 function hideConfirmActionForm() {

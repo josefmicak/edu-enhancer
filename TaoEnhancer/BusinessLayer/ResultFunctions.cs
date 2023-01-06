@@ -459,6 +459,102 @@ namespace BusinessLayer
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
         }
 
+        public async Task<string?> BeginStudentAttempt(TestTemplate testTemplate, Student student)
+        {
+            TestResult testResult = new TestResult();
+            testResult.TestResultIdentifier = GenerateRandomString();
+            testResult.TestNameIdentifier = testTemplate.TestNameIdentifier;
+            testResult.TestNumberIdentifier = testTemplate.TestNumberIdentifier;
+            testResult.TestTemplate = testTemplate;
+            testResult.TimeStamp = DateTime.Now;
+            testResult.Student = student;
+            testResult.StudentLogin = student.Login;
+            testResult.OwnerLogin = testTemplate.OwnerLogin;
+            testResult.IsTestingData = false;
+            testResult.QuestionResultList = new List<QuestionResult>();
+
+            for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                QuestionResult questionResult = new QuestionResult();
+                questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
+                questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                questionResult.OwnerLogin = testTemplate.OwnerLogin;
+                questionResult.TestResult = testResult;
+                questionResult.QuestionTemplate = questionTemplate;
+                questionResult.SubquestionResultList = new List<SubquestionResult>();
+
+                for(int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                {
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    SubquestionResult subquestionResult = new SubquestionResult();
+                    subquestionResult.TestResultIdentifier = testResult.TestResultIdentifier;
+                    subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
+                    subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                    subquestionResult.OwnerLogin = testResult.OwnerLogin;
+                    subquestionResult.StudentsAnswerList = new string[0];
+                    subquestionResult.StudentsPoints = 0;
+                    subquestionResult.DefaultStudentsPoints = 0;
+                    subquestionResult.AnswerCorrectness = 0;
+                    subquestionResult.AnswerStatus = AnswerStatus.NotAnswered;
+                    subquestionResult.SubquestionTemplate = subquestionTemplate;
+                    subquestionResult.QuestionResult = questionResult;
+                    questionResult.SubquestionResultList.Add(subquestionResult);
+                }
+
+                testResult.QuestionResultList.Add(questionResult);
+            }
+
+            return await dataFunctions.AddTestResult(testResult);
+        }
+
+        public async Task<TestResult> LoadLastStudentAttempt(Student student)
+        {
+            return await dataFunctions.LoadLastStudentAttempt(student);
+        }
+
+        public List<int> GetSubquestionResultIdList(TestResult testResult)
+        {
+            List<int> subquestionResultIdList = new List<int>();
+            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                {
+                    subquestionResultIdList.Add(questionResult.SubquestionResultList.ElementAt(j).Id);
+                }
+            }
+            return subquestionResultIdList;
+        }
+
+        public string GenerateRandomString()//random string - will be deleted after domain model change
+        {
+            // Creating object of random class
+            Random rand = new Random();
+
+            // Choosing the size of string
+            // Using Next() string
+            int stringlen = rand.Next(4, 10);
+            int randValue;
+            string str = "";
+            char letter;
+            for (int i = 0; i < stringlen; i++)
+            {
+
+                // Generating a random number.
+                randValue = rand.Next(0, 26);
+
+                // Generating random character by converting
+                // the random number into character.
+                letter = Convert.ToChar(randValue + 65);
+
+                // Appending the letter to string.
+                str = str + letter;
+            }
+            return str;
+        }
+
         /// <summary>
         /// Returns the list of test results
         /// </summary>

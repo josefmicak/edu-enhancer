@@ -103,5 +103,19 @@ namespace BusinessLayer
         {
             Config.Application["login"] = login;
         }
+
+        public string? GetStudentSubquestionResultId()
+        {
+            if (Config.Application.TryGetValue("subquestionResultId", out _))
+            {
+                return Config.Application["subquestionResultId"];
+            }
+            return null;
+        }
+
+        public void SetStudentSubquestionResultId(string subquestionResultId)
+        {
+            Config.Application["subquestionResultId"] = subquestionResultId;
+        }
     }
 }

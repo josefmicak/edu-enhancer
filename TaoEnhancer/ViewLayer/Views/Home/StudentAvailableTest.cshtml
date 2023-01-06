@@ -52,5 +52,13 @@
         </table>
     </div>
 
-    <a asp-controller="Home" asp-action="SolveQuestion">Začít pokus</a>
+    <form method="POST">
+        <input type="hidden" value="@Model.TestNumberIdentifier" name="testNumberIdentifier">
+        <button type="submit" value="beginAttempt" name="action">Začít pokus</button>
+    </form>
+
 </div>
+
+<div id="backBtn"><a asp-action="StudentAvailableTestList">Zpět</a></div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

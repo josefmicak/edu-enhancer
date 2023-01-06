@@ -299,6 +299,38 @@ namespace BusinessLayer
             return await resultFunctions.AddTestResults(login);
         }
 
+        public async Task<string?> BeginStudentAttempt(string testNumberIdentifier, string login)
+        {
+            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            Student? student = GetStudentByLogin(login);
+            if (student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                return await resultFunctions.BeginStudentAttempt(testTemplate, student);
+            }
+        }
+
+        public async Task<TestResult> LoadLastStudentAttempt(string login)
+        {
+            Student? student = GetStudentByLogin(login);
+            if (student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                return await resultFunctions.LoadLastStudentAttempt(student);
+            }
+        }
+
+        public List<int> GetSubquestionResultIdList(TestResult testResult)
+        {
+            return resultFunctions.GetSubquestionResultIdList(testResult);
+        }
+
         public async Task<string> DeleteTestResults(string login)
         {
             return await resultFunctions.DeleteTestResults(login);
@@ -597,6 +629,16 @@ namespace BusinessLayer
         public void SetCurrentUserLogin(string login)
         {
             otherFunctions.SetCurrentUserLogin(login);
+        }
+
+        public string? GetStudentSubquestionResultId()
+        {
+            return otherFunctions.GetStudentSubquestionResultId();
+        }
+
+        public void SetStudentSubquestionResultId(int subquestionResultId)
+        {
+            otherFunctions.SetStudentSubquestionResultId(subquestionResultId.ToString());
         }
     }
 }
