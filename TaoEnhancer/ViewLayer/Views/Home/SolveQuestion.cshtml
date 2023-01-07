@@ -17,6 +17,29 @@
     int subquestionsCount = ViewBag.SubquestionsCount;
     int subquestionResultIdIndex = ViewBag.SubquestionResultIdIndex;
 
+    string possibleAnswerListString = "";
+    string correctAnswerListString = "";
+    string subquestionText = "";
+    if (subquestionTemplate != null)
+    {
+        subquestionText = subquestionTemplate.SubquestionText;
+        if (subquestionTemplate.PossibleAnswerList != null)
+        {
+            for (int j = 0; j < subquestionTemplate.PossibleAnswerList.Count(); j++)
+            {
+                possibleAnswerListString += subquestionTemplate.PossibleAnswerList[j] + ";";
+            }
+        }
+
+        if (subquestionTemplate.CorrectAnswerList != null)
+        {
+            for (int j = 0; j < subquestionTemplate.CorrectAnswerList.Count(); j++)
+            {
+                correctAnswerListString += subquestionTemplate.CorrectAnswerList[j] + ";";
+            }
+        }
+    }
+
     ViewData["Title"] = "Řešení testové otázky";
 }
 
@@ -35,7 +58,126 @@
                 <form method="POST">
                     <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
                     <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
-                    <p>@subquestionTemplate.SubquestionText</p>
+                    <br>
+                    <div id="SubquestionText">@subquestionTemplate.SubquestionText</div>
+                    <br>
+                    @{
+                        switch(subquestionType)
+                        {
+                            case 1:
+                                <table id="student-answers-table">
+                                    <tr>
+                                        <th>Odpověď</th>
+                                        <th>Nahoru</th>
+                                        <th>Dolů</th>
+                                    </tr>
+                                    <tr id="student-answer-1">
+                                        <td><input readonly class="student-answer-input" type="text" name="StudentsAnswerList[]"></td>
+                                        <td><button type="button" class="student-answer-move" onclick="moveAnswer('up', this.parentNode.parentNode.id, '2')">∧</button></td>
+                                        <td><button type="button" class="student-answer-move" onclick="moveAnswer('down', this.parentNode.parentNode.id, '2')">∨</button></td>
+                                    </tr>
+                                </table>
+                                break;
+                            case 2:
+                                <table id="student-answers-table">
+                                    <tr>
+                                        <th>Označit</th>
+                                        <th>Odpověď</th>
+                                    </tr>
+                                    <tr id="student-answer-1">
+                                        <td><input type="checkbox" id="student-answer-checkbox-1" name="student-answer-checkbox"></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                break;
+                            case 3:
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možné odpovědi</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><div class="possible-answer-text"></div></td>
+                                    </tr>
+                                </table>
+                                <table id="student-answers-table">
+                                    <tr>
+                                        <th>Odpověď</th>
+                                    </tr>
+                                    <tr id="student-answer-1">
+                                        <td>
+                                            <select class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select> -
+                                            <select class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                        </td>
+                                    </tr>
+                                </table>
+                                break;
+                            case 4:
+                                <table id="student-answers-table">
+                                    <tr>
+                                        <th>Otázka</th>
+                                        <th>Ano (platí)</th>
+                                        <th>Ne (neplatí)</th>
+                                    </tr>
+                                    <tr id="student-answer-1">
+                                        <td><div class="possible-answer-text"></div></td>
+                                        <td>
+                                            <input checked class="student-answer-radio" type="radio" name="student-answer-radio-1">
+                                            <input type="hidden" class="student-answer-hidden" name="StudentsAnswerList[]">Ano
+                                        </td>
+                                        <td><input class="student-answer-radio" type="radio" name="student-answer-radio-1">Ne</td>
+                                    </tr>
+                                </table>
+                                break;
+                            case 5:
+                                <textarea name="StudentsAnswerList[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
+                                break;
+                            case 6:
+                                <table id="student-answers-table">
+                                    <tr>
+                                        <th>Označit</th>
+                                        <th>Odpověď</th>
+                                    </tr>
+                                    <tr id="student-answer-1">
+                                        <td><input type="radio" id="student-answer-radio-1" name="student-answer-radio"></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                break;
+                            case 7:
+                                <div id="subquestion-text-1"></div>
+                                <select id="student-answer-select" name="StudentsAnswerList[]"></select>
+                                <div id="subquestion-text-2"></div>
+                                break;
+                            case 8:
+                                <div id="subquestion-text-1"></div>
+                                <input type="text" id="gap-text" placeholder="(DOPLŇTE)">
+                                <div id="subquestion-text-2"></div>
+                                break;
+                            case 9:
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možné odpovědi</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><div class="possible-answer-text"></div></td>
+                                    </tr>
+                                </table>
+
+                                <div id="subquestion-text-1" class="subquestion-text"></div>
+                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                <div id="subquestion-text-2" class="subquestion-text"></div>
+                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                <div id="subquestion-text-3" class="subquestion-text"></div>
+                                <div id="additional-questions"></div>
+                                break;
+                            case 10:
+                                <input type="hidden" name="sliderValues" id="sliderValues">
+                                <input type="range" id="slider-question" value="50" min="1" max="100" 
+                                oninput="this.nextElementSibling.value = this.value">
+                                <output>50</output>
+                                break;
+                        }
+                    }
                 </form>
             }
         }
@@ -45,7 +187,8 @@
 
 <script src="/js/site.js"></script>
 <script>
-    solveQuestionPagePostProcessing(@subquestionsCount, @subquestionResultIdIndex);
+    solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@possibleAnswerListString',
+        '@correctAnswerListString', '@subquestionText');
 </script>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

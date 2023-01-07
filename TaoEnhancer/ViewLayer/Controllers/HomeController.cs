@@ -1807,7 +1807,7 @@ namespace ViewLayer.Controllers
             }
 
             //the user has just started the attempt - the very first subquestion is shown to him then
-            if(businessLayerFunctions.GetStudentSubquestionResultId() == null)
+            if(businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultIdList.Contains(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
             {
                 for(int i = 0; i < testResult.QuestionResultList.Count; i++)
                 {

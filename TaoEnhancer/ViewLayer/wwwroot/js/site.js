@@ -419,9 +419,14 @@ function deletePossibleAnswer(clicked_id, subquestionType) {
     }
 }
 
-//enables the user to move correct answers (upwards or downwards)
-function movePossibleAnswer(direction, clicked_id) {
-    var table = document.getElementById('possible-answers-table');
+//enables the user to move answers (upwards or downwards)
+function moveAnswer(direction, clicked_id, tableType) {
+    if (tableType == 1) {
+        var table = document.getElementById('possible-answers-table');
+    }
+    else if (tableType == 2) {
+        var table = document.getElementById('student-answers-table');
+    }
     var rowIndex = 0;
     for (var i = 0, row; row = table.rows[i]; i++) {
         if (clicked_id == row.id) {
@@ -479,7 +484,7 @@ function addCorrectAnswer(subquestionType, isProgramatical) {
             row.innerHTML = lastRowInnerHTML;
             row.id = "correct-answer-" + lastRowId;
 
-            $('.correct-answer-select').prop('disabled', false);
+            //$('.correct-answer-select').prop('disabled', false);
             //replace currently selected option with placeholder option
             if (!isProgramatical) {
                 var correctAnswerSelects = document.getElementsByClassName('correct-answer-select');
@@ -1106,7 +1111,7 @@ function changeImagePath(imageSource) {
     }
 }
 
-//function that is called after the user requests points recommendation in the AddSubquestionTemplate page
+//function that is called after the user requests points recommendation in the AddSubquestionTemplate page or if he visits the EditSubquestionTemplate page
 function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListString, correctAnswerListString, subquestionText,
     defaultWrongChoicePoints, wrongChoicePoints) {
     if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 6 || subquestionType == 7) {
@@ -1147,8 +1152,17 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     }
     var correctAnswerList = [];
     var correctAnswerListStringSplit = correctAnswerListString.split(";");
-    for (var i = 0; i < correctAnswerListStringSplit.length; i++) {
-        correctAnswerList.push(correctAnswerListStringSplit[i]);
+    if (subquestionType == 3) {
+        for (var i = 0; i < correctAnswerListStringSplit.length; i++) {
+            var splitAgain = correctAnswerListStringSplit[i].split("|");
+            correctAnswerList.push(splitAgain[0]);
+            correctAnswerList.push(splitAgain[1]);
+        }
+    }
+    else{
+        for (var i = 0; i < correctAnswerListStringSplit.length; i++) {
+            correctAnswerList.push(correctAnswerListStringSplit[i]);
+        }
     }
     var correctAnswerListLength = correctAnswerList.length;
 
@@ -1277,12 +1291,262 @@ function removeStudentsFromSubject() {
 
 //SolveQuestion.cshtml
 
-function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdIndex) {
+function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdIndex, subquestionType, possibleAnswerListString,
+    correctAnswerListString, subquestionText) {
+    //disable buttons in case first or last subquestion is shown
     if (subquestionResultIdIndex == 0) {
         document.getElementById("previousSubquestion").disabled = true;
     }
     if (subquestionResultIdIndex == subquestionsCount - 1) {
         document.getElementById("nextSubquestion").disabled = true;
+    }
+
+    //add rows to student's answers table
+    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 4 || subquestionType == 6) {
+        var studentAnswerTable = document.getElementById('student-answers-table');
+        var studentAnswerTableLength = document.getElementById('student-answers-table').rows.length;
+        var possibleAnswerList = [];
+        var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
+        for (var i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
+            possibleAnswerList.push(possibleAnswerListStringSplit[i]);
+        }
+        possibleAnswerList = shuffleArray(possibleAnswerList);
+        var possibleAnswerListLength = possibleAnswerList.length + 1;
+
+        if (subquestionType == 1 || subquestionType == 2 || subquestionType == 4 || subquestionType == 6) {
+            if (possibleAnswerListLength > studentAnswerTableLength) {
+                var difference = possibleAnswerListLength - studentAnswerTableLength;
+                for (var i = 0; i < difference; i++) {
+                    addStudentAnswer(subquestionType);
+                }
+            }
+        }
+        else if (subquestionType == 3) {
+            if (possibleAnswerListLength > studentAnswerTableLength) {
+                var difference = (possibleAnswerListLength / 2) - studentAnswerTableLength;
+                for (var i = 0; i < difference; i++) {
+                    addStudentAnswer(subquestionType);
+                }
+
+                //add rows to possible answers table
+                difference = possibleAnswerListLength - studentAnswerTableLength;
+                for (var i = 0; i < difference; i++) {
+                    addPossibleAnswer();
+                }
+            }
+        }
+
+    }
+
+    //fill rows with values
+    if (subquestionType == 1) {
+        for (var i = 1; i < possibleAnswerListLength; i++) {
+            studentAnswerTable.rows[i].cells[0].getElementsByTagName("input")[0].value = possibleAnswerList[i - 1];
+        }
+    }
+    else if (subquestionType == 2 || subquestionType == 6) {
+        for (var i = 1; i < possibleAnswerListLength; i++) {
+            studentAnswerTable.rows[i].cells[1].innerHTML = possibleAnswerList[i - 1];
+        }
+    }
+    else if (subquestionType == 3) {
+        var possibleAnswerTexts = document.getElementsByClassName("possible-answer-text");
+        var studentAnswerSelects = document.getElementsByClassName("student-answer-select");
+        possibleAnswerList.unshift(getOptionPlaceholderText());
+
+        for (var i = 1; i < possibleAnswerListLength; i++) {
+            possibleAnswerTexts.item(i - 1).innerHTML = possibleAnswerList[i];
+        }
+
+        for (var i = 0; i < possibleAnswerListLength; i++) {
+            for (var j = 0; j < studentAnswerSelects.length; j++) {
+                var opt = document.createElement('option');
+                opt.value = possibleAnswerList[i];
+                opt.innerHTML = possibleAnswerList[i];
+                studentAnswerSelects.item(j).appendChild(opt);
+            }
+        }
+    }
+    else if (subquestionType == 4) {
+        var possibleAnswerTexts = document.getElementsByClassName("possible-answer-text");
+        for (var i = 0; i < possibleAnswerTexts.length; i++) {
+            possibleAnswerTexts.item(i).innerHTML = possibleAnswerList[i];
+        }
+    }
+    else if (subquestionType == 7 || subquestionType == 8) {
+        //add subquestion text
+        document.getElementById("SubquestionText").outerHTML = "";
+        var subquestionTextSplit = subquestionText.split("|");
+        document.getElementById("subquestion-text-1").innerHTML = subquestionTextSplit[0];
+        document.getElementById("subquestion-text-2").innerHTML = subquestionTextSplit[1];
+
+        if (subquestionType == 7) {
+            //add possible answers to select
+            var possibleAnswerList = [];
+            possibleAnswerList.push(getOptionPlaceholderText());
+            var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
+            for (var i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
+                possibleAnswerList.push(possibleAnswerListStringSplit[i]);
+            }
+
+            var studentAnswerSelect = document.getElementById('student-answer-select');
+            for (var i = 0; i < possibleAnswerList.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = possibleAnswerList[i];
+                opt.innerHTML = possibleAnswerList[i];
+                studentAnswerSelect.appendChild(opt);
+            }
+            studentAnswerSelect.selectedIndex = 0;
+        }
+    }
+    else if (subquestionType == 9) {
+        var possibleAnswerList = [];
+        var possibleAnswerListStringSplit = correctAnswerListString.split(";");
+        for (var i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
+            possibleAnswerList.push(possibleAnswerListStringSplit[i]);
+        }
+        possibleAnswerList = shuffleArray(possibleAnswerList);
+        for (var i = 0; i < possibleAnswerList.length - 1; i++) {
+            addPossibleAnswer();
+        }
+        var possibleAnswerTexts = document.getElementsByClassName("possible-answer-text");
+        for (var i = 0; i < possibleAnswerTexts.length; i++) {
+            possibleAnswerTexts.item(i).innerHTML = possibleAnswerList[i];
+        }
+
+        document.getElementById("SubquestionText").outerHTML = "";
+
+        for (var i = 0; i < possibleAnswerList.length - 2; i++) {
+            addStudentGap();
+        }
+
+        var subquestionTextSplit = subquestionText.split("|");
+        var subquestionTexts = document.getElementsByClassName("subquestion-text");
+        for (var i = 0; i < subquestionTexts.length; i++) {
+            subquestionTexts.item(i).innerHTML = subquestionTextSplit[i];
+        }
+
+        possibleAnswerList.unshift(getOptionPlaceholderText());
+        var studentAnswerSelects = document.getElementsByClassName("student-answer-select");
+        for (var i = 0; i < studentAnswerSelects.length; i++) {
+            for (var j = 0; j < possibleAnswerList.length; j++) {
+                var opt = document.createElement('option');
+                opt.value = possibleAnswerList[j];
+                opt.innerHTML = possibleAnswerList[j];
+                studentAnswerSelects.item(i).appendChild(opt);
+            }
+        }
+    }
+    else if (subquestionType == 10) {
+        var possibleAnswerList = [];
+        var possibleAnswerListStringSplit = possibleAnswerListString.split(";");
+        var min = possibleAnswerListStringSplit[0];
+        var max = possibleAnswerListStringSplit[1];
+
+        var sliderQuestion = document.getElementById("slider-question");
+        sliderQuestion.min = min;
+        sliderQuestion.max = max;
+        sliderQuestion.value = Math.round((parseInt(min) + parseInt(max)) / 2);
+        sliderQuestion.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
+    }
+}
+
+function addStudentAnswer(subquestionType) {
+    var table = document.getElementById('student-answers-table');
+    var rowCount = table.rows.length;
+    var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
+    if (subquestionType == 1 || subquestionType == 2 || subquestionType == 3 || subquestionType == 6) {
+        var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
+        var lastRowId = parseInt(lastRowIdArray[2]);
+        lastRowId += 1;
+        var row = table.insertRow(rowCount);
+        row.innerHTML = lastRowInnerHTML;
+        row.id = "student-answer-" + lastRowId;
+    }
+    else if (subquestionType == 4) {
+        var lastRowRadioNameArray = table.rows[rowCount - 1].cells[1].getElementsByTagName("input")[0].name.split("-");
+        var lastRowRadioNumber = parseInt(lastRowRadioNameArray[3]);
+
+        var row = table.insertRow(rowCount);
+        row.innerHTML = lastRowInnerHTML;
+        row.id = "student-answer-" + lastRowId;
+        row.cells[1].getElementsByTagName("input")[0].name = "student-answer-radio-" + parseInt(lastRowRadioNumber + 1);
+        row.cells[2].getElementsByTagName("input")[0].name = "student-answer-radio-" + parseInt(lastRowRadioNumber + 1);
+
+        row.cells[1].getElementsByTagName("input")[0].checked = false;
+        row.cells[2].getElementsByTagName("input")[0].checked = false;
+    }
+}
+
+//adds another gap (another question) to the subquestion text of subquestion of type 9 - used for SolveQuestion.cshtml
+function addStudentGap() {
+    var br = document.createElement("br");
+    var additionalQuestions = document.getElementById("additional-questions");
+    additionalQuestions.appendChild(br);
+
+    var subquestionTexts = document.getElementsByClassName("subquestion-text");
+    var subquestionText = subquestionTexts[subquestionTexts.length - 1];
+    var clonedSubquestionText = subquestionText.cloneNode(true);
+    clonedSubquestionText.value = "";
+    additionalQuestions.appendChild(clonedSubquestionText);
+
+    var studentAnswerSelects = document.getElementsByClassName("student-answer-select");
+    var studentAnswerSelect = studentAnswerSelects[studentAnswerSelects.length - 1];
+    var clonedStudentAnswerSelect = studentAnswerSelect.cloneNode(true);
+    additionalQuestions.appendChild(clonedStudentAnswerSelect);
+    additionalQuestions.appendChild(br);
+}
+
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+
+        // Generate random number
+        var j = Math.floor(Math.random() * (i + 1));
+
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    return array;
+}
+
+//automatic update of student's available answers when dropdown menus are used after student selects an answer
+//subquestion types - 3, 9
+function updateStudentsAnswersSelect() {
+    var possibleAnswerArray = [];
+    $('.possible-answer-text').each(function () {
+        var answer = $(this).text();
+        possibleAnswerArray.push(answer);
+    });
+
+    var studentAnswerArray = [];
+    $('select.student-answer-select').each(function () {
+        var answer = $(this).val();
+        studentAnswerArray.push(answer);
+    });
+
+    var availableStudentAnswerArray = possibleAnswerArray.filter((item) => !studentAnswerArray.includes(item));
+
+    //clear all existing student's answers
+    $('select.student-answer-select').each(function () {
+        $(this).empty();
+    });
+    var studentAnswerSelect = document.getElementsByClassName('student-answer-select');
+    for (var i = 0; i < studentAnswerSelect.length; i++) {
+        //add currently selected option to each element
+        var opt = document.createElement('option');
+        opt.value = studentAnswerArray[i];
+        opt.innerHTML = studentAnswerArray[i];
+        studentAnswerSelect.item(i).appendChild(opt);
+
+        //add remaining available options to each element
+        for (var j = 0; j < availableStudentAnswerArray.length; j++) {
+            var opt = document.createElement('option');
+            opt.value = availableStudentAnswerArray[j];
+            opt.innerHTML = availableStudentAnswerArray[j];
+            studentAnswerSelect.item(i).appendChild(opt);
+        }
     }
 }
 
