@@ -163,9 +163,9 @@
                         <td>@subquestionPoints</td>
                     </tr>
                     @{
-                        string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
                         if (subquestionTemplate.ImageSource != null)
                         {
+                            string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
                             <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                         }
                     }

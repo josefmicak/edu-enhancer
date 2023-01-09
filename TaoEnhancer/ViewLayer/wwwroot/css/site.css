@@ -386,3 +386,13 @@ input[type=file] {
     border: 1px;
     border-style: solid;
 }
+
+/*SolveQuestion.cshtml*/
+
+#solve-question-navigation {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    border: 1px;
+    border-style: solid;
+}

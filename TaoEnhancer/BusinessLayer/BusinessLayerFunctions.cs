@@ -331,6 +331,35 @@ namespace BusinessLayer
             return resultFunctions.GetSubquestionResultIdList(testResult);
         }
 
+        public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, string login)
+        {
+            Student? student = GetStudentByLogin(login);
+            if (student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                await resultFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, student);
+            }
+        }
+
+        public async Task<(SubquestionResult, string?)> ValidateSubquestionResult(SubquestionResult subquestionResult, int subquestionResultIndex, string login, 
+            string[] possibleAnswers)
+        {
+            Student? student = GetStudentByLogin(login);
+            if (student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                SubquestionTemplate subquestionTemplate = await resultFunctions.GetSubquestionTemplateBySubquestionResultIndex(subquestionResultIndex, student);
+                subquestionResult.SubquestionTemplate = subquestionTemplate;
+                return resultFunctions.ValidateSubquestionResult(subquestionResult, possibleAnswers);
+            }
+        }
+
         public async Task<string> DeleteTestResults(string login)
         {
             return await resultFunctions.DeleteTestResults(login);

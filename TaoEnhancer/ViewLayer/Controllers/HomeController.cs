@@ -1806,8 +1806,13 @@ namespace ViewLayer.Controllers
                 action = TempData["action"]!.ToString();
             }
 
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
             //the user has just started the attempt - the very first subquestion is shown to him then
-            if(businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultIdList.Contains(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
+            if (businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultIdList.Contains(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
             {
                 for(int i = 0; i < testResult.QuestionResultList.Count; i++)
                 {
@@ -1868,9 +1873,20 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public IActionResult SolveQuestion(string action)
+        public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string action, int subquestionResultIndex, string[] possibleAnswers)
         {
-            TempData["action"] = action;
+            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string? errorMessage = null;
+            (subquestionResult, errorMessage) = await businessLayerFunctions.ValidateSubquestionResult(subquestionResult, subquestionResultIndex, login, possibleAnswers);
+            if(errorMessage != null)
+            {
+                TempData["Message"] = errorMessage;
+            }
+            else
+            {
+                await businessLayerFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, login);
+                TempData["action"] = action;
+            }
             return RedirectToAction(nameof(SolveQuestion));
         }
 

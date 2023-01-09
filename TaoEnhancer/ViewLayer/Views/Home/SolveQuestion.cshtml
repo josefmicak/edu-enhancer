@@ -19,24 +19,33 @@
 
     string possibleAnswerListString = "";
     string correctAnswerListString = "";
+    string studentAnswerListString = "";
     string subquestionText = "";
     if (subquestionTemplate != null)
     {
         subquestionText = subquestionTemplate.SubquestionText;
         if (subquestionTemplate.PossibleAnswerList != null)
         {
-            for (int j = 0; j < subquestionTemplate.PossibleAnswerList.Count(); j++)
+            for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Count(); i++)
             {
-                possibleAnswerListString += subquestionTemplate.PossibleAnswerList[j] + ";";
+                possibleAnswerListString += subquestionTemplate.PossibleAnswerList[i] + ";";
             }
         }
 
         if (subquestionTemplate.CorrectAnswerList != null)
         {
-            for (int j = 0; j < subquestionTemplate.CorrectAnswerList.Count(); j++)
+            for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Count(); i++)
             {
-                correctAnswerListString += subquestionTemplate.CorrectAnswerList[j] + ";";
+                correctAnswerListString += subquestionTemplate.CorrectAnswerList[i] + ";";
             }
+        }
+    }
+
+    if(subquestionResult.StudentsAnswerList != null)
+    {
+        for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+        {
+            studentAnswerListString += subquestionResult.StudentsAnswerList[i] + ";";
         }
     }
 
@@ -45,6 +54,10 @@
 
 <div class="text-center">
     <h1>Řešení testové otázky</h1>
+
+    <div id="solve-question-navigation">
+        <p>@ViewBag.Message</p>
+    </div>
 
     <div id="subquestion-details">
         <h2>Otázka @(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
@@ -55,26 +68,40 @@
             }
             else
             {
-                <form method="POST">
+                <form method="POST" onsubmit="onSolveQuestionFormSubmission(@subquestionType)">
+                    <input type="hidden" name="subquestionResultIndex" value="@subquestionResultIdIndex">
                     <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
                     <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
                     <br>
+                    @{
+                        if (subquestionTemplate.ImageSource != null)
+                        {
+                            string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
+                            <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
+                        }
+                    }
                     <div id="SubquestionText">@subquestionTemplate.SubquestionText</div>
                     <br>
                     @{
                         switch(subquestionType)
                         {
                             case 1:
+                                <table id="possible-answers-table">
+                                    <tr>
+                                        <th>Možné odpovědi</th>
+                                    </tr>
+                                    <tr id="possible-answer-1">
+                                        <td><div class="possible-answer-text"></div></td>
+                                    </tr>
+                                </table>
                                 <table id="student-answers-table">
                                     <tr>
                                         <th>Odpověď</th>
-                                        <th>Nahoru</th>
-                                        <th>Dolů</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><input readonly class="student-answer-input" type="text" name="StudentsAnswerList[]"></td>
-                                        <td><button type="button" class="student-answer-move" onclick="moveAnswer('up', this.parentNode.parentNode.id, '2')">∧</button></td>
-                                        <td><button type="button" class="student-answer-move" onclick="moveAnswer('down', this.parentNode.parentNode.id, '2')">∨</button></td>
+                                        <td><select class="student-answer-select" name="StudentsAnswerList[]"
+                                        onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                        </td>
                                     </tr>
                                 </table>
                                 break;
@@ -85,7 +112,8 @@
                                         <th>Odpověď</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><input type="checkbox" id="student-answer-checkbox-1" name="student-answer-checkbox"></td>
+                                        <input type="hidden" class="student-answer-hidden">
+                                        <td><input type="checkbox" class="student-answer-checkbox"></td>
                                         <td></td>
                                     </tr>
                                 </table>
@@ -105,8 +133,10 @@
                                     </tr>
                                     <tr id="student-answer-1">
                                         <td>
-                                            <select class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select> -
-                                            <select class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                            <select class="student-answer-select" name="StudentsAnswerList[]"
+                                                onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select> -
+                                            <select class="student-answer-select" name="StudentsAnswerList[]"
+                                                onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                         </td>
                                     </tr>
                                 </table>
@@ -119,7 +149,9 @@
                                         <th>Ne (neplatí)</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><div class="possible-answer-text"></div></td>
+                                        <td><div class="possible-answer-text"></div>
+                                            <input type="hidden" class="possible-answer-hidden" name="possibleAnswers[]">
+                                        </td>
                                         <td>
                                             <input checked class="student-answer-radio" type="radio" name="student-answer-radio-1">
                                             <input type="hidden" class="student-answer-hidden" name="StudentsAnswerList[]">Ano
@@ -129,7 +161,7 @@
                                 </table>
                                 break;
                             case 5:
-                                <textarea name="StudentsAnswerList[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
+                                <textarea id="student-answer" name="StudentsAnswerList[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
                                 break;
                             case 6:
                                 <table id="student-answers-table">
@@ -142,6 +174,7 @@
                                         <td></td>
                                     </tr>
                                 </table>
+                                <input type="hidden" class="student-answer-hidden" name="StudentsAnswerList[]">
                                 break;
                             case 7:
                                 <div id="subquestion-text-1"></div>
@@ -150,7 +183,7 @@
                                 break;
                             case 8:
                                 <div id="subquestion-text-1"></div>
-                                <input type="text" id="gap-text" placeholder="(DOPLŇTE)">
+                                <input type="text" id="gap-text" name="StudentsAnswerList[]" placeholder="(DOPLŇTE)">
                                 <div id="subquestion-text-2"></div>
                                 break;
                             case 9:
@@ -164,15 +197,17 @@
                                 </table>
 
                                 <div id="subquestion-text-1" class="subquestion-text"></div>
-                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswerList[]"
+                                    onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                 <div id="subquestion-text-2" class="subquestion-text"></div>
-                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswerList[]" onchange="updateStudentsAnswersSelect()"></select>
+                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswerList[]"
+                                    onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                 <div id="subquestion-text-3" class="subquestion-text"></div>
                                 <div id="additional-questions"></div>
                                 break;
                             case 10:
-                                <input type="hidden" name="sliderValues" id="sliderValues">
-                                <input type="range" id="slider-question" value="50" min="1" max="100" 
+                                <input type="hidden">
+                                <input type="range" id="slider-question" value="50" min="1" max="100" name="StudentsAnswerList[]"
                                 oninput="this.nextElementSibling.value = this.value">
                                 <output>50</output>
                                 break;
@@ -185,10 +220,11 @@
     </div>
 </div>
 
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="/js/site.js"></script>
 <script>
     solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@possibleAnswerListString',
-        '@correctAnswerListString', '@subquestionText');
+        '@correctAnswerListString', '@subquestionText', '@studentAnswerListString');
 </script>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

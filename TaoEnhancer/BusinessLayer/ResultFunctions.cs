@@ -528,6 +528,228 @@ namespace BusinessLayer
             return subquestionResultIdList;
         }
 
+        public (SubquestionResult, string?) ValidateSubquestionResult(SubquestionResult subquestionResult, string[] possibleAnswers)
+        {
+            SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+            string? errorMessage = null;
+
+            if (subquestionResult.StudentsAnswerList == null)
+            {
+                subquestionResult.StudentsAnswerList = new string[0];
+            }
+
+            for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+            {
+                if(subquestionResult.StudentsAnswerList[i] != null)
+                {
+                    subquestionResult.StudentsAnswerList[i].Replace("|", "");//replace gap separator
+                    subquestionResult.StudentsAnswerList[i].Replace(";", "");//replace answer separator
+                }
+            }
+
+            //placeholder text gets binded to the student's answer array as well - it's necessary to remove these elements
+            string placeholderText = "-ZVOLTE MOŽNOST-";
+            if(subquestionTemplate.SubquestionType != SubquestionType.GapMatch)
+            {
+                subquestionResult.StudentsAnswerList = subquestionResult.StudentsAnswerList.Where(s => s != placeholderText).ToArray();
+            }
+            else
+            {
+                for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                {
+                    if (subquestionResult.StudentsAnswerList[i] == placeholderText)
+                    {
+                        subquestionResult.StudentsAnswerList[i] = "|";
+                    }
+                }
+            }
+
+            switch (subquestionTemplate.SubquestionType)
+            {
+                case SubquestionType.Error:
+                    errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1001";
+                    break;
+                case SubquestionType.OrderingElements:
+                    if(subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
+                    }
+                    for(int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
+                        }
+                    }
+                    break;
+                case SubquestionType.MultiChoiceMultipleCorrectAnswers:
+                    if(subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
+                    }
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
+                        }
+                    }
+                    break;
+                case SubquestionType.MatchingElements:
+                    if (subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
+                    }
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
+                        }
+                    }
+                    if (subquestionResult.StudentsAnswerList.Length % 2 == 1)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1005";
+                    }
+                    else
+                    {
+                        string[] newstudentsAnswerList = new string[subquestionResult.StudentsAnswerList.Length / 2];
+                        for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                        {
+                            if (i % 2 == 1)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                int index = i / 2;
+                                newstudentsAnswerList[index] = subquestionResult.StudentsAnswerList[i] + "|" + subquestionResult.StudentsAnswerList[i + 1];
+                            }
+                        }
+                        subquestionResult.StudentsAnswerList = newstudentsAnswerList;
+                    }
+                    break;
+                case SubquestionType.MultipleQuestions:
+                    //the answers are in wrong order because of shuffle - we have to rearrange them
+                    string[] studentsAnswers = subquestionResult.StudentsAnswerList;
+                    subquestionResult.StudentsAnswerList = new string[possibleAnswers.Length];
+                    for (int i = 0; i < subquestionResult.SubquestionTemplate.PossibleAnswerList.Length; i++)   
+                    {
+                        for (int j = 0; j < possibleAnswers.Length; j++)
+                        {
+                            if (possibleAnswers[j] == subquestionResult.SubquestionTemplate.PossibleAnswerList[i])
+                            {
+                                subquestionResult.StudentsAnswerList[i] = studentsAnswers[j];
+                                break;
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        if (subquestionResult.StudentsAnswerList[i] == null)
+                        {
+                            subquestionResult.StudentsAnswerList[i] = "X";//unanswered
+                        }
+                        if(subquestionResult.StudentsAnswerList[i] != "0" && subquestionResult.StudentsAnswerList[i] != "1" && subquestionResult.StudentsAnswerList[i] != "X")
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1010";
+                        }
+                    }
+                    if (subquestionResult.StudentsAnswerList.Length != subquestionTemplate.PossibleAnswerList.Length)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
+                    }
+                    break;
+                case SubquestionType.FreeAnswer:
+                    break;
+                case SubquestionType.MultiChoiceSingleCorrectAnswer:
+                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
+                    }
+                    break;
+                case SubquestionType.MultiChoiceTextFill:
+                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
+                    }
+                    break;
+                case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
+                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
+                    }
+                    break;
+                case SubquestionType.GapMatch:
+                    if (subquestionResult.StudentsAnswerList.Length > subquestionTemplate.CorrectAnswerList.Length)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1007";
+                    }
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        if (!subquestionTemplate.CorrectAnswerList.Contains(subquestionResult.StudentsAnswerList[i]) && subquestionResult.StudentsAnswerList[i] != "|")
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
+                        }
+                    }
+                    break;
+                case SubquestionType.Slider:
+                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    {
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1008";
+                    }
+                    if (subquestionResult.StudentsAnswerList.Length == 1)
+                    {
+                        bool isNumber = int.TryParse(subquestionResult.StudentsAnswerList[0], out _);
+                        if (!isNumber)
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1009";
+                        }
+                    }
+                    break;
+            }
+            return (subquestionResult, errorMessage);
+        }
+
+        public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, Student student)
+        {
+            TestResult testResult = await LoadLastStudentAttempt(student);
+            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                {
+                    if(j == subquestionResultIndex)
+                    {
+                        questionResult.SubquestionResultList.ElementAt(j).StudentsAnswerList = subquestionResult.StudentsAnswerList;
+                        //todo: status, correctness
+                        break;
+                    }
+                }
+            }
+            await dataFunctions.SaveChangesAsync();
+        }
+
+        public async Task<SubquestionTemplate> GetSubquestionTemplateBySubquestionResultIndex(int subquestionResultIndex, Student student)
+        {
+            TestResult testResult = await LoadLastStudentAttempt(student);
+            for (int i = 0; i < testResult.QuestionResultList.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                for (int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                {
+                    if (j == subquestionResultIndex)
+                    {
+                        return questionResult.SubquestionResultList.ElementAt(j).SubquestionTemplate;
+                    }
+                }
+            }
+            throw Exceptions.SubquestionTemplateNotFoundException;
+        }
+
         public string GenerateRandomString()//random string - will be deleted after domain model change
         {
             // Creating object of random class
