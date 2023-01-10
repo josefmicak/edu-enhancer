@@ -77,6 +77,17 @@
         }
 
         /// <summary>
+        /// Whether student has answered this subquestion (Answered, PartiallyAnswered, Unanswered)
+        /// </summary>
+        public enum AnswerCompleteness
+        {
+            NotDetermined = 0,
+            Answered = 1,
+            PartiallyAnswered = 2,
+            Unanswered = 3
+        }
+
+        /// <summary>
         /// Artificial intelligence model (NotDetermined/NeuralNetwork/MachineLearning)
         /// </summary>
         public enum Model

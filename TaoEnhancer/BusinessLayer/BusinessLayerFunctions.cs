@@ -326,9 +326,9 @@ namespace BusinessLayer
             }
         }
 
-        public List<int> GetSubquestionResultIdList(TestResult testResult)
+        public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
         {
-            return resultFunctions.GetSubquestionResultIdList(testResult);
+            return resultFunctions.GetSubquestionResultsProperties(testResult);
         }
 
         public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, string login)

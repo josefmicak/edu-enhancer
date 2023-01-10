@@ -513,19 +513,109 @@ namespace BusinessLayer
             return await dataFunctions.LoadLastStudentAttempt(student);
         }
 
-        public List<int> GetSubquestionResultIdList(TestResult testResult)
+        public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
         {
-            List<int> subquestionResultIdList = new List<int>();
+            List<(int, AnswerCompleteness)> subquestionResultsProperties = new List<(int, AnswerCompleteness)>();
             for(int i = 0; i < testResult.QuestionResultList.Count; i++)
             {
                 QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
 
                 for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
                 {
-                    subquestionResultIdList.Add(questionResult.SubquestionResultList.ElementAt(j).Id);
+                    SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(j);
+                    SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+                    AnswerCompleteness answerCompleteness = new AnswerCompleteness();
+                    switch (subquestionTemplate.SubquestionType)
+                    {
+                        case SubquestionType.OrderingElements:
+                            if(subquestionResult.StudentsAnswerList.Length == 0)
+                            {
+                                answerCompleteness = AnswerCompleteness.Unanswered;
+                            }
+                            else if(subquestionResult.StudentsAnswerList.Length == subquestionTemplate.PossibleAnswerList.Length)
+                            {
+                                answerCompleteness = AnswerCompleteness.Answered;
+                            }
+                            else
+                            {
+                                answerCompleteness = AnswerCompleteness.PartiallyAnswered;
+                            }
+                            break;
+                        case SubquestionType n when (n == SubquestionType.MultiChoiceMultipleCorrectAnswers || n == SubquestionType.FreeAnswer ||
+                                n == SubquestionType.MultiChoiceSingleCorrectAnswer || n == SubquestionType.MultiChoiceTextFill ||
+                                n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || n == SubquestionType.Slider):
+                            if (subquestionResult.StudentsAnswerList.Length == 0)
+                            {
+                                answerCompleteness = AnswerCompleteness.Unanswered;
+                            }
+                            else
+                            {
+                                answerCompleteness = AnswerCompleteness.Answered;
+                            }
+                            break;
+                        case SubquestionType.MatchingElements:
+                            if (subquestionResult.StudentsAnswerList.Length == 0)
+                            {
+                                answerCompleteness = AnswerCompleteness.Unanswered;
+                            }
+                            else if (subquestionResult.StudentsAnswerList.Length < subquestionTemplate.PossibleAnswerList.Length / 2)
+                            {
+                                answerCompleteness = AnswerCompleteness.PartiallyAnswered;
+                            }
+                            else
+                            {
+                                answerCompleteness = AnswerCompleteness.Answered;
+                            }
+                            break;
+                        case SubquestionType.MultipleQuestions:
+                            int unansweredCount = 0;
+                            for (int k = 0; k < subquestionResult.StudentsAnswerList.Length; k++)
+                            {
+                                if (subquestionResult.StudentsAnswerList[k] == "X")
+                                {
+                                    unansweredCount++;
+                                }
+                            }
+                            if (subquestionResult.StudentsAnswerList.Length - unansweredCount == 0)
+                            {
+                                answerCompleteness = AnswerCompleteness.Unanswered;
+                            }
+                            else if(subquestionResult.StudentsAnswerList.Length - unansweredCount < subquestionTemplate.PossibleAnswerList.Length)
+                            {
+                                answerCompleteness = AnswerCompleteness.PartiallyAnswered;
+                            }
+                            else
+                            {
+                                answerCompleteness = AnswerCompleteness.Answered;
+                            }
+                            break;
+                        case SubquestionType.GapMatch:
+                            unansweredCount = 0;
+                            for (int k = 0; k < subquestionResult.StudentsAnswerList.Length; k++)
+                            {
+                                if (subquestionResult.StudentsAnswerList[k] == "|")
+                                {
+                                    unansweredCount++;
+                                }
+                            }
+                            if (subquestionResult.StudentsAnswerList.Length - unansweredCount == 0)
+                            {
+                                answerCompleteness = AnswerCompleteness.Unanswered;
+                            }
+                            else if (subquestionResult.StudentsAnswerList.Length - unansweredCount < subquestionTemplate.CorrectAnswerList.Length)
+                            {
+                                answerCompleteness = AnswerCompleteness.PartiallyAnswered;
+                            }
+                            else
+                            {
+                                answerCompleteness = AnswerCompleteness.Answered;
+                            }
+                            break;
+                    }
+                    subquestionResultsProperties.Add((subquestionResult.Id, answerCompleteness));
                 }
             }
-            return subquestionResultIdList;
+            return subquestionResultsProperties;
         }
 
         public (SubquestionResult, string?) ValidateSubquestionResult(SubquestionResult subquestionResult, string[] possibleAnswers)
@@ -698,6 +788,10 @@ namespace BusinessLayer
                     if (subquestionResult.StudentsAnswerList.Length > 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1008";
+                    }
+                    if (subquestionResult.StudentsAnswerList[0] == "Nezodpovězeno")
+                    {
+                        subquestionResult.StudentsAnswerList = new string[0];
                     }
                     if (subquestionResult.StudentsAnswerList.Length == 1)
                     {

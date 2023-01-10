@@ -1292,7 +1292,7 @@ function removeStudentsFromSubject() {
 //SolveQuestion.cshtml
 
 function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdIndex, subquestionType, possibleAnswerListString,
-    correctAnswerListString, subquestionText, studentAnswerListString) {
+    correctAnswerListString, subquestionText, studentAnswerListString, answerCompletenessString) {
     //disable buttons in case first or last subquestion is shown
     if (subquestionResultIdIndex == 0) {
         document.getElementById("previousSubquestion").disabled = true;
@@ -1459,7 +1459,6 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
         sliderQuestion.min = min;
         sliderQuestion.max = max;
         sliderQuestion.value = Math.round((parseInt(min) + parseInt(max)) / 2);
-        sliderQuestion.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
     }
 
     //process student's answer (in case he had already answered this subquestion and has returned to it)
@@ -1564,10 +1563,14 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
     else if (subquestionType == 10) {
         if (studentAnswerListString != "") {
             var slider = document.getElementById("slider-question");
-            slider.value = studentAnswerListString.slice(0, -1);//remove semicolon
+            var value = studentAnswerListString.slice(0, -1);//remove semicolon
+            slider.value = value
             slider.dispatchEvent(new Event("input"));
+            changeSliderOutputs(value);
         }
     }
+
+    addTestNavigationTableElements(answerCompletenessString);
 }
 
 function addStudentAnswer(subquestionType) {
@@ -1638,13 +1641,11 @@ function updateStudentsAnswersSelect(parentNodeId, subquestionType) {
         var answer = $(this).text();
         possibleAnswerArray.push(answer);
     });
-
     var studentAnswerArray = [];
     $('select.student-answer-select').each(function () {
         var answer = $(this).val();
         studentAnswerArray.push(answer);
     });
-
     var availableStudentAnswerArray = possibleAnswerArray.filter((item) => !studentAnswerArray.includes(item));
     //clear all existing student's answers
     $('select.student-answer-select').each(function () {
@@ -1725,6 +1726,102 @@ function onSolveQuestionFormSubmission(subquestionType) {
             }
             break;
     }
+}
+
+function resetStudentAnswers(subquestionType) {
+    var studentAnswerTable = document.getElementById("student-answers-table");
+    switch (subquestionType) {
+        case 1:
+        case 3:
+        case 9:
+            var possibleAnswerArray = [];
+            possibleAnswerArray.push(getOptionPlaceholderText());
+            $('.possible-answer-text').each(function () {
+                var answer = $(this).text();
+                possibleAnswerArray.push(answer);
+            });
+
+            var studentAnswerSelects = document.getElementsByClassName('student-answer-select');
+            $(".student-answer-select").empty();
+            for (var i = 0; i < studentAnswerSelects.length; i++) {
+                for (var j = 0; j < possibleAnswerArray.length; j++) {
+                    var opt = document.createElement('option');
+                    opt.value = possibleAnswerArray[j];
+                    opt.innerHTML = possibleAnswerArray[j];
+                    studentAnswerSelects.item(i).appendChild(opt);
+                }
+            }
+            break;
+        case 2:
+        case 6:
+            for (var i = 1; i < studentAnswerTable.rows.length; i++) {
+                studentAnswerTable.rows[i].cells[0].getElementsByTagName("input")[0].checked = false;
+            }
+            break;
+        case 4:
+            for (var i = 1; i < studentAnswerTable.rows.length; i++) {
+                studentAnswerTable.rows[i].cells[1].getElementsByTagName("input")[0].checked = false;
+                studentAnswerTable.rows[i].cells[2].getElementsByTagName("input")[0].checked = false;
+            }
+            break;
+        case 5:
+            document.getElementById("student-answer").value = "";
+            break;
+        case 7:
+            var studentAnswerSelect = document.getElementById('student-answer-select');
+            studentAnswerSelect.value = getOptionPlaceholderText();
+            break;
+        case 8:
+            document.getElementById("gap-text").value = "";
+            break;
+        case 10:
+            var slider = document.getElementById("slider-question");
+            slider.value = Math.round((parseInt(slider.min) + parseInt(slider.max)) / 2);
+            changeSliderOutputs("Nezodpovězeno");
+            break;
+    }
+}
+
+function changeSliderOutputs(value) {
+    document.getElementById("slider-question").nextElementSibling.value = value;
+    document.getElementById("student-answer-hidden").value = value;
+}
+
+function addTestNavigationTableElements(answerCompletenessString) {
+    console.log(answerCompletenessString);
+    var navigation = document.getElementById("solve-question-navigation");
+    var navigationElements = document.getElementsByClassName("navigation-element");
+    var navigationElement = navigationElements[0];
+
+    var answerCompletenessArray = [];
+    var answerCompletenessStringSplit = answerCompletenessString.split(";");
+    for (var i = 0; i < answerCompletenessStringSplit.length - 1; i++) {
+        answerCompletenessArray.push(answerCompletenessStringSplit[i]);
+    }
+    console.log(answerCompletenessArray);
+    var colorArray = ["gray", "lightgreen", "orange", "red"];
+    navigationElement.style.backgroundColor = colorArray[answerCompletenessArray[0]];//set color of first navigation element manually
+    
+    for (var i = 1; i < answerCompletenessArray.length; i++) {
+        var clonedNavigationElement = navigationElement.cloneNode(true);
+        clonedNavigationElement.value = (i + 1);
+        clonedNavigationElement.innerHTML = (i + 1);
+        clonedNavigationElement.style.backgroundColor = colorArray[answerCompletenessArray[i]];
+        console.log(i + ". color set to " + colorArray[answerCompletenessArray[i]]);
+        navigation.appendChild(clonedNavigationElement);
+        //different cases required because one navigation element is added by default
+        if ((i + 1) % 5 == 0) {
+            navigation.appendChild(document.createElement("br"));
+        }
+    }
+}
+
+function navigateToSubquestion(subquestionIndex) {
+    subquestionIndex -= 1;
+    var nextSubquestionButton = document.getElementById("nextSubquestion");
+    nextSubquestionButton.disabled = false;
+    nextSubquestionButton.value = subquestionIndex;
+    nextSubquestionButton.click();
 }
 
 //General

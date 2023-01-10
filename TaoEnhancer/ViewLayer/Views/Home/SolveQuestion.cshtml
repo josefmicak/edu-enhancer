@@ -49,6 +49,13 @@
         }
     }
 
+    int[] answerCompleteness = ViewBag.AnswerCmpleteness;
+    string answerCompletenessString = "";
+    for(int i = 0; i < answerCompleteness.Length; i++)
+    {
+        answerCompletenessString += answerCompleteness[i] + ";";
+    }
+
     ViewData["Title"] = "Řešení testové otázky";
 }
 
@@ -56,11 +63,13 @@
     <h1>Řešení testové otázky</h1>
 
     <div id="solve-question-navigation">
+        <h2>@(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
         <p>@ViewBag.Message</p>
+        <button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button>
     </div>
 
     <div id="subquestion-details">
-        <h2>Otázka @(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
+        <h2>Otázka č. @(subquestionResultIdIndex + 1)</h2>
         @{
             if (subquestionTemplate == null)
             {
@@ -70,8 +79,10 @@
             {
                 <form method="POST" onsubmit="onSolveQuestionFormSubmission(@subquestionType)">
                     <input type="hidden" name="subquestionResultIndex" value="@subquestionResultIdIndex">
-                    <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
-                    <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+                    <button type="submit" id="previousSubquestion" value="@(subquestionResultIdIndex - 1)" name="newSubquestionResultIndex">Předchozí</button>
+                    <button type="submit" id="nextSubquestion" value="@(subquestionResultIdIndex + 1)" name="newSubquestionResultIndex">Následující</button>
+                    <br>
+                    <input type="button" onclick="resetStudentAnswers(@subquestionType)" value="Vymazat odpovědi">
                     <br>
                     @{
                         if (subquestionTemplate.ImageSource != null)
@@ -206,10 +217,10 @@
                                 <div id="additional-questions"></div>
                                 break;
                             case 10:
-                                <input type="hidden">
-                                <input type="range" id="slider-question" value="50" min="1" max="100" name="StudentsAnswerList[]"
-                                oninput="this.nextElementSibling.value = this.value">
-                                <output>50</output>
+                                <input type="hidden" id="student-answer-hidden" name="StudentsAnswerList[]" value="Nezodpovězeno">
+                                <input type="range" id="slider-question" value="50" min="1" max="100"
+                                    oninput="changeSliderOutputs(this.value)">
+                                <output>Nezodpovězeno</output>
                                 break;
                         }
                     }
@@ -224,7 +235,7 @@
 <script src="/js/site.js"></script>
 <script>
     solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@possibleAnswerListString',
-        '@correctAnswerListString', '@subquestionText', '@studentAnswerListString');
+        '@correctAnswerListString', '@subquestionText', '@studentAnswerListString', '@answerCompletenessString');
 </script>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

@@ -9,11 +9,7 @@ using System.Net.Mail;
 using System.Dynamic;
 using Common;
 using BusinessLayer;
-using System.Collections.Generic;
-using System;
-using NuGet.Protocol.Plugins;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
-using System.Collections;
+using static Common.EnumTypes;
 
 namespace ViewLayer.Controllers
 {
@@ -1794,17 +1790,12 @@ namespace ViewLayer.Controllers
             }
         }
 
-        public async Task<IActionResult> SolveQuestion()
+        public async Task<IActionResult> SolveQuestion(int questionNr)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             TestResult testResult = await businessLayerFunctions.LoadLastStudentAttempt(login);
-            List<int> subquestionResultIdList = businessLayerFunctions.GetSubquestionResultIdList(testResult);
+            List<(int, AnswerCompleteness)> subquestionResultsProperties = businessLayerFunctions.GetSubquestionResultsProperties(testResult);
             SubquestionResult subquestionResult = new SubquestionResult();
-            string? action = null;
-            if(TempData["action"] != null)
-            {
-                action = TempData["action"]!.ToString();
-            }
 
             if (TempData["Message"] != null)
             {
@@ -1812,7 +1803,7 @@ namespace ViewLayer.Controllers
             }
 
             //the user has just started the attempt - the very first subquestion is shown to him then
-            if (businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultIdList.Contains(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
+            if (businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultsProperties.Any(s => s.Item1 == int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
             {
                 for(int i = 0; i < testResult.QuestionResultList.Count; i++)
                 {
@@ -1827,28 +1818,21 @@ namespace ViewLayer.Controllers
                 }
                 businessLayerFunctions.SetStudentSubquestionResultId(subquestionResult.Id);
 
-                ViewBag.SubquestionsCount = subquestionResultIdList.Count;
+                ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
                 ViewBag.SubquestionResultIdIndex = 0;
             }
             else
             {
-                int oldSubquestionResultIdIndex = subquestionResultIdList.IndexOf(int.Parse(businessLayerFunctions.GetStudentSubquestionResultId()!));
-                int newSubquestionResultIdIndex = oldSubquestionResultIdIndex;
-                if (action == "previousSubquestion")
+                int newSubquestionResultId;
+                if(questionNr < 0 || questionNr > subquestionResultsProperties.Count())
                 {
-                    if(oldSubquestionResultIdIndex > 0)
-                    {
-                        newSubquestionResultIdIndex--;
-                    }
+                    newSubquestionResultId = subquestionResultsProperties[0].Item1;
+                    ViewBag.Message = "Chyba: tato otázka neexistuje.";
                 }
-                else if (action == "nextSubquestion")
+                else
                 {
-                    if (oldSubquestionResultIdIndex < subquestionResultIdList.Count - 1)
-                    {
-                        newSubquestionResultIdIndex++;
-                    }
+                    newSubquestionResultId = subquestionResultsProperties[questionNr].Item1;
                 }
-                int newSubquestionResultId = subquestionResultIdList.ElementAt(newSubquestionResultIdIndex);
                 businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
 
                 for (int i = 0; i < testResult.QuestionResultList.Count; i++)
@@ -1866,17 +1850,23 @@ namespace ViewLayer.Controllers
                     }
                 }
 
-                ViewBag.SubquestionsCount = subquestionResultIdList.Count;
-                ViewBag.SubquestionResultIdIndex = newSubquestionResultIdIndex;
+                ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
+                ViewBag.SubquestionResultIdIndex = questionNr;
             }
+            int[] answerCompleteness = new int[subquestionResultsProperties.Count];
+            for(int i = 0; i < subquestionResultsProperties.Count; i++)
+            {
+                answerCompleteness[i] = (int)subquestionResultsProperties[i].Item2;
+            }
+            ViewBag.AnswerCmpleteness = answerCompleteness;
             return View(subquestionResult);
         }
 
         [HttpPost]
-        public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string action, int subquestionResultIndex, string[] possibleAnswers)
+        public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string newSubquestionResultIndex, int subquestionResultIndex, string[] possibleAnswers)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            string? errorMessage = null;
+            string? errorMessage;
             (subquestionResult, errorMessage) = await businessLayerFunctions.ValidateSubquestionResult(subquestionResult, subquestionResultIndex, login, possibleAnswers);
             if(errorMessage != null)
             {
@@ -1885,9 +1875,8 @@ namespace ViewLayer.Controllers
             else
             {
                 await businessLayerFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, login);
-                TempData["action"] = action;
             }
-            return RedirectToAction(nameof(SolveQuestion));
+            return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
         }
 
         public IActionResult AccessDeniedAction()
