@@ -271,7 +271,7 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechny správce?";
     }
     else if (action == "changeMainAdmin") {
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete změnit tohoto správce na hlavního administrátora?" + 
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete změnit tohoto správce na hlavního administrátora?" +
             " (provedením této akce bude váš účet změněn z hlavního administrátora na správce).";
     }
     else if (action == "deleteSubject") {
@@ -535,7 +535,7 @@ function updateCorrectAnswersInput() {
     } 
     table.rows[1].cells[0].getElementsByTagName("input")[0].value = "";
 
-    for (var i = 0; i < possibleAnswerArray.length - 2; i++) {//todo: -1 ?
+    for (var i = 0; i < possibleAnswerArray.length - 2; i++) {
         rowCount = table.rows.length;
         var lastRowInnerHTML = table.rows[rowCount - 1].innerHTML;
         var lastRowIdArray = table.rows[rowCount - 1].id.split("-");
@@ -1652,39 +1652,19 @@ function updateStudentsAnswersSelect(parentNodeId, subquestionType) {
         $(this).empty();
     });
     var studentAnswerSelect = document.getElementsByClassName('student-answer-select');
-    var removeItem = false;
     for (var i = 0; i < studentAnswerSelect.length; i++) {
-        var studentAnswerSelectParentNodeId = studentAnswerSelect.item(i).parentNode.parentNode.id;
         //add currently selected option to each element
         var opt = document.createElement('option');
         opt.value = studentAnswerArray[i];
         opt.innerHTML = studentAnswerArray[i];
         studentAnswerSelect.item(i).appendChild(opt);
-        /*if (subquestionType == 3 && studentAnswerArray[i] == getOptionPlaceholderText() && studentAnswerSelectParentNodeId == parentNodeId) {
-            removeItem = true;
-        }
-        else {
-            studentAnswerSelect.item(i).appendChild(opt);
-        }*/
 
         //add remaining available options to each element
         for (var j = 0; j < availableStudentAnswerArray.length; j++) {
             var opt = document.createElement('option');
             opt.value = availableStudentAnswerArray[j];
             opt.innerHTML = availableStudentAnswerArray[j];
-            studentAnswerSelect.item(i).appendChild(opt);
-            /*if (subquestionType == 3 && availableStudentAnswerArray[j] == getOptionPlaceholderText() && studentAnswerSelectParentNodeId == parentNodeId) {
-                continue;
-            }
-            else {
-                studentAnswerSelect.item(i).appendChild(opt);
-                if (removeItem) {
-                    removeItem = false;
-                    console.log("removed " + availableStudentAnswerArray[j]);
-                    availableStudentAnswerArray.splice(j, 1);
-                }
-            }*/
-            
+            studentAnswerSelect.item(i).appendChild(opt);       
         }
     }
 }
@@ -1788,7 +1768,6 @@ function changeSliderOutputs(value) {
 }
 
 function addTestNavigationTableElements(answerCompletenessString) {
-    console.log(answerCompletenessString);
     var navigation = document.getElementById("solve-question-navigation");
     var navigationElements = document.getElementsByClassName("navigation-element");
     var navigationElement = navigationElements[0];
@@ -1798,7 +1777,6 @@ function addTestNavigationTableElements(answerCompletenessString) {
     for (var i = 0; i < answerCompletenessStringSplit.length - 1; i++) {
         answerCompletenessArray.push(answerCompletenessStringSplit[i]);
     }
-    console.log(answerCompletenessArray);
     var colorArray = ["gray", "lightgreen", "orange", "red"];
     navigationElement.style.backgroundColor = colorArray[answerCompletenessArray[0]];//set color of first navigation element manually
     
@@ -1807,7 +1785,6 @@ function addTestNavigationTableElements(answerCompletenessString) {
         clonedNavigationElement.value = (i + 1);
         clonedNavigationElement.innerHTML = (i + 1);
         clonedNavigationElement.style.backgroundColor = colorArray[answerCompletenessArray[i]];
-        console.log(i + ". color set to " + colorArray[answerCompletenessArray[i]]);
         navigation.appendChild(clonedNavigationElement);
         //different cases required because one navigation element is added by default
         if ((i + 1) % 5 == 0) {
@@ -1822,6 +1799,15 @@ function navigateToSubquestion(subquestionIndex) {
     nextSubquestionButton.disabled = false;
     nextSubquestionButton.value = subquestionIndex;
     nextSubquestionButton.click();
+}
+
+function turnTestIn() {
+    if (confirm('Chystáte se odevzdat test. V testu již nebude možné provádět žádné změny. Chcete pokračovat?')) {
+        var action = document.getElementById("action");
+        action.value = "turnTestIn";
+        var nextSubquestionButton = document.getElementById("nextSubquestion");
+        nextSubquestionButton.click();
+    }
 }
 
 //General

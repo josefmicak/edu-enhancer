@@ -356,7 +356,7 @@
                         Počet bodů za podotázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints"
                                                     onchange="updateChoicePoints(this, @selectedSubquestionType)" value="@Model.SubquestionPoints">
                     </p>
-                    <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" name="CorrectChoicePoints" value="@Model.CorrectChoicePoints"></p>
+                    <p>Počet bodů za správnou volbu: <input type="number" readonly id="correct-choice-points" value="@Model.CorrectChoicePoints"></p>
                     <p>Počet bodů za špatnou volbu:</p>
                     <input class="radio input" title="Automatický" type="radio" id="wrongChoicePoints_automatic_radio" value="wrongChoicePoints_automatic_radio"
                         name="wrongChoicePointsRadio" checked onchange="setWrongChoicePointsInputs(this)">

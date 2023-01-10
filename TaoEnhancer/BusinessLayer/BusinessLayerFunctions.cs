@@ -122,9 +122,14 @@ namespace BusinessLayer
             return await templateFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
         }
 
-        public List<SubquestionTemplate> ProcessSubquestionTemplateForView(List<SubquestionTemplate> subquestionTemplates)
+        public List<SubquestionTemplate> ProcessSubquestionTemplatesForView(List<SubquestionTemplate> subquestionTemplates)
         {
-            return templateFunctions.ProcessSubquestionTemplateForView(subquestionTemplates);
+            return templateFunctions.ProcessSubquestionTemplatesForView(subquestionTemplates);
+        }
+
+        public SubquestionTemplate ProcessSubquestionTemplateForView(SubquestionTemplate subquestionTemplate)
+        {
+            return templateFunctions.ProcessSubquestionTemplateForView(subquestionTemplate);
         }
 
         public TestTemplate GetTestTemplate(string testNumberIdentifier)
@@ -313,6 +318,19 @@ namespace BusinessLayer
             }
         }
 
+        public async Task FinishStudentAttempt(string login)
+        {
+            Student? student = GetStudentByLogin(login);
+            if (student == null)
+            {
+                throw Exceptions.UserNotFoundException;
+            }
+            else
+            {
+                await resultFunctions.FinishStudentAttempt(student);
+            }
+        }
+
         public async Task<TestResult> LoadLastStudentAttempt(string login)
         {
             Student? student = GetStudentByLogin(login);
@@ -433,6 +451,11 @@ namespace BusinessLayer
         public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
         {
             return resultFunctions.GetSubquestionResultStatisticsDbSet();
+        }
+
+        public SubquestionResult ProcessSubquestionResultForView(SubquestionResult subquestionResult)
+        {
+            return resultFunctions.ProcessSubquestionResultForView(subquestionResult);
         }
 
         //UserFunctions.cs

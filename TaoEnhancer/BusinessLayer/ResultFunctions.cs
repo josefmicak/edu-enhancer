@@ -743,7 +743,7 @@ namespace BusinessLayer
                         }
                         if(subquestionResult.StudentsAnswerList[i] != "0" && subquestionResult.StudentsAnswerList[i] != "1" && subquestionResult.StudentsAnswerList[i] != "X")
                         {
-                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1010";
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
                     if (subquestionResult.StudentsAnswerList.Length != subquestionTemplate.PossibleAnswerList.Length)
@@ -753,16 +753,17 @@ namespace BusinessLayer
                     break;
                 case SubquestionType.FreeAnswer:
                     break;
-                case SubquestionType.MultiChoiceSingleCorrectAnswer:
+                case SubquestionType n when (n == SubquestionType.MultiChoiceSingleCorrectAnswer || n == SubquestionType.MultiChoiceTextFill):
                     if (subquestionResult.StudentsAnswerList.Length > 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
                     }
-                    break;
-                case SubquestionType.MultiChoiceTextFill:
-                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    else if (subquestionResult.StudentsAnswerList.Length == 1)
                     {
-                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
+                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[0]))
+                        {
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
+                        }
                     }
                     break;
                 case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
@@ -842,6 +843,71 @@ namespace BusinessLayer
                 }
             }
             throw Exceptions.SubquestionTemplateNotFoundException;
+        }
+
+        public async Task FinishStudentAttempt(Student student)
+        {
+            TestResult testResult = await dataFunctions.LoadLastStudentAttempt(student);
+            testResult.TimeStamp = DateTime.Now;
+            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+
+                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                {
+                    SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(j);
+                    SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+                    (double? defaultStudentsPoints, double answerCorrectness, AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                        subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
+                        subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                    subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
+                    subquestionResult.StudentsPoints = defaultStudentsPoints;
+                    subquestionResult.AnswerCorrectness = answerCorrectness;
+                    subquestionResult.AnswerStatus = answerStatus;
+                }
+            }
+
+            await dataFunctions.SaveChangesAsync();
+        }
+
+        public SubquestionResult ProcessSubquestionResultForView(SubquestionResult subquestionResult)
+        {
+            switch (subquestionResult.SubquestionTemplate.SubquestionType)
+            {
+                case SubquestionType.MatchingElements:
+                    for(int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        subquestionResult.StudentsAnswerList[i] = subquestionResult.StudentsAnswerList[i].Replace("|", " -> ");
+                    }
+                    break;
+                case SubquestionType.MultipleQuestions:
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        string studentsAnswer = "";
+                        if (subquestionResult.StudentsAnswerList[i] == "1")
+                        {
+                            studentsAnswer = "Ano";
+                        }
+                        else if (subquestionResult.StudentsAnswerList[i] == "0")
+                        {
+                            studentsAnswer = "Ne";
+                        }
+                        else if (subquestionResult.StudentsAnswerList[i] == "X")
+                        {
+                            studentsAnswer = "Nezodpovězeno";
+                        }
+                        subquestionResult.StudentsAnswerList[i] = subquestionResult.SubquestionTemplate.PossibleAnswerList[i] + " -> " + studentsAnswer;
+                    }
+                    break;
+                case SubquestionType.GapMatch:
+                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    {
+                        subquestionResult.StudentsAnswerList[i] = "[" + (i + 1) + "] - " + subquestionResult.StudentsAnswerList[i];
+                    }
+                    break;
+            }
+
+            return subquestionResult;
         }
 
         public string GenerateRandomString()//random string - will be deleted after domain model change

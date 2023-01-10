@@ -77,13 +77,23 @@
             }
             else
             {
-                <form method="POST" onsubmit="onSolveQuestionFormSubmission(@subquestionType)">
+                <form method="POST" id="solve-question-form" onsubmit="onSolveQuestionFormSubmission(@subquestionType)">
                     <input type="hidden" name="subquestionResultIndex" value="@subquestionResultIdIndex">
+                    <input type="hidden" name="action" id="action">
                     <button type="submit" id="previousSubquestion" value="@(subquestionResultIdIndex - 1)" name="newSubquestionResultIndex">Předchozí</button>
                     <button type="submit" id="nextSubquestion" value="@(subquestionResultIdIndex + 1)" name="newSubquestionResultIndex">Následující</button>
                     <br>
                     <input type="button" onclick="resetStudentAnswers(@subquestionType)" value="Vymazat odpovědi">
                     <br>
+                    <p>Maximální počet bodů: @subquestionTemplate.SubquestionPoints</p>
+                    @{
+                        if((subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints == Common.EnumTypes.NegativePoints.Enabled ||
+                            subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints == Common.EnumTypes.NegativePoints.EnabledForQuestion) &&
+                            subquestionType != 5)
+                        {
+                            <p>Varování: U této otázky jsou za špatné odpovědi udělovány záporné body.</p>
+                        }
+                    }
                     @{
                         if (subquestionTemplate.ImageSource != null)
                         {
@@ -222,6 +232,13 @@
                                     oninput="changeSliderOutputs(this.value)">
                                 <output>Nezodpovězeno</output>
                                 break;
+                        }
+                    }
+                    @{
+                        if ((subquestionResultIdIndex + 1) == subquestionsCount)
+                        {
+                            <br>
+                            <button onclick="turnTestIn()">Odevzdat a ukončit test</button>
                         }
                     }
                 </form>

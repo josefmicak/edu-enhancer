@@ -546,83 +546,87 @@ namespace BusinessLayer
         /// <summary>
         /// Changes certain fields of subquestion template before finally sending them to the presentation layer
         /// </summary>
-        public List<SubquestionTemplate> ProcessSubquestionTemplateForView(List<SubquestionTemplate> subquestionTemplates)
+        public List<SubquestionTemplate> ProcessSubquestionTemplatesForView(List<SubquestionTemplate> subquestionTemplates)
         {
             List<SubquestionTemplate> processedSubquestionTemplates = new List<SubquestionTemplate>();
-            string[] possibleAnswerList;
-            string[] correctAnswerList;
 
             foreach (SubquestionTemplate subquestionTemplate in subquestionTemplates)
             {
-                switch (subquestionTemplate.SubquestionType)
-                {
-                    case SubquestionType.MatchingElements:
-                        correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
-                        for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
-                        {
-                            correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("|", " -> ");
-                        }
-                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
-                        break;
-                    case SubquestionType.MultipleQuestions:
-                        possibleAnswerList = new string[2] { "Ano", "Ne" };
-                        correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
-                        for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
-                        {
-                            string answer = "";
-                            if (subquestionTemplate.CorrectAnswerList[i] == "1")
-                            {
-                                answer = "Ano";
-                            }
-                            else if (subquestionTemplate.CorrectAnswerList[i] == "0")
-                            {
-                                answer = "Ne";
-                            }
-                            correctAnswerList[i] = subquestionTemplate.PossibleAnswerList[i] + " -> " + answer;
-                        }
-                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
-                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
-                        break;
-                    case SubquestionType.MultiChoiceTextFill:
-                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
-                        break;
-                    case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
-                        subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
-                        break;
-                    case SubquestionType.GapMatch:
-                        string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('|');
-                        subquestionTemplate.SubquestionText = "";
-                        for (int i = 0; i < subquestionTextSplit.Length; i++)
-                        {
-                            if (i != subquestionTextSplit.Length - 1)
-                            {
-                                subquestionTemplate.SubquestionText += subquestionTextSplit[i] + " (DOPLŇTE[" + (i + 1) + "]) ";
-                            }
-                            else
-                            {
-                                subquestionTemplate.SubquestionText += subquestionTextSplit[i];
-                            }
-                        }
-
-                        subquestionTemplate.PossibleAnswerList = subquestionTemplate.CorrectAnswerList;
-                        correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
-                        for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
-                        {
-                            correctAnswerList[i] = "[" + (i + 1) + "] - " + subquestionTemplate.CorrectAnswerList[i];
-                        }
-                        subquestionTemplate.CorrectAnswerList = correctAnswerList;
-                        break;
-                    case SubquestionType.Slider:
-                        possibleAnswerList = new string[] { subquestionTemplate.PossibleAnswerList[0] + " - " + subquestionTemplate.PossibleAnswerList[1] };
-                        subquestionTemplate.PossibleAnswerList = possibleAnswerList;
-                        break;
-                }
-
-                processedSubquestionTemplates.Add(subquestionTemplate);
+                processedSubquestionTemplates.Add(ProcessSubquestionTemplateForView(subquestionTemplate));
             }
 
-
             return processedSubquestionTemplates;
+        }
+
+        public SubquestionTemplate ProcessSubquestionTemplateForView(SubquestionTemplate subquestionTemplate)
+        {
+            string[] possibleAnswerList;
+            string[] correctAnswerList;
+
+            switch (subquestionTemplate.SubquestionType)
+            {
+                case SubquestionType.MatchingElements:
+                    correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
+                    for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    {
+                        correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("|", " -> ");
+                    }
+                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    break;
+                case SubquestionType.MultipleQuestions:
+                    possibleAnswerList = new string[2] { "Ano", "Ne" };
+                    correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
+                    for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+                    {
+                        string answer = "";
+                        if (subquestionTemplate.CorrectAnswerList[i] == "1")
+                        {
+                            answer = "Ano";
+                        }
+                        else if (subquestionTemplate.CorrectAnswerList[i] == "0")
+                        {
+                            answer = "Ne";
+                        }
+                        correctAnswerList[i] = subquestionTemplate.PossibleAnswerList[i] + " -> " + answer;
+                    }
+                    subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    break;
+                case SubquestionType.MultiChoiceTextFill:
+                    subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
+                    break;
+                case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
+                    subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
+                    break;
+                case SubquestionType.GapMatch:
+                    string[] subquestionTextSplit = subquestionTemplate.SubquestionText.Split('|');
+                    subquestionTemplate.SubquestionText = "";
+                    for (int i = 0; i < subquestionTextSplit.Length; i++)
+                    {
+                        if (i != subquestionTextSplit.Length - 1)
+                        {
+                            subquestionTemplate.SubquestionText += subquestionTextSplit[i] + " (DOPLŇTE[" + (i + 1) + "]) ";
+                        }
+                        else
+                        {
+                            subquestionTemplate.SubquestionText += subquestionTextSplit[i];
+                        }
+                    }
+
+                    subquestionTemplate.PossibleAnswerList = subquestionTemplate.CorrectAnswerList;
+                    correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
+                    for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    {
+                        correctAnswerList[i] = "[" + (i + 1) + "] - " + subquestionTemplate.CorrectAnswerList[i];
+                    }
+                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    break;
+                case SubquestionType.Slider:
+                    possibleAnswerList = new string[] { subquestionTemplate.PossibleAnswerList[0] + " - " + subquestionTemplate.PossibleAnswerList[1] };
+                    subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                    break;
+            }
+            return subquestionTemplate;
         }
 
         public async Task<string> DeleteSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)

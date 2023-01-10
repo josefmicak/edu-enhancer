@@ -68,7 +68,6 @@ namespace Common
                     }
                     break;
                 case SubquestionType.MultiChoiceMultipleCorrectAnswers:
-
                     for (int i = 0; i < studentsAnswers.Length; i++)
                     {
                         for (int j = 0; j < correctAnswersArray.Length; j++)
@@ -100,6 +99,54 @@ namespace Common
                     answerCorrectness -= (double)(studentsAnswers.Length - studentsCorrectAnswers) / correctAnswersArray.Length;
                     break;
                 case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
+                    for (int i = 0; i < studentsAnswers.Length; i++)
+                    {
+                        for (int j = 0; j < correctAnswersArray.Length; j++)
+                        {
+                            if(i != j)
+                            {
+                                continue;
+                            }
+                            //student hasn't answered
+                            if ((studentsAnswers[i] == "X" && n == SubquestionType.MultipleQuestions) ||
+                                (studentsAnswers[i] == "|" && n == SubquestionType.GapMatch))
+                            {
+                                continue;
+                            }
+                            //student answered correctly
+                            if (studentsAnswers[i] == correctAnswersArray[j])
+                            {
+                                studentsCorrectAnswers++;
+                                defaultStudentPoints += ((double)subquestionPoints / (double)correctAnswersArray.Length);
+                            }
+                            //student answered incorrectly
+                            else
+                            {
+                                defaultStudentPoints -= wrongChoicePoints * (-1);
+                            }
+                        }
+                    }
+
+                    if (answerStatus != AnswerStatus.NotAnswered)
+                    {
+                        if (studentsCorrectAnswers == correctAnswersArray.Length)
+                        {
+                            answerStatus = AnswerStatus.Correct;
+                        }
+                        else if (studentsCorrectAnswers == 0 && studentsAnswers.Length > 0)
+                        {
+                            answerStatus = AnswerStatus.Incorrect;
+                        }
+                        else
+                        {
+                            answerStatus = AnswerStatus.PartiallyCorrect;
+                        }
+                    }
+
+                    answerCorrectness += (double)studentsCorrectAnswers / correctAnswersArray.Length;
+                    answerCorrectness -= (double)(studentsAnswers.Length - studentsCorrectAnswers) / correctAnswersArray.Length;
+                    break;
+                /*case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
                     string separator = "";
                     switch (n)
                     {
@@ -112,12 +159,6 @@ namespace Common
                     }
                     for (int i = 0; i < studentsAnswers.Length; i++)
                     {
-                        //the student did not answer this question - he gets no points for this question
-                        if (studentsAnswers[0] == "Nevyplněno" && studentsAnswers.Length == 1)
-                        {
-                            answerStatus = AnswerStatus.NotAnswered;
-                            break;
-                        }
                         for (int j = 0; j < correctAnswersArray.Length; j++)
                         {
                             string[] studentsAnswerSplit = studentsAnswers[i].Split(separator);
@@ -157,24 +198,16 @@ namespace Common
 
                     answerCorrectness += (double)studentsCorrectAnswers / correctAnswersArray.Length;
                     answerCorrectness -= (double)(studentsAnswers.Length - studentsCorrectAnswers) / correctAnswersArray.Length;
-                    break;
+                    break;*/
                 case SubquestionType.MatchingElements:
-                    separator = " -> ";
                     studentsCorrectAnswers = 0;
 
                     for (int i = 0; i < studentsAnswers.Length; i++)
                     {
-                        //the student did not answer this question - he gets no points for this question
-                        if (studentsAnswers[0] == "Nevyplněno" && studentsAnswers.Length == 1)
-                        {
-                            answerStatus = AnswerStatus.NotAnswered;
-                            break;
-                        }
-
                         for (int j = 0; j < correctAnswersArray.Length; j++)
                         {
-                            string[] studentsAnswerSplit = studentsAnswers[i].Split(separator);
-                            string[] correctAnswerSplit = correctAnswersArray[j].Split(separator);
+                            string[] studentsAnswerSplit = studentsAnswers[i].Split("|");
+                            string[] correctAnswerSplit = correctAnswersArray[j].Split("|");
                             //for this type of subquestion, the order of the elements contained in the answer is not always the same
                             if ((studentsAnswerSplit[0] == correctAnswerSplit[0] && studentsAnswerSplit[1] == correctAnswerSplit[1]) ||
                                 (studentsAnswerSplit[0] == correctAnswerSplit[1] && studentsAnswerSplit[1] == correctAnswerSplit[0]))
@@ -210,25 +243,30 @@ namespace Common
                     break;
                 case SubquestionType.Slider:
                     areStudentsAnswersCorrect = Enumerable.SequenceEqual(correctAnswersArray, studentsAnswers);
-                    if (areStudentsAnswersCorrect)
+                    if (studentsAnswers.Length == 0)
                     {
-                        defaultStudentPoints = subquestionPoints;
-                        answerStatus = AnswerStatus.Correct;
-                        answerCorrectness = 1;
+                        answerStatus = AnswerStatus.NotAnswered;
                     }
                     else
                     {
-                        defaultStudentPoints -= wrongChoicePoints * (-1);
-                        answerStatus = AnswerStatus.Incorrect;
+                        if (areStudentsAnswersCorrect)
+                        {
+                            defaultStudentPoints = subquestionPoints;
+                            answerStatus = AnswerStatus.Correct;
+                            answerCorrectness = 1;
+                        }
+                        else
+                        {
+                            defaultStudentPoints -= wrongChoicePoints * (-1);
+                            answerStatus = AnswerStatus.Incorrect;
+                        }
                     }
 
                     if (!areStudentsAnswersCorrect && studentsAnswers.Length > 0)
                     {
                         //the closer the student's answer is to the actual correct answer, the more correct his answer is
-                        string possibleAnswerString = possibleAnswersArray[0];
-                        string[] possibleAnswerStringSplit = possibleAnswerString.Split(" - ");
-                        int lowerBound = int.Parse(possibleAnswerStringSplit[0]);
-                        int upperBound = int.Parse(possibleAnswerStringSplit[0]);
+                        int lowerBound = int.Parse(possibleAnswersArray[0]);
+                        int upperBound = int.Parse(possibleAnswersArray[1]);
                         int correctAnswer = int.Parse(correctAnswersArray[0]);
                         int maxDifference = Math.Max(Math.Abs(lowerBound - correctAnswer), Math.Abs(upperBound - correctAnswer));
                         int studentsAnswer = int.Parse(studentsAnswers[0]);

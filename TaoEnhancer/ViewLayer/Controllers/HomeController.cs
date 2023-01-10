@@ -10,6 +10,7 @@ using System.Dynamic;
 using Common;
 using BusinessLayer;
 using static Common.EnumTypes;
+using NuGet.Protocol.Plugins;
 
 namespace ViewLayer.Controllers
 {
@@ -276,7 +277,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = null;
             }
 
-            subquestionTemplateList = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionTemplateList);
+            subquestionTemplateList = businessLayerFunctions.ProcessSubquestionTemplatesForView(subquestionTemplateList);
 
             if (subquestionTemplates.Count() > 0)
             {
@@ -446,10 +447,15 @@ namespace ViewLayer.Controllers
             string login = businessLayerFunctions.GetCurrentUserLogin();
 
             var subquestionResults = businessLayerFunctions.GetSubquestionResultsByOwnerLogin(login, testResultIdentifier, questionNumberIdentifier);
-
+            List<SubquestionResult> subquestionResultList = await subquestionResults.ToListAsync();
+            for(int i = 0; i < subquestionResultList.Count; i++)
+            {
+                subquestionResultList[i] = businessLayerFunctions.ProcessSubquestionResultForView(subquestionResultList[i]);
+                subquestionResultList[i].SubquestionTemplate = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionResultList[i].SubquestionTemplate);
+            }
             if (subquestionResults.Count() > 0)
             {
-                return View(await subquestionResults.ToListAsync());
+                return View(subquestionResultList);
             }
             else
             {
@@ -559,9 +565,15 @@ namespace ViewLayer.Controllers
             string studentLogin = businessLayerFunctions.GetCurrentUserLogin();
 
             var subquestionResults = businessLayerFunctions.GetSubquestionResultsByStudentLogin(studentLogin, ownerLogin, testResultIdentifier, questionNumberIdentifier);
+            List<SubquestionResult> subquestionResultList = await subquestionResults.ToListAsync();
+            for (int i = 0; i < subquestionResultList.Count; i++)
+            {
+                subquestionResultList[i] = businessLayerFunctions.ProcessSubquestionResultForView(subquestionResultList[i]);
+                subquestionResultList[i].SubquestionTemplate = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionResultList[i].SubquestionTemplate);
+            }
             if (subquestionResults.Count() > 0)
             {
-                return View(await subquestionResults.ToListAsync());
+                return View(subquestionResultList);
             }
             else
             {
@@ -1727,6 +1739,12 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> StudentMenu()
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
+
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
             return businessLayerFunctions.GetStudentDbSet() != null ?
                 View(await businessLayerFunctions.GetStudentDbSet().FirstOrDefaultAsync(s => s.Login == login)) :
                 Problem("Entity set 'CourseContext.Students'  is null.");
@@ -1863,7 +1881,8 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string newSubquestionResultIndex, int subquestionResultIndex, string[] possibleAnswers)
+        public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string newSubquestionResultIndex, int subquestionResultIndex, 
+            string[] possibleAnswers, string action)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string? errorMessage;
@@ -1871,12 +1890,23 @@ namespace ViewLayer.Controllers
             if(errorMessage != null)
             {
                 TempData["Message"] = errorMessage;
+                return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
             }
             else
             {
                 await businessLayerFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, login);
+                if(action == "turnTestIn")
+                {
+                    await businessLayerFunctions.FinishStudentAttempt(login);
+                    TempData["Message"] = "Test byl odevdzán.";
+                    return RedirectToAction("StudentMenu", "Home", new { questionNr = newSubquestionResultIndex });
+                }
+                else
+                {
+                    return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
+                }
             }
-            return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
+            
         }
 
         public IActionResult AccessDeniedAction()
