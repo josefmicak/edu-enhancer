@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
@@ -43,7 +43,7 @@ def get_accuracy(y_test, y_test_pred):
     print(R2)
 
 
-def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, df, model):
+def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, subquestionPoints, df, model):
     SubquestionTypeAveragePoints_mean = df["SubquestionTypeAveragePoints"].mean()
     SubquestionTypeAveragePoints_std = df["SubquestionTypeAveragePoints"].std()
     AnswerCorrectness_mean = df["AnswerCorrectness"].mean()
@@ -66,7 +66,10 @@ def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAverageP
 
     x_unseen = torch.Tensor([SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
     y_unseen = model(torch.atleast_2d(x_unseen))
-    print(round(y_unseen.item(), 2))
+    if round(y_unseen.item(), 2) > subquestionPoints:
+        return subquestionPoints
+    else:
+        return round(y_unseen.item(), 2)
 
 
 def load_model(model, login, x, y, retrainModel):
@@ -98,7 +101,7 @@ def main(arguments):
         platform = arguments[1]
         login = arguments[2]
         retrainModel = eval(arguments[3])
-        function_name = arguments[4]
+        testNumberIdentifier = arguments[4]
     else:
         login = "login"
 
@@ -107,14 +110,14 @@ def main(arguments):
         conn_str = (
             r"Driver={ODBC Driver 17 for SQL Server};"
             r"Server=(localdb)\mssqllocaldb;"
-            r"Database=TaoEnhancerDB;"
+            r"Database=EduEnhancerDB;"
             r"Trusted_Connection=yes;"
         )
     elif platform == 'Linux':
         conn_str = (
             r"Driver={ODBC Driver 17 for SQL Server};"
             r"Server=127.0.0.1;"
-            r"Database=TaoEnhancerDB;"
+            r"Database=EduEnhancerDB;"
             r"Uid=MyUser;"
             r"Pwd=Userpassword1;"
         )
@@ -154,18 +157,57 @@ def main(arguments):
     y_train_pred = y_train_pred.detach().numpy()
     y_test_pred = y_test_pred.detach().numpy()
 
-    if len(arguments) > 1:
-        if function_name == 'get_accuracy':
-            get_accuracy(y_test, y_test_pred)
-        elif function_name == 'predict_new':
-            SubquestionTypeAveragePoints = float(arguments[5])
-            AnswerCorrectness = float(arguments[6])
-            SubjectAveragePoints = float(arguments[7])
-            ContainsImage = float(arguments[8])
-            NegativePoints = float(arguments[9])
-            MinimumPointsShare = float(arguments[10])
-            predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
-                        NegativePoints, MinimumPointsShare, df, model)
+    #selected testTemplate
+    sql = "SELECT * FROM TestTemplate WHERE OwnerLogin = '" + login + "' AND TestNumberIdentifier = '" + testNumberIdentifier + "'"
+    testTemplateDf = pd.read_sql(sql, engine)
+    NegativePoints = testTemplateDf.iloc[0]['NegativePoints']
+    MinimumPoints = testTemplateDf.iloc[0]['MinimumPoints']
+    SubjectsArray = ["Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika"]  # TODO - skutecne predmety
+    TestSubjectIndex = SubjectsArray.index(testTemplateDf.iloc[0]['Subject'])
+
+    #question number identifiers of every question included in the test
+    sql = "SELECT DISTINCT QuestionNumberIdentifier FROM QuestionTemplate WHERE OwnerLogin = '" + login +\
+          "' AND TestTemplateTestNumberIdentifier = '" + testNumberIdentifier + "'"
+    questionNumberIdentifierList = pd.read_sql(sql, engine).values.tolist()
+    questionNumberIdentifiers = ""
+    some_list_len = len(questionNumberIdentifierList)
+    for i in range(some_list_len):
+        #the question number identifier must be properly formatted in order to be used in a SQL query
+        questionNumberIdentifier = str(questionNumberIdentifierList[i])
+        questionNumberIdentifier = questionNumberIdentifier[1:]
+        questionNumberIdentifier = questionNumberIdentifier[:len(questionNumberIdentifier) - 1]
+        questionNumberIdentifiers += questionNumberIdentifier + ", "
+    questionNumberIdentifiers = questionNumberIdentifiers[:len(questionNumberIdentifiers) - 2]
+
+    #test difficulty statistics (all relevant data needed to measure the test difficulty)
+    sql = "SELECT * FROM TestDifficultyStatistics WHERE UserLogin = '" + login + "'"
+    testDifficultyStatisticsDf = pd.read_sql(sql, engine)
+    SubjectAveragePointsArray = testDifficultyStatisticsDf.iloc[0]['SubjectAveragePoints'].split("~")
+    SubquestionTypeAveragePointsArray = testDifficultyStatisticsDf.iloc[0]['SubquestionTypeAveragePoints'].split("~")
+    SubquestionTypeAverageAnswerCorrectnessArray = testDifficultyStatisticsDf.iloc[0]['SubquestionTypeAverageAnswerCorrectness'].split("~")
+
+    #all subquestion templates included in the test
+    sql = "SELECT * FROM SubquestionTemplate WHERE OwnerLogin = '" + login + "' AND QuestionNumberIdentifier IN (" + questionNumberIdentifiers + ")"
+    subquestionTemplatesDf = pd.read_sql(sql, engine)
+    TotalTestPoints = subquestionTemplatesDf['SubquestionPoints'].sum()
+    MinimumPointsShare = MinimumPoints / TotalTestPoints
+    PredictedTestPoints = 0
+
+    for i in range(subquestionTemplatesDf.shape[0]):
+        subquestionTemplate = subquestionTemplatesDf.iloc[i]
+        subquestionPoints = subquestionTemplate["SubquestionPoints"]
+        ContainsImage = 0
+        if (len(str(subquestionTemplate["ImageSource"])) > 0):
+            ContainsImage = 1
+
+        SubquestionTypeAveragePoints = float(
+            SubquestionTypeAveragePointsArray[subquestionTemplate["SubquestionType"] - 1].replace(",", "."))
+        AnswerCorrectness = float(
+            SubquestionTypeAverageAnswerCorrectnessArray[subquestionTemplate["SubquestionType"] - 1].replace(",", "."))
+        SubjectAveragePoints = float(SubjectAveragePointsArray[TestSubjectIndex].replace(",", "."))
+        PredictedTestPoints += predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
+                    NegativePoints, MinimumPointsShare, subquestionPoints, df, model)
+    print(round(PredictedTestPoints, 2))
 
 
 if __name__ == '__main__':

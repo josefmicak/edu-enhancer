@@ -12,14 +12,9 @@
     <div id="student-management">
         <h2>Správa studentů</h2>
 
-        <p>Identifikátor studenta je závislý na identifikátoru přiděleném v nástroji TAO Core.<br>
-            Z toho důvodu je doporučen import studentů pomocí .rdf souborů namísto manuálního přidávání.</p>
-
         <p>@ViewBag.StudentMessage</p>
-        <form method="POST">
-            <input type="submit" value="Načíst studenty" class="btn btn-primary" />
-            <input type="hidden" value="addStudents" name="action">
-        </form>
+
+        <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAllStudents', null)">Smazat všechny studenty</button>
 
         <div id="student-list">
             <h3>Seznam studentů</h3>
@@ -37,23 +32,23 @@
                     foreach (Student item in Model.Students)
                     {
                         string fullName = item.FullName();
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => item.StudentIdentifier)</td>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            @{
-                                if(item.Email == null)
-                                {
-                                    <td><button type="button" class="btn btn-primary" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.StudentIdentifier)</td>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                @{
+                                    if(item.Email == null)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                    }
                                 }
-                                else
-                                {
-                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                                }
-                            }
-                            <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.StudentIdentifier', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
-                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
-                        </tr>
+                                <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.StudentIdentifier', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
+                            </tr>
                         i++;
                     }
                 }
@@ -90,10 +85,12 @@
 
     <div id="teacher-management">
         <h2>Správa učitelů</h2>
-
         <p>@ViewBag.TeacherMessage</p>
 
+        <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAllTeachers', null)">Smazat všechny učitele</button>
+
         <h3>Seznam učitelů</h3>
+
         <div id="teacher-list">
             <table>
                 <tr>
@@ -111,13 +108,13 @@
                             continue;
                         }
                         string fullName = item.FullName();
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
-                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
-                        </tr>
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit učitele</button></td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
+                            </tr>
                     }
                 }
             </table>
@@ -133,6 +130,13 @@
                     Upravujete učitele s loginem 
                     <input type="text" readonly id="teacherOldLogin" name="oldLogin">
                     <button type="button" onclick="hideEditTeacherLabel()">Zrušit</button>
+                </div>
+                <div id="teacher-edit-role">
+                    <label for="role">Změnit roli:</label>
+                    <select name="role" id="role">
+                        <option value="2">Učitel</option>
+                        <option value="3">Správce</option>
+                    </select>
                 </div>
 
                 <label for="teacherFirstName">Jméno:</label>
@@ -151,15 +155,21 @@
     </div>
 
     <div id="admin-management">
-        <h2>Seznam správců</h2>
+        <h2>Správa správců</h2>
         <p>@ViewBag.AdminMessage</p>
+
+        <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAllAdmins', null)">Smazat všechny správce</button>
+
         <div id="admin-list">
+            <h3>Seznam správců</h3>
             <table>
                 <tr>
                     <th>Jméno</th>
                     <th>Login</th>
                     <th>Email</th>
                     <th>Typ</th>
+                    <th>Úprava</th>
+                    <th>Smazání</th>
                 </tr>
                 @{
                     foreach (User item in Model.Users)
@@ -179,17 +189,53 @@
                         {
                             type = "Hlavní administrátor";
                         }
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td>@Html.DisplayFor(modelItem => type)</td>
-                        </tr>
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td>@Html.DisplayFor(modelItem => type)</td>
+                                <td><button type="button" class="btn btn-primary" onclick="showEditAdminLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', '@item.Role', 'false')">Upravit správce</button></td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteAdmin', null, null, '@item.Login', null, null, null)">Smazat správce</button></td>
+                            </tr>
                     }
                 }
             </table>
         </div>
 
+        <div id="add-admin">
+            <h3>Přidat/upravit správce</h3>
+            <form method="POST" id="admin-form">
+                <div id="added-admin">
+                    Přidáváte správce
+                </div>
+                <div id="edited-admin">
+                    Upravujete správce s loginem 
+                    <input type="text" readonly id="adminOldLogin" name="oldLogin">
+                    <button type="button" onclick="hideEditAdminLabel()">Zrušit</button>
+                </div>
+                <div id="admin-edit-role">
+                    <input type="checkbox" id="change-admin-role-checkbox" onclick="changeAdminRole(this)">
+                    <label for="change-admin-role-checkbox"> Změnit roli</label>
+                    <select name="role" id="change-admin-role">
+                        <option value="2">Učitel</option>
+                        <option value="3" selected>Správce</option>
+                        <option value="4">Hlavní administrátor</option>
+                    </select>
+                </div>
+
+                <label for="adminFirstName">Jméno:</label>
+                <input type="text" required id="adminFirstName" name="firstName"><br><br>
+                <label for="adminLastName">Příjmení:</label>
+                <input type="text" required id="adminLastName" name="lastName"><br><br>
+                <label for="adminLogin">Login:</label>
+                <input type="text" required id="adminLogin" name="login"><br><br>
+                <label for="adminEmail">Email:</label>
+                <input type="text" required id="adminEmail" name="email"><br><br>
+                <input type="hidden" value="addAdmin" id="admin-action" name="action">
+                <input type="hidden" id="isMainAdmin" name="isMainAdmin">
+                <input type="submit" value="Uložit">
+            </form>
+        </div>
     </div>
 </div>
 
@@ -207,14 +253,19 @@
     </form>
 </div>
 
-<div id="backBtn"><a asp-action="AdminMenu">Zpět</a></div>
+<div id="backBtn"><a asp-action="MainAdminMenu">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
 
 <script>
     document.getElementById("edited-student").style.visibility = 'hidden';
     document.getElementById("edited-teacher").style.visibility = 'hidden';
+    document.getElementById("teacher-edit-role").style.visibility = 'hidden';
+    document.getElementById("edited-admin").style.visibility = 'hidden';
+    document.getElementById("admin-edit-role").style.visibility = 'hidden';
+    document.getElementById("change-admin-role").disabled = true;
 
     document.getElementById("student-action").value = 'addStudent';
     document.getElementById("teacher-action").value = 'addTeacher';
+    document.getElementById("admin-action").value = 'addAdmin';
 </script>

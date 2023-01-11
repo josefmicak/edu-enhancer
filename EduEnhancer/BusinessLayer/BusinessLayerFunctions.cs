@@ -52,11 +52,6 @@ namespace BusinessLayer
             return templateFunctions.GetTestTemplates(login);
         }
 
-        public async Task<string> AddTestTemplates(string login)
-        {
-            return await templateFunctions.AddTestTemplates(login);
-        }
-
         public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string login = GetCurrentUserLogin();
@@ -297,11 +292,6 @@ namespace BusinessLayer
         public IQueryable<TestResult> GetTestResultsByStudentLogin(string login)
         {
             return resultFunctions.GetTestResultsByStudentLogin(login);
-        }
-
-        public async Task<string> AddTestResults(string login)
-        {
-            return await resultFunctions.AddTestResults(login);
         }
 
         public async Task<string?> BeginStudentAttempt(string testNumberIdentifier, string login)
@@ -598,11 +588,6 @@ namespace BusinessLayer
         public async Task<string> CreateUserRegistration(string firstName, string lastName, string email, string login, string role)
         {
             return await userFunctions.CreateUserRegistration(firstName, lastName, email, login, role);
-        }
-
-        public async Task<string> AddStudents(string login)
-        {
-            return await userFunctions.AddStudents(login);
         }
 
         public async Task DeleteAllStudents()

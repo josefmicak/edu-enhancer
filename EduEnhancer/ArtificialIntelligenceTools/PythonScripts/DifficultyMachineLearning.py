@@ -98,14 +98,14 @@ def main(arguments):
         conn_str = (
             r"Driver={ODBC Driver 17 for SQL Server};"
             r"Server=(localdb)\mssqllocaldb;"
-            r"Database=TaoEnhancerDB;"
+            r"Database=EduEnhancerDB;"
             r"Trusted_Connection=yes;"
         )
     elif platform == 'Linux':
         conn_str = (
             r"Driver={ODBC Driver 17 for SQL Server};"
             r"Server=127.0.0.1;"
-            r"Database=TaoEnhancerDB;"
+            r"Database=EduEnhancerDB;"
             r"Uid=MyUser;"
             r"Pwd=Userpassword1;"
         )

@@ -131,11 +131,7 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> TestTemplateList(string action, string testNumberIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            if (action == "add")
-            {
-                TempData["Message"] = await businessLayerFunctions.AddTestTemplates(login);
-            }
-            else if(action == "deleteAllTemplates")
+            if(action == "deleteAllTemplates")
             {
                 TempData["Message"] = await businessLayerFunctions.DeleteTestTemplates(login);
             }
@@ -384,11 +380,7 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> ManageSolvedTestList(string action, string testResultIdentifier)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            if (action == "add")
-            {
-                TempData["Message"] = await businessLayerFunctions.AddTestResults(login);
-            }
-            else if(action == "deleteAllResults")
+            if(action == "deleteAllResults")
             {
                 TempData["Message"] = await businessLayerFunctions.DeleteTestResults(login);
             }
@@ -678,11 +670,7 @@ namespace ViewLayer.Controllers
             var userLoginCheck = businessLayerFunctions.GetUserByLogin(login);
             var userEmailCheck = businessLayerFunctions.GetUserByEmail(email);
 
-            if (action == "addStudents")
-            {
-                TempData["StudentMessage"] = await businessLayerFunctions.AddStudents(login);
-            }
-            else if(action == "deleteAllStudents")
+            if(action == "deleteAllStudents")
             {
                 await businessLayerFunctions.DeleteAllStudents();
                 TempData["StudentMessage"] = "Byly smazáni všichni existující studenti.";
@@ -991,11 +979,7 @@ namespace ViewLayer.Controllers
             var userLoginCheck = businessLayerFunctions.GetUserByLogin(login);
             var userEmailCheck = businessLayerFunctions.GetUserByEmail(email);
 
-            if (action == "addStudents")
-            {
-                TempData["StudentMessage"] = await businessLayerFunctions.AddStudents(login);
-            }
-            else if (action == "addStudent")
+            if (action == "addStudent")
             {
                 if (!isEmailValid)
                 {

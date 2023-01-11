@@ -156,12 +156,6 @@ namespace BusinessLayer
             return message;
         }
 
-        public async Task<string> AddStudents(string login)
-        {
-            List<Student> students = LoadStudents();
-            return await dataFunctions.AddStudents(login, students);
-        }
-
         public async Task DeleteAllStudents()
         {
             dataFunctions.ExecuteSqlRaw("delete from Student");
@@ -432,55 +426,5 @@ namespace BusinessLayer
             }
             return false;
         }
-
-        public List<Student> LoadStudents()
-        {
-            List<Student> students = new List<Student>();
-            if (Directory.Exists(Config.GetStudentsPath()))
-            {
-                foreach (var studentFile in Directory.GetFiles(Config.GetStudentsPath()))
-                {
-                    if (new FileInfo(studentFile).Extension == ".rdf")
-                    {
-                        Student student = new Student();
-                        XmlReader xmlReader = XmlReader.Create(studentFile);
-                        while (xmlReader.Read())
-                        {
-                            if (xmlReader.Name == "rdf:Description" && xmlReader.NodeType != XmlNodeType.EndElement)
-                            {
-                                if (xmlReader.GetAttribute("rdf:about") != null)
-                                {
-                                    string[] studentDescription = xmlReader.GetAttribute("rdf:about")!.Split("#");
-                                    if (studentDescription[1] != null)
-                                    {
-                                        student.StudentIdentifier = studentDescription[1];
-                                    }
-                                }
-                            }
-
-                            if (xmlReader.Name == "ns0:login" && xmlReader.NodeType != XmlNodeType.EndElement)
-                            {
-                                student.Login = xmlReader.ReadInnerXml();
-                            }
-
-                            if (xmlReader.Name == "ns0:userFirstName" && xmlReader.NodeType != XmlNodeType.EndElement)
-                            {
-                                student.FirstName = xmlReader.ReadInnerXml();
-                            }
-
-                            if (xmlReader.Name == "ns0:userLastName" && xmlReader.NodeType != XmlNodeType.EndElement)
-                            {
-                                student.LastName = xmlReader.ReadInnerXml();
-                            }
-
-                        }
-                        students.Add(student);
-                    }
-                }
-            }
-            else { throw Exceptions.StudentsPathNotFoundException; }
-            return students;
-        }
-
     }
 }

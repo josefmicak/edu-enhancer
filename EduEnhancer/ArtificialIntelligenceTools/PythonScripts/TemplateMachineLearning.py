@@ -15,11 +15,11 @@ def get_accuracy(y_test, y_test_pred):
     print(R2)
 
 
-def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, df, model):
+def predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, df, model):
     SubquestionTypeAveragePoints_mean = df["SubquestionTypeAveragePoints"].mean()
     SubquestionTypeAveragePoints_std = df["SubquestionTypeAveragePoints"].std()
-    AnswerCorrectness_mean = df["AnswerCorrectness"].mean()
-    AnswerCorrectness_std = df["AnswerCorrectness"].std()
+    CorrectAnswersShare_mean = df["CorrectAnswersShare"].mean()
+    CorrectAnswersShare_std = df["CorrectAnswersShare"].std()
     SubjectAveragePoints_mean = df["SubjectAveragePoints"].mean()
     SubjectAveragePoints_std = df["SubjectAveragePoints"].std()
     ContainsImage_mean = df["ContainsImage"].mean()
@@ -30,20 +30,20 @@ def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAverageP
     MinimumPointsShare_std = df["MinimumPointsShare"].std()
 
     SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
-    AnswerCorrectness = (AnswerCorrectness - AnswerCorrectness_mean) / AnswerCorrectness_std
+    CorrectAnswersShare = (CorrectAnswersShare - CorrectAnswersShare_mean) / CorrectAnswersShare_std
     SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
     ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
     NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
     MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
 
-    x_unseen = torch.Tensor([SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
+    x_unseen = torch.Tensor([SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
     y_unseen = model.predict(torch.atleast_2d(x_unseen))
     print(round(y_unseen[0], 2))
 
 
 def load_model(model, login, X_train, y_train, retrainModel):
     base_path = Path(__file__)
-    file_path_string = "../model/results/" + login + "_LR.sav"
+    file_path_string = "../model/templates/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
 
     if retrainModel is True:
@@ -60,7 +60,7 @@ def load_model(model, login, X_train, y_train, retrainModel):
 
 def save_model(model, login):
     base_path = Path(__file__)
-    file_path_string = "../model/results/" + login + "_LR.sav"
+    file_path_string = "../model/templates/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
     pickle.dump(model, open(file_path, 'wb'))
 
@@ -77,19 +77,18 @@ def main(arguments):
     conn_str = (
         r"Driver={ODBC Driver 17 for SQL Server};"
         r"Server=(localdb)\mssqllocaldb;"
-        r"Database=TaoEnhancerDB;"
+        r"Database=EduEnhancerDB;"
         r"Trusted_Connection=yes;"
     )
 
     connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn_str})
     engine = create_engine(connection_url)
 
-    sql = "SELECT * FROM SubquestionResultRecord WHERE OwnerLogin = '" + "login" + "'"
+    sql = "SELECT * FROM SubquestionTemplateRecord WHERE OwnerLogin = '" + "login" + "'"
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
     df = df.drop('QuestionNumberIdentifier', axis=1)  # question number identifier is irrelevant in this context
     df = df.drop('SubquestionIdentifier', axis=1)  # subqustion identifier is irrelevant in this context
-    df = df.drop('TestResultIdentifier', axis=1)  # test result identifier is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -97,10 +96,10 @@ def main(arguments):
         lambda x: (x - x.mean()) / x.std()
     )
 
-    data['StudentsPoints'] = df.StudentsPoints
+    data['SubquestionPoints'] = df.SubquestionPoints
 
-    X = data.drop('StudentsPoints', axis=1).to_numpy()
-    y = data['StudentsPoints'].to_numpy()
+    X = data.drop('SubquestionPoints', axis=1).to_numpy()
+    y = data['SubquestionPoints'].to_numpy()
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
@@ -115,12 +114,12 @@ def main(arguments):
             get_accuracy(y_test, y_test_pred)
         elif function_name == 'predict_new':
             SubquestionTypeAveragePoints = float(arguments[5])
-            AnswerCorrectness = float(arguments[6])
+            CorrectAnswersShare = float(arguments[6])
             SubjectAveragePoints = float(arguments[7])
             ContainsImage = float(arguments[8])
             NegativePoints = float(arguments[9])
             MinimumPointsShare = float(arguments[10])
-            predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
+            predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage,
                         NegativePoints, MinimumPointsShare, df, model)
 
 

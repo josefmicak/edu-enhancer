@@ -14,7 +14,7 @@ services.AddDbContext<CourseContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //This connection string should always be used on Linux, because the appsettings.json connection string would always include user credentials
-/*string connectionString = configuration["ConnectionStrings:TaoEnhancerDB"];
+/*string connectionString = configuration["ConnectionStrings:EduEnhancerDB"];
 builder.Services.AddDbContext<CourseContext>(options =>
         options.UseSqlServer(connectionString));*/
 
