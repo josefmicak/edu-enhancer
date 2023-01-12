@@ -4,7 +4,7 @@
 
 @{
     TestTemplate testTemplate = Model;
-    double? testPoints = 0;
+    double testPoints = 0;
     int subquestionsCount = 0;
     for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
     {
@@ -62,7 +62,7 @@
     </div>
 
     <form method="POST">
-        <input type="hidden" value="@Model.TestNumberIdentifier" name="testNumberIdentifier">
+        <input type="hidden" value="@Model.TestTemplateId" name="testTemplateId">
         <button type="submit" value="beginAttempt" name="action">Začít pokus</button>
     </form>
 

@@ -27,7 +27,7 @@
                         for (int i = 0; i < subjectList.Count; i++)
                         {
                             string optionString = "(" + subjectList[i].Abbreviation + ") " + subjectList[i].Name + " - garant " + subjectList[i].Guarantor.FullName();
-                            <option value="@subjectList[i].Id">@optionString</option>
+                            <option value="@subjectList[i].SubjectId">@optionString</option>
                         }
                     }
                 </select>

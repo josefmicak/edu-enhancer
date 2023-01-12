@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DomainModel
 {
     public class TestResult
     {
         [Key]
-        public string TestResultIdentifier { get; set; } = default!;
-        public string TestNameIdentifier { get; set; } = default!;
-        public string TestNumberIdentifier { get; set; } = default!;
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int TestResultId { get; set; }
+        public int TestTemplateId { get; set; } = default!;
         public TestTemplate TestTemplate { get; set; } = default!;
         public DateTime TimeStamp { get; set; } = default!;
         public Student Student { get; set; } = default!;

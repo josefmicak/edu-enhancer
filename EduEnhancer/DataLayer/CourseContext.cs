@@ -41,13 +41,13 @@ namespace DataLayer
                 .HasOne(t => t.Subject)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<TestTemplate>().HasKey(t => new { t.TestNumberIdentifier, t.OwnerLogin });
+            modelBuilder.Entity<TestTemplate>().HasKey(t => new { t.TestTemplateId });
 
             modelBuilder.Entity<QuestionTemplate>().ToTable("QuestionTemplate");
-            modelBuilder.Entity<QuestionTemplate>().HasKey(q => new { q.QuestionNumberIdentifier, q.OwnerLogin });
+            modelBuilder.Entity<QuestionTemplate>().HasKey(q => new { q.QuestionTemplateId });
 
             modelBuilder.Entity<SubquestionTemplate>().ToTable("SubquestionTemplate");
-            modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionIdentifier, s.QuestionNumberIdentifier, s.OwnerLogin });
+            modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionTemplateId });
             modelBuilder.Entity<SubquestionTemplate>()
                 .Property(e => e.CorrectAnswerList)
                 .HasConversion(
@@ -61,7 +61,7 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionTemplate>()
                 .HasOne(s => s.QuestionTemplate)
                 .WithMany()
-                .HasForeignKey(s => new { s.QuestionNumberIdentifier, s.OwnerLogin })
+                .HasForeignKey(s => new { s.QuestionTemplateId })
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>().ToTable("User");
@@ -75,40 +75,40 @@ namespace DataLayer
             modelBuilder.Entity<TestResult>()
                 .HasOne(t => t.TestTemplate)
                 .WithMany()
-                .HasForeignKey(t => new { t.TestNumberIdentifier, t.OwnerLogin })
+                .HasForeignKey(t => new { t.TestTemplateId })
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<TestResult>()
                 .HasOne(t => t.Student)
                 .WithMany()
                 .HasForeignKey(t => new { t.StudentLogin })
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<TestResult>().HasKey(t => new { t.TestResultIdentifier, t.OwnerLogin});
+            modelBuilder.Entity<TestResult>().HasKey(t => new { t.TestResultId });
 
             modelBuilder.Entity<QuestionResult>().ToTable("QuestionResult");
             modelBuilder.Entity<QuestionResult>()
                 .HasOne(q => q.TestResult)
                 .WithMany()
-                .HasForeignKey(q => new { q.TestResultIdentifier, q.OwnerLogin })
+                .HasForeignKey(q => new { q.TestResultId })
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<QuestionResult>()
                 .HasOne(q => q.QuestionTemplate)
                 .WithMany()
-                .HasForeignKey(q => new { q.QuestionNumberIdentifier, q.OwnerLogin })
+                .HasForeignKey(q => new { q.QuestionTemplateId })
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<QuestionResult>().HasKey(q => new { q.TestResultIdentifier, q.QuestionNumberIdentifier, q.OwnerLogin });
+            modelBuilder.Entity<QuestionResult>().HasKey(q => new { q.QuestionResultId });
 
             modelBuilder.Entity<SubquestionResult>().ToTable("SubquestionResult");
             modelBuilder.Entity<SubquestionResult>()
                 .HasOne(q => q.QuestionResult)
                 .WithMany()
-                .HasForeignKey(q => new { q.TestResultIdentifier, q.QuestionNumberIdentifier, q.OwnerLogin })
+                .HasForeignKey(q => new { q.QuestionResultId })
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<SubquestionResult>()
                 .HasOne(q => q.SubquestionTemplate)
                 .WithMany()
-                .HasForeignKey(q => new { q.SubquestionIdentifier, q.QuestionNumberIdentifier, q.OwnerLogin})
+                .HasForeignKey(q => new { q.SubquestionTemplateId})
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<SubquestionResult>().HasKey(s => new { s.Id });
+            modelBuilder.Entity<SubquestionResult>().HasKey(s => new { s.SubquestionResultId });
             modelBuilder.Entity<SubquestionResult>()
                 .Property(e => e.StudentsAnswerList)
                 .HasConversion(
@@ -131,7 +131,7 @@ namespace DataLayer
             );
 
             modelBuilder.Entity<SubquestionTemplateRecord>().ToTable("SubquestionTemplateRecord");
-            modelBuilder.Entity<SubquestionTemplateRecord>().HasKey(s => new { s.SubquestionIdentifier, s.QuestionNumberIdentifier, s.OwnerLogin });
+            modelBuilder.Entity<SubquestionTemplateRecord>().HasKey(s => new { s.SubquestionTemplateRecordId });
             modelBuilder.Entity<SubquestionTemplateRecord>()
                 .HasOne(s => s.Owner)
                 .WithMany()
@@ -140,7 +140,7 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionTemplateRecord>()
                 .HasOne(s => s.SubquestionTemplate)
                 .WithMany()
-                .HasForeignKey(s => new { s.SubquestionIdentifier, s.QuestionNumberIdentifier, s.OwnerLogin })
+                .HasForeignKey(s => new { s.SubquestionTemplateId })
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubquestionTemplateStatistics>().ToTable("SubquestionTemplateStatistics");
@@ -151,7 +151,7 @@ namespace DataLayer
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubquestionResultRecord>().ToTable("SubquestionResultRecord");
-            modelBuilder.Entity<SubquestionResultRecord>().HasKey(s => new { s.TestResultIdentifier, s.QuestionNumberIdentifier, s.SubquestionIdentifier, s.OwnerLogin });
+            modelBuilder.Entity<SubquestionResultRecord>().HasKey(s => new { s.SubquestionTemplateRecordId });
             modelBuilder.Entity<SubquestionResultRecord>()
                 .HasOne(s => s.Owner)
                 .WithMany()
@@ -178,7 +178,7 @@ namespace DataLayer
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Subject>().ToTable("Subject");
-            modelBuilder.Entity<Subject>().HasKey(s => new { s.Id });
+            modelBuilder.Entity<Subject>().HasKey(s => new { s.SubjectId });
             modelBuilder.Entity<Subject>()
                 .HasOne(s => s.Guarantor)
                 .WithMany()

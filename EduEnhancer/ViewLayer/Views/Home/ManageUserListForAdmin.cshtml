@@ -18,7 +18,6 @@
             <h3>Seznam studentů</h3>
             <table id="student-table">
                 <tr>
-                    <th>Identifikátor</th>
                     <th>Jméno</th>
                     <th>Login</th>
                     <th>Email</th>
@@ -31,7 +30,6 @@
                     {
                         string fullName = item.FullName();
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => item.StudentIdentifier)</td>
                             <td>@Html.DisplayFor(modelItem => fullName)</td>
                             <td>@Html.DisplayFor(modelItem => item.Login)</td>
                             @{
@@ -44,7 +42,7 @@
                                     <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                 }
                             }
-                            <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.StudentIdentifier', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
+                            <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
                             <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
                         </tr>
                         i++;
@@ -65,8 +63,6 @@
                     <button type="button" onclick="hideEditStudentLabel()">Zrušit</button>
                 </div>
 
-                <label for="studentIdentifier">Identifikátor:</label>
-                <input type="text" required id="studentIdentifier" name="studentIdentifier"><br><br>
                 <label for="studentFirstName">Jméno:</label>
                 <input type="text" required id="studentFirstName" name="firstName"><br><br>
                 <label for="studentLastName">Příjmení:</label>

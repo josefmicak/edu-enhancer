@@ -4,14 +4,13 @@
 @using Common;
 
 @{
-    bool studentsTestPointsDetermined = true;
-    double? studentsTestPoints = 0;
+    double studentsTestPoints = 0;
     string studentsTestPointsString = "";
     EnumTypes.NegativePoints negativePoints = Model.First().QuestionTemplate.TestTemplate.NegativePoints;
 
-    double? testPoints = 0;
+    double testPoints = 0;
 
-    ViewData["Title"] = "Prohlížení vyřešeného testu " + Model.First().TestResultIdentifier;
+    ViewData["Title"] = "Prohlížení vyřešeného testu " + Model.First().TestResultId;
 }
 
 <div class="text-center">
@@ -20,10 +19,6 @@
     <div id="test-result">
         <h2>Parametry pokusu</h2>
         <table>
-            <tr>
-                <th>Identifikátor pokusu</th>
-                <td>@Model.First().TestResult.TestResultIdentifier</td>
-            </tr>
             <tr>
                 <th>Čas vykonání</th>
                 <td>@Model.First().TestResult.TimeStamp</td>
@@ -37,10 +32,6 @@
                 <td>@Model.First().TestResult.Student.Login</td>
             </tr>
             <tr>
-                <th>Identifikátor studenta</th>
-                <td>@Model.First().TestResult.Student.StudentIdentifier</td>
-            </tr>
-            <tr>
                 <th>Jméno vyučujícího</th>
                 <td>@Model.First().TestResult.TestTemplate.Owner.FullName()</td>
             </tr>
@@ -51,8 +42,6 @@
         <h2>Seznam otázek</h2>
         <table>
             <tr>
-               <th>Jmenný identifikátor otázky</th>
-               <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
                <th>Počet bodů</th>
                <th>Prohlížení</th>
@@ -61,17 +50,9 @@
                 int i = 0;
                 foreach (var item in Model)
                 {
-                    bool studentsQuestionPointsDetermined = true;
-                    double? studentsQuestionPoints = 0;
+                    double studentsQuestionPoints = 0;
                     foreach(SubquestionResult subquestionResult in item.SubquestionResultList)
                     {
-                        if(subquestionResult.StudentsPoints == null)
-                        {
-                            studentsQuestionPointsDetermined = false;
-                            studentsTestPointsDetermined = false;
-                            break;
-                        }
-
                         if (subquestionResult.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
                         {
                             //in case negative points are disabled, the minimum points for every subquestion is 0
@@ -93,7 +74,7 @@
                         studentsTestPoints += studentsQuestionPoints;
                     }
 
-                    double? questionPoints = 0;
+                    double questionPoints = 0;
                     foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplateList)
                     {
                         questionPoints += subquestionTemplate.SubquestionPoints;
@@ -101,28 +82,18 @@
                     testPoints += questionPoints;
 
                     string studentsQuestionPointsString = "";
-                    if(!studentsQuestionPointsDetermined)
+                    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
                     {
-                        studentsQuestionPointsString = "N/A";
+                        studentsQuestionPoints = 0;
                     }
-                    else
-                    {
-                        if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
-                        {
-                            studentsQuestionPoints = 0;
-                        }
-                        studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
-                    }
+                    studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
 
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNameIdentifier)</td>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
                         <td>@studentsQuestionPointsString</td>
-                        <td><a class="button" id="questionResultBtn_@i" title="Zobrazit otázku" asp-area="" asp-controller="Home" asp-action="BrowseSolvedQuestion"
-                        asp-route-questionNumberIdentifier="@item.QuestionTemplate.QuestionNumberIdentifier"
-                        asp-route-testResultIdentifier="@Model.First().TestResult.TestResultIdentifier"
-                        asp-route-ownerLogin="@Model.First().OwnerLogin">Správa otázky</a>
+                        <td>
+                            <a class="button" id="questionResultBtn_@i" title="Zobrazit otázku" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
+                       asp-route-questionResultId="@item.QuestionResultId">Zobrazit otázku</a>
                         </td>
                     </tr>
                 }
@@ -131,18 +102,11 @@
     </div>
 
     @{
-        if(!studentsTestPointsDetermined)
+        if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsTestPoints < 0)
         {
-            studentsTestPointsString = "N/A";
+            studentsTestPoints = 0;
         }
-        else
-        {
-            if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsTestPoints < 0)
-            {
-                studentsTestPoints = 0;
-            }
-            studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
-        }
+        studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
 
         string? studentsMinimumPointsString = string.Empty;
         if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
@@ -164,14 +128,6 @@
     <div id="test-template">
         <h2>Parametry testu</h2>
         <table>
-            <tr>
-                <th>Jmenný identifikátor testu</th>
-                <td>@Model.First().QuestionTemplate.TestTemplate.TestNameIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor testu</th>
-                <td>@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier</td>
-            </tr>
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionTemplate.TestTemplate.Title</td>
@@ -198,6 +154,6 @@
 </div>
 
 <div id="backBtn"><a asp-action="BrowseSolvedTestList"
-        asp-route-studentIdentifier="@Model.First().TestResult.Student.StudentIdentifier">Zpět</a></div>
+        asp-route-login="@Model.First().TestResult.Student.Login">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

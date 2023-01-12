@@ -65,19 +65,19 @@ namespace BusinessLayer
             return await templateFunctions.DeleteTestTemplates(login);
         }
 
-        public async Task<string> DeleteTestTemplate(string login, string testNumberIdentifier, string webRootPath)
+        public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
         {
-            return await templateFunctions.DeleteTestTemplate(login, testNumberIdentifier, webRootPath);
+            return await templateFunctions.DeleteTestTemplate(login, testTemplateId, webRootPath);
         }
 
-        public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, string testNumberIdentifier)
+        public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, int testTemplateId)
         {
-            return templateFunctions.GetQuestionTemplates(login, testNumberIdentifier);
+            return templateFunctions.GetQuestionTemplates(login, testTemplateId);
         }
 
-        public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
+        public QuestionTemplate GetQuestionTemplate(string login, int questionTemplateId)
         {
-            return templateFunctions.GetQuestionTemplate(login, questionNumberIdentifier);
+            return templateFunctions.GetQuestionTemplate(login, questionTemplateId);
         }
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
@@ -85,15 +85,15 @@ namespace BusinessLayer
             return await templateFunctions.AddQuestionTemplate(questionTemplate);
         }
 
-        public async Task<string> DeleteQuestionTemplate(string questionNumberIdentifier, string webRootPath)
+        public async Task<string> DeleteQuestionTemplate(int questionTemplateId, string webRootPath)
         {
             string login = GetCurrentUserLogin();
-            return await templateFunctions.DeleteQuestionTemplate(login, questionNumberIdentifier, webRootPath);
+            return await templateFunctions.DeleteQuestionTemplate(login, questionTemplateId, webRootPath);
         }
 
-        public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, string questionNumberIdentifier)
+        public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, int questionTemplateId)
         {
-            return templateFunctions.GetSubquestionTemplates(login, questionNumberIdentifier);
+            return templateFunctions.GetSubquestionTemplates(login, questionTemplateId);
         }
 
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
@@ -111,10 +111,10 @@ namespace BusinessLayer
             return await templateFunctions.EditSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
-        public async Task<string> DeleteSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
+        public async Task<string> DeleteSubquestionTemplate(int questionTemplateId, int subquestionTemplateId, string webRootPath)
         {
             string login = GetCurrentUserLogin();
-            return await templateFunctions.DeleteSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier, webRootPath);
+            return await templateFunctions.DeleteSubquestionTemplate(login, questionTemplateId, subquestionTemplateId, webRootPath);
         }
 
         public List<SubquestionTemplate> ProcessSubquestionTemplatesForView(List<SubquestionTemplate> subquestionTemplates)
@@ -127,19 +127,19 @@ namespace BusinessLayer
             return templateFunctions.ProcessSubquestionTemplateForView(subquestionTemplate);
         }
 
-        public TestTemplate GetTestTemplate(string testNumberIdentifier)
+        public TestTemplate GetTestTemplate(int testTemplateId)
         {
-            return templateFunctions.GetTestTemplate(testNumberIdentifier);
+            return templateFunctions.GetTestTemplate(testTemplateId);
         }
 
-        public TestTemplate GetTestTemplate(string login, string testNumberIdentifier)
+        public TestTemplate GetTestTemplate(string login, int testTemplateId)
         {
-            return templateFunctions.GetTestTemplate(login, testNumberIdentifier);
+            return templateFunctions.GetTestTemplate(login, testTemplateId);
         }
 
-        public SubquestionTemplate GetSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        public SubquestionTemplate GetSubquestionTemplate(string login, int subquestionTemplateId)
         {
-            return templateFunctions.GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);
+            return templateFunctions.GetSubquestionTemplate(login, subquestionTemplateId);
         }
 
         public async Task SetNegativePoints(TestTemplate testTemplate, EnumTypes.NegativePoints negativePoints)
@@ -147,31 +147,31 @@ namespace BusinessLayer
             await templateFunctions.SetNegativePoints(testTemplate, negativePoints);
         }
 
-        public async Task<string> SetMinimumPoints(TestTemplate testTemplate, double minimumPoints, string testPointsDetermined)
+        public async Task<string> SetMinimumPoints(TestTemplate testTemplate, double minimumPoints)
         {
-            return await templateFunctions.SetMinimumPoints(testTemplate, minimumPoints, testPointsDetermined);
+            return await templateFunctions.SetMinimumPoints(testTemplate, minimumPoints);
         }
 
-        public async Task<string> SetSubquestionTemplatePoints(string login, string questionNumberIdentifier, string subquestionIdentifier, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
+        public async Task<string> SetSubquestionTemplatePoints(string login, string subquestionTemplateId, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
         {
-            return await templateFunctions.SetSubquestionTemplatePoints(login, questionNumberIdentifier, subquestionIdentifier, subquestionPoints, wrongChoicePoints, defaultWrongChoicePoints);
+            return await templateFunctions.SetSubquestionTemplatePoints(login, int.Parse(subquestionTemplateId), subquestionPoints, wrongChoicePoints, defaultWrongChoicePoints);
         }
 
-        public double? GetTestTemplatePointsSum(string testNumberIdentifier)
+        public double GetTestTemplatePointsSum(int testTemplateId)
         {
-            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            TestTemplate testTemplate = GetTestTemplate(testTemplateId);
             return templateFunctions.GetTestTemplatePointsSum(testTemplate);
         }
 
-        public int GetTestTemplateSubquestionsCount(string testNumberIdentifier)
+        public int GetTestTemplateSubquestionsCount(int testTemplateId)
         {
-            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            TestTemplate testTemplate = GetTestTemplate(testTemplateId);
             return templateFunctions.GetTestTemplateSubquestionsCount(testTemplate);
         }
 
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, int questionTemplateId, int subquestionTemplateId)
         {
-            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(login, questionNumberIdentifier, subquestionIdentifier);
+            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(login, questionTemplateId, subquestionTemplateId);
         }
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate)
@@ -199,9 +199,9 @@ namespace BusinessLayer
             return templateFunctions.GetSubquestionTypeTextArray();
         }
 
-        public string GetTestDifficultyPrediction(string login, string testNumberIdentifier)
+        public string GetTestDifficultyPrediction(string login, int testTemplateId)
         {
-            return templateFunctions.GetTestDifficultyPrediction(login, testNumberIdentifier);
+            return templateFunctions.GetTestDifficultyPrediction(login, testTemplateId);
         }
 
         public DbSet<Subject> GetSubjectDbSet()
@@ -294,9 +294,9 @@ namespace BusinessLayer
             return resultFunctions.GetTestResultsByStudentLogin(login);
         }
 
-        public async Task<string?> BeginStudentAttempt(string testNumberIdentifier, string login)
+        public async Task<string?> BeginStudentAttempt(int testTemplateId, string login)
         {
-            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            TestTemplate testTemplate = GetTestTemplate(testTemplateId);
             Student? student = GetStudentByLogin(login);
             if (student == null)
             {
@@ -373,34 +373,34 @@ namespace BusinessLayer
             return await resultFunctions.DeleteTestResults(login);
         }
 
-        public async Task<string> DeleteTestResult(string login, string testResultIdentifier)
+        public async Task<string> DeleteTestResult(string login, int testResultId)
         {
-            return await resultFunctions.DeleteTestResult(login, testResultIdentifier);
+            return await resultFunctions.DeleteTestResult(login, testResultId);
         }
 
-        public IQueryable<QuestionResult> GetQuestionResultsByOwnerLogin(string login, string testResultIdentifier)
+        public IQueryable<QuestionResult> GetQuestionResultsByOwnerLogin(string login, int testResultId)
         {
-            return resultFunctions.GetQuestionResultsByOwnerLogin(login, testResultIdentifier);
+            return resultFunctions.GetQuestionResultsByOwnerLogin(login, testResultId);
         }
 
-        public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, string testResultIdentifier)
+        public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, int testResultId)
         {
-            return resultFunctions.GetQuestionResultsByStudentLogin(studentLogin, ownerLogin, testResultIdentifier);
+            return resultFunctions.GetQuestionResultsByStudentLogin(studentLogin, ownerLogin, testResultId);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByOwnerLogin(string login, string testResultIdentifier, string questionNumberIdentifier)
+        public IQueryable<SubquestionResult> GetSubquestionResultsByOwnerLogin(string login, int questionResultId)
         {
-            return resultFunctions.GetSubquestionResultsByOwnerLogin(login, testResultIdentifier, questionNumberIdentifier);
+            return resultFunctions.GetSubquestionResultsByOwnerLogin(login, questionResultId);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByStudentLogin(string studentLogin, string ownerLogin, string testResultIdentifier, string questionNumberIdentifier)
+        public IQueryable<SubquestionResult> GetSubquestionResultsByStudentLogin(string studentLogin, int questionResultId)
         {
-            return resultFunctions.GetSubquestionResultsByStudentLogin(studentLogin, ownerLogin, testResultIdentifier, questionNumberIdentifier);
+            return resultFunctions.GetSubquestionResultsByStudentLogin(studentLogin, questionResultId);
         }
 
-        public SubquestionResult GetSubquestionResult(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public SubquestionResult GetSubquestionResult(string login, int subquestionResultId)
         {
-            return resultFunctions.GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+            return resultFunctions.GetSubquestionResult(login, subquestionResultId);
         }
 
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
@@ -408,9 +408,9 @@ namespace BusinessLayer
             return await resultFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
         }
 
-        public async Task UpdateStudentsPoints(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task UpdateStudentsPoints(string login, int questionTemplateId, string subquestionTemplateId)
         {
-            await resultFunctions.UpdateStudentsPoints(login, questionNumberIdentifier, subquestionIdentifier);
+            await resultFunctions.UpdateStudentsPoints(login, questionTemplateId, int.Parse(subquestionTemplateId));
         }
 
         public int GetTestingDataSubquestionResultsCount()
@@ -428,9 +428,9 @@ namespace BusinessLayer
             await resultFunctions.DeleteResultTestingData();
         }
 
-        public async Task<string> GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task<string> GetSubquestionResultPointsSuggestion(string login, int subquestionResultId)
         {
-            return await resultFunctions.GetSubquestionResultPointsSuggestion(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+            return await resultFunctions.GetSubquestionResultPointsSuggestion(login, subquestionResultId);
         }
 
         public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
@@ -495,14 +495,9 @@ namespace BusinessLayer
             return userFunctions.GetStudentByEmail(email);
         }
 
-        public Student? GetStudentByIdentifier(string studentIdentifier)
+        public async Task EditStudent(string firstName, string lastName, string login, string email, Student studentLoginCheck)
         {
-            return userFunctions.GetStudentByIdentifier(studentIdentifier);
-        }
-
-        public async Task EditStudent(string studentIdentifier, string firstName, string lastName, string login, string email, Student studentLoginCheck)
-        {
-            await userFunctions.EditStudent(studentIdentifier, firstName, lastName, login, email, studentLoginCheck);
+            await userFunctions.EditStudent(firstName, lastName, login, email, studentLoginCheck);
         }
 
         public async Task DeleteStudent(Student student)
@@ -595,9 +590,9 @@ namespace BusinessLayer
             await userFunctions.DeleteAllStudents();
         }
 
-        public async Task<string> AddStudent(string studentIdentifier, string firstName, string lastName, string login, string email, Student? studentLoginCheck)
+        public async Task<string> AddStudent(string firstName, string lastName, string login, string email, Student? studentLoginCheck)
         {
-            return await userFunctions.AddStudent(studentIdentifier, firstName, lastName, login, email, studentLoginCheck);
+            return await userFunctions.AddStudent(firstName, lastName, login, email, studentLoginCheck);
         }
 
 
@@ -606,10 +601,10 @@ namespace BusinessLayer
             return userFunctions.CanUserAccessPage(requiredRole);
         }
 
-        public bool CanStudentAccessTest(string login, string testNumberIdentifier)
+        public bool CanStudentAccessTest(string login, int testTemplateId)
         {
             Student? student = GetStudentByLogin(login);
-            TestTemplate testTemplate = GetTestTemplate(testNumberIdentifier);
+            TestTemplate testTemplate = GetTestTemplate(testTemplateId);
             if(student == null)
             {
                 throw Exceptions.UserNotFoundException;

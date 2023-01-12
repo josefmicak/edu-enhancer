@@ -71,13 +71,13 @@ namespace BusinessLayer
             return await dataFunctions.DeleteTestResults(login);
         }
 
-        public async Task<string> DeleteTestResult(string login, string testResultIdentifier)
+        public async Task<string> DeleteTestResult(string login, int testResultId)
         {
-            TestResult testResult = GetTestResultDbSet().First(t => t.OwnerLogin == login && t.TestResultIdentifier == testResultIdentifier);
+            TestResult testResult = GetTestResultDbSet().First(t => t.OwnerLogin == login && t.TestResultId == testResultId);
             return await dataFunctions.DeleteTestResult(testResult);
         }
 
-        public IQueryable<QuestionResult> GetQuestionResultsByOwnerLogin(string login, string testResultIdentifier)
+        public IQueryable<QuestionResult> GetQuestionResultsByOwnerLogin(string login, int testResultId)
         {
             return GetQuestionResultDbSet()
                 .Include(t => t.TestResult)
@@ -86,10 +86,10 @@ namespace BusinessLayer
                 .Include(q => q.QuestionTemplate.SubquestionTemplateList)
                 .Include(s => s.TestResult.Student)
                 .Include(q => q.SubquestionResultList)
-                .Where(t => t.TestResultIdentifier == testResultIdentifier && t.OwnerLogin == login);
+                .Where(t => t.TestResultId == testResultId && t.OwnerLogin == login);
         }
 
-        public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, string testResultIdentifier)
+        public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, int testResultId)
         {
             return GetQuestionResultDbSet()
                 .Include(q => q.TestResult)
@@ -99,50 +99,48 @@ namespace BusinessLayer
                 .Include(q => q.QuestionTemplate.SubquestionTemplateList)
                 .Include(q => q.TestResult.Student)
                 .Include(q => q.SubquestionResultList)
-                .Where(q => q.TestResultIdentifier == testResultIdentifier && q.TestResult.Student.Login == studentLogin
+                .Where(q => q.TestResultId == testResultId && q.TestResult.Student.Login == studentLogin
                     && q.OwnerLogin == ownerLogin);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByOwnerLogin(string login, string testResultIdentifier, string questionNumberIdentifier)
+        public IQueryable<SubquestionResult> GetSubquestionResultsByOwnerLogin(string login, int questionResultId)
         {
             return GetSubquestionResultDbSet()
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.QuestionTemplate)
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier
-                && s.QuestionNumberIdentifier == questionNumberIdentifier && s.OwnerLogin == login);
+                .Where(s => s.QuestionResultId == questionResultId && s.OwnerLogin == login);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByStudentLogin(string studentLogin, string ownerLogin, string testResultIdentifier, string questionNumberIdentifier)
+        public IQueryable<SubquestionResult> GetSubquestionResultsByStudentLogin(string studentLogin, int questionResultId)
         {
             return GetSubquestionResultDbSet()
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.QuestionTemplate)
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier &&
-                s.QuestionResult.TestResult.Student.Login == studentLogin && s.OwnerLogin == ownerLogin);
+                .Where(s => s.QuestionResultId == questionResultId &&
+                s.QuestionResult.TestResult.Student.Login == studentLogin);
         }
 
-        public SubquestionResult GetSubquestionResult(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public SubquestionResult GetSubquestionResult(string login, int subquestionResultId)
         {
             return GetSubquestionResultDbSet()
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.SubquestionTemplate.QuestionTemplate)
                 .Include(s => s.SubquestionTemplate.QuestionTemplate.TestTemplate)
-                .First(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier
-                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+                .First(s => s.SubquestionResultId == subquestionResultId && s.OwnerLogin == login);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResults(string login, string testResultIdentifier, string questionNumberIdentifier)
+        public IQueryable<SubquestionResult> GetSubquestionResults(string login, int testResultId, int questionTemplateId)
         {
             return GetSubquestionResultDbSet()
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.TestResult)
-                .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
+                .Where(s => s.QuestionTemplateId == questionTemplateId
                     && s.OwnerLogin == login
-                    && s.TestResultIdentifier == testResultIdentifier).AsQueryable();
+                    && s.TestResultId == testResultId).AsQueryable();
         }
 
         public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
@@ -201,14 +199,14 @@ namespace BusinessLayer
             return message;
         }
 
-        public async Task UpdateStudentsPoints(string login, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task UpdateStudentsPoints(string login, int questionTemplateId, int subquestionResultId)
         {
-            List<SubquestionResult> subquestionResults = dataFunctions.GetSubquestionResults(questionNumberIdentifier, subquestionIdentifier, login);
+            List<SubquestionResult> subquestionResults = dataFunctions.GetSubquestionResults(questionTemplateId, subquestionResultId, login);
             for(int i = 0; i < subquestionResults.Count; i++)
             {
                 SubquestionResult subquestionResult = subquestionResults[i];
                 SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-                (double? defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList,
+                (double defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList,
                     subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
                 subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                 subquestionResult.StudentsPoints = defaultStudentsPoints;
@@ -371,7 +369,7 @@ namespace BusinessLayer
             Student? student = dataFunctions.GetStudentByLogin("testingstudent");
             if (student == null)
             {
-                student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+                student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
                 await dataFunctions.AddStudent(student);
             }
         }
@@ -384,7 +382,7 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public async Task<string> GetSubquestionResultPointsSuggestion(string login, string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier)
+        public async Task<string> GetSubquestionResultPointsSuggestion(string login, int subquestionResultId)
         {
             User owner = dataFunctions.GetUserByLogin(login);
 
@@ -397,14 +395,14 @@ namespace BusinessLayer
                 await RetrainSubquestionResultModel(owner);
             }
 
-            var subquestionResults = GetSubquestionResults(login, testResultIdentifier, questionNumberIdentifier);
+            //var subquestionResults = GetSubquestionResults(login, testResultId, questionTemplateId);
 
-            if (subquestionIdentifier == null)
+            /*if (subquestionIdentifier == null)
             {
                 subquestionIdentifier = subquestionResults.First().SubquestionIdentifier;
-            }
+            }*/
 
-            var subquestionResult = GetSubquestionResult(login, testResultIdentifier, questionNumberIdentifier, subquestionIdentifier);
+            var subquestionResult = GetSubquestionResult(login, subquestionResultId);
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
 
             var testResults = GetTestResultList(owner.Login);
@@ -456,9 +454,7 @@ namespace BusinessLayer
         public async Task<string?> BeginStudentAttempt(TestTemplate testTemplate, Student student)
         {
             TestResult testResult = new TestResult();
-            testResult.TestResultIdentifier = GenerateRandomString();
-            testResult.TestNameIdentifier = testTemplate.TestNameIdentifier;
-            testResult.TestNumberIdentifier = testTemplate.TestNumberIdentifier;
+            testResult.TestTemplateId = testTemplate.TestTemplateId;
             testResult.TestTemplate = testTemplate;
             testResult.TimeStamp = DateTime.Now;
             testResult.Student = student;
@@ -471,8 +467,8 @@ namespace BusinessLayer
             {
                 QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
                 QuestionResult questionResult = new QuestionResult();
-                questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
-                questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                questionResult.TestResultId = testResult.TestResultId;
+                questionResult.QuestionTemplateId = questionTemplate.QuestionTemplateId;
                 questionResult.OwnerLogin = testTemplate.OwnerLogin;
                 questionResult.TestResult = testResult;
                 questionResult.QuestionTemplate = questionTemplate;
@@ -482,9 +478,9 @@ namespace BusinessLayer
                 {
                     SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
                     SubquestionResult subquestionResult = new SubquestionResult();
-                    subquestionResult.TestResultIdentifier = testResult.TestResultIdentifier;
-                    subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
-                    subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                    subquestionResult.TestResultId = testResult.TestResultId;
+                    subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
+                    subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                     subquestionResult.OwnerLogin = testResult.OwnerLogin;
                     subquestionResult.StudentsAnswerList = new string[0];
                     subquestionResult.StudentsPoints = 0;
@@ -606,7 +602,7 @@ namespace BusinessLayer
                             }
                             break;
                     }
-                    subquestionResultsProperties.Add((subquestionResult.Id, answerCompleteness));
+                    subquestionResultsProperties.Add((subquestionResult.SubquestionResultId, answerCompleteness));
                 }
             }
             return subquestionResultsProperties;
@@ -851,7 +847,7 @@ namespace BusinessLayer
                 {
                     SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(j);
                     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-                    (double? defaultStudentsPoints, double answerCorrectness, AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                    (double defaultStudentsPoints, double answerCorrectness, AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
                         subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
                         subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
                     subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
@@ -902,33 +898,6 @@ namespace BusinessLayer
             }
 
             return subquestionResult;
-        }
-
-        public string GenerateRandomString()//random string - will be deleted after domain model change
-        {
-            // Creating object of random class
-            Random rand = new Random();
-
-            // Choosing the size of string
-            // Using Next() string
-            int stringlen = rand.Next(4, 10);
-            int randValue;
-            string str = "";
-            char letter;
-            for (int i = 0; i < stringlen; i++)
-            {
-
-                // Generating a random number.
-                randValue = rand.Next(0, 26);
-
-                // Generating random character by converting
-                // the random number into character.
-                letter = Convert.ToChar(randValue + 65);
-
-                // Appending the letter to string.
-                str = str + letter;
-            }
-            return str;
         }
     }
 }

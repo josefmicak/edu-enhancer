@@ -7,7 +7,6 @@ namespace DomainModel
         [Key]
         public string Login { get; set; } = default!;
         public string? Email { get; set; }
-        public string StudentIdentifier { get; set; } = default!;
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
         public List<Subject> SubjectList { get; set; } = default!;

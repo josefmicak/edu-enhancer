@@ -125,8 +125,8 @@ def main(arguments):
     sql = "SELECT * FROM SubquestionTemplateRecord WHERE OwnerLogin = '" + login + "'"
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
-    df = df.drop('QuestionNumberIdentifier', axis=1)  # question number identifier is irrelevant in this context
-    df = df.drop('SubquestionIdentifier', axis=1)  # subqustion identifier is irrelevant in this context
+    df = df.drop('QuestionTemplateId', axis=1)  # question number identifier is irrelevant in this context
+    df = df.drop('SubquestionTemplateId', axis=1)  # subqustion identifier is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]

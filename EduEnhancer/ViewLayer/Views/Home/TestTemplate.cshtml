@@ -5,8 +5,7 @@
 @using System.Diagnostics;
 
 @{
-    bool testPointsDetermined = true;
-    double? testPoints = 0;
+    double testPoints = 0;
     string? testPointsString = "";
 
     //minimum points
@@ -33,22 +32,22 @@
 
     //it's possible that no "real" questions exist for this test yet, only one dummy question is added
     bool questionsAdded = true;
-    if (@Model.First().QuestionNumberIdentifier == "placeholder")
+    if (@Model.First().QuestionTemplateId == -1)
     {
         questionsAdded = false;
     }
 
-    ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestNameIdentifier;
+    ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestTemplateId;
 }
 
 <div class="text-center">
-    <h1>Správa zadání testu @Model.First().TestTemplate.TestNameIdentifier</h1>
+    <h1>Správa zadání testu @Model.First().TestTemplate.TestTemplateId</h1>
 
     <div id="negative-points">
         <h2>Záporné body</h2>
         <form method="POST">
             <p>@ViewBag.NegativePointsMessage</p>
-            <input type="hidden" value="@Model.First().TestTemplate.TestNumberIdentifier" name="testNumberIdentifier">
+            <input type="hidden" value="@Model.First().TestTemplate.TestTemplateId" name="testTemplateId">
             <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
             <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
             <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
@@ -57,15 +56,13 @@
         </form>
     </div>
 
-    <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testNumberIdentifier="@Model.First().TestTemplate.TestNumberIdentifier">Přidat otázku</a>
+    <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testTemplateId="@Model.First().TestTemplate.TestTemplateId">Přidat otázku</a>
 
     <div id="question-template-list">
         <p>@ViewBag.Message</p>
         <h2>Seznam otázek</h2>
         <table>
             <tr>
-               <th>Jmenný identifikátor otázky</th>
-               <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
                <th>Počet bodů</th>
                <th>Smazat</th>
@@ -75,42 +72,27 @@
                 int i = 0;
                 foreach (var item in Model)
                 {
-                    if(item.QuestionNumberIdentifier == "placeholder")
+                    if (item.QuestionTemplateId == -1)
                     {
                         continue;
                     }
 
-                    bool questionPointsDetermined = true;
-                    double? questionPoints = 0;
+                    double questionPoints = 0;
                     foreach(SubquestionTemplate subquestionTemplate in item.SubquestionTemplateList)
                     {
-                        if(subquestionTemplate.SubquestionPoints == null)
-                        {
-                            testPointsDetermined = false;
-                            questionPointsDetermined = false;
-                            break;
-                        }
                         questionPoints += subquestionTemplate.SubquestionPoints;
                     }
                     testPoints += questionPoints;
                     string? questionPointsString = "";
-                    if(!questionPointsDetermined)
-                    {
-                        questionPointsString = "N/A";
-                    }
-                    else
-                    {
-                        double? questionPointsRound = CommonFunctions.RoundDecimal(questionPoints);
-                        questionPointsString = questionPointsRound.ToString();
-                    }
+                    double? questionPointsRound = Math.Round(questionPoints, 2);
+                    questionPointsString = questionPointsRound.ToString();
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionNameIdentifier)</td>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td>@questionPointsString</td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionNumberIdentifier', null, null, null, null, null)">Smazat otázku</button></td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
                         <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                        asp-route-questionNumberIdentifier="@item.QuestionNumberIdentifier">Správa otázky</a></td>
+                       asp-route-questionTemplateId="@item.QuestionTemplateId">Správa otázky</a>
+                        </td>
                     </tr>
                 }
             }
@@ -119,15 +101,8 @@
 </div>
 
 @{
-    if(!testPointsDetermined)
-    {
-        testPointsString = "N/A";
-    }
-    else
-    {
-        double? testPointsRound = CommonFunctions.RoundDecimal(testPoints);
-        testPointsString = testPointsRound.ToString();
-    }
+    double testPointsRound = Math.Round(testPoints, 2);
+    testPointsString = testPointsRound.ToString();
 
     //negative points
     EnumTypes.NegativePoints negativePoints = Model.First().TestTemplate.NegativePoints;
@@ -154,14 +129,6 @@
 <div id="test-template">
     <h2>Parametry testu</h2>
     <table>
-        <tr>
-            <th>Jmenný identifikátor testu</th>
-            <td>@Model.First().TestTemplate.TestNameIdentifier</td>
-        </tr>
-        <tr>
-            <th>Číselný identifikátor testu</th>
-            <td>@Model.First().TestTemplate.TestNumberIdentifier</td>
-        </tr>
         <tr>
             <th>Nadpis</th>
             <td>@Model.First().TestTemplate.Title</td>
@@ -197,7 +164,6 @@
         <p>Minimální počet bodů: <input type="number" min="0" step=".01" required name="minimumPointsAmount" value="@minimumPointsString" /></p>
         <p><input class="button" id="setMinimumPointsBtn" title="Uložit" type="submit" value="Uložit"></p>
         <input type="hidden" value="setMinimumPoints" name="action">
-        <input type="hidden" value="@testPointsDetermined.ToString()" name="testPointsDetermined">
     </form>
 </div>
 
@@ -224,7 +190,7 @@
         <label><div id="confirm-action-label"></div></label><br>
         <input title="Ano" type="submit" value="Ano"><br>
         <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-        <input type="hidden" id="questionNumberIdentifier" name="questionNumberIdentifier">
+        <input type="hidden" id="questionTemplateId" name="questionTemplateId">
         <input type="hidden" id="action" name="action">
     </form>
 </div>

@@ -1,9 +1,15 @@
-﻿namespace DomainModel
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace DomainModel
 {
     public class QuestionResult
     {
-        public string TestResultIdentifier { get; set; } = default!;
-        public string QuestionNumberIdentifier { get; set; } = default!;
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int QuestionResultId { get; set; }
+        public int TestResultId { get; set; } = default!;
+        public int QuestionTemplateId { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
         public TestResult TestResult { get; set; } = default!;
         public QuestionTemplate QuestionTemplate { get; set; } = default!;

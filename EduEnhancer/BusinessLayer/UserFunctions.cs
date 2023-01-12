@@ -65,11 +65,6 @@ namespace BusinessLayer
             return GetStudentDbSet().FirstOrDefault(s => s.Email == email);
         }
 
-        public Student? GetStudentByIdentifier(string studentIdentifier)
-        {
-            return GetStudentDbSet().FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
-        }
-
         public User? GetMainAdmin()
         {
             return GetUserDbSet().FirstOrDefault(u => u.Role == EnumTypes.Role.MainAdmin);
@@ -162,13 +157,11 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public async Task<string> AddStudent(string studentIdentifier, string firstName, string lastName, string login, string email, Student? studentLoginCheck)
+        public async Task<string> AddStudent(string firstName, string lastName, string login, string email, Student? studentLoginCheck)
         {
-            var studentByIdentifier = GetStudentByIdentifier(studentIdentifier);
-            if (studentLoginCheck == null && studentByIdentifier == null)
+            if (studentLoginCheck == null)
             {
                 Student student = new Student();
-                student.StudentIdentifier = studentIdentifier;
                 student.Login = login;
                 student.Email = email;
                 student.FirstName = firstName;
@@ -177,23 +170,18 @@ namespace BusinessLayer
             }
             else
             {
-                if (studentLoginCheck != null)
-                {
-                    studentLoginCheck.Email = email;
-                    await dataFunctions.SaveChangesAsync();
-                    return "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
-                }
+                studentLoginCheck.Email = email;
+                await dataFunctions.SaveChangesAsync();
+                return "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
             }
-            return "Při přidávání studenta nastala neočekávaná chyba.";
         }
 
-        public async Task EditStudent(string studentIdentifier, string firstName, string lastName, string login, string email, Student studentLoginCheck)
+        public async Task EditStudent(string firstName, string lastName, string login, string email, Student studentLoginCheck)
         {
             studentLoginCheck.Login = login;
             studentLoginCheck.Email = email;
             studentLoginCheck.FirstName = firstName;
             studentLoginCheck.LastName = lastName;
-            studentLoginCheck.StudentIdentifier = studentIdentifier;
             await dataFunctions.SaveChangesAsync();
         }
 

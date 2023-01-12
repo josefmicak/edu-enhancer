@@ -22,7 +22,7 @@
                 <th>Login</th>
                 <th>Email</th>
                 <th>Datum vytvoření</th>
-                <th>Importovaný student s tímto loginem</th>
+                <th>Existující student s tímto loginem</th>
                 <th>Schválení</th>
                 <th>Zamítnutí</th>
                 <th>Smazání</th>
@@ -39,7 +39,7 @@
                     string? studentData = null;
                     if(item.Student != null)
                     {
-                        studentData = "Identifikátor: " + item.Student.StudentIdentifier + ", jméno: " + item.Student.FullName() + ", login: " + item.Student.Login;
+                        studentData = "Jméno: " + item.Student.FullName() + ", login: " + item.Student.Login;
                     }
                     else
                     {

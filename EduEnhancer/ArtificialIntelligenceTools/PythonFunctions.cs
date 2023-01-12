@@ -133,9 +133,9 @@ namespace ArtificialIntelligenceTools
         /// <param name="retrainModel">Indicates whether the model should be retrained or not</param>
         /// <param name="login">Login of the user</param>
         /// <param name="fileName">File containing the model to be tested</param>
-        /// <param name="testNumberIdentifier">Identifier of the test</param>
+        /// <param name="testTemplateId">Identifier of the test</param>
         /// </summary>
-        public static double GetTestTemplatePredictedPoints(bool retrainModel, string login, EnumTypes.Model usedModel, string testNumberIdentifier)
+        public static double GetTestTemplatePredictedPoints(bool retrainModel, string login, EnumTypes.Model usedModel, int testTemplateId)
         {
             string fileName = string.Empty;
             if(usedModel == EnumTypes.Model.MachineLearning)
@@ -150,7 +150,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, testNumberIdentifier);
+                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, testTemplateId);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;

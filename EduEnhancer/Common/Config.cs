@@ -41,14 +41,6 @@
         }
 
         /// <summary>
-        /// Path to the folder containing all exported files for every platform
-        /// </summary>
-        public static readonly string[] ExportedFilesPath = new string[] {
-            "C:\\xampp\\exported",
-            @"/home/fei/mic0378/exported"
-        };
-
-        /// <summary>
         /// Returns Python path for every platform
         /// </summary>
         /// <returns>Python path for every platform</returns>
@@ -72,7 +64,7 @@
 
         public static readonly string[] PythonScriptsPath = new string[] {
             Path.GetDirectoryName(Environment.CurrentDirectory),
-            "/home/fei/mic0378/TaoEnhancer"
+            "/home/fei/mic0378/EduEnhancer"
         };
 
         /// <summary>

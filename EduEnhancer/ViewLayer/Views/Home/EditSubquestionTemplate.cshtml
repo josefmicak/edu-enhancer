@@ -341,7 +341,7 @@
                 <p>Maximální velikost: 4 MB. Povolené formáty: .jpg, .png, .jpeg, .webp</p>
                 <br>
                 <button type="submit" value="editSubquestion" name="action" id="subquestion-add">Uložit</button>
-                <input type="hidden" name="QuestionNumberIdentifier" value="@Model.QuestionNumberIdentifier">
+                <input type="hidden" name="questionTemplateId" value="@Model.QuestionTemplateId">
                 <input type="hidden" name="SubquestionType" value="@selectedSubquestionType">
                 <input type="hidden" id="ImageSource" name="ImageSource">
             </form>
@@ -390,7 +390,7 @@
 
 <div id="backBtn">
     <a asp-action="QuestionTemplate"
-       asp-route-questionNumberIdentifier="@Model.QuestionNumberIdentifier">Zpět</a>
+       asp-route-questionTemplateId="@Model.QuestionTemplateId">Zpět</a>
 </div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

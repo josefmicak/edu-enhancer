@@ -115,8 +115,8 @@ namespace ArtificialIntelligenceTools
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
-            subquestionTemplateRecord.SubquestionIdentifier = "SubquestionIdentifier_0_0_0";
-            subquestionTemplateRecord.QuestionNumberIdentifier = "QuestionNumberIdentifier_0_0";
+            subquestionTemplateRecord.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
+            subquestionTemplateRecord.QuestionTemplateId = subquestionTemplate.QuestionTemplateId;
             subquestionTemplateRecord.Owner = owner;
             subquestionTemplateRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
@@ -167,10 +167,7 @@ namespace ArtificialIntelligenceTools
             subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionTemplateRecord.MinimumPointsShare = CommonFunctions.RoundDecimal(minimumPointsShare);
-            if (subquestionTemplate.SubquestionPoints != null)
-            {
-                subquestionTemplateRecord.SubquestionPoints = Math.Round((double)subquestionTemplate.SubquestionPoints, 2);
-            }
+            subquestionTemplateRecord.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
 
             return subquestionTemplateRecord;
         }
@@ -218,11 +215,9 @@ namespace ArtificialIntelligenceTools
 
                 string testId = i.ToString();
                 TestTemplate testTemplate = new TestTemplate();
-                testTemplate.TestNameIdentifier = "TestNameIdentifier_" + testId;
-                testTemplate.TestNumberIdentifier = "TestNumberIdentifier_" + testId;
                 testTemplate.Title = "Title_" + testId;
                 testTemplate.NegativePoints = (EnumTypes.NegativePoints)random.Next(1, 4);
-                double? totalSubquestionPoints = 0;
+                double totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
                 testTemplate.Subject = testingDataSubjects[subject];
@@ -240,10 +235,7 @@ namespace ArtificialIntelligenceTools
 
                     string questionId = j.ToString();
                     QuestionTemplate questionTemplate = new QuestionTemplate();
-                    questionTemplate.QuestionNameIdentifier = "QuestionNameIdentifier_" + testId + "_" + questionId;
-                    questionTemplate.QuestionNumberIdentifier = "QuestionNumberIdentifier_" + testId + "_" + questionId;
                     questionTemplate.Title = "Title_" + testId + "_" + questionId;
-                    questionTemplate.Label = "Label_" + testId + "_" + questionId;
                     questionTemplate.OwnerLogin = owner.Login;
                     questionTemplate.TestTemplate = testTemplate;
                     List<SubquestionTemplate> subquestionTemplates = new List<SubquestionTemplate>();
@@ -257,7 +249,6 @@ namespace ArtificialIntelligenceTools
 
                         string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                        subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
                         (string subquestionText, _, _, string[] possibleAnswers, string[] correctAnswers) =
@@ -279,7 +270,6 @@ namespace ArtificialIntelligenceTools
                         int subquestionPoints = random.Next(1, 16);
                         subquestionTemplate.SubquestionPoints = subquestionPoints;
                         totalSubquestionPoints += subquestionTemplate.SubquestionPoints;
-                        subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
@@ -338,12 +328,10 @@ namespace ArtificialIntelligenceTools
 
                 string testId = i.ToString();
                 TestTemplate testTemplate = new TestTemplate();
-                testTemplate.TestNameIdentifier = "TestNameIdentifier_" + testId;
-                testTemplate.TestNumberIdentifier = "TestNumberIdentifier_" + testId;
                 testTemplate.Title = "Title_" + testId;
                 int negativePoints = random.Next(1, 4);
                 testTemplate.NegativePoints = (EnumTypes.NegativePoints)negativePoints;
-                double? totalSubquestionPoints = 0;
+                double totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
                 int subject = random.Next(0, 5);
                 testTemplate.Subject = testingDataSubjects[subject];
@@ -361,10 +349,7 @@ namespace ArtificialIntelligenceTools
 
                     string questionId = j.ToString();
                     QuestionTemplate questionTemplate = new QuestionTemplate();
-                    questionTemplate.QuestionNameIdentifier = "QuestionNameIdentifier_" + testId + "_" + questionId;
-                    questionTemplate.QuestionNumberIdentifier = "QuestionNumberIdentifier_" + testId + "_" + questionId;
                     questionTemplate.Title = "Title_" + testId + "_" + questionId;
-                    questionTemplate.Label = "Label_" + testId + "_" + questionId;
                     questionTemplate.OwnerLogin = owner.Login;
                     questionTemplate.TestTemplate = testTemplate;
                     List<SubquestionTemplate> subquestionTemplates = new List<SubquestionTemplate>();
@@ -378,7 +363,6 @@ namespace ArtificialIntelligenceTools
 
                         string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                        subquestionTemplate.SubquestionIdentifier = "SubquestionIdentifier_" + testId + "_" + questionId + "_" + subquestionId;
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
                         //subquestionTemplate.SubquestionText = "SubquestionText" + testId + "_" + questionId + "_" + subquestionId;
@@ -432,7 +416,7 @@ namespace ArtificialIntelligenceTools
                         subquestionTemplate.SubquestionPoints = Math.Round(subquestionPoints, 2);
 
                         totalSubquestionPoints += subquestionTemplate.SubquestionPoints;
-                        subquestionTemplate.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                        subquestionTemplate.QuestionTemplateId = questionTemplate.QuestionTemplateId;
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
@@ -471,7 +455,7 @@ namespace ArtificialIntelligenceTools
         public static List<TestResult> GenerateRandomTestResults(List<TestTemplate> existingTestTemplates, int testingDataTestResultsCount, int amountOfSubquestionResultsToBeGenerated)
         {
             List<TestResult> testResults = new List<TestResult>();
-            Student student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+            Student student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
             Random random = new Random();
             int subquestionCount = 0;
             bool stopDataGeneration = false;
@@ -487,10 +471,8 @@ namespace ArtificialIntelligenceTools
                 TestTemplate testTemplate = existingTestTemplates[i];
                 TestResult testResult = new TestResult();
                 testResult.TestTemplate = testTemplate;
-                testResult.TestResultIdentifier = "TestResultIdentifier_" + testId;
                 testResult.OwnerLogin = testTemplate.OwnerLogin;
-                testResult.TestNameIdentifier = testTemplate.TestNameIdentifier;
-                testResult.TestNumberIdentifier = testTemplate.TestNumberIdentifier;
+                testResult.TestTemplateId = testTemplate.TestTemplateId;
                 testResult.TimeStamp = DateTime.Now;
                 testResult.Student = student;
                 testResult.StudentLogin = student.Login;
@@ -507,9 +489,8 @@ namespace ArtificialIntelligenceTools
                     QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
-                    questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
+                    questionResult.TestResultId = testResult.TestResultId;
                     questionResult.TestResult = testResult;
-                    questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
                     questionResult.OwnerLogin = testResult.OwnerLogin;
                     List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
 
@@ -524,15 +505,15 @@ namespace ArtificialIntelligenceTools
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
-                        subquestionResult.TestResultIdentifier = questionResult.TestResultIdentifier;
-                        subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
-                        subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                        subquestionResult.TestResultId = questionResult.TestResultId;
+                        subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
+                        subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
                         subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
-                        (double? defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                        (double defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
                             subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
                             subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
-                        int studentsPoints = random.Next(0, (int)subquestionTemplate.SubquestionPoints.Value);
+                        int studentsPoints = random.Next(0, (int)subquestionTemplate.SubquestionPoints);
                         subquestionResult.StudentsPoints = studentsPoints;
                         subquestionResult.AnswerCorrectness = answerCorrectness;
                         subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
@@ -567,7 +548,7 @@ namespace ArtificialIntelligenceTools
         public static List<TestResult> GenerateCorrelationalTestResults(List<TestTemplate> existingTestTemplates, int testingDataTestResultsCount, int amountOfSubquestionResultsToBeGenerated)
         {
             List<TestResult> testResults = new List<TestResult>();
-            Student student = new Student() { Login = "testingstudent", Email = "studentemail", StudentIdentifier = "testingstudent", FirstName = "name", LastName = "surname", IsTestingData = true };
+            Student student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
             Random random = new Random();
             List<Subject> subjectList = existingTestTemplates.Select(t => t.Subject).Distinct().ToList();
             int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
@@ -593,10 +574,8 @@ namespace ArtificialIntelligenceTools
                 TestTemplate testTemplate = existingTestTemplates[i];
                 TestResult testResult = new TestResult();
                 testResult.TestTemplate = testTemplate;
-                testResult.TestResultIdentifier = "TestResultIdentifier_" + testId;
                 testResult.OwnerLogin = testTemplate.OwnerLogin;
-                testResult.TestNameIdentifier = testTemplate.TestNameIdentifier;
-                testResult.TestNumberIdentifier = testTemplate.TestNumberIdentifier;
+                testResult.TestTemplateId = testTemplate.TestTemplateId;
                 testResult.TimeStamp = DateTime.Now;
                 testResult.Student = student;
                 testResult.StudentLogin = student.Login;
@@ -613,9 +592,9 @@ namespace ArtificialIntelligenceTools
                     QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
-                    questionResult.TestResultIdentifier = testResult.TestResultIdentifier;
+                    questionResult.TestResultId = testResult.TestResultId;
                     questionResult.TestResult = testResult;
-                    questionResult.QuestionNumberIdentifier = questionTemplate.QuestionNumberIdentifier;
+                    questionResult.QuestionTemplateId = questionTemplate.QuestionTemplateId;
                     questionResult.OwnerLogin = testResult.OwnerLogin;
                     List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
 
@@ -630,19 +609,19 @@ namespace ArtificialIntelligenceTools
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
-                        subquestionResult.TestResultIdentifier = questionResult.TestResultIdentifier;
-                        subquestionResult.QuestionNumberIdentifier = questionResult.QuestionNumberIdentifier;
-                        subquestionResult.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
+                        subquestionResult.TestResultId = questionResult.TestResultId;
+                        subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
+                        subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
                         subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
-                        (double? defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerCorrect) = CommonFunctions.CalculateStudentsAnswerAttributes(
+                        (double defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerCorrect) = CommonFunctions.CalculateStudentsAnswerAttributes(
                             subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
                             subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
 
                         subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
-                        double? studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
+                        double studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
                         studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
-                        int subjectIndex = subjectList.FindIndex(s => s.Id == testTemplate.Subject.Id);//subjectAveragePoints modifier
+                        int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testTemplate.Subject.SubjectId);//subjectAveragePoints modifier
                         studentsPoints += subquestionPointsBySubjectArray[subjectIndex];//subjectAveragePoints modifier
                         //containsImage variable is not correlational
                         studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
@@ -676,7 +655,7 @@ namespace ArtificialIntelligenceTools
                             studentsPoints = 0;
                         }
 
-                        subquestionResult.StudentsPoints = CommonFunctions.RoundDecimal(studentsPoints);
+                        subquestionResult.StudentsPoints = studentsPoints;
                         subquestionResult.AnswerCorrectness = answerCorrectness;
                         subquestionResult.AnswerStatus = answerCorrect;
                         subquestionResults.Add(subquestionResult);
@@ -739,9 +718,9 @@ namespace ArtificialIntelligenceTools
 
             SubquestionResultRecord subquestionResultRecord = new SubquestionResultRecord();
             subquestionResultRecord.SubquestionResult = subquestionResult;
-            subquestionResultRecord.SubquestionIdentifier = subquestionTemplate.SubquestionIdentifier;
-            subquestionResultRecord.QuestionNumberIdentifier = subquestionTemplate.QuestionNumberIdentifier;
-            subquestionResultRecord.TestResultIdentifier = subquestionResult.TestResultIdentifier;
+            subquestionResultRecord.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
+            subquestionResultRecord.QuestionTemplateId = subquestionTemplate.QuestionTemplateId;
+            subquestionResultRecord.TestResultId = subquestionResult.TestResultId;
             subquestionResultRecord.Owner = owner;
             subquestionResultRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
@@ -1040,14 +1019,7 @@ namespace ArtificialIntelligenceTools
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
-                        if (subquestionTemplate.SubquestionPoints != null)
-                        {
-                            subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionTemplate.SubquestionPoints;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionTemplate.SubquestionPoints;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
                     }
                 }
@@ -1079,14 +1051,7 @@ namespace ArtificialIntelligenceTools
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionResult.SubquestionTemplate.SubquestionType;
-                        if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
-                        {
-                            subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
                     }
                 }
@@ -1118,14 +1083,7 @@ namespace ArtificialIntelligenceTools
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionResult.SubquestionTemplate.SubquestionType;
-                        if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
-                        {
-                            subquestionTypeAnswerCorrectness[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.AnswerCorrectness;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        subquestionTypeAnswerCorrectness[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.AnswerCorrectness;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
                     }
                 }
@@ -1159,15 +1117,8 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
-                        int subjectIndex = subjectList.FindIndex(s => s.Id == testTemplate.Subject.Id);
-                        if (subquestionTemplate.SubquestionPoints != null)
-                        {
-                            subjectPointsShare[subjectIndex] += (double)subquestionTemplate.SubquestionPoints;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testTemplate.Subject.SubjectId);
+                        subjectPointsShare[subjectIndex] += (double)subquestionTemplate.SubquestionPoints;
                         subquestionCountBySubject[subjectIndex] += 1;
                     }
                 }
@@ -1204,16 +1155,9 @@ namespace ArtificialIntelligenceTools
                     for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
                     {
                         SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
-                        int subjectIndex = subjectList.FindIndex(s => s.Id == testResult.TestTemplate.Subject.Id);
-                        if (subquestionResult.SubquestionTemplate.SubquestionPoints != null)
-                        {
-                            //when it comes to subquestion results, we have to consider the difference between subquestion's and student's points
-                            subjectPointsShare[subjectIndex] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testResult.TestTemplate.Subject.SubjectId);
+                        //when it comes to subquestion results, we have to consider the difference between subquestion's and student's points
+                        subjectPointsShare[subjectIndex] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
                         subquestionCountBySubject[subjectIndex] += 1;
                     }
                 }

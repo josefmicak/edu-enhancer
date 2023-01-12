@@ -4,28 +4,23 @@
 @using Common;
 
 @{
-    bool studentsTestPointsDetermined = true;
-    double? studentsTestPoints = 0;
+    double studentsTestPoints = 0;
     string studentsTestPointsString = "";
     EnumTypes.NegativePoints negativePoints = Model.First().QuestionTemplate.TestTemplate.NegativePoints;
 
-    double? testPoints = 0;
+    double testPoints = 0;
 
-    ViewData["Title"] = "Správa řešení testu " + Model.First().TestResult.TestResultIdentifier;
+    ViewData["Title"] = "Správa řešení testu " + Model.First().TestResult.TestResultId;
 }
 
 <div class="text-center">
-    <h1>Správa řešení testu @Model.First().TestResult.TestResultIdentifier</h1>
+    <h1>Správa řešení testu @Model.First().TestResult.TestResultId</h1>
 
     <div id="test-result">
         <h2>Parametry pokusu</h2>
         <table>
             <tr>
-                <th>Identifikátor pokusu</th>
-                <td>@Model.First().TestResult.TestResultIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor testu</th>
+                <th>Datum vyplnění testu</th>
                 <td>@Model.First().TestResult.TimeStamp</td>
             </tr>
             <tr>
@@ -36,10 +31,6 @@
                 <th>Login studenta</th>
                 <td>@Model.First().TestResult.Student.Login</td>
             </tr>
-            <tr>
-                <th>Identifikátor studenta</th>
-                <td>@Model.First().TestResult.Student.StudentIdentifier</td>
-            </tr>
         </table>
     </div>
 
@@ -47,8 +38,6 @@
         <h2>Seznam otázek</h2>
         <table>
             <tr>
-               <th>Jmenný identifikátor otázky</th>
-               <th>Číselný identifikátor otázky</th>
                <th>Nadpis</th>
                <th>Počet bodů</th>
                <th>Správa otázky</th>
@@ -57,17 +46,9 @@
                 int i = 0;
                 foreach (var item in Model)
                 {
-                    bool studentsQuestionPointsDetermined = true;
-                    double? studentsQuestionPoints = 0;
+                    double studentsQuestionPoints = 0;
                     foreach(SubquestionResult subquestionResult in item.SubquestionResultList)
                     {
-                        if(subquestionResult.StudentsPoints == null)
-                        {
-                            studentsQuestionPointsDetermined = false;
-                            studentsTestPointsDetermined = false;
-                            break;
-                        }
-
                         if (subquestionResult.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
                         {
                             //in case negative points are disabled, the minimum points for every subquestion is 0
@@ -88,8 +69,8 @@
                     {
                         studentsTestPoints += studentsQuestionPoints;
                     }
-                    
-                    double? questionPoints = 0;
+
+                    double questionPoints = 0;
                     foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplateList)
                     {
                         questionPoints += subquestionTemplate.SubquestionPoints;
@@ -97,29 +78,20 @@
                     testPoints += questionPoints;
 
                     string studentsQuestionPointsString = "";
-                    if(!studentsQuestionPointsDetermined)
+                    if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
                     {
-                        studentsQuestionPointsString = "N/A";
+                        studentsQuestionPoints = 0;
                     }
-                    else
-                    {
-                        if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsQuestionPoints < 0)
-                        {
-                            studentsQuestionPoints = 0;
-                        }
-                        studentsQuestionPoints = CommonFunctions.RoundDecimal(studentsQuestionPoints);
-                        questionPoints = CommonFunctions.RoundDecimal(questionPoints);
-                        studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
-                    }
+                    studentsQuestionPoints = Math.Round(studentsQuestionPoints, 2);
+                    questionPoints = Math.Round(questionPoints, 2);
+                    studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
 
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNameIdentifier)</td>
-                        <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.QuestionNumberIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
                         <td>@studentsQuestionPointsString</td>
                         <td><a class="button" id="questionResultBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
-                        asp-route-questionNumberIdentifier="@item.QuestionTemplate.QuestionNumberIdentifier"
-                        asp-route-testResultIdentifier="@Model.First().TestResult.TestResultIdentifier">Správa otázky</a></td>
+                       asp-route-questionResultId="@item.QuestionResultId">Správa otázky</a>
+                        </td>
                     </tr>
                 }
             }
@@ -127,20 +99,13 @@
     </div>
 
     @{
-        if(!studentsTestPointsDetermined)
+        if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsTestPoints < 0)
         {
-            studentsTestPointsString = "N/A";
+            studentsTestPoints = 0;
         }
-        else
-        {
-            if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion && studentsTestPoints < 0)
-            {
-                studentsTestPoints = 0;
-            }
-            studentsTestPoints = CommonFunctions.RoundDecimal(studentsTestPoints);
-            testPoints = CommonFunctions.RoundDecimal(testPoints);
-            studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
-        }
+        studentsTestPoints = Math.Round(studentsTestPoints, 2);
+        testPoints = Math.Round(testPoints, 2);
+        studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
 
         string? studentsMinimumPointsString = string.Empty;
         if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
@@ -163,14 +128,6 @@
     <div id="test-template">
         <h2>Parametry testu</h2>
         <table>
-            <tr>
-                <th>Jmenný identifikátor testu</th>
-                <td>@Model.First().QuestionTemplate.TestTemplate.TestNameIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor testu</th>
-                <td>@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier</td>
-            </tr>
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionTemplate.TestTemplate.Title</td>

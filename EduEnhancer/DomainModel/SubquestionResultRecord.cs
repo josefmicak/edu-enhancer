@@ -1,15 +1,21 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace DomainModel
 {
     public class SubquestionResultRecord
     {
         [Ignore]
-        public string SubquestionIdentifier { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int SubquestionTemplateRecordId { get; set; }
         [Ignore]
-        public string QuestionNumberIdentifier { get; set; }
+        public int SubquestionTemplateId { get; set; }
         [Ignore]
-        public string TestResultIdentifier { get; set; }
+        public int QuestionTemplateId { get; set; }
+        [Ignore]
+        public int TestResultId { get; set; }
         [Ignore]
         public SubquestionResult SubquestionResult { get; set; }
         [Ignore]
@@ -23,6 +29,6 @@ namespace DomainModel
         public int ContainsImage { get; set; }
         public int NegativePoints { get; set; }
         public double? MinimumPointsShare { get; set; }
-        public double? StudentsPoints { get; set; }
+        public double StudentsPoints { get; set; }
     }
 }

@@ -43,29 +43,23 @@ function addStudentDetails(clicked_id) {
     const idArray = clicked_id.split("_");    
     var table = document.getElementById("student-table"); 
 
-    var studentIdentifier = table.rows[idArray[1]].cells[0].innerHTML;
-    document.getElementById("studentIdentifier").value = studentIdentifier;
-    document.getElementById('studentIdentifier').readOnly = true;
-
-    var fullName = table.rows[idArray[1]].cells[1].innerHTML;
+    var fullName = table.rows[idArray[1]].cells[0].innerHTML;
     const nameArray = fullName.split(" "); 
     document.getElementById("studentFirstName").value = nameArray[0];
     document.getElementById('studentFirstName').readOnly = true;
     document.getElementById("studentLastName").value = nameArray[1];
     document.getElementById('studentLastName').readOnly = true;
 
-    var login = table.rows[idArray[1]].cells[2].innerHTML;
+    var login = table.rows[idArray[1]].cells[1].innerHTML;
     document.getElementById("studentLogin").value = login;
     document.getElementById('studentLogin').readOnly = true;
 }
 
-function showEditStudentLabel(oldLogin, userIdentifier, email, firstName, lastName) {
+function showEditStudentLabel(oldLogin, email, firstName, lastName) {
     document.getElementById("student-action").value = 'editStudent';
     document.getElementById("added-student").style.visibility = 'hidden';
     document.getElementById("edited-student").style.visibility = 'visible';
     document.getElementById("studentOldLogin").value = oldLogin;
-    document.getElementById("studentIdentifier").value = userIdentifier;
-    document.getElementById('studentIdentifier').readOnly = false;
     document.getElementById("studentFirstName").value = firstName;
     document.getElementById('studentFirstName').readOnly = false;
     document.getElementById("studentLastName").value = lastName;
@@ -79,7 +73,6 @@ function hideEditStudentLabel() {
     document.getElementById("student-action").value = 'addStudent';
     document.getElementById("added-student").style.visibility = 'visible';
     document.getElementById("edited-student").style.visibility = 'hidden';
-    document.getElementById("studentIdentifier").value = "";
     document.getElementById("studentFirstName").value = "";
     document.getElementById("studentLastName").value = "";
     document.getElementById("studentLogin").value = "";
@@ -196,7 +189,7 @@ function setWrongChoicePointsInputs(el) {
 
 //function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
 function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount) {
-    document.getElementById("subquestionIdentifier").selectedIndex = subquestionNumber;
+    document.getElementById("subquestionTemplateId").selectedIndex = subquestionNumber;
     if (subquestionNumber == 0 || subquestionsCount == 1) {
         document.getElementById("previousSubquestion").disabled = true;
     }
@@ -211,22 +204,22 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
     document.getElementById("confirm-action").style.display = "block";
     document.getElementById("action").value = action;
     if (action == "deleteTemplate") {
-        document.getElementById("testNumberIdentifier").value = identifier;
+        document.getElementById("testTemplateId").value = identifier;
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit testovou šablonu s identifikátorem '" + identifier + "'?";
     }
     else if (action == "deleteAllTemplates") {
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechny testovací šablony?";
     }
     else if (action == "deleteQuestionTemplate") {
-        document.getElementById("questionNumberIdentifier").value = identifier;
+        document.getElementById("questionTemplateId").value = identifier;
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání otázky s identifikátorem '" + identifier + "'?";
     }
     else if (action == "deleteSubquestionTemplate") {
-        document.getElementById("subquestionIdentifierToDelete").value = identifier;
+        document.getElementById("subquestionTemplateIdToDelete").value = identifier;
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání podotázky s identifikátorem '" + identifier + "'?";
     }
     else if (action == "deleteResult") {
-        document.getElementById("testResultIdentifier").value = identifier;
+        document.getElementById("testResultId").value = identifier;
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit výsledek s identifikátorem '" + identifier + "'?";
     }
     else if (action == "deleteAllResults") {

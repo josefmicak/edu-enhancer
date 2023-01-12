@@ -3,7 +3,7 @@
 @using DomainModel
 
 @{
-    string questionNumberIdentifier = ViewBag.QuestionNumberIdentifier;
+    int questionTemplateId = int.Parse(ViewBag.QuestionTemplateId);
     string[] subquestionTypeTextArray = ViewBag.SubquestionTypeTextArray;
     int selectedSubquestionType;
     if (ViewBag.SelectedSubquestionType == null)
@@ -14,9 +14,6 @@
     {
         selectedSubquestionType = int.Parse(ViewBag.SelectedSubquestionType);
     }
-
-    Random random = new Random();
-    int tempSubquestionIdentifier = random.Next(1, 1000000);
 
     bool userRequestedPointsSuggestion = false;
     SubquestionTemplate loadedSubquestionTemplate = new SubquestionTemplate();
@@ -374,8 +371,7 @@
                     <p>Maximální velikost: 4 MB. Povolené formáty: .jpg, .png, .jpeg, .webp</p>
                     <br>
                     <button disabled type="submit" value="addSubquestion" name="action" id="subquestion-add">Uložit</button>
-                    <input type="hidden" name="QuestionNumberIdentifier" value="@questionNumberIdentifier">
-                    <input type="hidden" name="SubquestionIdentifier" value="@tempSubquestionIdentifier">
+                    <input type="hidden" name="QuestionTemplateId" value="@questionTemplateId">
                     <input type="hidden" name="SubquestionType" value="@selectedSubquestionType">
                 </form>
             }
@@ -419,7 +415,7 @@
 
 <div id="backBtn">
     <a asp-action="QuestionTemplate"
-       asp-route-questionNumberIdentifier="@questionNumberIdentifier">Zpět</a>
+       asp-route-questionTemplateId="@questionTemplateId">Zpět</a>
 </div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

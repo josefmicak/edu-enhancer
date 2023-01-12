@@ -31,23 +31,13 @@ namespace Common
             return Math.Round(correctChoicePoints, 2);
         }
 
-        public static (double?, double, EnumTypes.AnswerStatus) CalculateStudentsAnswerAttributes(SubquestionType subquestionType, string[] possibleAnswersArray, 
-            string[] correctAnswersArray, double? subquestionPoints, double? wrongChoicePoints, string[] studentsAnswers)
+        public static (double, double, EnumTypes.AnswerStatus) CalculateStudentsAnswerAttributes(SubquestionType subquestionType, string[] possibleAnswersArray, 
+            string[] correctAnswersArray, double subquestionPoints, double wrongChoicePoints, string[] studentsAnswers)
         {
-            double? defaultStudentPoints = 0;
+            double defaultStudentPoints = 0;
             double answerCorrectness = 0;
             int studentsCorrectAnswers = 0;
             EnumTypes.AnswerStatus answerStatus = AnswerStatus.NotDetermined;
-
-            //this is only used in case we want to determine the corectness of the answer while the subquestion points are not yet set
-            if (subquestionPoints == null)
-            {
-                subquestionPoints = 0;
-            }
-            if (wrongChoicePoints == null)
-            {
-                wrongChoicePoints = 0;
-            }
 
             switch (subquestionType)
             {
@@ -80,7 +70,7 @@ namespace Common
                         }
                     }
 
-                    defaultStudentPoints -= Math.Abs(Math.Abs(studentsAnswers.Length - studentsCorrectAnswers) * (wrongChoicePoints.Value));
+                    defaultStudentPoints -= Math.Abs(Math.Abs(studentsAnswers.Length - studentsCorrectAnswers) * (wrongChoicePoints));
 
                     if (studentsCorrectAnswers == correctAnswersArray.Length && correctAnswersArray.Length == studentsAnswers.Length)
                     {
@@ -222,7 +212,7 @@ namespace Common
                         //increase points for every correct answer
                         defaultStudentPoints += studentsCorrectAnswers * ((double)subquestionPoints / (double)correctAnswersArray.Length);
                         //decrease points for every incorrect answer
-                        defaultStudentPoints -= (studentsAnswers.Length - studentsCorrectAnswers) * Math.Abs(wrongChoicePoints.Value);
+                        defaultStudentPoints -= (studentsAnswers.Length - studentsCorrectAnswers) * Math.Abs(wrongChoicePoints);
                     }
 
                     if (studentsAnswers.Length > 0 && studentsCorrectAnswers == correctAnswersArray.Length)
@@ -323,7 +313,7 @@ namespace Common
                 answerCorrectness = -1;
             }
 
-            defaultStudentPoints = CommonFunctions.RoundDecimal(defaultStudentPoints);
+            defaultStudentPoints = Math.Round(defaultStudentPoints, 2);
             answerCorrectness = Math.Round(answerCorrectness, 2);
             return (defaultStudentPoints, answerCorrectness, answerStatus);
         }

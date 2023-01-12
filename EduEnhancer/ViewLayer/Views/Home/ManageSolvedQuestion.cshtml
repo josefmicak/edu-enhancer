@@ -6,7 +6,7 @@
 
 @{
     SubquestionResult subquestionResult = new SubquestionResult();
-    if(ViewBag.subquestionIdentifier == null)
+    if(ViewBag.subquestionTemplateId == null)
     {
         subquestionResult = @Model.First();
     }
@@ -14,7 +14,7 @@
     {
         foreach (var item in Model)
         {
-            if(item.SubquestionIdentifier == ViewBag.subquestionIdentifier)
+            if (item.SubquestionResultId == int.Parse(ViewBag.subquestionResultId))
             {
                 subquestionResult = item;
                 break;
@@ -30,7 +30,7 @@
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
     EnumTypes.NegativePoints negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 
-    ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionNumberIdentifier;
+    ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionTemplateId;
 
     bool singleSubquestion = true;
     if(Model.Count() > 1)
@@ -38,70 +38,35 @@
         singleSubquestion = false;
     }
 
-    double? questionPoints = 0;
+    double questionPoints = 0;
     foreach(var item in Model.First().QuestionResult.QuestionTemplate.SubquestionTemplateList)
     {
-        if(item.SubquestionPoints == null)
-        {
-            break;
-        }
         questionPoints += item.SubquestionPoints;
     }
 
-    string studentsSubquestionPoints = "";
-    if(subquestionResult.StudentsPoints == null)
-    {
-        if(subquestionTemplate.SubquestionPoints == null)
-        {
-            studentsSubquestionPoints = "N/A";
-        }
-        else
-        {
-            studentsSubquestionPoints = "? / " + subquestionTemplate.SubquestionPoints;
-        }
-    }
-    else
-    {
-        studentsSubquestionPoints = subquestionResult.StudentsPoints.ToString() + " / " + subquestionTemplate.SubquestionPoints;
-    }
+    string studentsSubquestionPoints = subquestionResult.StudentsPoints.ToString() + " / " + subquestionTemplate.SubquestionPoints;
 
-    double? studentsQuestionPoints = 0;
-    bool studentsQuestionPointsDetermined = true;
+    double studentsQuestionPoints = 0;
     string studentsQuestionPointsString = "";
     foreach(var item in Model)
     {
-        if(item.StudentsPoints == null)
+        if (item.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
         {
-            studentsQuestionPointsDetermined = false;
-            break;
+            //in case negative points are disabled, the minimum points for every subquestion is 0
+            studentsQuestionPoints += 0;
         }
         else
         {
-            if (item.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
-            {
-                //in case negative points are disabled, the minimum points for every subquestion is 0
-                studentsQuestionPoints += 0;
-            }
-            else
-            {
-                studentsQuestionPoints += item.StudentsPoints;
-            }
+            studentsQuestionPoints += item.StudentsPoints;
         }
     }
     if (negativePoints == EnumTypes.NegativePoints.Disabled && studentsQuestionPoints < 0)
     {
         studentsQuestionPoints = 0;
     }
-    if(!studentsQuestionPointsDetermined)
-    {
-        studentsQuestionPointsString = "N/A";
-    }
-    else
-    {
-        studentsQuestionPoints = CommonFunctions.RoundDecimal(studentsQuestionPoints);
-        questionPoints = CommonFunctions.RoundDecimal(questionPoints);
-        studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
-    }
+    studentsQuestionPoints = Math.Round(studentsQuestionPoints, 2);
+    questionPoints = Math.Round(questionPoints, 2);
+    studentsQuestionPointsString = studentsQuestionPoints.ToString() + " / " + questionPoints.ToString();
 
     string answerCorrectString = "";
     switch(subquestionResult.AnswerStatus)
@@ -134,10 +99,9 @@
 
     int subquestionType = (int)subquestionTemplate.SubquestionType;
     string suggestedSubquestionPointsString = ViewBag.SuggestedSubquestionPoints;
-    double? suggestedSubquestionPoints = 0;
+    double suggestedSubquestionPoints = 0;
     if (userRequestedPointsSuggestion)
     {
-        //if (subquestionType == 0 || subquestionType == 5 || subquestionType == 6 || subquestionType == 7 || subquestionType == 8)
         if (subquestionType == 0 || subquestionType == 5)
         {
             suggestedSubquestionPointsString = "Chyba: pro tento typ podotázky není tato funkce dostupná";
@@ -157,19 +121,11 @@
 }
 
 <div class="text-center">
-    <h1>Správa vyřešené otázky @subquestionResult.QuestionNumberIdentifier</h1>
+    <h1>Správa vyřešené otázky @subquestionResult.QuestionTemplateId</h1>
 
     <div id="question-template">
         <h2>Parametry otázky</h2>
         <table>
-            <tr>
-                <th>Jmenný identifikátor otázky</th>
-                <td>@Model.First().QuestionResult.QuestionTemplate.QuestionNameIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor otázky</th>
-                <td>@Model.First().QuestionResult.QuestionTemplate.QuestionNumberIdentifier</td>
-            </tr>
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionResult.QuestionTemplate.Title</td>
@@ -188,10 +144,6 @@
     <div id="subquestion-template">
         <h2>Parametry podotázky</h2>
         <table>
-            <tr>
-                <th>Jmenný identifikátor podotázky</th>
-                <td>@subquestionTemplate.SubquestionIdentifier</td>
-            </tr>
             <tr>
                 <th>Typ podotázky</th>
                 <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
@@ -249,7 +201,7 @@
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
         <form method="POST">
-            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
+            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
 
             @{
                 string subquestionLabel = "";
@@ -264,18 +216,18 @@
                 <p>@subquestionLabel</p>
             }
 
-            <select class="input" name="subquestionIdentifier" id="subquestionIdentifier" disabled="@singleSubquestion">
+            <select class="input" name="subquestionTemplateId" id="subquestionTemplateId" disabled="@singleSubquestion">
                 @{
                     int i = 0;
                     foreach (var item in Model)
                     {
                         if(item.SubquestionTemplate.SubquestionText.Length > 60)
                         {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@(item.SubquestionTemplate.SubquestionText.Substring(0,60) + " ...")</option>
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionResultId">@(item.SubquestionTemplate.SubquestionText.Substring(0, 60) + " ...")</option>
                         }
                         else
                         {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@item.SubquestionTemplate.SubquestionText</option>
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionResultId">@item.SubquestionTemplate.SubquestionText</option>
                         }
                         i++;
                     }
@@ -304,8 +256,8 @@
         <h2>Upravit body</h2>
         <p>@ViewBag.Message</p>
         <form method="POST">
-            <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
-            <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+            <input type="hidden" value="@subquestionResult.QuestionResult.QuestionResultId" name="questionResultId">
+            <input type="hidden" value="@subquestionResult.SubquestionResultId" name="subquestionResultId">
             <input type="hidden" value="@subquestionTemplate.SubquestionPoints" name="subquestionPoints">
             <input type="hidden" value="@negativePoints" name="negativePoints">
             <input type="hidden" value="@subquestionType" name="subquestionType">
@@ -328,6 +280,7 @@
 </div>
 
 <div id="backBtn"><a asp-action="ManageSolvedTest"
-        asp-route-testResultIdentifier="@subquestionResult.TestResultIdentifier">Zpět</a></div>
+       asp-route-testResultId="@subquestionResult.QuestionResult.TestResultId">Zpět</a>
+</div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

@@ -7,7 +7,7 @@ namespace DomainModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int SubjectId { get; set; }
         public string Abbreviation { get; set; } = default!;
         public string Name { get; set; } = default!;
         public User Guarantor { get; set; } = default!;

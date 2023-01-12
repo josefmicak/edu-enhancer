@@ -7,7 +7,7 @@
 @{
     SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
     int subquestionNumber = 0;
-    if(ViewBag.subquestionIdentifier == null)
+    if(ViewBag.subquestionTemplateId == null)
     {
         subquestionTemplate = Model.First();
     }
@@ -15,17 +15,17 @@
     {
         foreach (var item in Model)
         {
-            if(item.SubquestionIdentifier == ViewBag.subquestionIdentifier)
+            if (item.SubquestionTemplateId == int.Parse(ViewBag.subquestionTemplateId))
             {
                 subquestionTemplate = item;
                 break;
             }
             subquestionNumber++;
         }
-        
+
         //in some cases (such as a subquestion template being deleted) an empty subquestion template may get used by mistake
         //in these cases it's necessary to use the first subquestion template in the collection
-        if(subquestionTemplate.SubquestionIdentifier == null)
+        if (subquestionTemplate.SubquestionTemplateId == -1)
         {
             subquestionTemplate = @Model.First();
         }
@@ -38,12 +38,12 @@
 
     //it's possible that no "real" subquestions exist for this question yet, only one dummy subquestion is added
     bool subquestionsAdded = true;
-    if(subquestionTemplate.SubquestionIdentifier == "placeholder")
+    if (subquestionTemplate.SubquestionTemplateId == -1)
     {
         subquestionsAdded = false;
     }
 
-    ViewData["Title"] = "Správa zadání otázky " + subquestionTemplate.QuestionTemplate.QuestionNameIdentifier;
+    ViewData["Title"] = "Správa zadání otázky " + subquestionTemplate.QuestionTemplate.QuestionTemplateId;
 
     bool singleSubquestion = true;
     if(Model.Count() > 1)
@@ -54,39 +54,19 @@
     string? subquestionPoints = "";
     if(subquestionsAdded)//todo: sjednotit (vsechny promenne na zacatek)
     {
-        if(subquestionTemplate.SubquestionPoints == null)
-        {
-            subquestionPoints = "N/A";
-        }
-        else
-        {
-            subquestionPoints = subquestionTemplate.SubquestionPoints.ToString();
-        }
+        subquestionPoints = subquestionTemplate.SubquestionPoints.ToString();
     }
 
-    double? questionPoints = 0;
-    bool questionPointsDetermined = true;
+    double questionPoints = 0;
     string? questionPointsString = "";
     if(subquestionsAdded)
     {
         foreach(var item in Model)
         {
-            if(item.SubquestionPoints == null)
-            {
-                questionPointsDetermined = false;
-                break;
-            }
             questionPoints += item.SubquestionPoints;
         }
-        if(!questionPointsDetermined)
-        {
-            questionPointsString = "N/A";
-        }
-        else
-        {
-            double? questionPointsRound = CommonFunctions.RoundDecimal(questionPoints);
-            questionPointsString = questionPointsRound.ToString();
-        }
+        double questionPointsRound = Math.Round(questionPoints, 2);
+        questionPointsString = questionPointsRound.ToString();
     }
 
     bool userRequestedPointsSuggestion = false;
@@ -98,8 +78,7 @@
             userRequestedPointsSuggestion = true;
         }
 
-    
-        if (subquestionTemplate.DefaultWrongChoicePoints == subquestionTemplate.WrongChoicePoints || subquestionTemplate.DefaultWrongChoicePoints == null)
+        if (subquestionTemplate.DefaultWrongChoicePoints == subquestionTemplate.WrongChoicePoints)
         {
             defaultWrongChoicePointsChecked = true;
         }
@@ -107,19 +86,11 @@
 }
 
 <div class="text-center">
-    <h1>Správa zadání otázky @subquestionTemplate.QuestionTemplate.QuestionNameIdentifier</h1>
+    <h1>Správa zadání otázky @subquestionTemplate.QuestionTemplate.QuestionTemplateId</h1>
 
     <div id="question-template">
         <h2>Parametry otázky</h2>
         <table>
-            <tr>
-                <th>Jmenný identifikátor otázky</th>
-                <td>@Model.First().QuestionTemplate.QuestionNameIdentifier</td>
-            </tr>
-            <tr>
-                <th>Číselný identifikátor otázky</th>
-                <td>@Model.First().QuestionTemplate.QuestionNumberIdentifier</td>
-            </tr>
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionTemplate.Title</td>
@@ -150,10 +121,6 @@
             if (subquestionsAdded)
             {
                 <table>
-                    <tr>
-                        <th>Jmenný identifikátor podotázky</th>
-                        <td>@subquestionTemplate.SubquestionIdentifier</td>
-                    </tr>
                     <tr>
                         <th>Typ podotázky</th>
                         <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
@@ -211,14 +178,14 @@
         }
     </div>
 
-    <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionNumberIdentifier="@Model.First().QuestionTemplate.QuestionNumberIdentifier">Přidat podotázku</a>
+    <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionTemplateId="@Model.First().QuestionTemplate.QuestionTemplateId">Přidat podotázku</a>
 
     <p>@ViewBag.Message</p>
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
         <form method="POST">
-            <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
-            <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="currentSubquestionIdentifier">
+            <input type="hidden" value="@Model.First().QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
+            <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="currentSubquestionTemplateId">
             <button type="submit" id="previousSubquestion"  value="previousSubquestion" name="action">Předchozí</button>
             <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
             @{
@@ -242,22 +209,22 @@
                 <p>@subquestionLabel</p>
             }
 
-            <select class="input" name="subquestionIdentifier" id="subquestionIdentifier" disabled="@singleSubquestion">
+            <select class="input" name="subquestionTemplateId" id="subquestionTemplateId" disabled="@singleSubquestion">
                 @{
                     int i = 0;
                     foreach (var item in Model)
                     {
-                        if(item.SubquestionIdentifier == "placeholder")
+                        if (item.SubquestionTemplateId == -1)
                         {
                             continue;
                         }
                         if(item.SubquestionText.Length > 60)
                         {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@(item.SubquestionText.Substring(0,60) + " ...")</option>
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@(item.SubquestionText.Substring(0, 60) + " ...")</option>
                         }
                         else
                         {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionIdentifier">@item.SubquestionText</option>
+                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@item.SubquestionText</option>
                         }
                         i++;
                     }
@@ -274,12 +241,12 @@
     {
         <div id="edit-subquestion">
             <form method="POST">
-                <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+                <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="subquestionTemplateId">
                 <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" name="action">Upravit podotázku</button>
             </form>
         </div>
         <div id="delete-subquestion">
-            <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionIdentifier', null, null, null, null, null)">Smazat podotázku</button>
+            <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionTemplateId', null, null, null, null, null)">Smazat podotázku</button>
         </div>
     }
 
@@ -289,8 +256,8 @@
             if(subquestionsAdded)
             {
                 <form method="POST">
-                    <input type="hidden" value="@Model.First().QuestionTemplate.QuestionNumberIdentifier" name="questionNumberIdentifier">
-                    <input type="hidden" value="@subquestionTemplate.SubquestionIdentifier" name="subquestionIdentifier">
+                    <input type="hidden" value="@Model.First().QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
+                    <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="subquestionTemplateId">
                     <p>Počet bodů za otázku: <input class="input" type="number" step="any" min="0" required id="subquestion-points" name="subquestionPoints" value="@subquestionTemplate.SubquestionPoints.ToString()"></p>
                     @{
                         if (userRequestedPointsSuggestion)
@@ -331,15 +298,14 @@
         <label><div id="confirm-action-label"></div></label><br>
         <input title="Ano" type="submit" value="Ano"><br>
         <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-        <input type="hidden" id="subquestionIdentifierToDelete" name="subquestionIdentifier">
-        <input type="hidden" name="questionNumberIdentifier" value="@Model.First().QuestionNumberIdentifier">
+        <input type="hidden" id="subquestionTemplateIdToDelete" name="subquestionTemplateId">
+        <input type="hidden" name="questionTemplateId" value="@Model.First().QuestionTemplateId">
         <input type="hidden" id="action" name="action">
     </form>
 </div>
 
 <div id="backBtn"><a asp-action="TestTemplate"
-        asp-route-testNameIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNameIdentifier" 
-        asp-route-testNumberIdentifier="@Model.First().QuestionTemplate.TestTemplate.TestNumberIdentifier">Zpět</a></div>
+       asp-route-testTemplateId="@Model.First().QuestionTemplate.TestTemplate.TestTemplateId">Zpět</a></div>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
 

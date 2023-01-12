@@ -89,7 +89,7 @@ def main(arguments):
         platform = arguments[1]
         login = arguments[2]
         retrainModel = eval(arguments[3])
-        testNumberIdentifier = arguments[4]
+        testTemplateId = arguments[4]
     else:
         login = "login"
 
@@ -101,7 +101,7 @@ def main(arguments):
             r"Database=EduEnhancerDB;"
             r"Trusted_Connection=yes;"
         )
-    elif platform == 'Linux':
+    elif platform == 'Linux':id="subquestionTemplateId"
         conn_str = (
             r"Driver={ODBC Driver 17 for SQL Server};"
             r"Server=127.0.0.1;"
@@ -116,9 +116,9 @@ def main(arguments):
     sql = "SELECT * FROM SubquestionResultRecord WHERE OwnerLogin = '" + login + "'"
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
-    df = df.drop('QuestionNumberIdentifier', axis=1)  # question number identifier is irrelevant in this context
-    df = df.drop('SubquestionIdentifier', axis=1)  # subqustion identifier is irrelevant in this context
-    df = df.drop('TestResultIdentifier', axis=1)  # test result identifier is irrelevant in this context
+    df = df.drop('QuestionTemplateId', axis=1)  # question number identifier is irrelevant in this context
+    df = df.drop('SubquestionTemplateId', axis=1)  # subqustion identifier is irrelevant in this context
+    df = df.drop('TestResultId', axis=1)  # test result identifier is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -140,7 +140,7 @@ def main(arguments):
     y_test_pred = model.predict(X_test)
 
     #selected testTemplate
-    sql = "SELECT * FROM TestTemplate WHERE OwnerLogin = '" + login + "' AND TestNumberIdentifier = '" + testNumberIdentifier + "'"
+    sql = "SELECT * FROM TestTemplate WHERE OwnerLogin = '" + login + "' AND TestTemplateId = '" + testTemplateId + "'"
     testTemplateDf = pd.read_sql(sql, engine)
     NegativePoints = testTemplateDf.iloc[0]['NegativePoints']
     MinimumPoints = testTemplateDf.iloc[0]['MinimumPoints']
@@ -148,18 +148,18 @@ def main(arguments):
     TestSubjectIndex = SubjectsArray.index(testTemplateDf.iloc[0]['Subject'])
 
     #question number identifiers of every question included in the test
-    sql = "SELECT DISTINCT QuestionNumberIdentifier FROM QuestionTemplate WHERE OwnerLogin = '" + login +\
-          "' AND TestTemplateTestNumberIdentifier = '" + testNumberIdentifier + "'"
-    questionNumberIdentifierList = pd.read_sql(sql, engine).values.tolist()
-    questionNumberIdentifiers = ""
-    some_list_len = len(questionNumberIdentifierList)
+    sql = "SELECT DISTINCT QuestionTemplateId FROM QuestionTemplate WHERE OwnerLogin = '" + login +\
+          "' AND TestTemplateTestTemplateId = '" + testTemplateId + "'"
+    questionTemplateIdList = pd.read_sql(sql, engine).values.tolist()
+    questionTemplateIds = ""
+    some_list_len = len(questionTemplateIdList)
     for i in range(some_list_len):
         #the question number identifier must be properly formatted in order to be used in a SQL query
-        questionNumberIdentifier = str(questionNumberIdentifierList[i])
-        questionNumberIdentifier = questionNumberIdentifier[1:]
-        questionNumberIdentifier = questionNumberIdentifier[:len(questionNumberIdentifier) - 1]
-        questionNumberIdentifiers += questionNumberIdentifier + ", "
-    questionNumberIdentifiers = questionNumberIdentifiers[:len(questionNumberIdentifiers) - 2]
+        questionTemplateId = str(questionTemplateIdList[i])
+        questionTemplateId = questionTemplateId[1:]
+        questionTemplateId = questionTemplateId[:len(questionTemplateId) - 1]
+        questionTemplateIds += questionTemplateId + ", "
+    questionTemplateIds = questionTemplateIds[:len(questionTemplateIds) - 2]
 
     #test difficulty statistics (all relevant data needed to measure the test difficulty)
     sql = "SELECT * FROM TestDifficultyStatistics WHERE UserLogin = '" + login + "'"
@@ -169,7 +169,7 @@ def main(arguments):
     SubquestionTypeAverageAnswerCorrectnessArray = testDifficultyStatisticsDf.iloc[0]['SubquestionTypeAverageAnswerCorrectness'].split("~")
 
     #all subquestion templates included in the test
-    sql = "SELECT * FROM SubquestionTemplate WHERE OwnerLogin = '" + login + "' AND QuestionNumberIdentifier IN (" + questionNumberIdentifiers + ")"
+    sql = "SELECT * FROM SubquestionTemplate WHERE OwnerLogin = '" + login + "' AND QuestionTemplateId IN (" + questionTemplateIds + ")"
     subquestionTemplatesDf = pd.read_sql(sql, engine)
     TotalTestPoints = subquestionTemplatesDf['SubquestionPoints'].sum()
     MinimumPointsShare = MinimumPoints / TotalTestPoints

@@ -8,14 +8,15 @@ namespace DomainModel
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        public string TestResultIdentifier { get; set; } = default!;
-        public string QuestionNumberIdentifier { get; set; } = default!;
-        public string SubquestionIdentifier { get; set; } = default!;
+        public int SubquestionResultId { get; set; }
+        public int TestResultId { get; set; } = default!;
+        public int QuestionTemplateId { get; set; } = default!;
+        public int QuestionResultId { get; set; } = default!;
+        public int SubquestionTemplateId { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
         public string[] StudentsAnswerList { get; set; } = default!;
-        public double? StudentsPoints { get; set; } = default!;
-        public double? DefaultStudentsPoints { get; set; } = default!;
+        public double StudentsPoints { get; set; } = default!;
+        public double DefaultStudentsPoints { get; set; } = default!;
         public double AnswerCorrectness { get; set; }
         public EnumTypes.AnswerStatus AnswerStatus { get; set; }
         public SubquestionTemplate SubquestionTemplate { get; set; } = default!;

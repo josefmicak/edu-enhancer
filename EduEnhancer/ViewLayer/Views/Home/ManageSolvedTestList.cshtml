@@ -10,9 +10,7 @@
     <div id="test-result-list">
         <table>
             <tr>
-                <th>Jmenný identifikátor testu</th>
                 <th>Datum</th>
-                <th>Identifikátor pokusu</th>
                 <th>Jméno studenta</th>
                 <th>Login studenta</th>
                 <th>Smazat</th>
@@ -24,17 +22,15 @@
                 {
                     string fullName = item.Student.FullName();
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.TestNameIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
-                        <td>@Html.DisplayFor(modelItem => item.TestResultIdentifier)</td>
                         <td>@Html.DisplayFor(modelItem => fullName)</td>
                         <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultIdentifier', null, null, null, null, null)">Smazat test</button></td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultId', null, null, null, null, null)">Smazat test</button></td>
                         <td><a class="button" id="manageSolvedTestBtn_@i" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="ManageSolvedTest" 
-                            asp-route-testResultIdentifier="@item.TestResultIdentifier">Správa testu</a></td>
+                            asp-route-testResultId="@item.TestResultId">Správa testu</a></td>
                     </tr>
                 }
             }
@@ -50,7 +46,7 @@
             <label><div id="confirm-action-label"></div></label><br>
             <input title="Ano" type="submit" value="Ano"><br>
             <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-            <input type="hidden" id="testResultIdentifier" name="testResultIdentifier">
+            <input type="hidden" id="testResultId" name="testResultId">
             <input type="hidden" id="action" name="action">
         </form>
     </div>

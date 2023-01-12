@@ -36,9 +36,9 @@
                                asp-area=""
                                asp-controller="Home"
                                asp-action="EditSubject"
-                               asp-route-subjectIdentifier="@item.Id">Upravit předmět</a>
+                               asp-route-subjectId="@item.SubjectId">Upravit předmět</a>
                         </td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.Id', null, null, null, null, null)">Smazat předmět</button></td>
+                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.SubjectId', null, null, null, null, null)">Smazat předmět</button></td>
                     </tr>
                 }
             }

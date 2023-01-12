@@ -230,26 +230,26 @@ namespace DataLayer
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
-        public TestTemplate GetTestTemplate(string login, string testNameIdentifier)
+        public TestTemplate GetTestTemplate(string login, int testTemplateId)
         {
             return GetTestTemplateDbSet()
                 .Include(t => t.QuestionTemplateList)
-                .First(t => t.TestNameIdentifier == testNameIdentifier && t.OwnerLogin == login);
+                .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
         }
 
-        public TestTemplate GetTestTemplate(string login, string testNumberIdentifier, string _)
+        public TestTemplate GetTestTemplate(string login, int testTemplateId, string _)
         {//todo: sjednotit
             return GetTestTemplateDbSet()
                 .Include(t => t.QuestionTemplateList)
-                .First(t => t.TestNumberIdentifier == testNumberIdentifier && t.OwnerLogin == login);
+                .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
         }
 
-        public QuestionTemplate GetQuestionTemplate(string login, string questionNumberIdentifier)
+        public QuestionTemplate GetQuestionTemplate(string login, int questionTemplateId)
         {
             return GetQuestionTemplateDbSet()
                 .Include(q => q.TestTemplate)
                 .Include(q => q.SubquestionTemplateList)
-                .First(q => q.QuestionNumberIdentifier == questionNumberIdentifier && q.OwnerLogin == login);
+                .First(q => q.QuestionTemplateId == questionTemplateId && q.OwnerLogin == login);
         }
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
@@ -271,9 +271,9 @@ namespace DataLayer
             return message;
         }
 
-        public async Task<string> DeleteQuestionTemplate(string login, string questionNumberIdentifier, string webRootPath)
+        public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
         {
-            QuestionTemplate questionTemplate = GetQuestionTemplate(login, questionNumberIdentifier);
+            QuestionTemplate questionTemplate = GetQuestionTemplate(login, questionTemplateId);
             if(questionTemplate.SubquestionTemplateList != null)
             {
                 for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
@@ -291,10 +291,10 @@ namespace DataLayer
             return message;
         }
 
-        public SubquestionTemplate GetSubquestionTemplate(string questionNumberIdentifier, string subquestionIdentifier, string login)
+        public SubquestionTemplate GetSubquestionTemplate(int questionTemplateId, int subquestionTemplateId, string login)
         {
             return GetSubquestionTemplateDbSet()
-                .First(s => s.QuestionNumberIdentifier == questionNumberIdentifier && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+                .First(s => s.QuestionTemplateId == questionTemplateId && s.SubquestionTemplateId == subquestionTemplateId && s.OwnerLogin == login);
         }
 
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
@@ -302,7 +302,7 @@ namespace DataLayer
             string message;
             try
             {
-                QuestionTemplate questionTemplate = GetQuestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionNumberIdentifier);
+                QuestionTemplate questionTemplate = GetQuestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionTemplateId);
                 ICollection<SubquestionTemplate> subquestionTemplates = questionTemplate.SubquestionTemplateList;
                 subquestionTemplates.Add(subquestionTemplate);
                 await _context.SaveChangesAsync();
@@ -351,9 +351,9 @@ namespace DataLayer
             return newFileName;
         }
 
-        public async Task<string> DeleteSubquestionTemplate(string login, string questionNumberIdentifier, string subquestionIdentifier, string webRootPath)
+        public async Task<string> DeleteSubquestionTemplate(string login, int questionTemplateId, int subquestionTemplateId, string webRootPath)
         {
-            SubquestionTemplate subquestionTemplate = GetSubquestionTemplate(questionNumberIdentifier, subquestionIdentifier, login);
+            SubquestionTemplate subquestionTemplate = GetSubquestionTemplate(questionTemplateId, subquestionTemplateId, login);
             _context.SubquestionTemplates.Remove(subquestionTemplate);
             await _context.SaveChangesAsync();
             if(subquestionTemplate.ImageSource != null)
@@ -488,23 +488,23 @@ namespace DataLayer
             return message;
         }
 
-        public SubquestionResult GetSubquestionResult(string testResultIdentifier, string questionNumberIdentifier, string subquestionIdentifier, string login)
+        public SubquestionResult GetSubquestionResult(int testResultId, int questionTemplateId, int subquestionTemplateId, string login)
         {
             SubquestionResult subquestionResult = GetSubquestionResultDbSet()
                 /*     .Include(s => s.QuestionResult)
                      .Include(s => s.QuestionResult.TestResult)
                      .Include(s => s.QuestionResult.TestResult.TestTemplate)*/
-                .First(s => s.TestResultIdentifier == testResultIdentifier && s.QuestionNumberIdentifier == questionNumberIdentifier
-                && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login);
+                .First(s => s.TestResultId == testResultId && s.QuestionTemplateId == questionTemplateId
+                && s.SubquestionTemplateId == subquestionTemplateId && s.OwnerLogin == login);
             return subquestionResult;
         }
 
-        public List<SubquestionResult> GetSubquestionResults(string questionNumberIdentifier, string subquestionIdentifier, string login)
+        public List<SubquestionResult> GetSubquestionResults(int questionTemplateId, int subquestionTemplateId, string login)
         {
             List<SubquestionResult> subquestionResults = GetSubquestionResultDbSet()
                     .Include(s => s.SubquestionTemplate)
-                    .Where(s => s.QuestionNumberIdentifier == questionNumberIdentifier
-                    && s.SubquestionIdentifier == subquestionIdentifier && s.OwnerLogin == login).ToList();
+                    .Where(s => s.QuestionTemplateId == questionTemplateId
+                    && s.SubquestionTemplateId == subquestionTemplateId && s.OwnerLogin == login).ToList();
             return subquestionResults;
         }
 
@@ -583,11 +583,6 @@ namespace DataLayer
         public Student? GetStudentByLogin(string login)
         {
             return GetStudentDbSet().FirstOrDefault(s => s.Login == login);
-        }
-
-        public Student? GetStudentByIdentifier(string studentIdentifier)
-        {
-            return GetStudentDbSet().FirstOrDefault(s => s.StudentIdentifier == studentIdentifier);
         }
 
         public DbSet<UserRegistration> GetUserRegistrationDbSet()

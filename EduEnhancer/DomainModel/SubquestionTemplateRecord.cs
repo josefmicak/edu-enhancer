@@ -6,12 +6,14 @@ namespace DomainModel
 {
     public class SubquestionTemplateRecord
     {
-        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        //public int Id { get; set; }
         [Ignore]
-        public string SubquestionIdentifier { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int SubquestionTemplateRecordId { get; set; }
         [Ignore]
-        public string QuestionNumberIdentifier { get; set; }
+        public int SubquestionTemplateId { get; set; }
+        [Ignore]
+        public int QuestionTemplateId { get; set; }
         [Ignore]
         public SubquestionTemplate SubquestionTemplate { get; set; }
         [Ignore]
@@ -24,6 +26,6 @@ namespace DomainModel
         public int ContainsImage { get; set; }
         public int NegativePoints { get; set; }
         public double? MinimumPointsShare { get; set; }
-        public double? SubquestionPoints { get; set; }
+        public double SubquestionPoints { get; set; }
     }
 }
