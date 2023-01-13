@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Diagnostics;
 
 namespace DataLayer
@@ -114,8 +115,8 @@ namespace DataLayer
         {
             return GetTestTemplateDbSet()
                 .Include(t => t.Subject)
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
@@ -181,14 +182,14 @@ namespace DataLayer
 
         public async Task<string> DeleteTestTemplate(TestTemplate testTemplate, string webRootPath)
         {
-            if(testTemplate.QuestionTemplateList != null)
+            if(testTemplate.QuestionTemplates != null)
             {
-                for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+                for (int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
                 {
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
-                    for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
+                    for (int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
                     {
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
                         if (subquestionTemplate.ImageSource != null)
                         {
                             DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
@@ -225,22 +226,22 @@ namespace DataLayer
         {
             return _context.TestTemplates
                 .Include(t => t.Owner)
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
         public TestTemplate GetTestTemplate(string login, int testTemplateId)
         {
             return GetTestTemplateDbSet()
-                .Include(t => t.QuestionTemplateList)
+                .Include(t => t.QuestionTemplates)
                 .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
         }
 
         public TestTemplate GetTestTemplate(string login, int testTemplateId, string _)
         {//todo: sjednotit
             return GetTestTemplateDbSet()
-                .Include(t => t.QuestionTemplateList)
+                .Include(t => t.QuestionTemplates)
                 .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
         }
 
@@ -248,7 +249,7 @@ namespace DataLayer
         {
             return GetQuestionTemplateDbSet()
                 .Include(q => q.TestTemplate)
-                .Include(q => q.SubquestionTemplateList)
+                .Include(q => q.SubquestionTemplates)
                 .First(q => q.QuestionTemplateId == questionTemplateId && q.OwnerLogin == login);
         }
 
@@ -258,7 +259,7 @@ namespace DataLayer
             try
             {
                 TestTemplate testTemplate = questionTemplate.TestTemplate;
-                ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplateList;
+                ICollection<QuestionTemplate> questionTemplates = testTemplate.QuestionTemplates;
                 questionTemplates.Add(questionTemplate);
                 await _context.SaveChangesAsync();
                 message = "Zadání otázky bylo úspěšně přidáno.";
@@ -274,11 +275,11 @@ namespace DataLayer
         public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
         {
             QuestionTemplate questionTemplate = GetQuestionTemplate(login, questionTemplateId);
-            if(questionTemplate.SubquestionTemplateList != null)
+            if(questionTemplate.SubquestionTemplates != null)
             {
-                for (int i = 0; i < questionTemplate.SubquestionTemplateList.Count; i++)
+                for (int i = 0; i < questionTemplate.SubquestionTemplates.Count; i++)
                 {
-                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(i);
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(i);
                     if (subquestionTemplate.ImageSource != null)
                     {
                         DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
@@ -302,8 +303,9 @@ namespace DataLayer
             string message;
             try
             {
+                await IncrementSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin);
                 QuestionTemplate questionTemplate = GetQuestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.QuestionTemplateId);
-                ICollection<SubquestionTemplate> subquestionTemplates = questionTemplate.SubquestionTemplateList;
+                ICollection<SubquestionTemplate> subquestionTemplates = questionTemplate.SubquestionTemplates;
                 subquestionTemplates.Add(subquestionTemplate);
                 await _context.SaveChangesAsync();
                 message = "Zadání podotázky bylo úspěšně přidáno.";
@@ -378,6 +380,38 @@ namespace DataLayer
             await _context.SaveChangesAsync();
         }
 
+        public async Task<SubquestionTemplateStatistics> GetSubquestionTemplateStatistics(string login)
+        {
+            return await GetSubquestionTemplateStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
+        }
+
+        public async Task IncrementSubquestionTemplateStatistics(string login)
+        {
+            SubquestionTemplateStatistics subquestionTemplateStatistics = await GetSubquestionTemplateStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
+            subquestionTemplateStatistics.SubquestionTemplatesAddedCount += 1;
+            if(subquestionTemplateStatistics.SubquestionTemplatesAddedCount == 100)
+            {
+                subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
+            }
+            await SaveChangesAsync();
+        }
+
+        public int GetTestTemplateSubquestionsCount(TestTemplate testTemplate)
+        {
+            int subquestionsCount = 0;
+            for (int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
+            {
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
+
+                for(int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
+                {
+                    subquestionsCount++;
+                }
+            }
+            return subquestionsCount;
+        }
+
+
         //ResultFunctions.cs
 
         public DbSet<TestResult> GetTestResultDbSet()
@@ -410,6 +444,11 @@ namespace DataLayer
             return _context.TestDifficultyStatistics;
         }
 
+        public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
+        {
+            return GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
         public async Task<string?> AddTestResult(TestResult testResult)
         {
             try
@@ -418,6 +457,7 @@ namespace DataLayer
                 _context.Students.Attach(testResult.Student);
                 _context.TestTemplates.Attach(testResult.TestTemplate);
                 _context.TestResults.Add(testResult);
+                await IncrementSubquestionResultStatistics(testResult.OwnerLogin, GetTestTemplateSubquestionsCount(testResult.TestTemplate));
                 await _context.SaveChangesAsync();
                 return null;
             }
@@ -431,11 +471,11 @@ namespace DataLayer
         public async Task<TestResult> LoadLastStudentAttempt(Student student)
         {
             return await GetTestResultDbSet()
-                .Include(t => t.QuestionResultList)
-                .ThenInclude(q => q.SubquestionResultList)
+                .Include(t => t.QuestionResults)
+                .ThenInclude(q => q.SubquestionResults)
                 .Include(t => t.TestTemplate)
-                .ThenInclude(q => q.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .ThenInclude(q => q.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .OrderByDescending(t => t.TimeStamp)
                 .FirstAsync(t => t.StudentLogin == student.Login);
         }
@@ -511,13 +551,27 @@ namespace DataLayer
         public List<TestResult> GetTestResultsByLogin(string login)
         {
             List<TestResult> testResults = GetTestResultDbSet()
-                .Include(s => s.QuestionResultList)
-                .ThenInclude(s => s.SubquestionResultList)
+                .Include(s => s.QuestionResults)
+                .ThenInclude(s => s.SubquestionResults)
                 .Include(s => s.TestTemplate)
-                .ThenInclude(s => s.QuestionTemplateList)
-                .ThenInclude(s => s.SubquestionTemplateList)
+                .ThenInclude(s => s.QuestionTemplates)
+                .ThenInclude(s => s.SubquestionTemplates)
                 .Where(s => s.OwnerLogin == login).ToList();
             return testResults;
+        }
+
+        public async Task DeleteQuestionResults(int questionTemplateId)
+        {
+            IQueryable<QuestionResult> questionResults = GetQuestionResultDbSet().Where(q => q.QuestionTemplateId == questionTemplateId);
+            _context.QuestionResults.RemoveRange(questionResults);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteSubquestionResults(int subquestionTemplateId)
+        {
+            IQueryable<SubquestionResult> subquestionResults = GetSubquestionResultDbSet().Where(s => s.SubquestionTemplateId == subquestionTemplateId);
+            _context.SubquestionResults.RemoveRange(subquestionResults);
+            await _context.SaveChangesAsync();
         }
 
         public async Task SaveSubquestionResultRecords(List<SubquestionResultRecord> subquestionResultRecords, User owner)
@@ -551,6 +605,17 @@ namespace DataLayer
             _context.TestDifficultyStatistics.Add(testDifficultyStatistics);
             AttachUser(testDifficultyStatistics.User);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task IncrementSubquestionResultStatistics(string login, int subquestionsCount)
+        {
+            SubquestionResultStatistics subquestionResultStatistics = await GetSubquestionResultStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
+            subquestionResultStatistics.SubquestionResultsAddedCount += subquestionsCount;
+            if (subquestionResultStatistics.SubquestionResultsAddedCount > 100)
+            {
+                subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
+            }
+            await SaveChangesAsync();
         }
 
         //UserFunctions.cs

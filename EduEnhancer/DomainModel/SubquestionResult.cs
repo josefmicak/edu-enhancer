@@ -14,7 +14,7 @@ namespace DomainModel
         public int QuestionResultId { get; set; } = default!;
         public int SubquestionTemplateId { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
-        public string[] StudentsAnswerList { get; set; } = default!;
+        public string[] StudentsAnswers { get; set; } = default!;
         public double StudentsPoints { get; set; } = default!;
         public double DefaultStudentsPoints { get; set; } = default!;
         public double AnswerCorrectness { get; set; }

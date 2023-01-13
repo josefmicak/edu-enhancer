@@ -51,7 +51,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="possible-answer-1">
-                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td><button type="button" disabled class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
                                     <td><button type="button" disabled class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
                                     <td>
@@ -74,7 +74,7 @@
                                     <th>Dolů</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><input readonly class="correct-answer-input" type="text" name="CorrectAnswerList[]"></td>
+                                    <td><input readonly class="correct-answer-input" type="text" name="CorrectAnswers[]"></td>
                                     <td><button type="button" disabled class="correct-answer-move" onclick="moveCorrectAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
                                     <td><button type="button" disabled class="correct-answer-move" onclick="moveCorrectAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
                                 </tr>
@@ -89,7 +89,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="possible-answer-1">
-                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td>
                                         <button disabled type="button" class="possible-answer-delete"
                                         onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -109,7 +109,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><select disabled class="correct-answer-select" name="CorrectAnswerList[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select></td>
+                                    <td><select disabled class="correct-answer-select" name="CorrectAnswers[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select></td>
                                     <td>
                                         <button type="button" disabled class="correct-answer-delete"
                                         onclick="deleteCorrectAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -130,7 +130,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="possible-answer-1">
-                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td>
                                         <button type="button" disabled class="possible-answer-delete"
                                         onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -150,8 +150,8 @@
                                 </tr>
                                 <tr id="correct-answer-1">
                                     <td>
-                                        <select disabled class="correct-answer-select" name="CorrectAnswerList[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select> -
-                                        <select disabled class="correct-answer-select" name="CorrectAnswerList[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select>
+                                        <select disabled class="correct-answer-select" name="CorrectAnswers[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select> -
+                                        <select disabled class="correct-answer-select" name="CorrectAnswers[]" onchange="updateCorrectAnswersSelect('correctAnswerChosen')"></select>
                                     </td>
                                 </tr>
                             </table>
@@ -168,10 +168,10 @@
                                     <th>Smazat otázku</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><input disabled class="correct-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input disabled class="correct-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td>
                                         <input disabled checked class="correct-answer-radio" type="radio" name="correct-answer-radio-1">
-                                        <input type="hidden" class="correct-answer-hidden" name="CorrectAnswerList[]">Ano
+                                        <input type="hidden" class="correct-answer-hidden" name="CorrectAnswers[]">Ano
                                     </td>
                                     <td><input disabled class="correct-answer-radio" type="radio" name="correct-answer-radio-1">Ne</td>
                                     <td>
@@ -194,7 +194,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="possible-answer-1">
-                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td>
                                         <button type="button" disabled class="possible-answer-delete"
                                         onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -213,7 +213,7 @@
                                     <th>Správná odpověď</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><select disabled class="correct-answer-select" name="CorrectAnswerList[]"></select></td>
+                                    <td><select disabled class="correct-answer-select" name="CorrectAnswers[]"></select></td>
                                 </tr>
                             </table>
                             <br>
@@ -232,7 +232,7 @@
                                     <th>Smazat odpověď</th>
                                 </tr>
                                 <tr id="possible-answer-1">
-                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswerList[]"></td>
+                                    <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
                                     <td>
                                         <button type="button" disabled class="possible-answer-delete"
                                         onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -251,7 +251,7 @@
                                     <th>Správná odpověď</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><select disabled class="correct-answer-select" name="CorrectAnswerList[]"></select></td>
+                                    <td><select disabled class="correct-answer-select" name="CorrectAnswers[]"></select></td>
                                 </tr>
                             </table>
                             <br>
@@ -262,7 +262,7 @@
                             <br>
                             <input type="text" required name="subquestionTextArray[]" placeholder="Druhá část věty">
                             <br>
-                            <input type="text" required id="correct-answer-input" name="CorrectAnswerList[]" placeholder="Správná odpověď" onchange="fillGapText(this)">
+                            <input type="text" required id="correct-answer-input" name="CorrectAnswers[]" placeholder="Správná odpověď" onchange="fillGapText(this)">
                             <br>
                             break;
                         case 9:
@@ -284,7 +284,7 @@
                                     <th>Správné odpovědi</th>
                                 </tr>
                                 <tr id="correct-answer-1">
-                                    <td><input type="text" disabled class="correct-answer-input" name="CorrectAnswerList[]" placeholder="[1] - Správná odpověď"></td>
+                                    <td><input type="text" disabled class="correct-answer-input" name="CorrectAnswers[]" placeholder="[1] - Správná odpověď"></td>
                                 </tr>
                             </table>
                             <button disabled type="button" onclick="editCorrectAnswers('enable', @selectedSubquestionType)" id="correct-answer-edit">Upravit správné odpovědi</button>
@@ -358,20 +358,20 @@
 @{
     string possibleAnswerListString = "";
 
-    if (Model.PossibleAnswerList != null)
+    if (Model.PossibleAnswers != null)
     {
-        for (int j = 0; j < Model.PossibleAnswerList.Count(); j++)
+        for (int j = 0; j < Model.PossibleAnswers.Count(); j++)
         {
-            possibleAnswerListString += Model.PossibleAnswerList[j] + ";";
+            possibleAnswerListString += Model.PossibleAnswers[j] + ";";
         }
     }
 
     string correctAnswerListString = "";
-    if (Model.CorrectAnswerList != null)
+    if (Model.CorrectAnswers != null)
     {
-        for (int j = 0; j < Model.CorrectAnswerList.Count(); j++)
+        for (int j = 0; j < Model.CorrectAnswers.Count(); j++)
         {
-            correctAnswerListString += Model.CorrectAnswerList[j] + ";";
+            correctAnswerListString += Model.CorrectAnswers[j] + ";";
         }
     }
 

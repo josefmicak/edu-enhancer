@@ -24,28 +24,28 @@
     if (subquestionTemplate != null)
     {
         subquestionText = subquestionTemplate.SubquestionText;
-        if (subquestionTemplate.PossibleAnswerList != null)
+        if (subquestionTemplate.PossibleAnswers != null)
         {
-            for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Count(); i++)
+            for (int i = 0; i < subquestionTemplate.PossibleAnswers.Count(); i++)
             {
-                possibleAnswerListString += subquestionTemplate.PossibleAnswerList[i] + ";";
+                possibleAnswerListString += subquestionTemplate.PossibleAnswers[i] + ";";
             }
         }
 
-        if (subquestionTemplate.CorrectAnswerList != null)
+        if (subquestionTemplate.CorrectAnswers != null)
         {
-            for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Count(); i++)
+            for (int i = 0; i < subquestionTemplate.CorrectAnswers.Count(); i++)
             {
-                correctAnswerListString += subquestionTemplate.CorrectAnswerList[i] + ";";
+                correctAnswerListString += subquestionTemplate.CorrectAnswers[i] + ";";
             }
         }
     }
 
-    if(subquestionResult.StudentsAnswerList != null)
+    if(subquestionResult.StudentsAnswers != null)
     {
-        for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+        for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
         {
-            studentAnswerListString += subquestionResult.StudentsAnswerList[i] + ";";
+            studentAnswerListString += subquestionResult.StudentsAnswers[i] + ";";
         }
     }
 
@@ -120,7 +120,7 @@
                                         <th>Odpověď</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><select class="student-answer-select" name="StudentsAnswerList[]"
+                                        <td><select class="student-answer-select" name="StudentsAnswers[]"
                                         onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                         </td>
                                     </tr>
@@ -154,9 +154,9 @@
                                     </tr>
                                     <tr id="student-answer-1">
                                         <td>
-                                            <select class="student-answer-select" name="StudentsAnswerList[]"
+                                            <select class="student-answer-select" name="StudentsAnswers[]"
                                                 onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select> -
-                                            <select class="student-answer-select" name="StudentsAnswerList[]"
+                                            <select class="student-answer-select" name="StudentsAnswers[]"
                                                 onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                         </td>
                                     </tr>
@@ -175,14 +175,14 @@
                                         </td>
                                         <td>
                                             <input checked class="student-answer-radio" type="radio" name="student-answer-radio-1">
-                                            <input type="hidden" class="student-answer-hidden" name="StudentsAnswerList[]">Ano
+                                            <input type="hidden" class="student-answer-hidden" name="StudentsAnswers[]">Ano
                                         </td>
                                         <td><input class="student-answer-radio" type="radio" name="student-answer-radio-1">Ne</td>
                                     </tr>
                                 </table>
                                 break;
                             case 5:
-                                <textarea id="student-answer" name="StudentsAnswerList[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
+                                <textarea id="student-answer" name="StudentsAnswers[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
                                 break;
                             case 6:
                                 <table id="student-answers-table">
@@ -195,16 +195,16 @@
                                         <td></td>
                                     </tr>
                                 </table>
-                                <input type="hidden" class="student-answer-hidden" name="StudentsAnswerList[]">
+                                <input type="hidden" class="student-answer-hidden" name="StudentsAnswers[]">
                                 break;
                             case 7:
                                 <div id="subquestion-text-1"></div>
-                                <select id="student-answer-select" name="StudentsAnswerList[]"></select>
+                                <select id="student-answer-select" name="StudentsAnswers[]"></select>
                                 <div id="subquestion-text-2"></div>
                                 break;
                             case 8:
                                 <div id="subquestion-text-1"></div>
-                                <input type="text" id="gap-text" name="StudentsAnswerList[]" placeholder="(DOPLŇTE)">
+                                <input type="text" id="gap-text" name="StudentsAnswers[]" placeholder="(DOPLŇTE)">
                                 <div id="subquestion-text-2"></div>
                                 break;
                             case 9:
@@ -218,16 +218,16 @@
                                 </table>
 
                                 <div id="subquestion-text-1" class="subquestion-text"></div>
-                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswerList[]"
+                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]"
                                     onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                 <div id="subquestion-text-2" class="subquestion-text"></div>
-                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswerList[]"
+                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]"
                                     onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                 <div id="subquestion-text-3" class="subquestion-text"></div>
                                 <div id="additional-questions"></div>
                                 break;
                             case 10:
-                                <input type="hidden" id="student-answer-hidden" name="StudentsAnswerList[]" value="Nezodpovězeno">
+                                <input type="hidden" id="student-answer-hidden" name="StudentsAnswers[]" value="Nezodpovězeno">
                                 <input type="range" id="slider-question" value="50" min="1" max="100"
                                     oninput="changeSliderOutputs(this.value)">
                                 <output>Nezodpovězeno</output>

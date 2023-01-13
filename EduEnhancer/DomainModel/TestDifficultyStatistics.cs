@@ -1,7 +1,5 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Xml.Linq;
 
 namespace DomainModel
 {
@@ -10,19 +8,32 @@ namespace DomainModel
         [Key]
         public string UserLogin { get; set; } = default!;
         public User User { get; set; } = default!;
-        //public int SubquestionResultsAdded { get; set; } = 0;
         public string SubquestionTypeAveragePoints { get; set; }
         [NotMapped]
         public double[] InternalSubquestionTypeAveragePoints
         {
             get
             {
-                return Array.ConvertAll(SubquestionTypeAveragePoints.Split('~'), Double.Parse);
+                return Array.ConvertAll(SubquestionTypeAveragePoints.Split('|'), Double.Parse);
             }
             set
             {
                 double[] _data = value;
-                SubquestionTypeAveragePoints = String.Join("~", _data.Select(p => p.ToString()).ToArray());
+                SubquestionTypeAveragePoints = String.Join("|", _data.Select(p => p.ToString()).ToArray());
+            }
+        }
+        public string SubjectIds { get; set; }
+        [NotMapped]
+        public double[]? InternalSubjectIds
+        {
+            get
+            {
+                return Array.ConvertAll(SubjectIds.Split('|'), Double.Parse);
+            }
+            set
+            {
+                double[] _data = value;
+                SubjectIds = String.Join("|", _data.Select(p => p.ToString()).ToArray());
             }
         }
         public string SubjectAveragePoints { get; set; }
@@ -31,12 +42,12 @@ namespace DomainModel
         {
             get
             {
-                return Array.ConvertAll(SubjectAveragePoints.Split('~'), Double.Parse);
+                return Array.ConvertAll(SubjectAveragePoints.Split('|'), Double.Parse);
             }
             set
             {
                 double[] _data = value;
-                SubjectAveragePoints = String.Join("~", _data.Select(p => p.ToString()).ToArray());
+                SubjectAveragePoints = String.Join("|", _data.Select(p => p.ToString()).ToArray());
             }
         }
         public string SubquestionTypeAverageAnswerCorrectness { get; set; }
@@ -45,12 +56,12 @@ namespace DomainModel
         {
             get
             {
-                return Array.ConvertAll(SubquestionTypeAverageAnswerCorrectness.Split('~'), Double.Parse);
+                return Array.ConvertAll(SubquestionTypeAverageAnswerCorrectness.Split('|'), Double.Parse);
             }
             set
             {
                 double[] _data = value;
-                SubquestionTypeAverageAnswerCorrectness = String.Join("~", _data.Select(p => p.ToString()).ToArray());
+                SubquestionTypeAverageAnswerCorrectness = String.Join("|", _data.Select(p => p.ToString()).ToArray());
             }
         }
     }

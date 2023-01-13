@@ -6,13 +6,13 @@
     TestTemplate testTemplate = Model;
     double testPoints = 0;
     int subquestionsCount = 0;
-    for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+    for (int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
     {
-        QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+        QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
 
-        for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+        for (int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
         {
-            SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+            SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
             testPoints += subquestionTemplate.SubquestionPoints;
             subquestionsCount++;
         }

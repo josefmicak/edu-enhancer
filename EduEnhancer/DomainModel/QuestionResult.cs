@@ -13,6 +13,6 @@ namespace DomainModel
         public string OwnerLogin { get; set; } = default!;
         public TestResult TestResult { get; set; } = default!;
         public QuestionTemplate QuestionTemplate { get; set; } = default!;
-        public ICollection<SubquestionResult> SubquestionResultList { get; set; } = default!;
+        public ICollection<SubquestionResult> SubquestionResults { get; set; } = default!;
     }
 }

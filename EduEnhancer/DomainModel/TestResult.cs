@@ -14,7 +14,7 @@ namespace DomainModel
         public Student Student { get; set; } = default!;
         public string StudentLogin { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
-        public ICollection<QuestionResult> QuestionResultList { get; set; } = default!;
+        public ICollection<QuestionResult> QuestionResults { get; set; } = default!;
         public bool IsTestingData { get; set; } = false;
     }
 }

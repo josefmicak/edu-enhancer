@@ -11,6 +11,6 @@ namespace DomainModel
         public string Title { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
         public TestTemplate TestTemplate { get; set; } = default!;
-        public ICollection<SubquestionTemplate> SubquestionTemplateList { get; set; } = default!;
+        public ICollection<SubquestionTemplate> SubquestionTemplates { get; set; } = default!;
     }
 }

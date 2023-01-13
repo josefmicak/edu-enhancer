@@ -5,7 +5,7 @@
 
 @{
     List<Student> allStudents = Model.Students;
-    List<Student> subjectStudents = Model.Subject.StudentList;
+    List<Student> subjectStudents = Model.Subject.Students;
     List<Student> unenrolledStudents = new List<Student>();
     if(subjectStudents != null){
         unenrolledStudents = allStudents.Except(subjectStudents).ToList();
@@ -57,9 +57,9 @@
                 <th>Odebrat</th>
             </tr
             @{
-                if(Model.Subject.StudentList != null)
+                if(Model.Subject.Students != null)
                 {
-                    foreach (Student item in Model.Subject.StudentList)
+                    foreach (Student item in Model.Subject.Students)
                     {
                         string fullName = item.FullName();
                         <tr>

@@ -15,7 +15,7 @@ namespace DomainModel
         public Subject Subject { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;
         public User Owner { get; set; } = default!;
-        public ICollection<QuestionTemplate> QuestionTemplateList { get; set; } = default!;
+        public ICollection<QuestionTemplate> QuestionTemplates { get; set; } = default!;
         public bool IsTestingData { get; set; } = false;
     }
 }

@@ -91,13 +91,13 @@ namespace ArtificialIntelligenceTools
                 TestTemplate testTemplate = testTemplates[i];
                 double? minimumPointsShare = GetMinimumPointsShare(testTemplate);
 
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
 
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(k);
                         SubquestionTemplateRecord subquestionTemplateRecord = CreateSubquestionTemplateRecord(subquestionTemplate, owner,
                             subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
                         subquestionTemplateRecords.Add(subquestionTemplateRecord);
@@ -123,13 +123,13 @@ namespace ArtificialIntelligenceTools
             subquestionTemplateRecord.SubquestionTypeAveragePoints = Math.Round(subquestionTypeAveragePoints[Convert.ToInt32(subquestionType) - 1], 2);
             int possibleAnswersCount = 0;
             int correctAnswersCount = 0;
-            if (subquestionTemplate.PossibleAnswerList != null)
+            if (subquestionTemplate.PossibleAnswers != null)
             {
-                possibleAnswersCount = subquestionTemplate.PossibleAnswerList.Count();
+                possibleAnswersCount = subquestionTemplate.PossibleAnswers.Count();
             }
-            if (subquestionTemplate.CorrectAnswerList != null)
+            if (subquestionTemplate.CorrectAnswers != null)
             {
-                correctAnswersCount = subquestionTemplate.CorrectAnswerList.Count();
+                correctAnswersCount = subquestionTemplate.CorrectAnswers.Count();
             }
 
             if (possibleAnswersCount != 0)
@@ -177,17 +177,21 @@ namespace ArtificialIntelligenceTools
         /// </summary>
         public static double? GetMinimumPointsShare(TestTemplate testTemplate)
         {
-            double? totalSubquestionPoints = 0;
-            for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+            double totalSubquestionPoints = 0;
+            for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
             {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
 
-                for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                 {
-                    totalSubquestionPoints += questionTemplate.SubquestionTemplateList.ElementAt(k).SubquestionPoints;
+                    totalSubquestionPoints += questionTemplate.SubquestionTemplates.ElementAt(k).SubquestionPoints;
                 }
             }
 
+            if(testTemplate.MinimumPoints == null)
+            {
+                return 0;
+            }
             return testTemplate.MinimumPoints / totalSubquestionPoints;
         }
 
@@ -264,8 +268,8 @@ namespace ArtificialIntelligenceTools
                             subquestionTemplate.ImageSource = "";
                         }
 
-                        subquestionTemplate.PossibleAnswerList = possibleAnswers;
-                        subquestionTemplate.CorrectAnswerList = correctAnswers;
+                        subquestionTemplate.PossibleAnswers = possibleAnswers;
+                        subquestionTemplate.CorrectAnswers = correctAnswers;
 
                         int subquestionPoints = random.Next(1, 16);
                         subquestionTemplate.SubquestionPoints = subquestionPoints;
@@ -273,7 +277,7 @@ namespace ArtificialIntelligenceTools
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
-                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
                         subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
                         subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
                         subquestionTemplates.Add(subquestionTemplate);
@@ -284,14 +288,14 @@ namespace ArtificialIntelligenceTools
                             stopDataGeneration = true;
                         }
                     }
-                    questionTemplate.SubquestionTemplateList = subquestionTemplates;
+                    questionTemplate.SubquestionTemplates = subquestionTemplates;
                     questionTemplates.Add(questionTemplate);
                 }
 
                 double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
                 double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
                 testTemplate.MinimumPoints = minimumPointsRound;
-                testTemplate.QuestionTemplateList = questionTemplates;
+                testTemplate.QuestionTemplates = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
 
@@ -377,8 +381,8 @@ namespace ArtificialIntelligenceTools
                         }
                         (string subquestionText, int possibleAnswersCount, int correctAnswersCount, string[] possibleAnswers, string[] correctAnswers) =
                             CreateSubquestionAnswers(subquestionType, random);
-                        subquestionTemplate.PossibleAnswerList = possibleAnswers;
-                        subquestionTemplate.CorrectAnswerList = correctAnswers;
+                        subquestionTemplate.PossibleAnswers = possibleAnswers;
+                        subquestionTemplate.CorrectAnswers = correctAnswers;
                         subquestionTemplate.SubquestionText = subquestionText;
 
                         double correctAnswersShare = 0;
@@ -420,7 +424,7 @@ namespace ArtificialIntelligenceTools
                         subquestionTemplate.OwnerLogin = owner.Login;
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
-                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                            Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
                         subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
                         subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
                         subquestionTemplates.Add(subquestionTemplate);
@@ -431,14 +435,14 @@ namespace ArtificialIntelligenceTools
                             stopDataGeneration = true;
                         }
                     }
-                    questionTemplate.SubquestionTemplateList = subquestionTemplates;
+                    questionTemplate.SubquestionTemplates = subquestionTemplates;
                     questionTemplates.Add(questionTemplate);
                 }
 
                 double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
                 double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
                 testTemplate.MinimumPoints = minimumPointsRound;
-                testTemplate.QuestionTemplateList = questionTemplates;
+                testTemplate.QuestionTemplates = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
 
@@ -479,14 +483,14 @@ namespace ArtificialIntelligenceTools
                 testResult.IsTestingData = true;
                 List<QuestionResult> questionResults = new List<QuestionResult>();
 
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
                     if (stopDataGeneration)
                     {
                         break;
                     }
 
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
                     questionResult.TestResultId = testResult.TestResultId;
@@ -494,14 +498,14 @@ namespace ArtificialIntelligenceTools
                     questionResult.OwnerLogin = testResult.OwnerLogin;
                     List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
 
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
                         if (stopDataGeneration)
                         {
                             break;
 
                         }
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(k);
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
@@ -509,10 +513,10 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
                         subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
-                        subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
+                        subquestionResult.StudentsAnswers = CreateStudentsAnswers(subquestionTemplate, random);
                         (double defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
-                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
-                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswers, subquestionTemplate.CorrectAnswers,
+                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswers);
                         int studentsPoints = random.Next(0, (int)subquestionTemplate.SubquestionPoints);
                         subquestionResult.StudentsPoints = studentsPoints;
                         subquestionResult.AnswerCorrectness = answerCorrectness;
@@ -527,11 +531,11 @@ namespace ArtificialIntelligenceTools
                         }
                     }
 
-                    questionResult.SubquestionResultList = subquestionResults;
+                    questionResult.SubquestionResults = subquestionResults;
                     questionResults.Add(questionResult);
                 }
 
-                testResult.QuestionResultList = questionResults;
+                testResult.QuestionResults = questionResults;
                 testResults.Add(testResult);
                 testingDataTestResultsCount++;
             }
@@ -582,14 +586,14 @@ namespace ArtificialIntelligenceTools
                 testResult.IsTestingData = true;
                 List<QuestionResult> questionResults = new List<QuestionResult>();
 
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
                     if (stopDataGeneration)
                     {
                         break;
                     }
 
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
                     QuestionResult questionResult = new QuestionResult();
                     questionResult.QuestionTemplate = questionTemplate;
                     questionResult.TestResultId = testResult.TestResultId;
@@ -598,14 +602,14 @@ namespace ArtificialIntelligenceTools
                     questionResult.OwnerLogin = testResult.OwnerLogin;
                     List<SubquestionResult> subquestionResults = new List<SubquestionResult>();
 
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
                         if (stopDataGeneration)
                         {
                             break;
                         }
 
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(k);
                         SubquestionResult subquestionResult = new SubquestionResult();
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
@@ -613,10 +617,10 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
                         subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
-                        subquestionResult.StudentsAnswerList = CreateStudentsAnswers(subquestionTemplate, random);
+                        subquestionResult.StudentsAnswers = CreateStudentsAnswers(subquestionTemplate, random);
                         (double defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerCorrect) = CommonFunctions.CalculateStudentsAnswerAttributes(
-                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
-                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                            subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswers, subquestionTemplate.CorrectAnswers,
+                            subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswers);
 
                         subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                         double studentsPoints = subquestionTemplate.SubquestionPoints * answerCorrectness;
@@ -667,11 +671,11 @@ namespace ArtificialIntelligenceTools
                         }
                     }
 
-                    questionResult.SubquestionResultList = subquestionResults;
+                    questionResult.SubquestionResults = subquestionResults;
                     questionResults.Add(questionResult);
                 }
 
-                testResult.QuestionResultList = questionResults;
+                testResult.QuestionResults = questionResults;
                 testResults.Add(testResult);
                 testingDataTestResultsCount++;
             }
@@ -682,7 +686,6 @@ namespace ArtificialIntelligenceTools
         public static List<SubquestionResultRecord> CreateSubquestionResultRecords(List<TestResult> testResults)
         {
             List<SubquestionResultRecord> subquestionResultRecords = new List<SubquestionResultRecord>();
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = GetSubjectAverageStudentsPoints(testResults);
             User owner = testResults[0].TestTemplate.Owner;
@@ -693,13 +696,13 @@ namespace ArtificialIntelligenceTools
                 TestTemplate testTemplate = testResult.TestTemplate;
                 double? minimumPointsShare = GetMinimumPointsShare(testTemplate);
 
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
 
-                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    for (int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
-                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(k);
                         SubquestionResultRecord subquestionResultRecord = CreateSubquestionResultRecord(subquestionResult, owner, subjectAveragePointsTuple,
                             subquestionTypeAveragePoints, minimumPointsShare);
                         subquestionResultRecords.Add(subquestionResultRecord);
@@ -802,7 +805,7 @@ namespace ArtificialIntelligenceTools
                     int choiceCounter = 0;
                     for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + "\\" + "možnost " + (choiceCounter + 2);
+                        correctAnswers[l] = "možnost " + (choiceCounter + 1) + "|" + "možnost " + (choiceCounter + 2);
                         choiceCounter += 2;
                     }
 
@@ -919,8 +922,8 @@ namespace ArtificialIntelligenceTools
 
         public static string[] CreateStudentsAnswers(SubquestionTemplate subquestionTemplate, Random random)
         {
-            string[] possibleAnswerArray = subquestionTemplate.PossibleAnswerList;
-            string[] correctAnswerArray = subquestionTemplate.CorrectAnswerList;
+            string[] possibleAnswerArray = subquestionTemplate.PossibleAnswers;
+            string[] correctAnswerArray = subquestionTemplate.CorrectAnswers;
             List<string> studentsAnswers = new List<string>();
             switch (subquestionTemplate.SubquestionType)
             {
@@ -952,14 +955,21 @@ namespace ArtificialIntelligenceTools
                 case SubquestionType.MultipleQuestions:
                     for (int l = 0; l < correctAnswerArray.Length; l++)
                     {
-                        string[] correctAnswerSplit = correctAnswerArray[l].Split(" -> ");
-                        studentsAnswers.Add(correctAnswerSplit[0] + " -> " + possibleAnswerArray[random.Next(0, possibleAnswerArray.Length)]);
+                        correctAnswerProbability = random.Next(0, 101);
+                        if (correctAnswerProbability >= 50)
+                        {
+                            studentsAnswers.Add(correctAnswerArray[0]);
+                        }
+                        else
+                        {
+                            studentsAnswers.Add(random.Next(0, 2).ToString());
+                        }
                     }
                     break;
                 case SubquestionType.GapMatch:
                     for (int l = 0; l < correctAnswerArray.Length; l++)
                     {
-                        studentsAnswers.Add("[" + (l + 1) + "] - " + possibleAnswerArray[l]);
+                        studentsAnswers.Add(correctAnswerArray[l]);
                     }
                     break;
                 case SubquestionType.MatchingElements:
@@ -970,16 +980,12 @@ namespace ArtificialIntelligenceTools
                         {
                             break;
                         }
-                        studentsAnswers.Add(possibleAnswerArray[answerIndex] + " -> " + possibleAnswerArray[answerIndex + 1]);
+                        studentsAnswers.Add(possibleAnswerArray[answerIndex] + "|" + possibleAnswerArray[answerIndex + 1]);
                         answerIndex += 2;
                     }
                     break;
                 case SubquestionType.Slider:
-                    string possibleAnswerString = possibleAnswerArray[0];
-                    string[] possibleAnswerStringSplit = possibleAnswerString.Split(" - ");
-                    int lowerBound = int.Parse(possibleAnswerStringSplit[0]);
-                    int upperBound = int.Parse(possibleAnswerStringSplit[1]);
-                    studentsAnswers.Add(random.Next(lowerBound, upperBound + 1).ToString());
+                    studentsAnswers.Add(random.Next(int.Parse(possibleAnswerArray[0]), int.Parse(possibleAnswerArray[1]) + 1).ToString());
                     break;
                 case SubquestionType.OrderingElements:
                     answerIndex = 0;
@@ -1011,13 +1017,13 @@ namespace ArtificialIntelligenceTools
             {
                 TestTemplate testTemplate = testTemplates[i];
 
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
 
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
                         subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionTemplate.SubquestionPoints;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
@@ -1043,13 +1049,13 @@ namespace ArtificialIntelligenceTools
             {
                 TestResult testResult = testResults[i];
 
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
 
-                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    for (int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
-                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionResult.SubquestionTemplate.SubquestionType;
                         subquestionTypePointsShare[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
@@ -1075,13 +1081,13 @@ namespace ArtificialIntelligenceTools
             {
                 TestResult testResult = testResults[i];
 
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
 
-                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    for (int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
-                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(k);
                         EnumTypes.SubquestionType subquestionType = subquestionResult.SubquestionTemplate.SubquestionType;
                         subquestionTypeAnswerCorrectness[Convert.ToInt32(subquestionType) - 1] += (double)subquestionResult.AnswerCorrectness;
                         subquestionCountByType[Convert.ToInt32(subquestionType) - 1] += 1;
@@ -1110,13 +1116,13 @@ namespace ArtificialIntelligenceTools
             {
                 TestTemplate testTemplate = testTemplates[i];
 
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
 
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
-                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(k);
+                        SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(k);
                         int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testTemplate.Subject.SubjectId);
                         subjectPointsShare[subjectIndex] += (double)subquestionTemplate.SubquestionPoints;
                         subquestionCountBySubject[subjectIndex] += 1;
@@ -1148,13 +1154,13 @@ namespace ArtificialIntelligenceTools
             {
                 TestResult testResult = testResults[i];
 
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
 
-                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    for (int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
-                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(k);
                         int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testResult.TestTemplate.Subject.SubjectId);
                         //when it comes to subquestion results, we have to consider the difference between subquestion's and student's points
                         subjectPointsShare[subjectIndex] += (double)subquestionResult.StudentsPoints / (double)subquestionResult.SubquestionTemplate.SubquestionPoints;

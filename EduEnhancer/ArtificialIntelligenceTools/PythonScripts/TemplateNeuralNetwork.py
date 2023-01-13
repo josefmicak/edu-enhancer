@@ -57,12 +57,29 @@ def predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAverag
     MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
     MinimumPointsShare_std = df["MinimumPointsShare"].std()
 
-    SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
-    CorrectAnswersShare = (CorrectAnswersShare - CorrectAnswersShare_mean) / CorrectAnswersShare_std
-    SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
-    ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
-    NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
-    MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
+    SubquestionTypeAveragePoints = 0
+    if SubquestionTypeAveragePoints_std != 0:
+        SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
+    
+    CorrectAnswersShare = 0
+    if CorrectAnswersShare_std != 0:
+        CorrectAnswersShare = (CorrectAnswersShare - CorrectAnswersShare_mean) / CorrectAnswersShare_std
+
+    SubjectAveragePoints = 0
+    if SubjectAveragePoints_std != 0:
+        SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
+
+    ContainsImage = 0
+    if ContainsImage_std != 0:
+        ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
+
+    NegativePoints = 0
+    if NegativePoints_std != 0:
+        NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
+
+    MinimumPointsShare = 0
+    if MinimumPointsShare_std != 0:
+        MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
 
     x_unseen = torch.Tensor([SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
     y_unseen = model(torch.atleast_2d(x_unseen))
@@ -126,7 +143,8 @@ def main(arguments):
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
     df = df.drop('QuestionTemplateId', axis=1)  # question number identifier is irrelevant in this context
-    df = df.drop('SubquestionTemplateId', axis=1)  # subqustion identifier is irrelevant in this context
+    df = df.drop('SubquestionTemplateId', axis=1)  # subquestion identifier is irrelevant in this context
+    df = df.drop('SubquestionTemplateRecordId', axis=1)  # subquestion identifier is irrelevant in this context
 
     # necessary preprocessing
     data = df[df.columns[:-1]]

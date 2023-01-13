@@ -8,7 +8,8 @@ namespace DomainModel
         [Key]
         public string UserLogin { get; set; } = default!;
         public User User { get; set; } = default!;
-        public int SubquestionTemplatesAdded { get; set; } = 0;
+        public bool EnoughSubquestionTemplatesAdded { get; set; } = false;
+        public int SubquestionTemplatesAddedCount { get; set; } = 0;
         public double NeuralNetworkAccuracy { get; set; } = 0;
         public double MachineLearningAccuracy { get; set; } = 0;
         public EnumTypes.Model UsedModel { get; set; } = 0;

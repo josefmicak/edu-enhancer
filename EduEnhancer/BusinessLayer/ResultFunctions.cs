@@ -50,10 +50,12 @@ namespace BusinessLayer
             return GetTestResultDbSet()
                 .Include(s => s.Student)
                 .Include(t => t.TestTemplate)
-                .ThenInclude(q => q.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
-                .Include(t => t.QuestionResultList)
-                .ThenInclude(q => q.SubquestionResultList)
+                .ThenInclude(t => t.Subject)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
+                .Include(t => t.QuestionResults)
+                .ThenInclude(q => q.SubquestionResults)
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
@@ -83,9 +85,9 @@ namespace BusinessLayer
                 .Include(t => t.TestResult)
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
-                .Include(q => q.QuestionTemplate.SubquestionTemplateList)
+                .Include(q => q.QuestionTemplate.SubquestionTemplates)
                 .Include(s => s.TestResult.Student)
-                .Include(q => q.SubquestionResultList)
+                .Include(q => q.SubquestionResults)
                 .Where(t => t.TestResultId == testResultId && t.OwnerLogin == login);
         }
 
@@ -96,9 +98,9 @@ namespace BusinessLayer
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
                 .Include(q => q.TestResult.TestTemplate.Owner)
-                .Include(q => q.QuestionTemplate.SubquestionTemplateList)
+                .Include(q => q.QuestionTemplate.SubquestionTemplates)
                 .Include(q => q.TestResult.Student)
-                .Include(q => q.SubquestionResultList)
+                .Include(q => q.SubquestionResults)
                 .Where(q => q.TestResultId == testResultId && q.TestResult.Student.Login == studentLogin
                     && q.OwnerLogin == ownerLogin);
         }
@@ -206,8 +208,8 @@ namespace BusinessLayer
             {
                 SubquestionResult subquestionResult = subquestionResults[i];
                 SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-                (double defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList,
-                    subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                (double defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswers,
+                    subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswers);
                 subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                 subquestionResult.StudentsPoints = defaultStudentsPoints;
             }
@@ -218,8 +220,8 @@ namespace BusinessLayer
         {
             var testTemplates = dataFunctions.GetTestTemplateDbSet()
                 .Include(t => t.Subject)
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .Where(t => t.IsTestingData).ToList();
             return testTemplates;
         }
@@ -227,8 +229,8 @@ namespace BusinessLayer
         public List<TestResult> GetTestingDataTestResults()
         {
             var testResults = GetTestResultDbSet()
-                .Include(t => t.QuestionResultList)
-                .ThenInclude(q => q.SubquestionResultList)
+                .Include(t => t.QuestionResults)
+                .ThenInclude(q => q.SubquestionResults)
                 .Where(t => t.IsTestingData).ToList();
             return testResults;
         }
@@ -240,10 +242,10 @@ namespace BusinessLayer
             for (int i = 0; i < testResults.Count; i++)
             {
                 TestResult testResult = testResults[i];
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
-                    for (int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
+                    for (int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
                         testingDataSubquestionResults++;
                     }
@@ -328,14 +330,26 @@ namespace BusinessLayer
             }
 
             //managing testDifficultyStatistics
+            await ManageTestDifficultyStatistics(testResults, owner);
+
+            return message;
+        }
+
+        public async Task ManageTestDifficultyStatistics(List<TestResult> testResults, User owner)
+        {
             var testDifficultyStatistics = GetTestDifficultyStatistics(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             double[] subquestionTypeAverageAnswerCorrectness = DataGenerator.GetSubquestionTypeAverageAnswerCorrectness(testResults);
-            double[] subjectAveragePointsToDelete = new double[subjectAveragePointsTuple.Count];
-            for(int i = 0; i < subjectAveragePointsTuple.Count; i++)
+            double[] subjectIds = new double[subjectAveragePointsTuple.Count];
+            for (int i = 0; i < subjectAveragePointsTuple.Count; i++)
             {
-                subjectAveragePointsToDelete[i] = subjectAveragePointsTuple[i].Item2;
+                subjectIds[i] = subjectAveragePointsTuple[i].Item1.SubjectId;
+            }
+            double[] subjectAveragePoints = new double[subjectAveragePointsTuple.Count];
+            for (int i = 0; i < subjectAveragePointsTuple.Count; i++)
+            {
+                subjectAveragePoints[i] = subjectAveragePointsTuple[i].Item2;
             }
 
             if (testDifficultyStatistics == null)
@@ -344,7 +358,8 @@ namespace BusinessLayer
                 testDifficultyStatistics.User = owner;
                 testDifficultyStatistics.UserLogin = owner.Login;
                 testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
-                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePointsToDelete;//todo: pouzit tuple
+                testDifficultyStatistics.InternalSubjectIds = subjectIds;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
                 testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
                 await dataFunctions.AddTestDifficultyStatistics(testDifficultyStatistics);
                 dataFunctions.AttachUser(testDifficultyStatistics.User);
@@ -352,16 +367,14 @@ namespace BusinessLayer
             }
             else
             {
-                //TODO: Update techto udaju pro skutecneho ucitele
                 testDifficultyStatistics.InternalSubquestionTypeAveragePoints = subquestionTypeAveragePoints;
-                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePointsToDelete;//todo: pouzit tuple
+                testDifficultyStatistics.InternalSubjectIds = subjectIds;
+                testDifficultyStatistics.InternalSubjectAveragePoints = subjectAveragePoints;
                 testDifficultyStatistics.InternalSubquestionTypeAverageAnswerCorrectness = subquestionTypeAverageAnswerCorrectness;
 
                 dataFunctions.AttachUser(testDifficultyStatistics.User);
                 await dataFunctions.SaveChangesAsync();
             }
-
-            return message;
         }
 
         public async Task TestingUsersCheck()
@@ -388,25 +401,17 @@ namespace BusinessLayer
 
             //check if enough subquestion results have been added to warrant new model training
             bool retrainModel = false;
-            int subquestionResultsAdded = GetSubquestionResultStatistics(login).SubquestionResultsAdded;
+            int subquestionResultsAdded = GetSubquestionResultStatistics(login).SubquestionResultsAddedCount;
             if (subquestionResultsAdded >= 100)
             {
                 retrainModel = true;
                 await RetrainSubquestionResultModel(owner);
             }
 
-            //var subquestionResults = GetSubquestionResults(login, testResultId, questionTemplateId);
-
-            /*if (subquestionIdentifier == null)
-            {
-                subquestionIdentifier = subquestionResults.First().SubquestionIdentifier;
-            }*/
-
             var subquestionResult = GetSubquestionResult(login, subquestionResultId);
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
 
             var testResults = GetTestResultList(owner.Login);
-            string[] subjectsArray = { "Chemie", "Zeměpis", "Matematika", "Dějepis", "Informatika" };
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -415,12 +420,16 @@ namespace BusinessLayer
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
                 subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
             SubquestionResultStatistics? currectSubquestionResultStatistics = GetSubquestionResultStatistics(login);
+            if (!currectSubquestionResultStatistics.EnoughSubquestionResultsAdded)
+            {
+                return "Pro použití této funkce je nutné aby studenti vyplnili alespoň 100 podotázek.";
+            }
             Model usedModel = currectSubquestionResultStatistics.UsedModel;
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);
             if (subquestionResultsAdded >= 100)
             {
                 SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
-                subquestionResultStatistics.SubquestionResultsAdded = 0;
+                subquestionResultStatistics.SubquestionResultsAddedCount = 0;
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "ResultNeuralNetwork.py");
                 subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
                 if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
@@ -431,6 +440,8 @@ namespace BusinessLayer
                 {
                     subquestionResultStatistics.UsedModel = Model.MachineLearning;
                 }
+
+                await ManageTestDifficultyStatistics(testResults, owner);
                 await dataFunctions.SaveChangesAsync();
             }
 
@@ -461,38 +472,38 @@ namespace BusinessLayer
             testResult.StudentLogin = student.Login;
             testResult.OwnerLogin = testTemplate.OwnerLogin;
             testResult.IsTestingData = false;
-            testResult.QuestionResultList = new List<QuestionResult>();
+            testResult.QuestionResults = new List<QuestionResult>();
 
-            for(int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            for(int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
             {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
                 QuestionResult questionResult = new QuestionResult();
                 questionResult.TestResultId = testResult.TestResultId;
                 questionResult.QuestionTemplateId = questionTemplate.QuestionTemplateId;
                 questionResult.OwnerLogin = testTemplate.OwnerLogin;
                 questionResult.TestResult = testResult;
                 questionResult.QuestionTemplate = questionTemplate;
-                questionResult.SubquestionResultList = new List<SubquestionResult>();
+                questionResult.SubquestionResults = new List<SubquestionResult>();
 
-                for(int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                for(int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
                 {
-                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
                     SubquestionResult subquestionResult = new SubquestionResult();
-                    subquestionResult.TestResultId = testResult.TestResultId;
+                    subquestionResult.TestResultId = questionResult.TestResultId;
                     subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
                     subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                     subquestionResult.OwnerLogin = testResult.OwnerLogin;
-                    subquestionResult.StudentsAnswerList = new string[0];
+                    subquestionResult.StudentsAnswers = new string[0];
                     subquestionResult.StudentsPoints = 0;
                     subquestionResult.DefaultStudentsPoints = 0;
                     subquestionResult.AnswerCorrectness = 0;
                     subquestionResult.AnswerStatus = AnswerStatus.NotAnswered;
                     subquestionResult.SubquestionTemplate = subquestionTemplate;
                     subquestionResult.QuestionResult = questionResult;
-                    questionResult.SubquestionResultList.Add(subquestionResult);
+                    questionResult.SubquestionResults.Add(subquestionResult);
                 }
 
-                testResult.QuestionResultList.Add(questionResult);
+                testResult.QuestionResults.Add(questionResult);
             }
 
             return await dataFunctions.AddTestResult(testResult);
@@ -506,23 +517,23 @@ namespace BusinessLayer
         public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
         {
             List<(int, AnswerCompleteness)> subquestionResultsProperties = new List<(int, AnswerCompleteness)>();
-            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
-                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
-                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
-                    SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(j);
+                    SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(j);
                     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
                     AnswerCompleteness answerCompleteness = new AnswerCompleteness();
                     switch (subquestionTemplate.SubquestionType)
                     {
                         case SubquestionType.OrderingElements:
-                            if(subquestionResult.StudentsAnswerList.Length == 0)
+                            if(subquestionResult.StudentsAnswers.Length == 0)
                             {
                                 answerCompleteness = AnswerCompleteness.Unanswered;
                             }
-                            else if(subquestionResult.StudentsAnswerList.Length == subquestionTemplate.PossibleAnswerList.Length)
+                            else if(subquestionResult.StudentsAnswers.Length == subquestionTemplate.PossibleAnswers.Length)
                             {
                                 answerCompleteness = AnswerCompleteness.Answered;
                             }
@@ -534,7 +545,7 @@ namespace BusinessLayer
                         case SubquestionType n when (n == SubquestionType.MultiChoiceMultipleCorrectAnswers || n == SubquestionType.FreeAnswer ||
                                 n == SubquestionType.MultiChoiceSingleCorrectAnswer || n == SubquestionType.MultiChoiceTextFill ||
                                 n == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || n == SubquestionType.Slider):
-                            if (subquestionResult.StudentsAnswerList.Length == 0)
+                            if (subquestionResult.StudentsAnswers.Length == 0)
                             {
                                 answerCompleteness = AnswerCompleteness.Unanswered;
                             }
@@ -544,11 +555,11 @@ namespace BusinessLayer
                             }
                             break;
                         case SubquestionType.MatchingElements:
-                            if (subquestionResult.StudentsAnswerList.Length == 0)
+                            if (subquestionResult.StudentsAnswers.Length == 0)
                             {
                                 answerCompleteness = AnswerCompleteness.Unanswered;
                             }
-                            else if (subquestionResult.StudentsAnswerList.Length < subquestionTemplate.PossibleAnswerList.Length / 2)
+                            else if (subquestionResult.StudentsAnswers.Length < subquestionTemplate.PossibleAnswers.Length / 2)
                             {
                                 answerCompleteness = AnswerCompleteness.PartiallyAnswered;
                             }
@@ -559,18 +570,18 @@ namespace BusinessLayer
                             break;
                         case SubquestionType.MultipleQuestions:
                             int unansweredCount = 0;
-                            for (int k = 0; k < subquestionResult.StudentsAnswerList.Length; k++)
+                            for (int k = 0; k < subquestionResult.StudentsAnswers.Length; k++)
                             {
-                                if (subquestionResult.StudentsAnswerList[k] == "X")
+                                if (subquestionResult.StudentsAnswers[k] == "X")
                                 {
                                     unansweredCount++;
                                 }
                             }
-                            if (subquestionResult.StudentsAnswerList.Length - unansweredCount == 0)
+                            if (subquestionResult.StudentsAnswers.Length - unansweredCount == 0)
                             {
                                 answerCompleteness = AnswerCompleteness.Unanswered;
                             }
-                            else if(subquestionResult.StudentsAnswerList.Length - unansweredCount < subquestionTemplate.PossibleAnswerList.Length)
+                            else if(subquestionResult.StudentsAnswers.Length - unansweredCount < subquestionTemplate.PossibleAnswers.Length)
                             {
                                 answerCompleteness = AnswerCompleteness.PartiallyAnswered;
                             }
@@ -581,18 +592,18 @@ namespace BusinessLayer
                             break;
                         case SubquestionType.GapMatch:
                             unansweredCount = 0;
-                            for (int k = 0; k < subquestionResult.StudentsAnswerList.Length; k++)
+                            for (int k = 0; k < subquestionResult.StudentsAnswers.Length; k++)
                             {
-                                if (subquestionResult.StudentsAnswerList[k] == "|")
+                                if (subquestionResult.StudentsAnswers[k] == "|")
                                 {
                                     unansweredCount++;
                                 }
                             }
-                            if (subquestionResult.StudentsAnswerList.Length - unansweredCount == 0)
+                            if (subquestionResult.StudentsAnswers.Length - unansweredCount == 0)
                             {
                                 answerCompleteness = AnswerCompleteness.Unanswered;
                             }
-                            else if (subquestionResult.StudentsAnswerList.Length - unansweredCount < subquestionTemplate.CorrectAnswerList.Length)
+                            else if (subquestionResult.StudentsAnswers.Length - unansweredCount < subquestionTemplate.CorrectAnswers.Length)
                             {
                                 answerCompleteness = AnswerCompleteness.PartiallyAnswered;
                             }
@@ -613,17 +624,17 @@ namespace BusinessLayer
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
             string? errorMessage = null;
 
-            if (subquestionResult.StudentsAnswerList == null)
+            if (subquestionResult.StudentsAnswers == null)
             {
-                subquestionResult.StudentsAnswerList = new string[0];
+                subquestionResult.StudentsAnswers = new string[0];
             }
 
-            for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+            for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
             {
-                if(subquestionResult.StudentsAnswerList[i] != null)
+                if(subquestionResult.StudentsAnswers[i] != null)
                 {
-                    subquestionResult.StudentsAnswerList[i].Replace("|", "");//replace gap separator
-                    subquestionResult.StudentsAnswerList[i].Replace(";", "");//replace answer separator
+                    subquestionResult.StudentsAnswers[i].Replace("|", "");//replace gap separator
+                    subquestionResult.StudentsAnswers[i].Replace(";", "");//replace answer separator
                 }
             }
 
@@ -631,15 +642,15 @@ namespace BusinessLayer
             string placeholderText = "-ZVOLTE MOŽNOST-";
             if(subquestionTemplate.SubquestionType != SubquestionType.GapMatch)
             {
-                subquestionResult.StudentsAnswerList = subquestionResult.StudentsAnswerList.Where(s => s != placeholderText).ToArray();
+                subquestionResult.StudentsAnswers = subquestionResult.StudentsAnswers.Where(s => s != placeholderText).ToArray();
             }
             else
             {
-                for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                 {
-                    if (subquestionResult.StudentsAnswerList[i] == placeholderText)
+                    if (subquestionResult.StudentsAnswers[i] == placeholderText)
                     {
-                        subquestionResult.StudentsAnswerList[i] = "|";
+                        subquestionResult.StudentsAnswers[i] = "|";
                     }
                 }
             }
@@ -650,51 +661,51 @@ namespace BusinessLayer
                     errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1001";
                     break;
                 case SubquestionType.OrderingElements:
-                    if(subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    if(subquestionResult.StudentsAnswers.Length > subquestionTemplate.PossibleAnswers.Length)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
                     }
-                    for(int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for(int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[i]))
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
                     break;
                 case SubquestionType.MultiChoiceMultipleCorrectAnswers:
-                    if(subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    if(subquestionResult.StudentsAnswers.Length > subquestionTemplate.PossibleAnswers.Length)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
                     }
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[i]))
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
                     break;
                 case SubquestionType.MatchingElements:
-                    if (subquestionResult.StudentsAnswerList.Length > subquestionTemplate.PossibleAnswerList.Length)
+                    if (subquestionResult.StudentsAnswers.Length > subquestionTemplate.PossibleAnswers.Length)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
                     }
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[i]))
+                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[i]))
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
-                    if (subquestionResult.StudentsAnswerList.Length % 2 == 1)
+                    if (subquestionResult.StudentsAnswers.Length % 2 == 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1005";
                     }
                     else
                     {
-                        string[] newstudentsAnswerList = new string[subquestionResult.StudentsAnswerList.Length / 2];
-                        for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                        string[] newstudentsAnswerList = new string[subquestionResult.StudentsAnswers.Length / 2];
+                        for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                         {
                             if (i % 2 == 1)
                             {
@@ -703,40 +714,40 @@ namespace BusinessLayer
                             else
                             {
                                 int index = i / 2;
-                                newstudentsAnswerList[index] = subquestionResult.StudentsAnswerList[i] + "|" + subquestionResult.StudentsAnswerList[i + 1];
+                                newstudentsAnswerList[index] = subquestionResult.StudentsAnswers[i] + "|" + subquestionResult.StudentsAnswers[i + 1];
                             }
                         }
-                        subquestionResult.StudentsAnswerList = newstudentsAnswerList;
+                        subquestionResult.StudentsAnswers = newstudentsAnswerList;
                     }
                     break;
                 case SubquestionType.MultipleQuestions:
                     //the answers are in wrong order because of shuffle - we have to rearrange them
-                    string[] studentsAnswers = subquestionResult.StudentsAnswerList;
-                    subquestionResult.StudentsAnswerList = new string[possibleAnswers.Length];
-                    for (int i = 0; i < subquestionResult.SubquestionTemplate.PossibleAnswerList.Length; i++)   
+                    string[] studentsAnswers = subquestionResult.StudentsAnswers;
+                    subquestionResult.StudentsAnswers = new string[possibleAnswers.Length];
+                    for (int i = 0; i < subquestionResult.SubquestionTemplate.PossibleAnswers.Length; i++)   
                     {
                         for (int j = 0; j < possibleAnswers.Length; j++)
                         {
-                            if (possibleAnswers[j] == subquestionResult.SubquestionTemplate.PossibleAnswerList[i])
+                            if (possibleAnswers[j] == subquestionResult.SubquestionTemplate.PossibleAnswers[i])
                             {
-                                subquestionResult.StudentsAnswerList[i] = studentsAnswers[j];
+                                subquestionResult.StudentsAnswers[i] = studentsAnswers[j];
                                 break;
                             }
                         }
                     }
 
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        if (subquestionResult.StudentsAnswerList[i] == null)
+                        if (subquestionResult.StudentsAnswers[i] == null)
                         {
-                            subquestionResult.StudentsAnswerList[i] = "X";//unanswered
+                            subquestionResult.StudentsAnswers[i] = "X";//unanswered
                         }
-                        if(subquestionResult.StudentsAnswerList[i] != "0" && subquestionResult.StudentsAnswerList[i] != "1" && subquestionResult.StudentsAnswerList[i] != "X")
+                        if(subquestionResult.StudentsAnswers[i] != "0" && subquestionResult.StudentsAnswers[i] != "1" && subquestionResult.StudentsAnswers[i] != "X")
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
-                    if (subquestionResult.StudentsAnswerList.Length != subquestionTemplate.PossibleAnswerList.Length)
+                    if (subquestionResult.StudentsAnswers.Length != subquestionTemplate.PossibleAnswers.Length)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1004";
                     }
@@ -744,49 +755,49 @@ namespace BusinessLayer
                 case SubquestionType.FreeAnswer:
                     break;
                 case SubquestionType n when (n == SubquestionType.MultiChoiceSingleCorrectAnswer || n == SubquestionType.MultiChoiceTextFill):
-                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    if (subquestionResult.StudentsAnswers.Length > 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
                     }
-                    else if (subquestionResult.StudentsAnswerList.Length == 1)
+                    else if (subquestionResult.StudentsAnswers.Length == 1)
                     {
-                        if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionResult.StudentsAnswerList[0]))
+                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[0]))
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
                     break;
                 case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
-                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    if (subquestionResult.StudentsAnswers.Length > 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
                     }
                     break;
                 case SubquestionType.GapMatch:
-                    if (subquestionResult.StudentsAnswerList.Length > subquestionTemplate.CorrectAnswerList.Length)
+                    if (subquestionResult.StudentsAnswers.Length > subquestionTemplate.CorrectAnswers.Length)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1007";
                     }
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        if (!subquestionTemplate.CorrectAnswerList.Contains(subquestionResult.StudentsAnswerList[i]) && subquestionResult.StudentsAnswerList[i] != "|")
+                        if (!subquestionTemplate.CorrectAnswers.Contains(subquestionResult.StudentsAnswers[i]) && subquestionResult.StudentsAnswers[i] != "|")
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
                     }
                     break;
                 case SubquestionType.Slider:
-                    if (subquestionResult.StudentsAnswerList.Length > 1)
+                    if (subquestionResult.StudentsAnswers.Length > 1)
                     {
                         errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1008";
                     }
-                    if (subquestionResult.StudentsAnswerList[0] == "Nezodpovězeno")
+                    if (subquestionResult.StudentsAnswers[0] == "Nezodpovězeno")
                     {
-                        subquestionResult.StudentsAnswerList = new string[0];
+                        subquestionResult.StudentsAnswers = new string[0];
                     }
-                    if (subquestionResult.StudentsAnswerList.Length == 1)
+                    if (subquestionResult.StudentsAnswers.Length == 1)
                     {
-                        bool isNumber = int.TryParse(subquestionResult.StudentsAnswerList[0], out _);
+                        bool isNumber = int.TryParse(subquestionResult.StudentsAnswers[0], out _);
                         if (!isNumber)
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1009";
@@ -800,15 +811,15 @@ namespace BusinessLayer
         public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
-            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
-                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
-                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
                     if(j == subquestionResultIndex)
                     {
-                        questionResult.SubquestionResultList.ElementAt(j).StudentsAnswerList = subquestionResult.StudentsAnswerList;
+                        questionResult.SubquestionResults.ElementAt(j).StudentsAnswers = subquestionResult.StudentsAnswers;
                         //todo: status, correctness
                         break;
                     }
@@ -820,15 +831,15 @@ namespace BusinessLayer
         public async Task<SubquestionTemplate> GetSubquestionTemplateBySubquestionResultIndex(int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
-            for (int i = 0; i < testResult.QuestionResultList.Count; i++)
+            for (int i = 0; i < testResult.QuestionResults.Count; i++)
             {
-                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
-                for (int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
                     if (j == subquestionResultIndex)
                     {
-                        return questionResult.SubquestionResultList.ElementAt(j).SubquestionTemplate;
+                        return questionResult.SubquestionResults.ElementAt(j).SubquestionTemplate;
                     }
                 }
             }
@@ -839,17 +850,17 @@ namespace BusinessLayer
         {
             TestResult testResult = await dataFunctions.LoadLastStudentAttempt(student);
             testResult.TimeStamp = DateTime.Now;
-            for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+            for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
-                QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
-                for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
-                    SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(j);
+                    SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(j);
                     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
                     (double defaultStudentsPoints, double answerCorrectness, AnswerStatus answerStatus) = CommonFunctions.CalculateStudentsAnswerAttributes(
-                        subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswerList, subquestionTemplate.CorrectAnswerList,
-                        subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswerList);
+                        subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswers, subquestionTemplate.CorrectAnswers,
+                        subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswers);
                     subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
                     subquestionResult.StudentsPoints = defaultStudentsPoints;
                     subquestionResult.AnswerCorrectness = answerCorrectness;
@@ -865,39 +876,55 @@ namespace BusinessLayer
             switch (subquestionResult.SubquestionTemplate.SubquestionType)
             {
                 case SubquestionType.MatchingElements:
-                    for(int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for(int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        subquestionResult.StudentsAnswerList[i] = subquestionResult.StudentsAnswerList[i].Replace("|", " -> ");
+                        subquestionResult.StudentsAnswers[i] = subquestionResult.StudentsAnswers[i].Replace("|", " -> ");
                     }
                     break;
                 case SubquestionType.MultipleQuestions:
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
                         string studentsAnswer = "";
-                        if (subquestionResult.StudentsAnswerList[i] == "1")
+                        if (subquestionResult.StudentsAnswers[i] == "1")
                         {
                             studentsAnswer = "Ano";
                         }
-                        else if (subquestionResult.StudentsAnswerList[i] == "0")
+                        else if (subquestionResult.StudentsAnswers[i] == "0")
                         {
                             studentsAnswer = "Ne";
                         }
-                        else if (subquestionResult.StudentsAnswerList[i] == "X")
+                        else if (subquestionResult.StudentsAnswers[i] == "X")
                         {
                             studentsAnswer = "Nezodpovězeno";
                         }
-                        subquestionResult.StudentsAnswerList[i] = subquestionResult.SubquestionTemplate.PossibleAnswerList[i] + " -> " + studentsAnswer;
+                        subquestionResult.StudentsAnswers[i] = subquestionResult.SubquestionTemplate.PossibleAnswers[i] + " -> " + studentsAnswer;
                     }
                     break;
                 case SubquestionType.GapMatch:
-                    for (int i = 0; i < subquestionResult.StudentsAnswerList.Length; i++)
+                    for (int i = 0; i < subquestionResult.StudentsAnswers.Length; i++)
                     {
-                        subquestionResult.StudentsAnswerList[i] = "[" + (i + 1) + "] - " + subquestionResult.StudentsAnswerList[i];
+                        subquestionResult.StudentsAnswers[i] = "[" + (i + 1) + "] - " + subquestionResult.StudentsAnswers[i];
                     }
                     break;
             }
 
             return subquestionResult;
+        }
+
+        /// <summary>
+        /// Used to delete all question results of a certain question template
+        /// </summary>
+        public async Task DeleteQuestionResults(int questionTemplateId)
+        {
+            await dataFunctions.DeleteQuestionResults(questionTemplateId);
+        }
+
+        /// <summary>
+        /// Used to delete all subquestion results of a certain subquestion template
+        /// </summary>
+        public async Task DeleteSubquestionResults(int subquestionTemplateId)
+        {
+            await dataFunctions.DeleteSubquestionResults(subquestionTemplateId);
         }
     }
 }

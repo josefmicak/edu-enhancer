@@ -146,7 +146,6 @@ namespace ArtificialIntelligenceTools
             {
                 fileName = "DifficultyNeuralNetwork.py";
             }
-
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
@@ -161,7 +160,15 @@ namespace ArtificialIntelligenceTools
                 {
                     string stderr = process.StandardError.ReadToEnd();
                     string result = reader.ReadToEnd();
-                    return double.Parse(result, CultureInfo.InvariantCulture);
+                    try
+                    {
+                        return double.Parse(result, CultureInfo.InvariantCulture);
+                    }
+                    catch
+                    {
+                        //todo: throw exception - chyba pri ziskavani presnosti
+                        return 0;
+                    }
                 }
             }
         }

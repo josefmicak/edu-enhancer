@@ -319,7 +319,10 @@ namespace ViewLayer.Controllers
             }
             else if(action == "getPointsSuggestion")
             {
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(login, int.Parse(questionTemplateId), int.Parse(subquestionTemplateId));
+                SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+                subquestionTemplate.SubquestionTemplateId = int.Parse(subquestionTemplateId);
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, true);
+                //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(login, int.Parse(questionTemplateId), int.Parse(subquestionTemplateId));
             }
             else if (action == "editSubquestionTemplate")
             {
@@ -1507,8 +1510,8 @@ namespace ViewLayer.Controllers
             {
                 subquestionTemplate.OwnerLogin = login;
                 subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionTemplateId);
-                //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
-                TempData["SuggestedSubquestionPoints"] = "todo - subject";
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false);
+                //TempData["SuggestedSubquestionPoints"] = "todo - subject";
             }
 
             TempData["Message"] = message;
@@ -1540,7 +1543,6 @@ namespace ViewLayer.Controllers
         public IActionResult EditSubquestionTemplate(string subquestionTemplateId)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            //todo: zmenit "-1"
             SubquestionTemplate subquestionTemplate = businessLayerFunctions.GetSubquestionTemplate(login, int.Parse(subquestionTemplateId));
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
             if (TempData["Message"] != null)
@@ -1788,14 +1790,14 @@ namespace ViewLayer.Controllers
             //the user has just started the attempt - the very first subquestion is shown to him then
             if (businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultsProperties.Any(s => s.Item1 == int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
             {
-                for(int i = 0; i < testResult.QuestionResultList.Count; i++)
+                for(int i = 0; i < testResult.QuestionResults.Count; i++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
                     //the question must include at least one subquestion
-                    if(questionResult.SubquestionResultList.Count > 0)
+                    if(questionResult.SubquestionResults.Count > 0)
                     {
-                        subquestionResult = questionResult.SubquestionResultList.ElementAt(0);
+                        subquestionResult = questionResult.SubquestionResults.ElementAt(0);
                         break;
                     }
                 }
@@ -1818,13 +1820,13 @@ namespace ViewLayer.Controllers
                 }
                 businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
 
-                for (int i = 0; i < testResult.QuestionResultList.Count; i++)
+                for (int i = 0; i < testResult.QuestionResults.Count; i++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(i);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
-                    for(int j = 0; j < questionResult.SubquestionResultList.Count; j++)
+                    for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
                     {
-                        SubquestionResult subquestionResultTemp = questionResult.SubquestionResultList.ElementAt(j);
+                        SubquestionResult subquestionResultTemp = questionResult.SubquestionResults.ElementAt(j);
                         if(subquestionResultTemp.SubquestionResultId == newSubquestionResultId)
                         {
                             subquestionResult = subquestionResultTemp;

@@ -47,7 +47,7 @@
                 foreach (var item in Model)
                 {
                     double studentsQuestionPoints = 0;
-                    foreach(SubquestionResult subquestionResult in item.SubquestionResultList)
+                    foreach(SubquestionResult subquestionResult in item.SubquestionResults)
                     {
                         if (subquestionResult.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
                         {
@@ -71,7 +71,7 @@
                     }
 
                     double questionPoints = 0;
-                    foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplateList)
+                    foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplates)
                     {
                         questionPoints += subquestionTemplate.SubquestionPoints;
                     }

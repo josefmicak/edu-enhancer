@@ -1303,9 +1303,9 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
         for (var i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
             possibleAnswerList.push(possibleAnswerListStringSplit[i]);
         }
-        var unshuffledPossibleAnswerList = [];
+        var unshuffledPossibleAnswers = [];
         for (var i = 0; i < possibleAnswerList.length; i++) {
-            unshuffledPossibleAnswerList.push(possibleAnswerList[i]);
+            unshuffledPossibleAnswers.push(possibleAnswerList[i]);
         }
         possibleAnswerList = shuffleArray(possibleAnswerList);
         var possibleAnswerListLength = possibleAnswerList.length + 1;
@@ -1503,9 +1503,9 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
     }
     else if (subquestionType == 4) {
         var table = document.getElementById('student-answers-table');
-        for (var i = 0; i < unshuffledPossibleAnswerList.length; i++) {
+        for (var i = 0; i < unshuffledPossibleAnswers.length; i++) {
             for (var j = 1; j < table.rows.length; j++) {
-                if (unshuffledPossibleAnswerList[i] == table.rows[j].cells[0].getElementsByTagName("div")[0].innerHTML) {
+                if (unshuffledPossibleAnswers[i] == table.rows[j].cells[0].getElementsByTagName("div")[0].innerHTML) {
                     if (studentAnswerList[i] == "1") {
                         table.rows[j].cells[1].getElementsByTagName("input")[0].checked = true;
                     }
@@ -1669,7 +1669,7 @@ function onSolveQuestionFormSubmission(subquestionType) {
         case 2:
             for (var i = 1; i < table.rows.length; i++) {
                 if (table.rows[i].cells[0].getElementsByTagName("input")[0].checked) {
-                    studentHiddenAnswers.item(i - 1).name = "StudentsAnswerList[]";
+                    studentHiddenAnswers.item(i - 1).name = "StudentsAnswers[]";
                     studentHiddenAnswers.item(i - 1).value = table.rows[i].cells[1].innerHTML;
                 }
             }

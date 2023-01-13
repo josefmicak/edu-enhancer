@@ -9,7 +9,7 @@ namespace DomainModel
         public string? Email { get; set; }
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
-        public List<Subject> SubjectList { get; set; } = default!;
+        public List<Subject> Subjects { get; set; } = default!;
         public bool IsTestingData { get; set; } = false;
         public string FullName()
         {

@@ -88,6 +88,7 @@ namespace BusinessLayer
         public async Task<string> DeleteQuestionTemplate(int questionTemplateId, string webRootPath)
         {
             string login = GetCurrentUserLogin();
+            await DeleteQuestionResults(questionTemplateId);
             return await templateFunctions.DeleteQuestionTemplate(login, questionTemplateId, webRootPath);
         }
 
@@ -114,6 +115,7 @@ namespace BusinessLayer
         public async Task<string> DeleteSubquestionTemplate(int questionTemplateId, int subquestionTemplateId, string webRootPath)
         {
             string login = GetCurrentUserLogin();
+            await DeleteSubquestionResults(subquestionTemplateId);
             return await templateFunctions.DeleteSubquestionTemplate(login, questionTemplateId, subquestionTemplateId, webRootPath);
         }
 
@@ -169,14 +171,13 @@ namespace BusinessLayer
             return templateFunctions.GetTestTemplateSubquestionsCount(testTemplate);
         }
 
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, int questionTemplateId, int subquestionTemplateId)
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
         {
-            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(login, questionTemplateId, subquestionTemplateId);
-        }
-
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate)
-        {
-            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
+            if (subquestionTemplateExists)
+            {
+                subquestionTemplate.OwnerLogin = GetCurrentUserLogin();
+            }
+            return await templateFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, subquestionTemplateExists);
         }
 
         public int GetTestingDataSubquestionTemplatesCount()
@@ -234,7 +235,7 @@ namespace BusinessLayer
                     studentList.Add(student);
                 }
             }
-            subject.StudentList = studentList;
+            subject.Students = studentList;
             return await templateFunctions.AddSubject(subject);
         }
 
@@ -252,7 +253,7 @@ namespace BusinessLayer
                     studentList.Add(student);
                 }
             }
-            subject.StudentList = studentList;
+            subject.Students = studentList;
             return await templateFunctions.EditSubject(subject, user);
         }
 
@@ -269,7 +270,7 @@ namespace BusinessLayer
             Student? student = GetStudentByLogin(login);
             if(student != null)
             {
-                return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.SubjectList.Contains(t.Subject));
+                return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject));
             }
             else
             {
@@ -446,6 +447,16 @@ namespace BusinessLayer
         public SubquestionResult ProcessSubquestionResultForView(SubquestionResult subquestionResult)
         {
             return resultFunctions.ProcessSubquestionResultForView(subquestionResult);
+        }
+
+        public async Task DeleteSubquestionResults(int subquestionTemplateId)
+        {
+            await resultFunctions.DeleteSubquestionResults(subquestionTemplateId);
+        }
+
+        public async Task DeleteQuestionResults(int questionTemplateId)
+        {
+            await resultFunctions.DeleteQuestionResults(questionTemplateId);
         }
 
         //UserFunctions.cs

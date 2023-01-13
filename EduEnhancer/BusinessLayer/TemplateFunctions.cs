@@ -71,7 +71,7 @@ namespace BusinessLayer
 
         public Subject? GetSubjectById(int subjectId)
         {
-            return GetSubjectDbSet().Include(s => s.StudentList).FirstOrDefault(s => s.SubjectId == subjectId);
+            return GetSubjectDbSet().Include(s => s.Students).FirstOrDefault(s => s.SubjectId == subjectId);
         }
 
         public async Task<string> AddSubject(Subject subject)
@@ -100,7 +100,7 @@ namespace BusinessLayer
                 {
                     oldSubject.Name = subject.Name;
                     oldSubject.Abbreviation = subject.Abbreviation;
-                    oldSubject.StudentList = subject.StudentList;
+                    oldSubject.Students = subject.Students;
 
                     await dataFunctions.SaveChangesAsync();
                     return "Předmět byl úspěšně upraven.";
@@ -158,7 +158,7 @@ namespace BusinessLayer
                 }
                 else
                 {
-                    testTemplate.QuestionTemplateList = new List<QuestionTemplate>();
+                    testTemplate.QuestionTemplates = new List<QuestionTemplate>();
                     testTemplate.Subject = subject;
 
                     return await dataFunctions.AddTestTemplate(testTemplate);
@@ -180,7 +180,7 @@ namespace BusinessLayer
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, int testTemplateId)
         {
              return GetQuestionTemplateDbSet()
-                 .Include(q => q.SubquestionTemplateList)
+                 .Include(q => q.SubquestionTemplates)
                  .Include(q => q.TestTemplate)
                  .ThenInclude(q => q.Subject)
                  .Where(q => q.TestTemplate.TestTemplateId == testTemplateId && q.OwnerLogin == login).AsQueryable();
@@ -193,7 +193,7 @@ namespace BusinessLayer
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            questionTemplate.SubquestionTemplateList = new List<SubquestionTemplate>();
+            questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
 
             return await dataFunctions.AddQuestionTemplate(questionTemplate);
         }
@@ -223,8 +223,8 @@ namespace BusinessLayer
             {
                 SubquestionTemplate oldSubquestionTemplate = GetSubquestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.SubquestionTemplateId);
                 oldSubquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText;
-                oldSubquestionTemplate.PossibleAnswerList = subquestionTemplate.PossibleAnswerList;
-                oldSubquestionTemplate.CorrectAnswerList = subquestionTemplate.CorrectAnswerList;
+                oldSubquestionTemplate.PossibleAnswers = subquestionTemplate.PossibleAnswers;
+                oldSubquestionTemplate.CorrectAnswers = subquestionTemplate.CorrectAnswers;
                 oldSubquestionTemplate.SubquestionPoints = subquestionTemplate.SubquestionPoints;
                 oldSubquestionTemplate.CorrectChoicePoints = subquestionTemplate.CorrectChoicePoints;
                 oldSubquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.DefaultWrongChoicePoints;
@@ -318,8 +318,8 @@ namespace BusinessLayer
             switch (subquestionTemplate.SubquestionType)
             {
                 case SubquestionType.MatchingElements:
-                    string[] correctAnswerList = new string[(subquestionTemplate.CorrectAnswerList.Length) / 2];
-                    for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    string[] correctAnswerList = new string[(subquestionTemplate.CorrectAnswers.Length) / 2];
+                    for(int i = 0; i < subquestionTemplate.CorrectAnswers.Length; i++)
                     {
                         if(i % 2 == 1)
                         {
@@ -328,34 +328,34 @@ namespace BusinessLayer
                         else
                         {
                             int index = i / 2;
-                            correctAnswerList[index] = subquestionTemplate.CorrectAnswerList[i] + "|" + subquestionTemplate.CorrectAnswerList[i + 1];
+                            correctAnswerList[index] = subquestionTemplate.CorrectAnswers[i] + "|" + subquestionTemplate.CorrectAnswers[i + 1];
                         }
                     }
-                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    subquestionTemplate.CorrectAnswers = correctAnswerList;
                     break;
                 case SubquestionType.FreeAnswer:
-                    subquestionTemplate.PossibleAnswerList = new string[0];
-                    subquestionTemplate.CorrectAnswerList = new string[0];
+                    subquestionTemplate.PossibleAnswers = new string[0];
+                    subquestionTemplate.CorrectAnswers = new string[0];
                     break;
                 case SubquestionType.FreeAnswerWithDeterminedCorrectAnswer:
-                    subquestionTemplate.PossibleAnswerList = new string[0];
+                    subquestionTemplate.PossibleAnswers = new string[0];
                     break;
                 case SubquestionType.GapMatch:
-                    subquestionTemplate.PossibleAnswerList = new string[0];
+                    subquestionTemplate.PossibleAnswers = new string[0];
                     break;
                 case SubquestionType.Slider:
                     string[] sliderValuesSplit = sliderValues.Split(",");
-                    subquestionTemplate.PossibleAnswerList = new string[] { sliderValuesSplit[0], sliderValuesSplit[1] };
-                    subquestionTemplate.CorrectAnswerList = new string[] { sliderValuesSplit[2] };
+                    subquestionTemplate.PossibleAnswers = new string[] { sliderValuesSplit[0], sliderValuesSplit[1] };
+                    subquestionTemplate.CorrectAnswers = new string[] { sliderValuesSplit[2] };
                     break;
             }
 
             //todo: remove convert
             //set choice points
-            if(subquestionTemplate.SubquestionPoints <= 0)
+            if(subquestionTemplate.SubquestionPoints > 0)
             {
                 double correctChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(Convert.ToDouble(subquestionTemplate.SubquestionPoints),
-                    subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                    subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
                 subquestionTemplate.CorrectChoicePoints = correctChoicePoints;
                 subquestionTemplate.DefaultWrongChoicePoints = correctChoicePoints * (-1);
                 if (subquestionTemplate.WrongChoicePoints != subquestionTemplate.DefaultWrongChoicePoints)//user manually set different wrong choice points than default
@@ -382,28 +382,28 @@ namespace BusinessLayer
                 errorMessage = "Chyba: nekompletní zadání podotázky (typ podotázky).";
             }
 
-            for(int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+            for(int i = 0; i < subquestionTemplate.PossibleAnswers.Length; i++)
             {
-                if (subquestionTemplate.PossibleAnswerList[i].Length == 0)
+                if (subquestionTemplate.PossibleAnswers[i].Length == 0)
                 {
                     errorMessage = "Chyba: nekompletní zadání podotázky (možná odpověď).";
                 }
             }
 
-            for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+            for (int i = 0; i < subquestionTemplate.CorrectAnswers.Length; i++)
             {
-                if (subquestionTemplate.CorrectAnswerList[i].Length == 0)
+                if (subquestionTemplate.CorrectAnswers[i].Length == 0)
                 {
                     errorMessage = "Chyba: nekompletní zadání podotázky (správná odpověď).";
                 }
             }
 
-            if (subquestionTemplate.PossibleAnswerList.Distinct().Count() != subquestionTemplate.PossibleAnswerList.Count())
+            if (subquestionTemplate.PossibleAnswers.Distinct().Count() != subquestionTemplate.PossibleAnswers.Count())
             {
                 errorMessage = "Chyba: duplikátní možná odpověď.";
             }
 
-            if (subquestionTemplate.CorrectAnswerList.Distinct().Count() != subquestionTemplate.CorrectAnswerList.Count() &&
+            if (subquestionTemplate.CorrectAnswers.Distinct().Count() != subquestionTemplate.CorrectAnswers.Count() &&
                 subquestionTemplate.SubquestionType != SubquestionType.MultipleQuestions)
             {
                 errorMessage = "Chyba: duplikátní správná odpověď.";
@@ -414,7 +414,7 @@ namespace BusinessLayer
                   || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill
                    || subquestionTemplate.SubquestionType == SubquestionType.Slider)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length == 0)
+                if (subquestionTemplate.PossibleAnswers.Length == 0)
                 {
                     errorMessage = "Chyba: nekompletní zadání podotázky (možné odpovědi).";
                 }
@@ -426,7 +426,7 @@ namespace BusinessLayer
                    || subquestionTemplate.SubquestionType == SubquestionType.FreeAnswerWithDeterminedCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.GapMatch
                     || subquestionTemplate.SubquestionType == SubquestionType.Slider)
             {
-                if (subquestionTemplate.CorrectAnswerList.Length == 0)
+                if (subquestionTemplate.CorrectAnswers.Length == 0)
                 {
                     errorMessage = "Chyba: nekompletní zadání podotázky (správné odpovědi).";
                 }
@@ -435,9 +435,9 @@ namespace BusinessLayer
             if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers
                  || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer || subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill)
             {
-                for(int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                for(int i = 0; i < subquestionTemplate.CorrectAnswers.Length; i++)
                 {
-                    if (!subquestionTemplate.PossibleAnswerList.Contains(subquestionTemplate.CorrectAnswerList[i]))
+                    if (!subquestionTemplate.PossibleAnswers.Contains(subquestionTemplate.CorrectAnswers[i]))
                     {
                         errorMessage = "Chyba: nekompletní zadání podotázky (možné a správné odpovědi).";
                     }
@@ -446,49 +446,49 @@ namespace BusinessLayer
 
             if (subquestionTemplate.SubquestionType == SubquestionType.OrderingElements)
             {
-                if(subquestionTemplate.PossibleAnswerList.Length != subquestionTemplate.CorrectAnswerList.Length)
+                if(subquestionTemplate.PossibleAnswers.Length != subquestionTemplate.CorrectAnswers.Length)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceMultipleCorrectAnswers)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length < subquestionTemplate.CorrectAnswerList.Length)
+                if (subquestionTemplate.PossibleAnswers.Length < subquestionTemplate.CorrectAnswers.Length)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.MatchingElements)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length / 2 < subquestionTemplate.CorrectAnswerList.Length)
+                if (subquestionTemplate.PossibleAnswers.Length / 2 < subquestionTemplate.CorrectAnswers.Length)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.MultipleQuestions)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length != subquestionTemplate.CorrectAnswerList.Length)
+                if (subquestionTemplate.PossibleAnswers.Length != subquestionTemplate.CorrectAnswers.Length)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.FreeAnswer)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length > 0)
+                if (subquestionTemplate.PossibleAnswers.Length > 0 || subquestionTemplate.CorrectAnswers.Length > 0)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceSingleCorrectAnswer)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length <= 1 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                if (subquestionTemplate.PossibleAnswers.Length <= 1 || subquestionTemplate.CorrectAnswers.Length > 1)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.MultiChoiceTextFill)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length <= 1 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                if (subquestionTemplate.PossibleAnswers.Length <= 1 || subquestionTemplate.CorrectAnswers.Length > 1)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
@@ -500,7 +500,7 @@ namespace BusinessLayer
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
-                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length > 1)
+                if (subquestionTemplate.PossibleAnswers.Length > 0 || subquestionTemplate.CorrectAnswers.Length > 1)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
@@ -508,20 +508,20 @@ namespace BusinessLayer
             else if (subquestionTemplate.SubquestionType == SubquestionType.GapMatch)
             {
                 string[] subquestionTextGapSplit = subquestionTemplate.SubquestionText.Split("|");
-                if (subquestionTemplate.PossibleAnswerList.Length > 0 || subquestionTemplate.CorrectAnswerList.Length != subquestionTextGapSplit.Length - 1)
+                if (subquestionTemplate.PossibleAnswers.Length > 0 || subquestionTemplate.CorrectAnswers.Length != subquestionTextGapSplit.Length - 1)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
             }
             else if (subquestionTemplate.SubquestionType == SubquestionType.Slider)
             {
-                if (subquestionTemplate.PossibleAnswerList.Length != 2 || subquestionTemplate.CorrectAnswerList.Length != 1)
+                if (subquestionTemplate.PossibleAnswers.Length != 2 || subquestionTemplate.CorrectAnswers.Length != 1)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (počet možných/správých odpovědí).";
                 }
-                int lowerBound = int.Parse(subquestionTemplate.PossibleAnswerList[0]);
-                int upperBound = int.Parse(subquestionTemplate.PossibleAnswerList[1]);
-                int answer = int.Parse(subquestionTemplate.CorrectAnswerList[0]);
+                int lowerBound = int.Parse(subquestionTemplate.PossibleAnswers[0]);
+                int upperBound = int.Parse(subquestionTemplate.PossibleAnswers[1]);
+                int answer = int.Parse(subquestionTemplate.CorrectAnswers[0]);
                 if (answer < lowerBound || answer > upperBound || lowerBound > upperBound)
                 {
                     errorMessage = "Chyba: neplatné zadání podotázky (hodnoty posuvníku).";
@@ -554,31 +554,31 @@ namespace BusinessLayer
             switch (subquestionTemplate.SubquestionType)
             {
                 case SubquestionType.MatchingElements:
-                    correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
-                    for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    correctAnswerList = new string[subquestionTemplate.CorrectAnswers.Length];
+                    for (int i = 0; i < subquestionTemplate.CorrectAnswers.Length; i++)
                     {
-                        correctAnswerList[i] = subquestionTemplate.CorrectAnswerList[i].Replace("|", " -> ");
+                        correctAnswerList[i] = subquestionTemplate.CorrectAnswers[i].Replace("|", " -> ");
                     }
-                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    subquestionTemplate.CorrectAnswers = correctAnswerList;
                     break;
                 case SubquestionType.MultipleQuestions:
                     possibleAnswerList = new string[2] { "Ano", "Ne" };
-                    correctAnswerList = new string[subquestionTemplate.PossibleAnswerList.Length];
-                    for (int i = 0; i < subquestionTemplate.PossibleAnswerList.Length; i++)
+                    correctAnswerList = new string[subquestionTemplate.PossibleAnswers.Length];
+                    for (int i = 0; i < subquestionTemplate.PossibleAnswers.Length; i++)
                     {
                         string answer = "";
-                        if (subquestionTemplate.CorrectAnswerList[i] == "1")
+                        if (subquestionTemplate.CorrectAnswers[i] == "1")
                         {
                             answer = "Ano";
                         }
-                        else if (subquestionTemplate.CorrectAnswerList[i] == "0")
+                        else if (subquestionTemplate.CorrectAnswers[i] == "0")
                         {
                             answer = "Ne";
                         }
-                        correctAnswerList[i] = subquestionTemplate.PossibleAnswerList[i] + " -> " + answer;
+                        correctAnswerList[i] = subquestionTemplate.PossibleAnswers[i] + " -> " + answer;
                     }
-                    subquestionTemplate.PossibleAnswerList = possibleAnswerList;
-                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    subquestionTemplate.PossibleAnswers = possibleAnswerList;
+                    subquestionTemplate.CorrectAnswers = correctAnswerList;
                     break;
                 case SubquestionType.MultiChoiceTextFill:
                     subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", " (DOPLŇTE) ");
@@ -601,17 +601,17 @@ namespace BusinessLayer
                         }
                     }
 
-                    subquestionTemplate.PossibleAnswerList = subquestionTemplate.CorrectAnswerList;
-                    correctAnswerList = new string[subquestionTemplate.CorrectAnswerList.Length];
-                    for (int i = 0; i < subquestionTemplate.CorrectAnswerList.Length; i++)
+                    subquestionTemplate.PossibleAnswers = subquestionTemplate.CorrectAnswers;
+                    correctAnswerList = new string[subquestionTemplate.CorrectAnswers.Length];
+                    for (int i = 0; i < subquestionTemplate.CorrectAnswers.Length; i++)
                     {
-                        correctAnswerList[i] = "[" + (i + 1) + "] - " + subquestionTemplate.CorrectAnswerList[i];
+                        correctAnswerList[i] = "[" + (i + 1) + "] - " + subquestionTemplate.CorrectAnswers[i];
                     }
-                    subquestionTemplate.CorrectAnswerList = correctAnswerList;
+                    subquestionTemplate.CorrectAnswers = correctAnswerList;
                     break;
                 case SubquestionType.Slider:
-                    possibleAnswerList = new string[] { subquestionTemplate.PossibleAnswerList[0] + " - " + subquestionTemplate.PossibleAnswerList[1] };
-                    subquestionTemplate.PossibleAnswerList = possibleAnswerList;
+                    possibleAnswerList = new string[] { subquestionTemplate.PossibleAnswers[0] + " - " + subquestionTemplate.PossibleAnswers[1] };
+                    subquestionTemplate.PossibleAnswers = possibleAnswerList;
                     break;
             }
             return subquestionTemplate;
@@ -627,8 +627,8 @@ namespace BusinessLayer
             return GetTestTemplateDbSet()
                 .Include(t => t.Subject)
                 .Include(t => t.Owner)
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .First(t => t.TestTemplateId == testTemplateId);
         }
 
@@ -636,8 +636,8 @@ namespace BusinessLayer
         {
             return GetTestTemplateDbSet()
                 .Include(t => t.Subject)
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
         }
 
@@ -719,7 +719,7 @@ namespace BusinessLayer
                     message = "Počet bodů byl úspěšně změněn.";
                     subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
                     subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
-                        Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswerList, subquestionTemplate.SubquestionType);
+                        Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
 
                     if (defaultWrongChoicePoints)
                     {
@@ -737,81 +737,25 @@ namespace BusinessLayer
             return message;
         }
 
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(string login, int questionTemplateId, int subquestionTemplateId)
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
         {
-            User owner = dataFunctions.GetUserByLogin(login);
-
-            //check if enough subquestion templates have been added to warrant new model training
-            bool retrainModel = false;
-            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(login).SubquestionTemplatesAdded;
-            if (subquestionTemplatesAdded >= 100)
+            if (subquestionTemplateExists)
             {
-                retrainModel = true;
-                await RetrainSubquestionTemplateModel(owner);
+                subquestionTemplate = GetSubquestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.SubquestionTemplateId);
             }
 
-            var subquestionTemplates = GetSubquestionTemplates(login, questionTemplateId);
-
-            /*if (subquestionId == null)
-            {
-                subquestionId = subquestionTemplates.First().Id;
-            }*/
-
-            var subquestionTemplate = GetSubquestionTemplate(login, subquestionTemplateId);
-            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
-            double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
-            List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
-            TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
-            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
-
-            SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
-                subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
-            Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
-            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
-            if (subquestionTemplatesAdded >= 100)
-            {
-                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
-                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
-                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
-                if(subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
-                {
-                    subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
-                }
-                else
-                {
-                    subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
-                }
-                await dataFunctions.SaveChangesAsync();
-            }
-
-            return suggestedSubquestionPoints;
-        }
-
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate)
-        {
-            //TODO: Uprava funkce - pouziti pouze 1 funkce
             string login = subquestionTemplate.OwnerLogin;
             User owner = dataFunctions.GetUserByLogin(login);
 
             //check if enough subquestion templates have been added to warrant new model training
             bool retrainModel = false;
-            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin).SubquestionTemplatesAdded;
+            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin).SubquestionTemplatesAddedCount;
             if (subquestionTemplatesAdded >= 100)
             {
                 retrainModel = true;
                 await RetrainSubquestionTemplateModel(owner);
             }
 
-      /*      var subquestionTemplates = GetSubquestionTemplates(login, questionNumberIdentifier);
-
-            if (subquestionIdentifier == null)
-            {
-                subquestionIdentifier = subquestionTemplates.First().SubquestionIdentifier;
-            }
-
-            var subquestionTemplate = GetSubquestionTemplate(login, questionNumberIdentifier, subquestionIdentifier);*/
             var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
@@ -820,13 +764,18 @@ namespace BusinessLayer
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
                 subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionTemplateStatistics? currectSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
-            Model usedModel = currectSubquestionTemplateStatistics.UsedModel;
+            SubquestionTemplateStatistics? currentSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+            if (!currentSubquestionTemplateStatistics.EnoughSubquestionTemplatesAdded)
+            {
+                return "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek.";
+            }
+            Model usedModel = currentSubquestionTemplateStatistics.UsedModel;
             string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
             if (subquestionTemplatesAdded >= 100)
             {
                 SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
-                subquestionTemplateStatistics.SubquestionTemplatesAdded = 0;
+                subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
+                subquestionTemplateStatistics.SubquestionTemplatesAddedCount = 0;
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
                 subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
                 if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
@@ -852,16 +801,16 @@ namespace BusinessLayer
 
             //create subquestion template records
             var testTemplates = dataFunctions.GetTestTemplateList(login);
-
             var subquestionTemplateRecords = DataGenerator.CreateSubquestionTemplateRecords(testTemplates);
+
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
         }
 
         public List<TestTemplate> GetTestingDataTestTemplates()
         {
             var testTemplates = GetTestTemplateDbSet()
-                .Include(t => t.QuestionTemplateList)
-                .ThenInclude(q => q.SubquestionTemplateList)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
                 .Where(t => t.IsTestingData).ToList();
             return testTemplates;
         }
@@ -873,10 +822,10 @@ namespace BusinessLayer
             for (int i = 0; i < testTemplates.Count; i++)
             {
                 TestTemplate testTemplate = testTemplates[i];
-                for (int j = 0; j < testTemplate.QuestionTemplateList.Count; j++)
+                for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
-                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(j);
-                    for (int k = 0; k < questionTemplate.SubquestionTemplateList.Count; k++)
+                    QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(j);
+                    for (int k = 0; k < questionTemplate.SubquestionTemplates.Count; k++)
                     {
                         testingDataSubquestionTemplates++;
                     }
@@ -928,6 +877,7 @@ namespace BusinessLayer
                 subquestionTemplateStatistics = new SubquestionTemplateStatistics();
                 subquestionTemplateStatistics.User = owner;
                 subquestionTemplateStatistics.UserLogin = owner.Login;
+                subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
                 subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
                 if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
@@ -1000,12 +950,13 @@ namespace BusinessLayer
         public string GetTestDifficultyPrediction(string login, int testTemplateId)
         {
             string testDifficultyMessage;
-            SubquestionResultStatistics? subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
+            TestDifficultyStatistics? testDifficultyStatistics = dataFunctions.GetTestDifficultyStatistics(login);
             //check whether there are enough result statistics to go by
-            if(subquestionResultStatistics == null)
+            if(testDifficultyStatistics == null)
             {
                 return "Chyba: nedostatečný počet výsledků testů.;";
             }
+            SubquestionResultStatistics subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
 
             //predicted amount of points that the average student will get for this test
             double testTemplatePredictedPoints = PythonFunctions.GetTestTemplatePredictedPoints(false, login, subquestionResultStatistics.UsedModel, testTemplateId);
@@ -1028,13 +979,13 @@ namespace BusinessLayer
                 double testTemplatePointsSum = GetTestTemplatePointsSum(testTemplate);
                 double studentsPoints = 0;
 
-                for (int j = 0; j < testResult.QuestionResultList.Count; j++)
+                for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
-                    QuestionResult questionResult = testResult.QuestionResultList.ElementAt(j);
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(j);
 
-                    for(int k = 0; k < questionResult.SubquestionResultList.Count; k++)
+                    for(int k = 0; k < questionResult.SubquestionResults.Count; k++)
                     {
-                        SubquestionResult subquestionResult = questionResult.SubquestionResultList.ElementAt(k);
+                        SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(k);
                         studentsPoints += subquestionResult.StudentsPoints;
                     }
                 }
@@ -1068,18 +1019,17 @@ namespace BusinessLayer
             double difficulty = currentTestTemplatePointsShare / testTemplatesPointsShare.Average();
 
             testDifficultyMessage = testTemplatePredictedPoints + ";";
-            if (difficulty < 1)//easier than the average test
+            if (difficulty > 1)//easier than the average test
             {
                 difficulty *= 100;
                 difficulty = Math.Round(difficulty, 0);
-                testDifficultyMessage += "Test je o " + (100 - difficulty) + "% lehčí než průměrný test.";
+                testDifficultyMessage += "Test je o " + (difficulty - 100) + "% lehčí než průměrný test.";
             }
             else//harder than the average test
             {
-                difficulty -= 1;
                 difficulty *= 100;
                 difficulty = Math.Round(difficulty, 0);
-                testDifficultyMessage += "Test je o " + difficulty + "% těžší než průměrný test.";
+                testDifficultyMessage += "Test je o " + (100 - difficulty) + "% těžší než průměrný test.";
             }
 
             return testDifficultyMessage;
@@ -1088,13 +1038,13 @@ namespace BusinessLayer
         public double GetTestTemplatePointsSum(TestTemplate testTemplate)
         {
             double testPoints = 0;
-            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            for (int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
             {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
 
-                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                for (int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
                 {
-                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplateList.ElementAt(j);
+                    SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
                     testPoints += subquestionTemplate.SubquestionPoints;
                 }
             }
@@ -1105,11 +1055,11 @@ namespace BusinessLayer
         public int GetTestTemplateSubquestionsCount(TestTemplate testTemplate)
         {
             int subquestionsCount = 0;
-            for (int i = 0; i < testTemplate.QuestionTemplateList.Count; i++)
+            for (int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
             {
-                QuestionTemplate questionTemplate = testTemplate.QuestionTemplateList.ElementAt(i);
+                QuestionTemplate questionTemplate = testTemplate.QuestionTemplates.ElementAt(i);
 
-                for (int j = 0; j < questionTemplate.SubquestionTemplateList.Count; j++)
+                for (int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
                 {
                     subquestionsCount++;
                 }

@@ -49,12 +49,12 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionTemplate>().ToTable("SubquestionTemplate");
             modelBuilder.Entity<SubquestionTemplate>().HasKey(s => new { s.SubquestionTemplateId });
             modelBuilder.Entity<SubquestionTemplate>()
-                .Property(e => e.CorrectAnswerList)
+                .Property(e => e.CorrectAnswers)
                 .HasConversion(
                 v => string.Join(';', v),
                 v => v.Split(';', StringSplitOptions.RemoveEmptyEntries));
             modelBuilder.Entity<SubquestionTemplate>()
-                .Property(e => e.PossibleAnswerList)
+                .Property(e => e.PossibleAnswers)
                 .HasConversion(
                 v => string.Join(';', v),
                 v => v.Split(';', StringSplitOptions.RemoveEmptyEntries));
@@ -68,8 +68,8 @@ namespace DataLayer
 
             modelBuilder.Entity<Student>().ToTable("Student");
             modelBuilder.Entity<Student>()
-                .HasMany(s => s.SubjectList)
-                .WithMany(st => st.StudentList);
+                .HasMany(s => s.Subjects)
+                .WithMany(st => st.Students);
 
             modelBuilder.Entity<TestResult>().ToTable("TestResult");
             modelBuilder.Entity<TestResult>()
@@ -110,7 +110,7 @@ namespace DataLayer
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<SubquestionResult>().HasKey(s => new { s.SubquestionResultId });
             modelBuilder.Entity<SubquestionResult>()
-                .Property(e => e.StudentsAnswerList)
+                .Property(e => e.StudentsAnswers)
                 .HasConversion(
                 v => string.Join(';', v),
                 v => v.Split(';', StringSplitOptions.RemoveEmptyEntries));
@@ -160,7 +160,7 @@ namespace DataLayer
             modelBuilder.Entity<SubquestionResultRecord>()
                 .HasOne(s => s.SubquestionResult)
                 .WithMany()
-                .HasForeignKey(s => new { s.Id })
+                .HasForeignKey(s => new { s.SubquestionResultId })
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubquestionResultStatistics>().ToTable("SubquestionResultStatistics");
@@ -185,8 +185,8 @@ namespace DataLayer
                 .HasForeignKey(s => s.GuarantorLogin)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Subject>()
-                .HasMany(s => s.StudentList)
-                .WithMany(st => st.SubjectList);
+                .HasMany(s => s.Students)
+                .WithMany(st => st.Subjects);
                /* .HasForeignKey(s => s.GuarantorLogin)
                 .OnDelete(DeleteBehavior.Restrict);*/
         }

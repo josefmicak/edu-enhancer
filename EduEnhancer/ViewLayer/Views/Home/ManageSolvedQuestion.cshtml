@@ -39,7 +39,7 @@
     }
 
     double questionPoints = 0;
-    foreach(var item in Model.First().QuestionResult.QuestionTemplate.SubquestionTemplateList)
+    foreach(var item in Model.First().QuestionResult.QuestionTemplate.SubquestionTemplates)
     {
         questionPoints += item.SubquestionPoints;
     }
@@ -108,13 +108,11 @@
         }
         else
         {
-            suggestedSubquestionPoints = double.Parse(suggestedSubquestionPointsString, CultureInfo.InvariantCulture);
-            //with some combinations of variables, the AI could award the student more points than the subquestion's points
-            if (suggestedSubquestionPoints > subquestionTemplate.SubquestionPoints)
+            if (double.TryParse(suggestedSubquestionPointsString, out _) && double.Parse(suggestedSubquestionPointsString) > subquestionTemplate.SubquestionPoints)
             {
                 suggestedSubquestionPoints = subquestionTemplate.SubquestionPoints;
+                suggestedSubquestionPointsString = suggestedSubquestionPoints.ToString();
             }
-            suggestedSubquestionPointsString = suggestedSubquestionPoints.ToString();
         }
     }
     
@@ -176,20 +174,20 @@
                 }
                 else
                 {
-                    foreach(string possibleAnswer in @subquestionTemplate.PossibleAnswerList)
+                    foreach(string possibleAnswer in @subquestionTemplate.PossibleAnswers)
                     {
                         <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
                     }
                 }
             }
             @{
-                if(@subquestionTemplate.CorrectAnswerList.Length > 0)
+                if(@subquestionTemplate.CorrectAnswers.Length > 0)
                 {
                     <tr>
                         <th colspan="2">Správné odpovědi</th>
                     </tr>
             
-                    foreach(string correctAnswer in @subquestionTemplate.CorrectAnswerList)
+                    foreach(string correctAnswer in @subquestionTemplate.CorrectAnswers)
                     {
                         <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
                     }
@@ -243,7 +241,7 @@
     <div id="subquestion-result">
         <h2>Studentova odpověď</h2>
         @{
-            foreach(var answer in subquestionResult.StudentsAnswerList)
+            foreach(var answer in subquestionResult.StudentsAnswers)
             {
                 <p>@answer</p>
             }
