@@ -136,59 +136,6 @@ namespace Common
                     answerCorrectness += (double)studentsCorrectAnswers / correctAnswersArray.Length;
                     answerCorrectness -= (double)(studentsAnswers.Length - studentsCorrectAnswers) / correctAnswersArray.Length;
                     break;
-                /*case SubquestionType n when (n == SubquestionType.MultipleQuestions || n == SubquestionType.GapMatch):
-                    string separator = "";
-                    switch (n)
-                    {
-                        case SubquestionType.MultipleQuestions:
-                            separator = " -> ";
-                            break;
-                        case SubquestionType.GapMatch:
-                            separator = " - ";
-                            break;
-                    }
-                    for (int i = 0; i < studentsAnswers.Length; i++)
-                    {
-                        for (int j = 0; j < correctAnswersArray.Length; j++)
-                        {
-                            string[] studentsAnswerSplit = studentsAnswers[i].Split(separator);
-                            string[] correctAnswerSplit = correctAnswersArray[j].Split(separator);
-                            if (studentsAnswerSplit[0] == correctAnswerSplit[0])
-                            {
-                                //student answered correctly
-                                if (studentsAnswerSplit[1] == correctAnswerSplit[1])
-                                {
-                                    studentsCorrectAnswers++;
-                                    defaultStudentPoints += ((double)subquestionPoints / (double)correctAnswersArray.Length);
-                                }
-                                //student answered incorrectly
-                                else
-                                {
-                                    defaultStudentPoints -= wrongChoicePoints * (-1);
-                                }
-                            }
-                        }
-                    }
-
-                    if (answerStatus != AnswerStatus.NotAnswered)
-                    {
-                        if (studentsCorrectAnswers == correctAnswersArray.Length)
-                        {
-                            answerStatus = AnswerStatus.Correct;
-                        }
-                        else if (studentsCorrectAnswers == 0 && studentsAnswers.Length > 0)
-                        {
-                            answerStatus = AnswerStatus.Incorrect;
-                        }
-                        else
-                        {
-                            answerStatus = AnswerStatus.PartiallyCorrect;
-                        }
-                    }
-
-                    answerCorrectness += (double)studentsCorrectAnswers / correctAnswersArray.Length;
-                    answerCorrectness -= (double)(studentsAnswers.Length - studentsCorrectAnswers) / correctAnswersArray.Length;
-                    break;*/
                 case SubquestionType.MatchingElements:
                     studentsCorrectAnswers = 0;
 
@@ -316,15 +263,6 @@ namespace Common
             defaultStudentPoints = Math.Round(defaultStudentPoints, 2);
             answerCorrectness = Math.Round(answerCorrectness, 2);
             return (defaultStudentPoints, answerCorrectness, answerStatus);
-        }
-
-        public static double? RoundDecimal(double? number)
-        {
-            if (number.HasValue)
-            {
-                return (double?)Math.Round(number.Value, 2);
-            }
-            return number;
         }
     }
 }

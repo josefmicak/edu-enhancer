@@ -224,7 +224,7 @@ namespace ViewLayer.Controllers
             return RedirectToAction("TestTemplate", "Home", new { testTemplateId = testTemplateId });
         }
 
-        public async Task<IActionResult> QuestionTemplate(string questionTemplateId)
+        public async Task<IActionResult> QuestionTemplate(string questionTemplateId, string subquestionTemplateId)
         {
             if (!businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
             {
@@ -237,10 +237,10 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            if (ViewBag.Message != "Podotázka byla úspěšně smazána." && TempData["subquestionTemplateId"] != null)//the user selected a subquestion from the dropdown menu
+            /*if (ViewBag.Message != "Podotázka byla úspěšně smazána." && TempData["subquestionTemplateId"] != null)//the user selected a subquestion from the dropdown menu
             {
                 ViewBag.subquestionTemplateId = TempData["subquestionTemplateId"]!.ToString();
-            }
+            }*/
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
 
             if (TempData["SuggestedSubquestionPoints"] != null)
@@ -250,13 +250,14 @@ namespace ViewLayer.Controllers
 
             var subquestionTemplates = businessLayerFunctions.GetSubquestionTemplates(login, int.Parse(questionTemplateId));
             List<SubquestionTemplate> subquestionTemplateList = await subquestionTemplates.ToListAsync();
+            //int subquestionTemplateId = -1;
 
             //users wants to browse either the previous or the following subquestion
-            if(ViewBag.Message == "previousSubquestion" || ViewBag.Message == "nextSubquestion")
+            if (ViewBag.Message == "previousSubquestion" || ViewBag.Message == "nextSubquestion")
             {
                 for(int i = 0; i < subquestionTemplateList.Count; i++)
                 {
-                    if (subquestionTemplateList[i].SubquestionTemplateId == ViewBag.subquestionTemplateId)
+                    if (subquestionTemplateList[i].SubquestionTemplateId == int.Parse(subquestionTemplateId))
                     {
                         if (ViewBag.Message == "previousSubquestion" && i != 0)
                         {
@@ -271,6 +272,15 @@ namespace ViewLayer.Controllers
                     }
                 }
                 ViewBag.Message = null;
+            }
+            //user has selected a subquestion from the dropdown menu
+            else
+            {
+                int id;
+                if(int.TryParse(subquestionTemplateId, out id))
+                {
+                    ViewBag.subquestionTemplateId = id;
+                }
             }
 
             subquestionTemplateList = businessLayerFunctions.ProcessSubquestionTemplatesForView(subquestionTemplateList);
@@ -339,8 +349,8 @@ namespace ViewLayer.Controllers
             }
 
             TempData["Message"] = message;
-            TempData["subquestionTemplateId"] = subquestionTemplateId;
-            return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = questionTemplateId });
+            //TempData["subquestionTemplateId"] = subquestionTemplateId;
+            return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = questionTemplateId, subquestionTemplateId = subquestionTemplateId });
         }
         
         public async Task<IActionResult> ManageSolvedTestList()
@@ -415,7 +425,7 @@ namespace ViewLayer.Controllers
             }
         }
 
-        public async Task<IActionResult> ManageSolvedQuestion(string questionResultId)
+        public async Task<IActionResult> ManageSolvedQuestion(string questionResultId, string subquestionResultId)
         {
             if (!businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
             {
@@ -425,11 +435,6 @@ namespace ViewLayer.Controllers
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"]!.ToString();
-            }
-
-            if (TempData["subquestionResultId"] != null)
-            {
-                ViewBag.subquestionResultId = TempData["subquestionResultId"]!.ToString();
             }
 
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
@@ -443,7 +448,39 @@ namespace ViewLayer.Controllers
 
             var subquestionResults = businessLayerFunctions.GetSubquestionResultsByOwnerLogin(login, int.Parse(questionResultId));
             List<SubquestionResult> subquestionResultList = await subquestionResults.ToListAsync();
-            for(int i = 0; i < subquestionResultList.Count; i++)
+
+            //users wants to browse either the previous or the following subquestion
+            if (ViewBag.Message == "previousSubquestion" || ViewBag.Message == "nextSubquestion")
+            {
+                for (int i = 0; i < subquestionResultList.Count; i++)
+                {
+                    if (subquestionResultList[i].SubquestionResultId == int.Parse(subquestionResultId))
+                    {
+                        if (ViewBag.Message == "previousSubquestion" && i != 0)
+                        {
+                            ViewBag.subquestionResultId = subquestionResultList[i - 1].SubquestionResultId;
+                            break;
+                        }
+                        if (ViewBag.Message == "nextSubquestion" && i != subquestionResultList.Count - 1)
+                        {
+                            ViewBag.subquestionResultId = subquestionResultList[i + 1].SubquestionResultId;
+                            break;
+                        }
+                    }
+                }
+                ViewBag.Message = null;
+            }
+            //user has selected a subquestion from the dropdown menu
+            else
+            {
+                int id;
+                if (int.TryParse(subquestionResultId, out id))
+                {
+                    ViewBag.subquestionResultId = id;
+                }
+            }
+
+            for (int i = 0; i < subquestionResultList.Count; i++)
             {
                 subquestionResultList[i] = businessLayerFunctions.ProcessSubquestionResultForView(subquestionResultList[i]);
                 subquestionResultList[i].SubquestionTemplate = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionResultList[i].SubquestionTemplate);
@@ -460,7 +497,7 @@ namespace ViewLayer.Controllers
 
         [HttpPost]
         public async Task<IActionResult> ManageSolvedQuestion(string action, string questionResultId, string subquestionResultId,
-            string studentsPoints, string subquestionPoints, string negativePoints, string subquestionType)
+            string studentsPoints, string subquestionPoints, string negativePoints, string subquestionType, string currentSubquestionResultId)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             string? message = null;
@@ -499,9 +536,14 @@ namespace ViewLayer.Controllers
                     }
                 }
             }
+            else if (action == "previousSubquestion" || action == "nextSubquestion")
+            {
+                subquestionResultId = currentSubquestionResultId;
+                message = action;
+            }
             TempData["Message"] = message;
-            TempData["subquestionResultId"] = subquestionResultId;
-            return RedirectToAction("ManageSolvedQuestion", "Home", new { questionResultId = questionResultId });
+            //TempData["subquestionResultId"] = subquestionResultId;
+            return RedirectToAction("ManageSolvedQuestion", "Home", new { questionResultId = questionResultId, subquestionResultId = subquestionResultId });
         }
 
         public async Task<IActionResult> BrowseSolvedTestList()

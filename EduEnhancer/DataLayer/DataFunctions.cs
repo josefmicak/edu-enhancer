@@ -108,7 +108,6 @@ namespace DataLayer
         public List<Subject> GetTestingDataSubjects()
         {
             return GetSubjectDbSet().AsNoTracking().Where(s => s.IsTestingData == true).ToList();
-            //return GetSubjectDbSet().AsNoTracking().Include(s => s.Guarantor).Where(s => s.IsTestingData == true).ToList();
         }
 
         public List<TestTemplate> GetTestTemplateList(string login)
@@ -611,7 +610,7 @@ namespace DataLayer
         {
             SubquestionResultStatistics subquestionResultStatistics = await GetSubquestionResultStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
             subquestionResultStatistics.SubquestionResultsAddedCount += subquestionsCount;
-            if (subquestionResultStatistics.SubquestionResultsAddedCount > 100)
+            if (subquestionResultStatistics.SubquestionResultsAddedCount >= 100)
             {
                 subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
             }

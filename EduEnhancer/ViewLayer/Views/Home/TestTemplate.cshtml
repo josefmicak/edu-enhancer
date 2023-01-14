@@ -9,12 +9,8 @@
     string? testPointsString = "";
 
     //minimum points
-    double? minimumPoints = Model.First().TestTemplate.MinimumPoints;
-    string minimumPointsString = "0";
-    if (minimumPoints != null)
-    {
-        minimumPointsString = minimumPoints.ToString()!;
-    }
+    double minimumPoints = Model.First().TestTemplate.MinimumPoints;
+    string minimumPointsString = minimumPoints.ToString();
 
     bool userRequestedDifficultyPrediction = false;
     string testDifficultyMessage = string.Empty;
@@ -83,9 +79,7 @@
                         questionPoints += subquestionTemplate.SubquestionPoints;
                     }
                     testPoints += questionPoints;
-                    string? questionPointsString = "";
-                    double? questionPointsRound = Math.Round(questionPoints, 2);
-                    questionPointsString = questionPointsRound.ToString();
+                    string questionPointsString = Math.Round(questionPoints, 2).ToString();
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td>@questionPointsString</td>
@@ -101,8 +95,7 @@
 </div>
 
 @{
-    double testPointsRound = Math.Round(testPoints, 2);
-    testPointsString = testPointsRound.ToString();
+    testPointsString = Math.Round(testPoints, 2).ToString();
 
     //negative points
     EnumTypes.NegativePoints negativePoints = Model.First().TestTemplate.NegativePoints;

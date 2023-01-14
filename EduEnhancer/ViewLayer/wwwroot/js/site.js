@@ -188,8 +188,8 @@ function setWrongChoicePointsInputs(el) {
 }
 
 //function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
-function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount) {
-    document.getElementById("subquestionTemplateId").selectedIndex = subquestionNumber;
+function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount, subquestionElementName) {
+    document.getElementById(subquestionElementName).selectedIndex = subquestionNumber;
     if (subquestionNumber == 0 || subquestionsCount == 1) {
         document.getElementById("previousSubquestion").disabled = true;
     }

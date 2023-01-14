@@ -89,7 +89,7 @@ namespace ArtificialIntelligenceTools
             for (int i = 0; i < testTemplates.Count; i++)
             {
                 TestTemplate testTemplate = testTemplates[i];
-                double? minimumPointsShare = GetMinimumPointsShare(testTemplate);
+                double minimumPointsShare = GetMinimumPointsShare(testTemplate);
 
                 for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
                 {
@@ -110,7 +110,7 @@ namespace ArtificialIntelligenceTools
         }
 
         public static SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner, 
-            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double? minimumPointsShare)
+            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double minimumPointsShare)
         {
             SubquestionTemplateRecord subquestionTemplateRecord = new SubquestionTemplateRecord();
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -166,7 +166,7 @@ namespace ArtificialIntelligenceTools
             }
             subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            subquestionTemplateRecord.MinimumPointsShare = CommonFunctions.RoundDecimal(minimumPointsShare);
+            subquestionTemplateRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionTemplateRecord.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
 
             return subquestionTemplateRecord;
@@ -175,7 +175,7 @@ namespace ArtificialIntelligenceTools
         /// <summary>
         /// Returns minimum points share of the test template (percentage of minimum points in regards to the sum of test template's points)
         /// </summary>
-        public static double? GetMinimumPointsShare(TestTemplate testTemplate)
+        public static double GetMinimumPointsShare(TestTemplate testTemplate)
         {
             double totalSubquestionPoints = 0;
             for (int j = 0; j < testTemplate.QuestionTemplates.Count; j++)
@@ -188,10 +188,6 @@ namespace ArtificialIntelligenceTools
                 }
             }
 
-            if(testTemplate.MinimumPoints == null)
-            {
-                return 0;
-            }
             return testTemplate.MinimumPoints / totalSubquestionPoints;
         }
 
@@ -292,9 +288,9 @@ namespace ArtificialIntelligenceTools
                     questionTemplates.Add(questionTemplate);
                 }
 
-                double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
-                testTemplate.MinimumPoints = minimumPointsRound;
+                double minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
+                minimumPoints = Math.Round(minimumPoints, 2);
+                testTemplate.MinimumPoints = minimumPoints;
                 testTemplate.QuestionTemplates = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
@@ -439,9 +435,9 @@ namespace ArtificialIntelligenceTools
                     questionTemplates.Add(questionTemplate);
                 }
 
-                double? minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
-                double? minimumPointsRound = CommonFunctions.RoundDecimal(minimumPoints);
-                testTemplate.MinimumPoints = minimumPointsRound;
+                double minimumPoints = totalSubquestionPoints * ((double)minimumPointsShare / 100);
+                minimumPoints = Math.Round(minimumPoints, 2);
+                testTemplate.MinimumPoints = minimumPoints;
                 testTemplate.QuestionTemplates = questionTemplates;
                 testTemplates.Add(testTemplate);
             }
@@ -694,7 +690,7 @@ namespace ArtificialIntelligenceTools
             {
                 TestResult testResult = testResults[i];
                 TestTemplate testTemplate = testResult.TestTemplate;
-                double? minimumPointsShare = GetMinimumPointsShare(testTemplate);
+                double minimumPointsShare = GetMinimumPointsShare(testTemplate);
 
                 for (int j = 0; j < testResult.QuestionResults.Count; j++)
                 {
@@ -714,7 +710,7 @@ namespace ArtificialIntelligenceTools
         }
 
         public static SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner, 
-            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double? minimumPointsShare)
+            List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double minimumPointsShare)
         {
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -738,8 +734,7 @@ namespace ArtificialIntelligenceTools
             }
             subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
             subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
-            double? minimumPointsShareRound = CommonFunctions.RoundDecimal(minimumPointsShare);
-            subquestionResultRecord.MinimumPointsShare = minimumPointsShareRound;
+            subquestionResultRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;
             subquestionResultRecord.StudentsPoints = subquestionResult.StudentsPoints;
             return subquestionResultRecord;

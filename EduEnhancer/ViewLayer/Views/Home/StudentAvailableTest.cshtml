@@ -49,15 +49,10 @@
                 <th>Počet bodů</th>
                 <td>@testPoints.ToString()</td>
             </tr>
-            @{
-                if (testTemplate.MinimumPoints != null)
-                {
-                    <tr>
-                        <th>Minimální počet bodů</th>
-                        <td>@testTemplate.MinimumPoints.ToString() / @testPoints.ToString()</td>
-                    </tr>
-                }
-            }
+            <tr>
+                <th>Minimální počet bodů</th>
+                <td>@testTemplate.MinimumPoints.ToString() / @testPoints.ToString()</td>
+            </tr>
         </table>
     </div>
 

@@ -25,7 +25,7 @@ namespace DomainModel
         public double SubjectAveragePoints { get; set; }
         public int ContainsImage { get; set; }
         public int NegativePoints { get; set; }
-        public double? MinimumPointsShare { get; set; }
+        public double MinimumPointsShare { get; set; }
         public double SubquestionPoints { get; set; }
     }
 }

@@ -298,6 +298,7 @@ namespace BusinessLayer
                 subquestionResultStatistics = new SubquestionResultStatistics();
                 subquestionResultStatistics.User = owner;
                 subquestionResultStatistics.UserLogin = owner.Login;
+                subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultNeuralNetwork.py");
                 subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
                 if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
@@ -392,6 +393,20 @@ namespace BusinessLayer
             dataFunctions.ExecuteSqlRaw("delete from TestResult where IsTestingData = 1");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultStatistics where UserLogin = 'login'");
+            dataFunctions.ExecuteSqlRaw("delete from TestDifficultyStatistics where UserLogin = 'login'");
+
+            //delete all models (if they exist)
+            string[] testingDataModels = new string[] {
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_NN.pt",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_LR.sav"};
+            for (int i = 0; i < testingDataModels.Length; i++)
+            {
+                if (File.Exists(testingDataModels[i]))
+                {
+                    File.Delete(testingDataModels[i]);
+                }
+            }
+
             await dataFunctions.SaveChangesAsync();
         }
 
@@ -415,7 +430,7 @@ namespace BusinessLayer
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
-            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+            double minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
                 subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
@@ -429,6 +444,7 @@ namespace BusinessLayer
             if (subquestionResultsAdded >= 100)
             {
                 SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
+                subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
                 subquestionResultStatistics.SubquestionResultsAddedCount = 0;
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "ResultNeuralNetwork.py");
                 subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");

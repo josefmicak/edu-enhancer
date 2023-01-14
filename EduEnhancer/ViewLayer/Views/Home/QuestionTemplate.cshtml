@@ -15,7 +15,7 @@
     {
         foreach (var item in Model)
         {
-            if (item.SubquestionTemplateId == int.Parse(ViewBag.subquestionTemplateId))
+            if (item.SubquestionTemplateId == ViewBag.subquestionTemplateId)
             {
                 subquestionTemplate = item;
                 break;
@@ -65,8 +65,7 @@
         {
             questionPoints += item.SubquestionPoints;
         }
-        double questionPointsRound = Math.Round(questionPoints, 2);
-        questionPointsString = questionPointsRound.ToString();
+        questionPointsString = Math.Round(questionPoints, 2).ToString();
     }
 
     bool userRequestedPointsSuggestion = false;
@@ -312,6 +311,6 @@
 <script src="/js/site.js"></script>
 @{
     <script>
-        questionTemplatePagePostProcessing(@subquestionNumber, @Model.Count());
+        questionTemplatePagePostProcessing(@subquestionNumber, @Model.Count(), 'subquestionTemplateId');
     </script>
 }

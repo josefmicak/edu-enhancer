@@ -669,8 +669,7 @@ namespace BusinessLayer
             double totalTestPoints = GetTestTemplatePointsSum(testTemplate);
             if (minimumPoints < 0 || minimumPoints > totalTestPoints)
             {
-                double totalTestPointsRound = Math.Round(totalTestPoints, 2);
-                message = "Chyba: Hodnota musí být mezi 0 a " + totalTestPointsRound.ToString();
+                message = "Chyba: Hodnota musí být mezi 0 a " + Math.Round(totalTestPoints, 2).ToString();
             }
             else
             {
@@ -760,7 +759,7 @@ namespace BusinessLayer
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
-            double? minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+            double minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
                 subquestionTypeAveragePoints, minimumPointsShare);
@@ -944,6 +943,21 @@ namespace BusinessLayer
             //since results are directly linked to templates, they are deleted as well
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where OwnerLogin = 'login'");
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultStatistics where UserLogin = 'login'");
+
+            //delete all models (if they exist)
+            string[] testingDataModels = new string[] {
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\templates\\login_NN.pt",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\templates\\login_LR.sav",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_NN.pt",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_LR.sav"};
+            for(int i = 0; i < testingDataModels.Length; i++)
+            {
+                if (File.Exists(testingDataModels[i]))
+                {
+                    File.Delete(testingDataModels[i]);
+                }
+            }
+
             await dataFunctions.SaveChangesAsync();
         }
 

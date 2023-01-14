@@ -6,7 +6,8 @@
 
 @{
     SubquestionResult subquestionResult = new SubquestionResult();
-    if(ViewBag.subquestionTemplateId == null)
+    int subquestionNumber = 0;
+    if(ViewBag.subquestionResultId == null)
     {
         subquestionResult = @Model.First();
     }
@@ -14,11 +15,12 @@
     {
         foreach (var item in Model)
         {
-            if (item.SubquestionResultId == int.Parse(ViewBag.subquestionResultId))
+            if (item.SubquestionResultId == ViewBag.subquestionResultId)
             {
                 subquestionResult = item;
                 break;
             }
+            subquestionNumber++;
         }
     }
 
@@ -200,7 +202,9 @@
         <h2>Výběr podotázky</h2>
         <form method="POST">
             <input type="hidden" value="@subquestionTemplate.QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
-
+            <input type="hidden" value="@subquestionResult.SubquestionResultId" name="currentSubquestionResultId">
+            <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
+            <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
             @{
                 string subquestionLabel = "";
                 if(Model.Count() > 1)
@@ -214,7 +218,7 @@
                 <p>@subquestionLabel</p>
             }
 
-            <select class="input" name="subquestionTemplateId" id="subquestionTemplateId" disabled="@singleSubquestion">
+            <select class="input" name="subquestionResultId" id="subquestionResultId" disabled="@singleSubquestion">
                 @{
                     int i = 0;
                     foreach (var item in Model)
@@ -276,6 +280,13 @@
         </form>
     </div>
 </div>
+
+<script src="/js/site.js"></script>
+@{
+    <script>
+        questionTemplatePagePostProcessing(@subquestionNumber, @Model.Count(), 'subquestionResultId');
+    </script>
+}
 
 <div id="backBtn"><a asp-action="ManageSolvedTest"
        asp-route-testResultId="@subquestionResult.QuestionResult.TestResultId">Zpět</a>

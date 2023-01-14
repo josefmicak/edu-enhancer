@@ -107,21 +107,18 @@
         testPoints = Math.Round(testPoints, 2);
         studentsTestPointsString = studentsTestPoints.ToString() + " / " + testPoints;
 
-        string? studentsMinimumPointsString = string.Empty;
-        if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
+        string studentsMinimumPointsString;
+        double minimumPoints = Model.First().QuestionTemplate.TestTemplate.MinimumPoints;
+        studentsMinimumPointsString = minimumPoints.ToString();
+        if (minimumPoints > studentsTestPoints)
         {
-            double? minimumPoints = Model.First().QuestionTemplate.TestTemplate.MinimumPoints;
-            studentsMinimumPointsString += minimumPoints.ToString();
-            if (minimumPoints > studentsTestPoints)
-            {
-                studentsMinimumPointsString += " - pokus neúspěšný ";
-            }
-            else
-            {
-                studentsMinimumPointsString += " - pokus úspěšný ";
-            }
-            studentsMinimumPointsString += "(" + studentsTestPoints.ToString() + " / " + minimumPoints.ToString() + ")";
+            studentsMinimumPointsString += " - pokus neúspěšný ";
         }
+        else
+        {
+            studentsMinimumPointsString += " - pokus úspěšný ";
+        }
+        studentsMinimumPointsString += "(" + studentsTestPoints.ToString() + " / " + minimumPoints.ToString() + ")";
     }
 
 
@@ -140,15 +137,10 @@
                 <th>Počet bodů</th>
                 <td>@studentsTestPointsString</td>
             </tr>
-            @{
-                if (Model.First().QuestionTemplate.TestTemplate.MinimumPoints != null)
-                {
-                    <tr>
-                        <th>Minimální počet bodů</th>
-                        <td>@studentsMinimumPointsString</td>
-                    </tr>
-                }
-            }
+            <tr>
+                <th>Minimální počet bodů</th>
+                <td>@studentsMinimumPointsString</td>
+            </tr>
         </table>
     </div>
 </div>
