@@ -1,4 +1,4 @@
-﻿//ManageUserRegistrationList.cshtml
+//ManageUserRegistrationList.cshtml
 
 window.updateVisibility = function (accepted, rejected, text) {
     if (accepted == false) {
@@ -1040,7 +1040,7 @@ function editSubquestionText(action) {
 
 //function that is called after the AddSubquestionTemplate page is loaded - disables or enables certain fields, adds possible answer rows..
 function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) {
-    if (subquestionType != 0 && !changeIndex)
+    if (subquestionType != 0 && changeIndex)
     {
         document.getElementById("subquestionType").selectedIndex = parseInt(subquestionType - 1);
         setSubquestionTypeDetails(subquestionType - 1);

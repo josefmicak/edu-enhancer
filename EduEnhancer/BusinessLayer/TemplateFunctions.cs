@@ -364,6 +364,7 @@ namespace BusinessLayer
                     if (subquestionTemplate.WrongChoicePoints < subquestionTemplate.DefaultWrongChoicePoints)//invalid value - cannot be lesser than default
                     {
                         subquestionTemplate.WrongChoicePoints = subquestionTemplate.DefaultWrongChoicePoints;
+                        errorMessage = "Chyba: nejmenší možný počet bodů za špatnou volbu je " + subquestionTemplate.DefaultWrongChoicePoints + ".";
                     }
                 }
             }

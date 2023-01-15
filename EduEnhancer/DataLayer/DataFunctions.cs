@@ -368,8 +368,12 @@ namespace DataLayer
 
         public void DeleteSubquestionTemplateImage(string webRootPath, string imageSource)
         {
-            string uploadsFolder = Path.Combine(webRootPath, "Uploads/");
-            File.Delete(uploadsFolder + imageSource);
+            //TestingImage doesn't get deleted (all testing data subquestion templates share this image)
+            if(imageSource != "TestingImage.png")
+            {
+                string uploadsFolder = Path.Combine(webRootPath, "Uploads/");
+                File.Delete(uploadsFolder + imageSource);
+            }
         }
 
         public async Task AddSubquestionTemplateStatistics(SubquestionTemplateStatistics subquestionTemplateStatistics)

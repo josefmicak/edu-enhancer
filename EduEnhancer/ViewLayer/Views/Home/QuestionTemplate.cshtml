@@ -126,7 +126,7 @@
                     </tr>
                     <tr>
                         <th>Počet bodů za podotázku</th>
-                        <td>@subquestionPoints</td>
+                        <td>@Math.Round(double.Parse(subquestionPoints), 2)</td>
                     </tr>
                     @{
                         if (subquestionTemplate.ImageSource != null)

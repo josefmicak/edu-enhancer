@@ -376,8 +376,8 @@
     }
 
     <script>
-        pointsRecommendationPostProcessing(@selectedSubquestionType, '@possibleAnswerListString', '@correctAnswerListString', '@Model.SubquestionText',
-            '@Model.DefaultWrongChoicePoints', '@Model.WrongChoicePoints');
+        pointsRecommendationPostProcessing(@selectedSubquestionType, '@Html.Raw(possibleAnswerListString)', '@Html.Raw(correctAnswerListString)', 
+        '@Html.Raw(Model.SubquestionText)', '@Model.DefaultWrongChoicePoints', '@Model.WrongChoicePoints');
     </script>
 
     if(Model.ImageSource != null)

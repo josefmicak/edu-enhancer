@@ -237,10 +237,6 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            /*if (ViewBag.Message != "Podotázka byla úspěšně smazána." && TempData["subquestionTemplateId"] != null)//the user selected a subquestion from the dropdown menu
-            {
-                ViewBag.subquestionTemplateId = TempData["subquestionTemplateId"]!.ToString();
-            }*/
             ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
 
             if (TempData["SuggestedSubquestionPoints"] != null)
@@ -250,7 +246,6 @@ namespace ViewLayer.Controllers
 
             var subquestionTemplates = businessLayerFunctions.GetSubquestionTemplates(login, int.Parse(questionTemplateId));
             List<SubquestionTemplate> subquestionTemplateList = await subquestionTemplates.ToListAsync();
-            //int subquestionTemplateId = -1;
 
             //users wants to browse either the previous or the following subquestion
             if (ViewBag.Message == "previousSubquestion" || ViewBag.Message == "nextSubquestion")
@@ -272,6 +267,11 @@ namespace ViewLayer.Controllers
                     }
                 }
                 ViewBag.Message = null;
+            }
+            //user has deleted a subquestion
+            else if(ViewBag.Message == "Podotázka byla úspěšně smazána.")
+            {
+                ViewBag.subquestionTemplateId = subquestionTemplateList[0].SubquestionTemplateId;
             }
             //user has selected a subquestion from the dropdown menu
             else
@@ -1570,7 +1570,7 @@ namespace ViewLayer.Controllers
                 else
                 {
                     TempData["subquestionTemplateId"] = subquestionTemplate.SubquestionTemplateId;
-                    return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = subquestionTemplate.QuestionTemplateId });
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = subquestionTemplate.QuestionTemplateId, subquestionTemplateId = subquestionTemplate.SubquestionTemplateId });
                 }
             }
             else //getPointsSuggestion redirection
@@ -1635,8 +1635,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    TempData["subquestionTemplateId"] = subquestionTemplate.SubquestionTemplateId;
-                    return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = subquestionTemplate.QuestionTemplateId });
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = subquestionTemplate.QuestionTemplateId, subquestionTemplateId = subquestionTemplate.SubquestionTemplateId });
                 }
             }
             else //getPointsSuggestion redirection

@@ -164,7 +164,7 @@ namespace ArtificialIntelligenceTools
                     break;
                 }
             }
-            subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
+            subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == null) ? false : true);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionTemplateRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionTemplateRecord.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
@@ -257,11 +257,11 @@ namespace ArtificialIntelligenceTools
                         bool containsImage = random.NextDouble() < 0.25;
                         if (containsImage)
                         {
-                            subquestionTemplate.ImageSource = "ImageSource_" + testId + "_" + questionId + "_" + subquestionId;
+                            subquestionTemplate.ImageSource = "TestingImage.png";
                         }
                         else
                         {
-                            subquestionTemplate.ImageSource = "";
+                            subquestionTemplate.ImageSource = null;
                         }
 
                         subquestionTemplate.PossibleAnswers = possibleAnswers;
@@ -365,15 +365,14 @@ namespace ArtificialIntelligenceTools
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
-                        //subquestionTemplate.SubquestionText = "SubquestionText" + testId + "_" + questionId + "_" + subquestionId;
                         bool containsImage = random.Next(0, 2) > 0;
                         if (containsImage)
                         {
-                            subquestionTemplate.ImageSource = "ImageSource_" + testId + "_" + questionId + "_" + subquestionId;
+                            subquestionTemplate.ImageSource = "TestingImage.png";
                         }
                         else
                         {
-                            subquestionTemplate.ImageSource = "";
+                            subquestionTemplate.ImageSource = null;
                         }
                         (string subquestionText, int possibleAnswersCount, int correctAnswersCount, string[] possibleAnswers, string[] correctAnswers) =
                             CreateSubquestionAnswers(subquestionType, random);
@@ -655,7 +654,7 @@ namespace ArtificialIntelligenceTools
                             studentsPoints = 0;
                         }
 
-                        subquestionResult.StudentsPoints = studentsPoints;
+                        subquestionResult.StudentsPoints = Math.Round(studentsPoints, 2);
                         subquestionResult.AnswerCorrectness = answerCorrectness;
                         subquestionResult.AnswerStatus = answerCorrect;
                         subquestionResults.Add(subquestionResult);

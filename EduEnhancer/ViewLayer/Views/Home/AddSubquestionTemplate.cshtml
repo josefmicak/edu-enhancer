@@ -379,7 +379,8 @@
     </div>
 </div>
 
-<script src="/js/site.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="/js/site.js" charset="utf-8"></script>
 <script>
     addSubquestionTemplatePagePostProcessing(@selectedSubquestionType, 'true');
 </script>
@@ -406,8 +407,8 @@
         }
 
         <script>
-            pointsRecommendationPostProcessing(@selectedSubquestionType, '@possibleAnswerListString', '@correctAnswerListString', '@Model.SubquestionText',
-            '@Model.DefaultWrongChoicePoints', '@Model.WrongChoicePoints');
+            pointsRecommendationPostProcessing(@selectedSubquestionType, '@Html.Raw(possibleAnswerListString)', '@Html.Raw(correctAnswerListString)',
+            '@Html.Raw(Model.SubquestionText)', '@Model.DefaultWrongChoicePoints', '@Model.WrongChoicePoints');
             document.getElementById("subquestion-add").disabled = false;
         </script>
     }
