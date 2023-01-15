@@ -264,7 +264,7 @@
             <input type="hidden" value="@negativePoints" name="negativePoints">
             <input type="hidden" value="@subquestionType" name="subquestionType">
 
-            <p>Počet bodů získaných studentem: <input class="input" id="students-points" required name="studentsPoints" onchange="limitDecimalPlaces(this, 2)" value="@subquestionResult.StudentsPoints.ToString()"></p>
+            <p>Počet bodů získaných studentem: <input class="input-number" type="text" id="students-points" required name="studentsPoints" value="@subquestionResult.StudentsPoints.ToString()"></p>
             <p>Počet bodů (automatické vyhodnocení): @subquestionResult.DefaultStudentsPoints</p>
             @{
                 if (userRequestedPointsSuggestion)

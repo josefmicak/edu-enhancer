@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import locale
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
@@ -44,6 +45,19 @@ def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAverageP
     NegativePoints_std = df["NegativePoints"].std()
     MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
     MinimumPointsShare_std = df["MinimumPointsShare"].std()
+
+    if SubquestionTypeAveragePoints_std == 0:
+        SubquestionTypeAveragePoints_std = 0.01
+    if AnswerCorrectness_std == 0:
+        AnswerCorrectness_std = 0.01
+    if SubjectAveragePoints_std == 0:
+        SubjectAveragePoints_std = 0.01
+    if ContainsImage_std == 0:
+        ContainsImage_std = 0.01
+    if NegativePoints_std == 0:
+        NegativePoints_std = 0.01
+    if MinimumPointsShare_std == 0:
+        MinimumPointsShare_std = 0.01
 
     SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
     AnswerCorrectness = (AnswerCorrectness - AnswerCorrectness_mean) / AnswerCorrectness_std
@@ -92,6 +106,8 @@ def main(arguments):
         testTemplateId = arguments[4]
     else:
         login = "login"
+
+    locale.setlocale(locale.LC_NUMERIC, 'cs_CZ')
 
     conn_str = ""
     if platform == 'Windows':
@@ -185,11 +201,11 @@ def main(arguments):
         if (len(str(subquestionTemplate["ImageSource"])) > 0):
             ContainsImage = 1
 
-        SubquestionTypeAveragePoints = float(
-            SubquestionTypeAveragePointsArray[subquestionTemplate["SubquestionType"] - 1].replace(",", "."))
-        AnswerCorrectness = float(
-            SubquestionTypeAverageAnswerCorrectnessArray[subquestionTemplate["SubquestionType"] - 1].replace(",", "."))
-        SubjectAveragePoints = float(SubjectAveragePointsArray[TestSubjectIndex].replace(",", "."))
+        SubquestionTypeAveragePoints = locale.atof(
+            SubquestionTypeAveragePointsArray[subquestionTemplate["SubquestionType"] - 1])
+        AnswerCorrectness = locale.atof(
+            SubquestionTypeAverageAnswerCorrectnessArray[subquestionTemplate["SubquestionType"] - 1])
+        SubjectAveragePoints = locale.atof(SubjectAveragePointsArray[TestSubjectIndex])
         PredictedTestPoints += predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
                     NegativePoints, MinimumPointsShare, subquestionPoints, df, model)
     print(round(PredictedTestPoints, 2))

@@ -11,4 +11,8 @@
     <ProjectReference Include="..\DomainModel\DomainModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="PythonScripts\model\results\" />
+  </ItemGroup>
+
 </Project>

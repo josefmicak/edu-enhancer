@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
 import torch
+import locale
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
@@ -29,29 +30,25 @@ def predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAverag
     MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
     MinimumPointsShare_std = df["MinimumPointsShare"].std()
 
-    SubquestionTypeAveragePoints = 0
-    if SubquestionTypeAveragePoints_std != 0:
-        SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
+    if SubquestionTypeAveragePoints_std == 0:
+        SubquestionTypeAveragePoints_std = 0.01
+    if CorrectAnswersShare_std == 0:
+        CorrectAnswersShare_std= 0.01
+    if SubjectAveragePoints_std == 0:
+        SubjectAveragePoints_std = 0.01
+    if ContainsImage_std == 0:
+        ContainsImage_std = 0.01
+    if NegativePoints_std == 0:
+        NegativePoints_std = 0.01
+    if MinimumPointsShare_std == 0:
+        MinimumPointsShare_std = 0.01
 
-    CorrectAnswersShare = 0
-    if CorrectAnswersShare_std != 0:
-        CorrectAnswersShare = (CorrectAnswersShare - CorrectAnswersShare_mean) / CorrectAnswersShare_std
-
-    SubjectAveragePoints = 0
-    if SubjectAveragePoints_std != 0:
-        SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
-
-    ContainsImage = 0
-    if ContainsImage_std != 0:
-        ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
-
-    NegativePoints = 0
-    if NegativePoints_std != 0:
-        NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
-
-    MinimumPointsShare = 0
-    if MinimumPointsShare_std != 0:
-        MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
+    SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
+    CorrectAnswersShare = (CorrectAnswersShare - CorrectAnswersShare_mean) / CorrectAnswersShare_std
+    SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
+    ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
+    NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
+    MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
 
     x_unseen = torch.Tensor([SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
     y_unseen = model.predict(torch.atleast_2d(x_unseen))
@@ -90,6 +87,8 @@ def main(arguments):
         function_name = arguments[4]
     else:
         login = "login"
+
+    locale.setlocale(locale.LC_NUMERIC, 'cs_CZ')
 
     conn_str = ""
     if platform == 'Windows':
@@ -141,12 +140,12 @@ def main(arguments):
         if function_name == 'get_accuracy':
             get_accuracy(y_test, y_test_pred)
         elif function_name == 'predict_new':
-            SubquestionTypeAveragePoints = float(arguments[5])
-            CorrectAnswersShare = float(arguments[6])
-            SubjectAveragePoints = float(arguments[7])
-            ContainsImage = float(arguments[8])
-            NegativePoints = float(arguments[9])
-            MinimumPointsShare = float(arguments[10])
+            SubquestionTypeAveragePoints = locale.atof(arguments[5])
+            CorrectAnswersShare = locale.atof(arguments[6])
+            SubjectAveragePoints = locale.atof(arguments[7])
+            ContainsImage = locale.atof(arguments[8])
+            NegativePoints = locale.atof(arguments[9])
+            MinimumPointsShare = locale.atof(arguments[10])
             predict_new(SubquestionTypeAveragePoints, CorrectAnswersShare, SubjectAveragePoints, ContainsImage,
                         NegativePoints, MinimumPointsShare, df, model)
 

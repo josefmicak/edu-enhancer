@@ -1553,7 +1553,6 @@ namespace ViewLayer.Controllers
                 subquestionTemplate.OwnerLogin = login;
                 subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionTemplateId);
                 TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false);
-                //TempData["SuggestedSubquestionPoints"] = "todo - subject";
             }
 
             TempData["Message"] = message;
@@ -1624,8 +1623,7 @@ namespace ViewLayer.Controllers
             {
                 subquestionTemplate.OwnerLogin = login;
                 subquestionTemplate.QuestionTemplate = businessLayerFunctions.GetQuestionTemplate(login, subquestionTemplate.QuestionTemplateId);
-                //TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate);
-                TempData["SuggestedSubquestionPoints"] = "todo - subject";
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false);
             }
 
             TempData["Message"] = message;

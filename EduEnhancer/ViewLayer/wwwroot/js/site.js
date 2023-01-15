@@ -196,6 +196,8 @@ function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount
     if ((subquestionNumber == subquestionsCount - 1) || subquestionsCount <= 1) {
         document.getElementById("nextSubquestion").disabled = true;
     }
+
+    modifyInputNumbers();
 }
 
 //show form which prompts user to confirm the action
@@ -897,10 +899,6 @@ function onAddSubquestionFormSubmission(subquestionType) {
 
 //after the user changes subquestion points, correct and wrong choice points are updated automatically
 function updateChoicePoints(subquestionPoints, subquestionType) {
-    const formatter = new Intl.NumberFormat('en-GB', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
     subquestionPoints = subquestionPoints.value;
     var possibleChoiceArrayLength = 0;
     if (subquestionType != 4 && subquestionType != 5 && subquestionType != 8 && subquestionType != 9 && subquestionType != 10) {
@@ -927,22 +925,17 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
                 correctChoicePoints = subquestionPoints;
                 break;
             case 2:
-                correctChoicePoints = formatter.format(subquestionPoints) / formatter.format(correctChoiceArrayLength);
+                correctChoicePoints = Number.parseFloat(subquestionPoints.replace(',', '.')) / correctChoiceArrayLength;
                 break;
             case 3:
             case 4:
             case 9:
-                correctChoicePoints = formatter.format(subquestionPoints) / (formatter.format(correctChoiceArrayLength) / 2) / 2;
+                correctChoicePoints = Number.parseFloat(subquestionPoints.replace(',', '.')) / (correctChoiceArrayLength / 2) / 2;
                 break;
         }
 
-        correctChoicePoints = formatter.format(correctChoicePoints);
-
         document.getElementById("correct-choice-points").value = correctChoicePoints;
-        document.getElementById("wrongChoicePoints_automatic").value = correctChoicePoints * (-1);
-        if (subquestionType != 5) {
-            document.getElementById("wrongChoicePoints_manual").min = correctChoicePoints * (-1);
-        }
+        document.getElementById("wrongChoicePoints_automatic").value = Number.parseFloat(correctChoicePoints.toString().replace(',', '.')) * (-1);
     }
 }
 
@@ -1085,6 +1078,8 @@ function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) 
         //addCorrectAnswer(9, true);
         updateCorrectAnswersInputFreeAnswer();
     }
+
+    modifyInputNumbers();
 }
 
 function changeImagePath(imageSource) {
@@ -1244,6 +1239,8 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     if (defaultWrongChoicePoints != wrongChoicePoints) {
         document.getElementById("wrongChoicePoints_manual_radio").checked = true;
     }
+
+    modifyInputNumbers();
 }
 
 //AddSubject.cshtml
@@ -1807,4 +1804,14 @@ function turnTestIn() {
 
 function hideConfirmActionForm() {
     document.getElementById("confirm-action").style.display = "none";
+}
+
+//cs-CZ culture is used in the application - it's necessary to replace all dots with commas
+function modifyInputNumbers() {
+    var inputs = document.getElementsByClassName("input-number");
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9-,]/, '');
+        });
+    }
 }

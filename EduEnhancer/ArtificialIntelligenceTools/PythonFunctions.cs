@@ -117,7 +117,7 @@ namespace ArtificialIntelligenceTools
                     try
                     {
                         result = result.Substring(0, result.Length - 4);//remove new line from the result
-                        return Math.Round(Convert.ToDouble(result), 4);
+                        return Math.Round(Convert.ToDouble(result, CultureInfo.InvariantCulture), 4);
                     }
                     catch
                     {

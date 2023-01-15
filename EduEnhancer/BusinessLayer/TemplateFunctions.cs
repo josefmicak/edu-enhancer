@@ -354,6 +354,7 @@ namespace BusinessLayer
             //set choice points
             if(subquestionTemplate.SubquestionPoints > 0)
             {
+                subquestionTemplate.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
                 double correctChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(Convert.ToDouble(subquestionTemplate.SubquestionPoints),
                     subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
                 subquestionTemplate.CorrectChoicePoints = correctChoicePoints;
@@ -879,7 +880,7 @@ namespace BusinessLayer
                 subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
                 subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
-                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
+                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)//todo: true?
                 {
                     subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
                 }
@@ -965,12 +966,12 @@ namespace BusinessLayer
         {
             string testDifficultyMessage;
             TestDifficultyStatistics? testDifficultyStatistics = dataFunctions.GetTestDifficultyStatistics(login);
+            SubquestionResultStatistics subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
             //check whether there are enough result statistics to go by
-            if(testDifficultyStatistics == null)
+            if (testDifficultyStatistics == null || subquestionResultStatistics == null)
             {
                 return "Chyba: nedostatečný počet výsledků testů.;";
             }
-            SubquestionResultStatistics subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
 
             //predicted amount of points that the average student will get for this test
             double testTemplatePredictedPoints = PythonFunctions.GetTestTemplatePredictedPoints(false, login, subquestionResultStatistics.UsedModel, testTemplateId);
