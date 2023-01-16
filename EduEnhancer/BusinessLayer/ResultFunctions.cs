@@ -68,6 +68,11 @@ namespace BusinessLayer
                 .Where(t => t.Student.Login == login);
         }
 
+        public TestResult GetTestResult(int testResultId)
+        {
+            return dataFunctions.GetTestResult(testResultId);
+        }
+
         public async Task<string> DeleteTestResults(string login)
         {
             return await dataFunctions.DeleteTestResults(login);
@@ -333,6 +338,8 @@ namespace BusinessLayer
             //managing testDifficultyStatistics
             await ManageTestDifficultyStatistics(testResults, owner);
 
+            //sign testing student up for every testing subject
+            await dataFunctions.RefreshTestingStudentSubjects();
             return message;
         }
 
@@ -635,6 +642,22 @@ namespace BusinessLayer
             return subquestionResultsProperties;
         }
 
+        public List<(int, AnswerStatus)> GetSubquestionResultsPropertiesFinished(TestResult testResult)
+        {
+            List<(int, AnswerStatus)> subquestionResultsProperties = new List<(int, AnswerStatus)>();
+            for (int i = 0; i < testResult.QuestionResults.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
+
+                for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
+                {
+                    SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(j);
+                    subquestionResultsProperties.Add((subquestionResult.SubquestionResultId, subquestionResult.AnswerStatus));
+                }
+            }
+            return subquestionResultsProperties;
+        }
+
         public (SubquestionResult, string?) ValidateSubquestionResult(SubquestionResult subquestionResult, string[] possibleAnswers)
         {
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
@@ -777,7 +800,7 @@ namespace BusinessLayer
                     }
                     else if (subquestionResult.StudentsAnswers.Length == 1)
                     {
-                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[0]))
+                        if (!subquestionTemplate.PossibleAnswers.Contains(subquestionResult.StudentsAnswers[0]) && subquestionResult.StudentsAnswers[0] != null)
                         {
                             errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1003";
                         }
@@ -827,18 +850,26 @@ namespace BusinessLayer
         public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
+            int subquestionCounter = 0;
+            bool subquestionFound = false;
             for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
+                if (subquestionFound)
+                {
+                    break;
+                }
                 QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
                 for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
-                    if(j == subquestionResultIndex)
+                    if(subquestionCounter == subquestionResultIndex)
                     {
+                        subquestionFound = true;
                         questionResult.SubquestionResults.ElementAt(j).StudentsAnswers = subquestionResult.StudentsAnswers;
                         //todo: status, correctness
                         break;
                     }
+                    subquestionCounter++;
                 }
             }
             await dataFunctions.SaveChangesAsync();
@@ -847,16 +878,18 @@ namespace BusinessLayer
         public async Task<SubquestionTemplate> GetSubquestionTemplateBySubquestionResultIndex(int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
+            int subquestionCounter = 0;
             for (int i = 0; i < testResult.QuestionResults.Count; i++)
             {
                 QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
                 for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
                 {
-                    if (j == subquestionResultIndex)
+                    if (subquestionCounter == subquestionResultIndex)
                     {
                         return questionResult.SubquestionResults.ElementAt(j).SubquestionTemplate;
                     }
+                    subquestionCounter++;
                 }
             }
             throw Exceptions.SubquestionTemplateNotFoundException;
@@ -941,6 +974,23 @@ namespace BusinessLayer
         public async Task DeleteSubquestionResults(int subquestionTemplateId)
         {
             await dataFunctions.DeleteSubquestionResults(subquestionTemplateId);
+        }
+
+        public double GetTestResultPointsSum(TestResult testResult)
+        {
+            double testPoints = 0;
+            for (int i = 0; i < testResult.QuestionResults.Count; i++)
+            {
+                QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
+
+                for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
+                {
+                    SubquestionResult subquestionResult = questionResult.SubquestionResults.ElementAt(j);
+                    testPoints += subquestionResult.StudentsPoints;
+                }
+            }
+
+            return Math.Round(testPoints, 2);
         }
     }
 }

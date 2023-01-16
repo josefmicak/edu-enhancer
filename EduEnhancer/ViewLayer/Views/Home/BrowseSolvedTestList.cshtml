@@ -23,13 +23,20 @@
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
                         <td>@Html.DisplayFor(modelItem => ownerFullName)</td>
-                        <td><a class="button" id="testResultBtn_i" title="Zobrazit test"
+                         <td><a class="button" title="Zobrazit test"
+                        asp-area=""
+                        asp-controller="Home"
+                        asp-action="SolvedQuestion"
+                        asp-route-testResultId="@item.TestResultId"
+                        asp-route-questionNr="0">Zobrazit test</a>
+                          </td>
+                  <!--      <td><a class="button" id="testResultBtn_i" title="Zobrazit test"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="BrowseSolvedTest" 
-                            asp-route-testResultId="@item.TestResultId"
-                            asp-route-ownerLogin="@item.OwnerLogin">Zobrazit test</a>
-                        </td>
+                            asp-route-testResultId="item.TestResultId"
+                            asp-route-ownerLogin="item.OwnerLogin">Zobrazit test</a>
+                              </td>-->
                     </tr>
                 }
             }

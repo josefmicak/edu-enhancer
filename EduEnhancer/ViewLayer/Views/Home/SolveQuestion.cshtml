@@ -49,7 +49,7 @@
         }
     }
 
-    int[] answerCompleteness = ViewBag.AnswerCmpleteness;
+    int[] answerCompleteness = ViewBag.AnswerCompleteness;
     string answerCompletenessString = "";
     for(int i = 0; i < answerCompleteness.Length; i++)
     {
@@ -62,7 +62,7 @@
 <div class="text-center">
     <h1>Řešení testové otázky</h1>
 
-    <div id="solve-question-navigation">
+    <div id="number-list-navigation">
         <h2>@(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
         <p>@ViewBag.Message</p>
         <button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button>
@@ -251,8 +251,8 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="/js/site.js"></script>
 <script>
-    solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@possibleAnswerListString',
-        '@correctAnswerListString', '@subquestionText', '@studentAnswerListString', '@answerCompletenessString');
+    solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@Html.Raw(possibleAnswerListString)',
+        '@Html.Raw(correctAnswerListString)', '@Html.Raw(subquestionText)', '@Html.Raw(studentAnswerListString)', '@Html.Raw(answerCompletenessString)');
 </script>
 
 <div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

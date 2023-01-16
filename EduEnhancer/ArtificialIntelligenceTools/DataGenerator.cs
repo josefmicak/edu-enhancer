@@ -466,7 +466,6 @@ namespace ArtificialIntelligenceTools
                     break;
                 }
 
-                string testId = testingDataTestResultsCount.ToString();
                 TestTemplate testTemplate = existingTestTemplates[i];
                 TestResult testResult = new TestResult();
                 testResult.TestTemplate = testTemplate;
@@ -731,7 +730,7 @@ namespace ArtificialIntelligenceTools
                     break;
                 }
             }
-            subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == "") ? false : true);
+            subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == null) ? false : true);
             subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionResultRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;
@@ -861,7 +860,7 @@ namespace ArtificialIntelligenceTools
                         possibleAnswers[l] = "možnost " + (l + 1);
                     }
                     correctAnswers[0] = possibleAnswers[random.Next(0, possibleAnswersCount)];
-                    subquestionText += "<Text>\\<text>";
+                    subquestionText += "(Text)|(text)";
                     break;
                 case 8:
                     possibleAnswersCount = 0;
@@ -871,7 +870,7 @@ namespace ArtificialIntelligenceTools
                     correctAnswers = new string[correctAnswersCount];
 
                     correctAnswers[0] = "možnost - správná odpověď";
-                    subquestionText += "<Text>\\<text>";
+                    subquestionText += "(Text)|(text)";
                     break;
                 case 9:
                     possibleAnswersCount = 0;
@@ -887,9 +886,9 @@ namespace ArtificialIntelligenceTools
                     string gapsToText = string.Empty;
                     for (int l = 0; l < correctAnswersCount; l++)
                     {
-                        gapsToText += "\\<text>";
+                        gapsToText += "|(text)";
                     }
-                    subquestionText += "<Text>" + gapsToText;
+                    subquestionText += "(Text)" + gapsToText;
                     break;
                 case 10:
                     int range = random.Next(1, 500);

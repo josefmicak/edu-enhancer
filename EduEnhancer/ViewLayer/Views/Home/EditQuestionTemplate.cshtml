@@ -1,0 +1,29 @@
+﻿@model DomainModel.QuestionTemplate
+
+@using DomainModel;
+
+@{
+    //string testTemplateId = ViewBag.TestTemplateId;
+    QuestionTemplate questionTemplate = Model;
+    ViewData["Title"] = "Úprava zadání otázky";
+}
+
+<div class="text-center">
+    <h1>Úprava zadání otázky</h1>
+
+    <p>@ViewBag.Message</p>
+
+    <form method="POST">
+        <label for="title">Nadpis:</label>
+        <input type="text" required id="title" name="Title" value="@questionTemplate.Title"><br>
+        <input class="button" title="Uložit" type="submit" value="Uložit">
+        <input type="hidden" value="@questionTemplate.TestTemplate.TestTemplateId" name="testTemplateId">
+    </form>
+</div>
+
+<div id="backBtn">
+    <a asp-action="TestTemplate"
+       asp-route-testTemplateId="@questionTemplate.TestTemplate.TestTemplateId">Zpět</a>
+</div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

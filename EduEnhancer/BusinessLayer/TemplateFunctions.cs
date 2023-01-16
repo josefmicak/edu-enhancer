@@ -145,25 +145,74 @@ namespace BusinessLayer
 
         public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            if(subjectId == "")
+            (string? errorMessage, testTemplate) = ValidateTestTemplate(testTemplate, subjectId);
+            if(errorMessage != null)
             {
-                return "Chyba: nevyplněný předmět.";
+                return errorMessage;
+            }
+            else
+            {
+                return await dataFunctions.AddTestTemplate(testTemplate);
+            }
+        }
+
+        public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
+        {
+            (string? errorMessage, testTemplate) = ValidateTestTemplate(testTemplate, subjectId);
+            if (errorMessage != null)
+            {
+                return errorMessage;
+            }
+            else
+            {
+                return await dataFunctions.EditTestTemplate(testTemplate);
+            }
+        }
+
+        public (string?, TestTemplate) ValidateTestTemplate(TestTemplate testTemplate, string subjectId)
+        {
+            string? errorMessage = null;
+            if (subjectId == "")
+            {
+                errorMessage = "Chyba: nevyplněný předmět.";
             }
             else
             {
                 Subject? subject = GetSubjectById(int.Parse(subjectId));
-                if(subject == null)
+                if (subject == null)
                 {
-                    return "Chyba: předmět nenalezen.";
+                    errorMessage = "Chyba: předmět nenalezen.";
                 }
                 else
                 {
-                    testTemplate.QuestionTemplates = new List<QuestionTemplate>();
                     testTemplate.Subject = subject;
-
-                    return await dataFunctions.AddTestTemplate(testTemplate);
                 }
             }
+
+            if(testTemplate.Title.Length == 0)
+            {
+                errorMessage = "Chyba: nevyplněný nadpis.";
+            }
+
+            if(testTemplate.NegativePoints != NegativePoints.Enabled && testTemplate.NegativePoints != NegativePoints.EnabledForQuestion
+                && testTemplate.NegativePoints != NegativePoints.Disabled)
+            {
+                errorMessage = "Chyba: nekompletní zadání otázky (záporné body).";
+            }
+
+            if(testTemplate.MinimumPoints != 0)//new test templates always have minimum points value of 0
+            {
+                if (testTemplate.MinimumPoints > GetTestTemplatePointsSum(GetTestTemplate(testTemplate.TestTemplateId)))
+                {
+                    errorMessage = "Chyba: minimální možný počet bodů pro tento test nemůže být vyšší než " + GetTestTemplatePointsSum(testTemplate);
+                }
+                else if (testTemplate.MinimumPoints < 0)
+                {
+                    errorMessage = "Chyba: minimální možný počet bodů pro tento test nemůže být nižší než 0.";
+                }
+            }
+
+            return (errorMessage, testTemplate);
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -193,9 +242,33 @@ namespace BusinessLayer
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
+            string? errorMessage = ValidateQuestionTemplate(questionTemplate);
+            if(errorMessage != null)
+            {
+                return errorMessage;
+            }
+            else
+            {
+                questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
+                return await dataFunctions.AddQuestionTemplate(questionTemplate);
+            }
+        }
 
-            return await dataFunctions.AddQuestionTemplate(questionTemplate);
+        public string? ValidateQuestionTemplate(QuestionTemplate questionTemplate)
+        {
+            string? errorMessage = null;
+            if(questionTemplate.Title.Length == 0)
+            {
+                errorMessage = "Chyba: nevyplněný nadpis.";
+            }
+            return errorMessage;
+        }
+
+        public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
+        {
+            //questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
+
+            return await dataFunctions.EditQuestionTemplate(questionTemplate);
         }
 
         public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
@@ -1065,7 +1138,7 @@ namespace BusinessLayer
                 }
             }
 
-            return testPoints;
+            return Math.Round(testPoints, 2);
         }
 
         public int GetTestTemplateSubquestionsCount(TestTemplate testTemplate)

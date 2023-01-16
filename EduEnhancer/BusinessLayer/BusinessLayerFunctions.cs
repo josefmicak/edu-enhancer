@@ -60,6 +60,14 @@ namespace BusinessLayer
             return await templateFunctions.AddTestTemplate(testTemplate, subjectId);
         }
 
+        public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
+        {
+            string login = GetCurrentUserLogin();
+            testTemplate.OwnerLogin = login;
+            testTemplate.Owner = GetUserByLogin(login);
+            return await templateFunctions.EditTestTemplate(testTemplate, subjectId);
+        }
+
         public async Task<string> DeleteTestTemplates(string login)
         {
             return await templateFunctions.DeleteTestTemplates(login);
@@ -83,6 +91,11 @@ namespace BusinessLayer
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
         {
             return await templateFunctions.AddQuestionTemplate(questionTemplate);
+        }
+
+        public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
+        {
+            return await templateFunctions.EditQuestionTemplate(questionTemplate);
         }
 
         public async Task<string> DeleteQuestionTemplate(int questionTemplateId, string webRootPath)
@@ -295,6 +308,11 @@ namespace BusinessLayer
             return resultFunctions.GetTestResultsByStudentLogin(login);
         }
 
+        public TestResult GetTestResult(int testResultId)
+        {
+            return resultFunctions.GetTestResult(testResultId);
+        }
+
         public async Task<string?> BeginStudentAttempt(int testTemplateId, string login)
         {
             TestTemplate testTemplate = GetTestTemplate(testTemplateId);
@@ -338,6 +356,11 @@ namespace BusinessLayer
         public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
         {
             return resultFunctions.GetSubquestionResultsProperties(testResult);
+        }
+
+        public List<(int, AnswerStatus)> GetSubquestionResultsPropertiesFinished(TestResult testResult)
+        {
+            return resultFunctions.GetSubquestionResultsPropertiesFinished(testResult);
         }
 
         public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, string login)
@@ -457,6 +480,12 @@ namespace BusinessLayer
         public async Task DeleteQuestionResults(int questionTemplateId)
         {
             await resultFunctions.DeleteQuestionResults(questionTemplateId);
+        }
+
+        public double GetTestResultPointsSum(int testResultId)
+        {
+            TestResult testResult = GetTestResult(testResultId);
+            return resultFunctions.GetTestResultPointsSum(testResult);
         }
 
         //UserFunctions.cs

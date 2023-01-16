@@ -244,12 +244,14 @@
 
     <div id="subquestion-result">
         <h2>Studentova odpověď</h2>
-        @{
-            foreach(var answer in subquestionResult.StudentsAnswers)
-            {
-                <p>@answer</p>
+        <table>
+            @{
+                foreach (var answer in subquestionResult.StudentsAnswers)
+                {
+                    <tr><td>@answer</td></tr>
+                }
             }
-        }
+        </table>
         
         <p>@answerCorrectString</p>
     </div>

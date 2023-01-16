@@ -1,0 +1,63 @@
+﻿@model dynamic
+
+@using DomainModel
+
+@{
+    TestTemplate testTemplate = Model.TestTemplate;
+    List<Subject> subjectList = Model.Subjects;
+
+    ViewData["Title"] = "Úprava zadání testu";
+}
+
+<div class="text-center">
+    <h1>Úprava zadání testu</h1>
+
+    <p>@ViewBag.Message</p>
+
+    <form method="POST">
+        <label for="title">Nadpis:</label>
+        <input type="text" required id="title" name="Title" value="@testTemplate.Title"><br>
+        <p>Záporné body:</p>
+        <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
+        <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
+        <p><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
+        <p>
+            Minimální počet bodů: <input class="input-number" type="text" required id="subquestion-points" name="MinimumPoints" value="@testTemplate.MinimumPoints">
+        </p>
+        @{
+            if (subjectList.Count == 0)
+            {
+                <p>Chyba: v systému neexistuje žádný předmět. Před přidáním testu přidejte do systému alespoň jeden předmět.</p>
+            }
+            else
+            {
+                <label for="subject">Předmět:</label>
+
+                <br>
+                <select class="input" name="subjectId" id="subject">
+                    @{
+                        for (int i = 0; i < subjectList.Count; i++)
+                        {
+                            string optionString = "(" + subjectList[i].Abbreviation + ") " + subjectList[i].Name + " - garant " + subjectList[i].Guarantor.FullName();
+                            <option value="@subjectList[i].SubjectId">@optionString</option>
+                        }
+                    }
+                </select>
+                <br>
+                <input class="button" title="Uložit" type="submit" value="Uložit">
+            }
+        }
+    </form>
+</div>
+
+<script src="/js/site.js"></script>
+<script>
+    editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId');
+    modifyInputNumbers();
+</script>
+
+<div id="backBtn">
+    <a asp-action="TestTemplateList">Zpět</a>
+</div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

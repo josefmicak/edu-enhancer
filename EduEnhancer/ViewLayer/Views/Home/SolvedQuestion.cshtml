@@ -1,0 +1,185 @@
+﻿@model DomainModel.SubquestionResult
+
+@using DomainModel
+@using Common
+
+@{
+    SubquestionResult subquestionResult = Model;
+    SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
+    string studentsSubquestionPoints = subquestionResult.StudentsPoints.ToString() + " / " + subquestionTemplate.SubquestionPoints;
+    int subquestionsCount = ViewBag.SubquestionsCount;
+    int subquestionResultIndex = ViewBag.SubquestionResultIndex;
+
+    int[] answerStatus = ViewBag.AnswerStatus;
+    string answerStatusString = "";
+    for (int i = 0; i < answerStatus.Length; i++)
+    {
+        answerStatusString += answerStatus[i] + ";";
+    }
+
+    string answerCorrectString = "";
+    switch (subquestionResult.AnswerStatus)
+    {
+        case EnumTypes.AnswerStatus.NotDetermined:
+            answerCorrectString = "Správnost odpovědi nebyla určena.";
+            break;
+        case EnumTypes.AnswerStatus.Correct:
+            answerCorrectString = "Správná odpověď.";
+            break;
+        case EnumTypes.AnswerStatus.PartiallyCorrect:
+            answerCorrectString = "Částečně správná odpověď.";
+            break;
+        case EnumTypes.AnswerStatus.Incorrect:
+            answerCorrectString = "Nesprávná odpověď.";
+            break;
+        case EnumTypes.AnswerStatus.NotAnswered:
+            answerCorrectString = "Správnost odpovědi nebyla určena - otázka nezodpovězena";
+            break;
+        case EnumTypes.AnswerStatus.CannotBeDetermined:
+            answerCorrectString = "Správnost odpovědi nelze určit.";
+            break;
+    }
+
+    double testResultPointsSum = ViewBag.TestResultPointsSum;
+    double testTemplatePointsSum = ViewBag.TestTemplatePointsSum;
+    string studentsMinimumPointsString;
+    double minimumPoints = subquestionTemplate.QuestionTemplate.TestTemplate.MinimumPoints;
+    studentsMinimumPointsString = minimumPoints.ToString();
+    if (minimumPoints > testResultPointsSum)
+    {
+        studentsMinimumPointsString += " - pokus neúspěšný ";
+    }
+    else
+    {
+        studentsMinimumPointsString += " - pokus úspěšný ";
+    }
+    studentsMinimumPointsString += "(" + testResultPointsSum.ToString() + " / " + minimumPoints.ToString() + ")";
+
+    ViewData["Title"] = "Prohlížení vyřešeného testu";
+}
+
+<div class="text-center">
+    <h1>Prohlížení vyřešeného testu</h1>
+
+    <div id="solved-test-result">
+        <h2>Parametry vyřešeného testu</h2>
+        <table>
+            <tr>
+                <th>Jméno vyučujícího</th>
+                <td>@subquestionResult.QuestionResult.TestResult.TestTemplate.Owner.FullName()</td>
+            </tr>
+            <tr>
+                <th>Předmět</th>
+                <td>@subquestionResult.QuestionResult.TestResult.TestTemplate.Subject.SubjectString()</td>
+            </tr>
+            <tr>
+                <th>Datum vyplnění testu</th>
+                <td>@subquestionResult.QuestionResult.TestResult.TimeStamp</td>
+            </tr>
+            <tr>
+                <th>Získaný počet bodů</th>
+                <td>@(testResultPointsSum + "/" + testTemplatePointsSum)</td>
+            </tr>
+            <tr>
+                <th>Minimální počet bodů</th>
+                <td>@studentsMinimumPointsString</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="solved-question-navigation">
+        <h2>Navigace</h2>
+        <h2>@(subquestionResultIndex + 1) / @subquestionsCount</h2>
+        <br>
+        <p>@ViewBag.Message</p>
+        <form method="POST">
+            <input type="hidden" value="@subquestionResult.QuestionResult.TestResult.TestResultId" name="testResultId">
+            <input type="hidden" value="@subquestionResultIndex" id="subquestionResultIndex" name="subquestionResultIndex">
+            <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
+            <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+        </form>
+        <br>
+    </div>
+    <div id="solved-number-list-navigation">
+        <button class="navigation-element" value="1" onclick="navigateToSolvedSubquestion(this.value)">1</button>
+    </div>
+
+    <div id="solved-subquestion-template">
+        <h2>Parametry podotázky</h2>
+        <table>
+            <tr>
+                <th>Typ podotázky</th>
+                <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
+            </tr>
+            <tr>
+                <th>Počet bodů za podotázku</th>
+                <td>@studentsSubquestionPoints</td>
+            </tr>
+            @{
+                if (subquestionTemplate.ImageSource != null)
+                {
+                    string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
+                    <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
+                }
+            }
+            <tr>
+                <th>Text podotázky</th>
+                <td>@subquestionTemplate.SubquestionText</td>
+            </tr>
+            <tr>
+                <th colspan="2">Možné odpovědi</th>
+            </tr>
+            @{
+                if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer ||
+                        @subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
+                {
+                    <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
+                }
+                else
+                {
+                    foreach (string possibleAnswer in @subquestionTemplate.PossibleAnswers)
+                    {
+                        <tr><td colspan="2" class="possible-answer-item">@possibleAnswer</td></tr>
+                    }
+                }
+            }
+            @{
+                if (@subquestionTemplate.CorrectAnswers.Length > 0)
+                {
+                    <tr>
+                        <th colspan="2">Správné odpovědi</th>
+                    </tr>
+
+                    foreach (string correctAnswer in @subquestionTemplate.CorrectAnswers)
+                    {
+                        <tr><td colspan="2" class="correct-answer-item">@correctAnswer</td></tr>
+                    }
+                }
+            }
+        </table>
+    </div>
+</div>
+
+<div id="solved-subquestion-result">
+    <h2>Vaše odpověď</h2>
+    <table>
+    @{
+        foreach (var answer in subquestionResult.StudentsAnswers)
+        {
+            <tr><td>@answer</td></tr>
+        }
+    }
+    </table>
+    <p>@answerCorrectString</p>
+</div>
+
+<script src="/js/site.js"></script>
+<script>
+    solvedQuestionPagePostProcessing('@subquestionResultIndex', '@subquestionsCount', '@answerStatusString');
+</script>
+
+<div id="backBtn">
+    <a asp-action="BrowseSolvedTestList">Zpět</a>
+</div>
+
+<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

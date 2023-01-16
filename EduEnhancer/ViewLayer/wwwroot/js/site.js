@@ -1560,7 +1560,7 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
         }
     }
 
-    addTestNavigationTableElements(answerCompletenessString);
+    addTestNavigationTableElements(answerCompletenessString, subquestionResultIdIndex);
 }
 
 function addStudentAnswer(subquestionType) {
@@ -1757,8 +1757,13 @@ function changeSliderOutputs(value) {
     document.getElementById("student-answer-hidden").value = value;
 }
 
-function addTestNavigationTableElements(answerCompletenessString) {
-    var navigation = document.getElementById("solve-question-navigation");
+function addTestNavigationTableElements(answerCompletenessString, subquestionNumber) {
+    if (document.getElementById("number-list-navigation") == null) {
+        var navigation = document.getElementById("solved-number-list-navigation");
+    }
+    else {
+        var navigation = document.getElementById("number-list-navigation");
+    }
     var navigationElements = document.getElementsByClassName("navigation-element");
     var navigationElement = navigationElements[0];
 
@@ -1766,8 +1771,8 @@ function addTestNavigationTableElements(answerCompletenessString) {
     var answerCompletenessStringSplit = answerCompletenessString.split(";");
     for (var i = 0; i < answerCompletenessStringSplit.length - 1; i++) {
         answerCompletenessArray.push(answerCompletenessStringSplit[i]);
-    }
-    var colorArray = ["gray", "lightgreen", "orange", "red"];
+    } 
+    var colorArray = ["gray", "lightgreen", "orange", "red", "gray", "gray"];
     navigationElement.style.backgroundColor = colorArray[answerCompletenessArray[0]];//set color of first navigation element manually
     
     for (var i = 1; i < answerCompletenessArray.length; i++) {
@@ -1775,11 +1780,18 @@ function addTestNavigationTableElements(answerCompletenessString) {
         clonedNavigationElement.value = (i + 1);
         clonedNavigationElement.innerHTML = (i + 1);
         clonedNavigationElement.style.backgroundColor = colorArray[answerCompletenessArray[i]];
+        if (subquestionNumber == i) {
+            clonedNavigationElement.style.fontWeight = "1000"
+        }
         navigation.appendChild(clonedNavigationElement);
         //different cases required because one navigation element is added by default
         if ((i + 1) % 5 == 0) {
             navigation.appendChild(document.createElement("br"));
         }
+    }
+
+    if (subquestionNumber == 0) {
+        navigationElement.style.fontWeight = "1000"
     }
 }
 
@@ -1798,6 +1810,34 @@ function turnTestIn() {
         var nextSubquestionButton = document.getElementById("nextSubquestion");
         nextSubquestionButton.click();
     }
+}
+
+//EditTestTemplate.cshtml
+
+function editTestTemplatePostProcessing(negativePoints, subjectId) {
+    document.getElementById(negativePoints).checked = true;
+    document.getElementById("subject").value = subjectId;
+}
+
+//SolvedQuestion.cshtml
+
+function solvedQuestionPagePostProcessing(subquestionNumber, subquestionsCount, answerStatusString) {
+    if (subquestionNumber == 0 || subquestionsCount == 1) {
+        document.getElementById("previousSubquestion").disabled = true;
+    }
+    if ((subquestionNumber == subquestionsCount - 1) || subquestionsCount <= 1) {
+        document.getElementById("nextSubquestion").disabled = true;
+    }
+    addTestNavigationTableElements(answerStatusString, subquestionNumber);
+}
+
+function navigateToSolvedSubquestion(subquestionIndex) {
+    subquestionIndex -= 2;
+    var subquestionResultIndex = document.getElementById("subquestionResultIndex");
+    subquestionResultIndex.value = subquestionIndex;
+    var nextSubquestionButton = document.getElementById("nextSubquestion");
+    nextSubquestionButton.disabled = false;
+    nextSubquestionButton.click();
 }
 
 //General

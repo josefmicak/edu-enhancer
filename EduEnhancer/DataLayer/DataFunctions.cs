@@ -167,6 +167,28 @@ namespace DataLayer
             return message;
         }
 
+        public async Task<string> EditTestTemplate(TestTemplate testTemplate)
+        {
+            string message;
+            try
+            {
+                TestTemplate oldTestTemplate = GetTestTemplate(testTemplate.OwnerLogin, testTemplate.TestTemplateId);
+                oldTestTemplate.Title = testTemplate.Title;
+                oldTestTemplate.Subject = testTemplate.Subject;
+                oldTestTemplate.MinimumPoints = testTemplate.MinimumPoints;
+                oldTestTemplate.NegativePoints = testTemplate.NegativePoints;
+                await _context.SaveChangesAsync();
+                message = "Zadání testu bylo úspěšně upraveno.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při přidání testu nastala neočekávaná chyba.";
+
+            }
+            return message;
+        }
+
         public async Task<string> DeleteTestTemplates(string login)
         {
             var testTemplateList = GetTestTemplateDbSet().Where(t => t.OwnerLogin == login);
@@ -267,6 +289,24 @@ namespace DataLayer
             {
                 Debug.WriteLine(ex.Message);
                 message = "Při přidání otázky nastala neočekávaná chyba.";
+            }
+            return message;
+        }
+
+        public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
+        {
+            string message;
+            try
+            {
+                QuestionTemplate oldQuestionTemplate = GetQuestionTemplate(questionTemplate.OwnerLogin, questionTemplate.QuestionTemplateId);
+                oldQuestionTemplate.Title = questionTemplate.Title;
+                await _context.SaveChangesAsync();
+                message = "Zadání otázky bylo úspěšně upraveno.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při úpravě otázky nastala neočekávaná chyba.";
             }
             return message;
         }
@@ -450,6 +490,21 @@ namespace DataLayer
         public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
         {
             return GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
+        public TestResult GetTestResult(int testResultId)
+        {
+            return GetTestResultDbSet()
+                .Include(t => t.QuestionResults)
+                .ThenInclude(q => q.SubquestionResults)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(t => t.QuestionTemplates)
+                .ThenInclude(t => t.SubquestionTemplates)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(t => t.Subject)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(t => t.Owner)
+                .First(t => t.TestResultId == testResultId);
         }
 
         public async Task<string?> AddTestResult(TestResult testResult)
@@ -713,11 +768,16 @@ namespace DataLayer
             return "Student s loginem \"" + student.Login + "\" úspěšně přidán.";
         }
 
-        public async Task<string> AddEmailStudent(Student student)
+        public async Task RefreshTestingStudentSubjects()
         {
-            _context.Students.Add(student);
+            ExecuteSqlRaw("delete from StudentSubject");
+            Student? student = GetStudentByLogin("testingstudent");
+            List<Subject> subjects = GetSubjectDbSet().Where(s => s.IsTestingData == true).ToList();
+            if(student != null)
+            {
+                student.Subjects = subjects;
+            }
             await _context.SaveChangesAsync();
-            return "Student s loginem \"" + student.Login + "\" úspěšně přidán.";
         }
 
         public async Task DeleteStudent(Student student)

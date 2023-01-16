@@ -11,9 +11,15 @@
 <div class="text-center">
     <h1>Vytvoření zadání testu</h1>
 
+    <p>@ViewBag.Message</p>
+
     <form method="POST">
         <label for="title">Nadpis:</label>
         <input type="text" required id="title" name="Title"><br>
+        <p>Záporné body:</p>
+        <p><input class="radio input" checked title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
+        <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
+        <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
         @{
             if (subjectList.Count == 0)
             {
@@ -31,7 +37,7 @@
                         }
                     }
                 </select>
-
+                <br>
                 <input class="button" title="Uložit" type="submit" value="Uložit">
             }
         }

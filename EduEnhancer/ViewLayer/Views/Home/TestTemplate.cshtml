@@ -39,19 +39,6 @@
 <div class="text-center">
     <h1>Správa zadání testu @Model.First().TestTemplate.TestTemplateId</h1>
 
-    <div id="negative-points">
-        <h2>Záporné body</h2>
-        <form method="POST">
-            <p>@ViewBag.NegativePointsMessage</p>
-            <input type="hidden" value="@Model.First().TestTemplate.TestTemplateId" name="testTemplateId">
-            <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
-            <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
-            <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
-            <p><input class="button" id="setNegativePointsBtn" title="Uložit" type="submit" value="Uložit"></p>
-            <input type="hidden" value="setNegativePoints" name="action">
-        </form>
-    </div>
-
     <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testTemplateId="@Model.First().TestTemplate.TestTemplateId">Přidat otázku</a>
 
     <div id="question-template-list">
@@ -61,11 +48,11 @@
             <tr>
                <th>Nadpis</th>
                <th>Počet bodů</th>
+               <th>Úprava</th>
                <th>Smazat</th>
-               <th>Správa otázky</th>
+               <th>Otevřít</th>
             </tr>
             @{
-                int i = 0;
                 foreach (var item in Model)
                 {
                     if (item.QuestionTemplateId == -1)
@@ -83,9 +70,14 @@
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td>@questionPointsString</td>
+                        <td>
+                            <a class="button" title="Upravit otázku" asp-area="" asp-controller="Home" asp-action="EditQuestionTemplate"
+                                asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
+                        </td>
                         <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
-                        <td><a class="button" id="questionTemplateBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                       asp-route-questionTemplateId="@item.QuestionTemplateId">Správa otázky</a>
+                        <td>
+                            <a class="button" title="Otevřít otázku" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
+                                asp-route-questionTemplateId="@item.QuestionTemplateId">Otevřít otázku</a>
                         </td>
                     </tr>
                 }
@@ -96,27 +88,6 @@
 
 @{
     testPointsString = Math.Round(testPoints, 2).ToString();
-
-    //negative points
-    EnumTypes.NegativePoints negativePoints = Model.First().TestTemplate.NegativePoints;
-    if (negativePoints == EnumTypes.NegativePoints.Enabled)
-    {
-        <script>
-        document.getElementById("negativePointsEnabled").checked = true;
-        </script>
-    }
-    else if (negativePoints == EnumTypes.NegativePoints.EnabledForQuestion)
-    {
-        <script>
-        document.getElementById("negativePointsEnabledForQuestion").checked = true;
-        </script>
-    }
-    else if (negativePoints == EnumTypes.NegativePoints.Disabled)
-    {
-        <script>
-        document.getElementById("negativePointsDisabled").checked = true;
-        </script>
-    }
 }
 
 <div id="test-template">
@@ -148,16 +119,6 @@
             <td>@testPointsString</td>
         </tr>
     </table>
-</div>
-
-<div id="minimum-points">
-    <h2>Minimální počet bodů</h2>
-    <form method="POST">
-        <p>@ViewBag.MinimumPointsMessage</p>
-        <p>Minimální počet bodů: <input type="number" min="0" step=".01" required name="minimumPointsAmount" value="@minimumPointsString" /></p>
-        <p><input class="button" id="setMinimumPointsBtn" title="Uložit" type="submit" value="Uložit"></p>
-        <input type="hidden" value="setMinimumPoints" name="action">
-    </form>
 </div>
 
 <div id="test-difficulty">

@@ -8,34 +8,44 @@
     <h1>Dostupné testy k vyřešení</h1>
 
     <div id="test-template-list">
-        <table>
-            <tr>
-                <th>Nadpis</th>
-                <th>Předmět</th>
-                <th>Učitel</th>
-                <th>Otevřít</th>
-            </tr>
-            @{
-                int i = 0;
-                foreach (var item in Model)
-                {
-                    string subjectString = item.Subject.SubjectString();
-                    string teacherFullName = item.Owner.FullName();
+        @{
+            if(Model.Count() > 1)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
-                        <td>@Html.DisplayFor(modelItem => subjectString)</td>
-                        <td>@teacherFullName</td>
-                        <td>
-                            <a class="button" id="testTemplateBtn_@i" title="Správa testu"
-                       asp-area=""
-                       asp-controller="Home"
-                       asp-action="StudentAvailableTest"
-                       asp-route-testTemplateId="@item.TestTemplateId">Otevřít test</a>
-                        </td>
+                        <th>Nadpis</th>
+                        <th>Předmět</th>
+                        <th>Učitel</th>
+                        <th>Otevřít</th>
                     </tr>
-                }
+                    @{
+                        int i = 0;
+                        foreach (var item in Model)
+                        {
+                            string subjectString = item.Subject.SubjectString();
+                            string teacherFullName = item.Owner.FullName();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                                <td>@Html.DisplayFor(modelItem => subjectString)</td>
+                                <td>@teacherFullName</td>
+                                <td>
+                                    <a class="button" id="testTemplateBtn_@i" title="Správa testu"
+                                       asp-area=""
+                                       asp-controller="Home"
+                                       asp-action="StudentAvailableTest"
+                                       asp-route-testTemplateId="@item.TestTemplateId">Otevřít test</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Nejsou dostupné žádné testy k vyřešení.</p>
+            }
+        }
+
     </div>
 </div>
 
