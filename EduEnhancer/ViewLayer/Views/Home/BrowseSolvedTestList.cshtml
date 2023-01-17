@@ -8,39 +8,43 @@
 
 <div class="text-center">
     <h1>Prohlížení vyřešených testů</h1>
+    <p>@ViewBag.Message</p>
 
     <div id="test-result-list">
-        <table>
-            <tr>
-                <th>Datum</th>
-                <th>Vyučující</th>
-                <th>Prohlížení</th>
-            </tr>
-            @{
-                foreach(TestResult item in Model.TestResults)
-                {
-                    string ownerFullName = item.TestTemplate.Owner.FullName();
+        @{
+            if (Model.TestResults.Count > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
-                        <td>@Html.DisplayFor(modelItem => ownerFullName)</td>
-                         <td><a class="button" title="Zobrazit test"
-                        asp-area=""
-                        asp-controller="Home"
-                        asp-action="SolvedQuestion"
-                        asp-route-testResultId="@item.TestResultId"
-                        asp-route-questionNr="0">Zobrazit test</a>
-                          </td>
-                  <!--      <td><a class="button" id="testResultBtn_i" title="Zobrazit test"
-                            asp-area="" 
-                            asp-controller="Home" 
-                            asp-action="BrowseSolvedTest" 
-                            asp-route-testResultId="item.TestResultId"
-                            asp-route-ownerLogin="item.OwnerLogin">Zobrazit test</a>
-                              </td>-->
+                        <th>Datum</th>
+                        <th>Vyučující</th>
+                        <th>Prohlížení</th>
                     </tr>
-                }
+                    @{
+                        foreach (TestResult item in Model.TestResults)
+                        {
+                            string ownerFullName = item.TestTemplate.Owner.FullName();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
+                                <td>@Html.DisplayFor(modelItem => ownerFullName)</td>
+                                <td>
+                                    <a class="button" title="Zobrazit test"
+                                       asp-area=""
+                                       asp-controller="Home"
+                                       asp-action="SolvedQuestion"
+                                       asp-route-testResultId="@item.TestResultId"
+                                       asp-route-questionNr="0">Zobrazit test</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Nejsou dostupné žádné testy k prohlížení.</p>
+            }
+        }
     </div>
 
     <div id="student-information">

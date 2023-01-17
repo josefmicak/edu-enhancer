@@ -17,6 +17,17 @@
         }
     }
 
+    bool notTurnedInExists = ViewBag.NotTurnedInExists;
+    string beginAttemptText = "";
+    if (!notTurnedInExists)
+    {
+        beginAttemptText = "Začít pokus";
+    }
+    else
+    {
+        beginAttemptText = "Vrátit se k pokusu";
+    }
+
     ViewData["Title"] = "Test k vyřešení";
 }
 
@@ -57,7 +68,7 @@
 
     <form method="POST">
         <input type="hidden" value="@Model.TestTemplateId" name="testTemplateId">
-        <button type="submit" value="beginAttempt" name="action">Začít pokus</button>
+        <button type="submit" value="beginAttempt" name="action">@beginAttemptText</button>
     </form>
 
 </div>

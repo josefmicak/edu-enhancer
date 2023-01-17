@@ -5,6 +5,8 @@
 @{
     TestTemplate testTemplate = Model.TestTemplate;
     List<Subject> subjectList = Model.Subjects;
+    var startDate = testTemplate.StartDate.ToString("yyyy-MM-ddTHH:mm");
+    var endDate = testTemplate.EndDate.ToString("yyyy-MM-ddTHH:mm");
 
     ViewData["Title"] = "Úprava zadání testu";
 }
@@ -21,6 +23,10 @@
         <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
         <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
         <p><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
+        <p>Čas začátku testu:</p>
+        <p><input type="datetime-local" required id="StartDate" name="StartDate" value="@startDate"></p>
+        <p>Čas konce testu:</p>
+        <p><input type="datetime-local" required id="EndDate" name="EndDate" value="@endDate"></p>
         <p>
             Minimální počet bodů: <input class="input-number" type="text" required id="subquestion-points" name="MinimumPoints" value="@testTemplate.MinimumPoints">
         </p>
@@ -52,7 +58,7 @@
 
 <script src="/js/site.js"></script>
 <script>
-    editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId');
+    editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId', '@testTemplate.StartDate', '@testTemplate.EndDate');
     modifyInputNumbers();
 </script>
 

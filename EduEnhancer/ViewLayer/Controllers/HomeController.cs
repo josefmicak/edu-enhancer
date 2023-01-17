@@ -11,6 +11,8 @@ using Common;
 using BusinessLayer;
 using static Common.EnumTypes;
 using NuGet.Protocol.Plugins;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace ViewLayer.Controllers
 {
@@ -186,39 +188,29 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> TestTemplate(string action, string testTemplateId, string negativePoints,
-            string minimumPointsAmount, string questionTemplateId)
+        public async Task<IActionResult> TestTemplate(string action, string testTemplateId, string questionTemplateId)
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            string? negativePointsMessage = null;
-            string? minimumPointsMessage = null;
             string? testDifficultyMessage = null;
             string? message = null;
 
             var testTemplate = businessLayerFunctions.GetTestTemplate(login, int.Parse(testTemplateId));
-            if (action == "setNegativePoints")
-            {
-                negativePointsMessage = "Změny úspěšně uloženy.";
-                await businessLayerFunctions.SetNegativePoints(testTemplate, (EnumTypes.NegativePoints)Convert.ToInt32(negativePoints));
-            }
-            else if(action == "setMinimumPoints")
-            {
-                if (testTemplate != null)
-                {
-                    minimumPointsMessage = await businessLayerFunctions.SetMinimumPoints(testTemplate, Math.Round(Convert.ToDouble(minimumPointsAmount), 2));
-                }
-            }
-            else if (action == "getDifficultyPrediction")
+            if (action == "getDifficultyPrediction")
             {
                 testDifficultyMessage = businessLayerFunctions.GetTestDifficultyPrediction(login, int.Parse(testTemplateId));
             }
             else if (action == "deleteQuestionTemplate")
             {
-                message = await businessLayerFunctions.DeleteQuestionTemplate(int.Parse(questionTemplateId), _environment.WebRootPath);
+                if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
+                {
+                    message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                }
+                else
+                {
+                    message = await businessLayerFunctions.DeleteQuestionTemplate(int.Parse(questionTemplateId), _environment.WebRootPath);
+                }
             }
 
-            TempData["NegativePointsMessage"] = negativePointsMessage;
-            TempData["MinimumPointsMessage"] = minimumPointsMessage;
             TempData["TestDifficultyMessage"] = testDifficultyMessage;
             TempData["Message"] = message;
             return RedirectToAction("TestTemplate", "Home", new { testTemplateId = testTemplateId });
@@ -316,11 +308,27 @@ namespace ViewLayer.Controllers
             }
             else if (action == "editSubquestionTemplate")
             {
-                return RedirectToAction("EditSubquestionTemplate", "Home", new { subquestionTemplateId = subquestionTemplateId });
+                QuestionTemplate questionTemplate = businessLayerFunctions.GetQuestionTemplate(login, int.Parse(questionTemplateId));
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                {
+                    message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                }
+                else
+                {
+                    return RedirectToAction("EditSubquestionTemplate", "Home", new { subquestionTemplateId = subquestionTemplateId });
+                }
             }
             else if (action == "deleteSubquestionTemplate")
             {
-                message = await businessLayerFunctions.DeleteSubquestionTemplate(int.Parse(questionTemplateId), int.Parse(subquestionTemplateId), _environment.WebRootPath);
+                QuestionTemplate questionTemplate = businessLayerFunctions.GetQuestionTemplate(login, int.Parse(questionTemplateId));
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                {
+                    message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                }
+                else
+                {
+                    message = await businessLayerFunctions.DeleteSubquestionTemplate(int.Parse(questionTemplateId), int.Parse(subquestionTemplateId), _environment.WebRootPath);
+                }
             }
             else if(action == "previousSubquestion" || action == "nextSubquestion")
             {
@@ -361,7 +369,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            var testResults = businessLayerFunctions.GetTestResultsByOwnerLogin(login);
+            var testResults = businessLayerFunctions.GetTurnedTestResults(login);
             return businessLayerFunctions.GetTestResultDbSet() != null ?
             View(await testResults.ToListAsync()) :
             Problem("Entity set 'CourseContext.TestResults'  is null.");
@@ -388,6 +396,12 @@ namespace ViewLayer.Controllers
             if (!businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
+            }
+            TestResult testResult = businessLayerFunctions.GetTestResult(int.Parse(testResultId));
+            if (!testResult.IsTurnedIn)
+            {
+                TempData["Message"] = "Chyba: tento test ještě nebyl odevdzán a nemůže být upravován.";
+                return RedirectToAction(nameof(ManageSolvedTestList));
             }
 
             string login = businessLayerFunctions.GetCurrentUserLogin();
@@ -532,9 +546,14 @@ namespace ViewLayer.Controllers
                 return AccessDeniedAction();
             }
 
+            if (TempData["Message"] != null)
+            {
+                ViewBag.Message = TempData["Message"]!.ToString();
+            }
+
             string login = businessLayerFunctions.GetCurrentUserLogin();
             dynamic model = new ExpandoObject();
-            model.TestResults = await businessLayerFunctions.GetTestResultsByStudentLogin(login).ToListAsync();
+            model.TestResults = await businessLayerFunctions.GetFinishedTestResultsByStudentLogin(login).ToListAsync();
             model.Student = businessLayerFunctions.GetStudentByLogin(login);
             return businessLayerFunctions.GetTestResultDbSet() != null ?
                 View(model) :
@@ -551,6 +570,11 @@ namespace ViewLayer.Controllers
             if (testResult.StudentLogin != login)
             {
                 ViewBag.Message = "Chyba: na prohlížení tohoto testu nemáte právo.";
+                return RedirectToAction(nameof(BrowseSolvedTestList));
+            }
+            else if(testResult.TestTemplate.EndDate > DateTime.Now)
+            {
+                ViewBag.Message = "Chyba: tento test budete moct prohlížet až po " + testResult.TestTemplate.EndDate.ToString();
                 return RedirectToAction(nameof(BrowseSolvedTestList));
             }
             else
@@ -1487,10 +1511,19 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            dynamic model = new ExpandoObject();
-            model.TestTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
-            model.Subjects = await businessLayerFunctions.GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
-            return View(model);
+            TestTemplate testTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
+            if (businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
+            {
+                dynamic model = new ExpandoObject();
+                model.TestTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
+                model.Subjects = await businessLayerFunctions.GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
+                return View(model);
+            }
+            else
+            {
+                TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                return RedirectToAction(nameof(TestTemplateList));
+            }
         }
 
         [HttpPost]
@@ -1510,12 +1543,21 @@ namespace ViewLayer.Controllers
 
         public IActionResult AddQuestionTemplate(string testTemplateId)
         {
-            if (TempData["Message"] != null)
+            TestTemplate testTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
+            if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
             {
-                ViewBag.Message = TempData["Message"]!.ToString();
+                TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                return RedirectToAction("TestTemplate", "Home", new { testTemplateId = testTemplateId });
             }
-            ViewBag.testTemplateId = testTemplateId;
-            return View();
+            else
+            {
+                if (TempData["Message"] != null)
+                {
+                    ViewBag.Message = TempData["Message"]!.ToString();
+                }
+                ViewBag.testTemplateId = testTemplateId;
+                return View();
+            }
         }
 
         [HttpPost]
@@ -1544,7 +1586,15 @@ namespace ViewLayer.Controllers
             }
             string login = businessLayerFunctions.GetCurrentUserLogin();
             QuestionTemplate questionTemplate = businessLayerFunctions.GetQuestionTemplate(login, int.Parse(questionTemplateId));
-            return View(questionTemplate);
+            if (businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+            {
+                return View(questionTemplate);
+            }
+            else
+            {
+                TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                return RedirectToAction("TestTemplate", "Home", new { testTemplateId = questionTemplate.TestTemplate.TestTemplateId });
+            }
         }
 
         [HttpPost]
@@ -1567,6 +1617,17 @@ namespace ViewLayer.Controllers
 
         public IActionResult AddSubquestionTemplate(string? questionTemplateId, SubquestionTemplate? subquestionTemplate)
         {
+            if(questionTemplateId != null)
+            {
+                string login = businessLayerFunctions.GetCurrentUserLogin();
+                QuestionTemplate questionTemplate = businessLayerFunctions.GetQuestionTemplate(login, int.Parse(questionTemplateId));
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                {
+                    TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                    return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = questionTemplateId });
+                }
+            }
+            
             if(questionTemplateId != null)
             {
                 ViewBag.QuestionTemplateId = questionTemplateId;
@@ -1663,7 +1724,15 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
             }
-            return View(subquestionTemplate);
+            if (businessLayerFunctions.CanUserEditTestTemplate(subquestionTemplate.QuestionTemplate.TestTemplate))
+            {
+                return View(subquestionTemplate);
+            }
+            else
+            {
+                TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
+                return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = subquestionTemplate.QuestionTemplateId, subquestionTemplateId });
+            }
         }
 
         [HttpPost]
@@ -1825,11 +1894,11 @@ namespace ViewLayer.Controllers
                 Problem("Entity set 'CourseContext.Students'  is null.");
         }
 
-        public async Task<IActionResult> StudentAvailableTestList()
+        public IActionResult StudentAvailableTestList()
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
-                View(await businessLayerFunctions.GetStudentAvailableTestList(login).ToListAsync()) :
+                View(businessLayerFunctions.GetStudentAvailableTestList(login).ToList()) :
                 Problem("Entity set 'CourseContext.TestTemplates'  is null.");
         }
         
@@ -1837,20 +1906,31 @@ namespace ViewLayer.Controllers
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             TestTemplate testTemplate = new TestTemplate();
+            string? errorMessage = null;
 
             if (TempData["Message"] != null)
             {
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            if (businessLayerFunctions.CanStudentAccessTest(login, int.Parse(testTemplateId)))
+            errorMessage = businessLayerFunctions.CanStudentAccessTest(login, int.Parse(testTemplateId));
+            if (errorMessage == null || errorMessage == "Pokus probíhá.")
             {
                 testTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
                 ViewBag.TestTemplatePointsSum = businessLayerFunctions.GetTestTemplatePointsSum(int.Parse(testTemplateId));
+                bool notTurnedInExists = false;
+                int amountOfNotTurnedIn = businessLayerFunctions.GetAmountOfNotTurnedTestResultsByTestTemplate(login, int.Parse(testTemplateId));
+                if(amountOfNotTurnedIn > 0)
+                {
+                    notTurnedInExists = true;
+                }
+                ViewBag.NotTurnedInExists = notTurnedInExists;
             }
             else
             {
-                ViewBag.Message = "K tomuto testu nemáte přístup.";
+                ViewBag.TestTemplatePointsSum = 0;
+                ViewBag.NotTurnedInExists = false;
+                ViewBag.Message = errorMessage;
             }
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
                 View(testTemplate) :
@@ -1864,7 +1944,13 @@ namespace ViewLayer.Controllers
             string? errorMessage = null;
             if (action == "beginAttempt")
             {
-                if (businessLayerFunctions.CanStudentAccessTest(login, int.Parse(testTemplateId)))
+                errorMessage = businessLayerFunctions.CanStudentAccessTest(login, int.Parse(testTemplateId));
+                if(errorMessage == "Pokus probíhá.")
+                {
+                    businessLayerFunctions.UpdateTestResultTimeStamp(login, int.Parse(testTemplateId));
+                    return RedirectToAction("SolveQuestion", "Home");
+                }
+                if(errorMessage == null)
                 {
                     errorMessage = await businessLayerFunctions.BeginStudentAttempt(int.Parse(testTemplateId), login);
                 }
@@ -1965,8 +2051,17 @@ namespace ViewLayer.Controllers
             (subquestionResult, errorMessage) = await businessLayerFunctions.ValidateSubquestionResult(subquestionResult, subquestionResultIndex, login, possibleAnswers);
             if(errorMessage != null)
             {
-                TempData["Message"] = errorMessage;
-                return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
+                if(errorMessage == "Čas na odevdzání testu již vypršel. Test byl automaticky odevzdán.")
+                {
+                    TempData["Message"] = errorMessage;
+                    await businessLayerFunctions.FinishStudentAttempt(login);
+                    return RedirectToAction(nameof(BrowseSolvedTestList));
+                }
+                else
+                {
+                    TempData["Message"] = errorMessage;
+                    return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
+                }
             }
             else
             {
@@ -1982,7 +2077,6 @@ namespace ViewLayer.Controllers
                     return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
                 }
             }
-            
         }
 
         public IActionResult AccessDeniedAction()

@@ -211,8 +211,30 @@ namespace BusinessLayer
                     errorMessage = "Chyba: minimální možný počet bodů pro tento test nemůže být nižší než 0.";
                 }
             }
+            
+            if (testTemplate.StartDate < DateTime.Now)
+            {
+                errorMessage = "Chyba: čas začátku testu nemůže být v minulosti.";
+            }
+            if (testTemplate.EndDate < DateTime.Now)
+            {
+                errorMessage = "Chyba: čas začátku testu nemůže být v minulosti.";
+            }
+            if(testTemplate.EndDate < testTemplate.StartDate)
+            {
+                errorMessage = "Chyba: čas konce testu nemůže být přes časem začátku testu.";
+            }
 
             return (errorMessage, testTemplate);
+        }
+
+        public bool CanUserEditTestTemplate(TestTemplate testTemplate)
+        {
+            if(testTemplate.StartDate > DateTime.Now)
+            {
+                return true;
+            }
+            return false;
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -719,6 +741,8 @@ namespace BusinessLayer
         public SubquestionTemplate GetSubquestionTemplate(string login, int subquestionTemplateId)
         {
             return GetSubquestionTemplateDbSet()
+                .Include(s => s.QuestionTemplate)
+                .Include(s => s.QuestionTemplate.TestTemplate)
                 .First(s => s.SubquestionTemplateId == subquestionTemplateId && s.OwnerLogin == login);
         }
 

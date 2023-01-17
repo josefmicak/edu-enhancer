@@ -474,6 +474,7 @@ namespace ArtificialIntelligenceTools
                 testResult.TimeStamp = DateTime.Now;
                 testResult.Student = student;
                 testResult.StudentLogin = student.Login;
+                testResult.IsTurnedIn = true;
                 testResult.IsTestingData = true;
                 List<QuestionResult> questionResults = new List<QuestionResult>();
 
@@ -577,6 +578,7 @@ namespace ArtificialIntelligenceTools
                 testResult.TimeStamp = DateTime.Now;
                 testResult.Student = student;
                 testResult.StudentLogin = student.Login;
+                testResult.IsTurnedIn = true;
                 testResult.IsTestingData = true;
                 List<QuestionResult> questionResults = new List<QuestionResult>();
 

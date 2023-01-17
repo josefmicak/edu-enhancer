@@ -1814,9 +1814,16 @@ function turnTestIn() {
 
 //EditTestTemplate.cshtml
 
-function editTestTemplatePostProcessing(negativePoints, subjectId) {
+function editTestTemplatePostProcessing(negativePoints, subjectId, startDate, endDate) {
     document.getElementById(negativePoints).checked = true;
     document.getElementById("subject").value = subjectId;
+
+    //document.getElementById("StartDate").value = parseDate(startDate);
+    //document.getElementById("EndDate").value = parseDate(endDate);
+}
+
+function parseDate(date) {
+    return new Date(parseInt(/-?\d+/.exec(date)[0]))
 }
 
 //SolvedQuestion.cshtml

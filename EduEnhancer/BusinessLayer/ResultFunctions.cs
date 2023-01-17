@@ -45,6 +45,15 @@ namespace BusinessLayer
                 Where(t => t.OwnerLogin == login);
         }
 
+        public IQueryable<TestResult> GetTurnedTestResults(string login)
+        {
+            return GetTestResultDbSet().
+                Include(s => s.Student).
+                Include(t => t.TestTemplate).
+                Where(t => t.OwnerLogin == login
+                && t.IsTurnedIn == true);
+        }
+
         public List<TestResult> GetTestResultList(string login)
         {
             return GetTestResultDbSet()
@@ -59,13 +68,31 @@ namespace BusinessLayer
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
-        public IQueryable<TestResult> GetTestResultsByStudentLogin(string login)
+        public IQueryable<TestResult> GetFinishedTestResultsByStudentLogin(string login)
         {
             return GetTestResultDbSet()
                 .Include(t => t.Student)
                 .Include(t => t.TestTemplate)
                 .Include(t => t.TestTemplate.Owner)
-                .Where(t => t.Student.Login == login);
+                .Where(t => t.Student.Login == login
+                    && t.IsTurnedIn == true
+                    && t.TestTemplate.EndDate < DateTime.Now);
+        }
+
+        public int GetAmountOfTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        {
+            return GetTestResultDbSet()
+                .Where(t => t.Student.Login == login
+                    && t.IsTurnedIn == true
+                    && t.TestTemplateId == testTemplateId).Count();
+        }
+
+        public int GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        {
+            return GetTestResultDbSet()
+                .Where(t => t.Student.Login == login
+                    && t.IsTurnedIn == false
+                    && t.TestTemplateId == testTemplateId).Count();
         }
 
         public TestResult GetTestResult(int testResultId)
@@ -168,6 +195,13 @@ namespace BusinessLayer
         public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
         {
             return dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+        }
+
+        public void UpdateTestResultTimeStamp(string login, int testTemplateId)
+        {
+            TestResult testResult = GetTestResultDbSet().First(t => t.StudentLogin == login
+                && t.TestTemplateId == testTemplateId);
+            testResult.TimeStamp = DateTime.Now;
         }
 
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
@@ -844,6 +878,14 @@ namespace BusinessLayer
                     }
                     break;
             }
+
+            //check if test template's end date has already passed
+            DateTime endDate = subquestionTemplate.QuestionTemplate.TestTemplate.EndDate;
+            if(endDate < DateTime.Now)
+            {
+                errorMessage = "Čas na odevdzání testu již vypršel. Test byl automaticky odevzdán.";
+            }
+
             return (subquestionResult, errorMessage);
         }
 
@@ -899,6 +941,7 @@ namespace BusinessLayer
         {
             TestResult testResult = await dataFunctions.LoadLastStudentAttempt(student);
             testResult.TimeStamp = DateTime.Now;
+            testResult.IsTurnedIn = true;
             for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
                 QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);

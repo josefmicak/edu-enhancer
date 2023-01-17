@@ -9,6 +9,7 @@ using System.Diagnostics;
 using static Common.EnumTypes;
 using Microsoft.AspNetCore.Http;
 using System.Xml.Linq;
+using System.Collections.Generic;
 
 namespace BusinessLayer
 {
@@ -76,6 +77,11 @@ namespace BusinessLayer
         public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
         {
             return await templateFunctions.DeleteTestTemplate(login, testTemplateId, webRootPath);
+        }
+
+        public bool CanUserEditTestTemplate(TestTemplate testTemplate)
+        {
+            return templateFunctions.CanUserEditTestTemplate(testTemplate);
         }
 
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, int testTemplateId)
@@ -278,12 +284,21 @@ namespace BusinessLayer
             return await templateFunctions.DeleteSubject(subject, user);
         }
 
-        public IQueryable<TestTemplate> GetStudentAvailableTestList(string login)
+        public List<TestTemplate> GetStudentAvailableTestList(string login)
         {
             Student? student = GetStudentByLogin(login);
             if(student != null)
             {
-                return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject));
+                List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
+                    && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
+                foreach (TestTemplate testTemplate in testTemplates)
+                {
+                    if (GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
+                    {
+                        testTemplates.Remove(testTemplate);
+                    }
+                }
+                return testTemplates;
             }
             else
             {
@@ -303,9 +318,24 @@ namespace BusinessLayer
             return resultFunctions.GetTestResultsByOwnerLogin(login);
         }
 
-        public IQueryable<TestResult> GetTestResultsByStudentLogin(string login)
+        public IQueryable<TestResult> GetTurnedTestResults(string login)
         {
-            return resultFunctions.GetTestResultsByStudentLogin(login);
+            return resultFunctions.GetTurnedTestResults(login);
+        }
+
+        public IQueryable<TestResult> GetFinishedTestResultsByStudentLogin(string login)
+        {
+            return resultFunctions.GetFinishedTestResultsByStudentLogin(login);
+        }
+
+        public int GetAmountOfTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        {
+            return resultFunctions.GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplateId);
+        }
+
+        public int GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        {
+            return resultFunctions.GetAmountOfNotTurnedTestResultsByTestTemplate(login, testTemplateId);
         }
 
         public TestResult GetTestResult(int testResultId)
@@ -488,6 +518,11 @@ namespace BusinessLayer
             return resultFunctions.GetTestResultPointsSum(testResult);
         }
 
+        public void UpdateTestResultTimeStamp(string login, int testTemplateId)
+        {
+            resultFunctions.UpdateTestResultTimeStamp(login, testTemplateId);
+        }
+
         //UserFunctions.cs
 
         public DbSet<User> GetUserDbSet()
@@ -641,10 +676,14 @@ namespace BusinessLayer
             return userFunctions.CanUserAccessPage(requiredRole);
         }
 
-        public bool CanStudentAccessTest(string login, int testTemplateId)
+        public string? CanStudentAccessTest(string login, int testTemplateId)
         {
             Student? student = GetStudentByLogin(login);
             TestTemplate testTemplate = GetTestTemplate(testTemplateId);
+            if(GetAmountOfNotTurnedTestResultsByTestTemplate(login, testTemplateId) > 0)
+            {
+                return "Pokus probíhá.";
+            }
             if(student == null)
             {
                 throw Exceptions.UserNotFoundException;
