@@ -9,13 +9,7 @@ namespace DomainModel
         [Ignore]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int SubquestionTemplateRecordId { get; set; }
-        [Ignore]
-        public int SubquestionTemplateId { get; set; }
-        [Ignore]
-        public int QuestionTemplateId { get; set; }
-        [Ignore]
-        public int TestResultId { get; set; }
+        public int SubquestionResultRecordId { get; set; }
         [Ignore]
         public SubquestionResult SubquestionResult { get; set; }
         [Ignore]

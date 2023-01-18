@@ -1,6 +1,8 @@
 ﻿@model IEnumerable<DomainModel.UserRegistration>
 
-@using Common;
+@using Common
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage LocalStorage
 
 @{
     string waitingString = "Čekající";
@@ -22,7 +24,6 @@
                 <th>Login</th>
                 <th>Email</th>
                 <th>Datum vytvoření</th>
-                <th>Existující student s tímto loginem</th>
                 <th>Schválení</th>
                 <th>Zamítnutí</th>
                 <th>Smazání</th>
@@ -36,23 +37,13 @@
                         continue;
                     }
                     string fullName = item.FullName();
-                    string? studentData = null;
-                    if(item.Student != null)
-                    {
-                        studentData = "Jméno: " + item.Student.FullName() + ", login: " + item.Student.Login;
-                    }
-                    else
-                    {
-                        studentData = "Student s tímto loginem nebyl nalezen.";
-                    }
                     <tr>
                         <td>@Html.DisplayFor(modelItem => fullName)</td>
                         <td>@Html.DisplayFor(modelItem => item.Login)</td>
                         <td>@Html.DisplayFor(modelItem => item.Email)</td>
                         <td>@Html.DisplayFor(modelItem => item.CreationDate)</td>
-                        <td>@Html.DisplayFor(modelItem => studentData)</td>
                         @{
-                            if(item.Student != null && item.State == EnumTypes.RegistrationState.Waiting)
+                            if(item.State == EnumTypes.RegistrationState.Waiting)
                             {
                                 <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
                             }
@@ -198,6 +189,8 @@
         @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>
 </div>
+
+<script src="/js/site.js"></script>
 
 <div id="backBtn"><a asp-action="AdminMenu">Zpět</a></div>
 

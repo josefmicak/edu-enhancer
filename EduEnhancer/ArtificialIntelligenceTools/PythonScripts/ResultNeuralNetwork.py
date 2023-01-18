@@ -158,11 +158,8 @@ def main(arguments):
     sql = "SELECT * FROM SubquestionResultRecord WHERE OwnerLogin = '" + login + "'"
     df = pd.read_sql(sql, engine)
     df = df.drop('OwnerLogin', axis=1)  # owner login is irrelevant in this context
-    df = df.drop('QuestionTemplateId', axis=1)  # question number identifier is irrelevant in this context
-    df = df.drop('SubquestionTemplateId', axis=1)  # subquestion template identifier is irrelevant in this context
-    df = df.drop('TestResultId', axis=1)  # test result identifier is irrelevant in this context
     df = df.drop('SubquestionResultId', axis=1)  #subquestion result identifier is irrelevant in this context
-    df = df.drop('SubquestionTemplateRecordId', axis=1)  # subqustion identifier is irrelevant in this context
+    df = df.drop('SubquestionResultRecordId', axis=1)  # subqustion identifier is irrelevant in this context
 
     # check for duplicate columns and remove them
     duplicateColumns = list()

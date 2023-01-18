@@ -17,6 +17,5 @@ namespace DomainModel
         {
             return FirstName + " " + LastName;
         }
-        public Student? Student { get; set; }
     }
 }

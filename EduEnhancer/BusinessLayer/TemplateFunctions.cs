@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.VisualBasic;
 using static System.Net.Mime.MediaTypeNames;
 using System.Xml.Linq;
+using System.Threading.Tasks;
 
 namespace BusinessLayer
 {
@@ -33,15 +34,11 @@ namespace BusinessLayer
             return dataFunctions.GetTestTemplateDbSet();
         }
 
-        public List<TestTemplate> GetTestTemplatesByLogin(string login)
+        public async Task<List<TestTemplate>> GetTestTemplates(string login)
         {
-            return dataFunctions.GetTestTemplatesByLogin(login);
-        }
-
-        public IQueryable<TestTemplate> GetTestTemplates(string login)
-        {
-            return GetTestTemplateDbSet()
-                .Where(t => t.OwnerLogin == login);
+            return await GetTestTemplateDbSet()
+                .Include(t => t.Subject)
+                .Where(t => t.OwnerLogin == login).ToListAsync();
         }
 
         public DbSet<QuestionTemplate> GetQuestionTemplateDbSet()
@@ -64,14 +61,14 @@ namespace BusinessLayer
             return dataFunctions.GetSubjectDbSet();
         }
 
-        public IQueryable<Subject> GetSubjects()
+        public async Task<List<Subject>> GetSubjects()
         {
-            return GetSubjectDbSet();
+            return await GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
         }
 
-        public Subject? GetSubjectById(int subjectId)
+        public async Task<Subject?> GetSubjectById(int subjectId)
         {
-            return GetSubjectDbSet().Include(s => s.Students).FirstOrDefault(s => s.SubjectId == subjectId);
+            return await GetSubjectDbSet().Include(s => s.Students).FirstOrDefaultAsync(s => s.SubjectId == subjectId);
         }
 
         public async Task<string> AddSubject(Subject subject)
@@ -81,7 +78,7 @@ namespace BusinessLayer
 
         public async Task<string> EditSubject(Subject subject, User user)
         {
-            Subject? oldSubject = GetSubjectById(subject.SubjectId);
+            Subject? oldSubject = await GetSubjectById(subject.SubjectId);
             if(oldSubject == null)
             {
                 return "Chyba: předmět nebyl nalezen.";
@@ -145,7 +142,7 @@ namespace BusinessLayer
 
         public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            (string? errorMessage, testTemplate) = ValidateTestTemplate(testTemplate, subjectId);
+            (string? errorMessage, testTemplate) = await ValidateTestTemplate(testTemplate, subjectId);
             if(errorMessage != null)
             {
                 return errorMessage;
@@ -158,7 +155,7 @@ namespace BusinessLayer
 
         public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            (string? errorMessage, testTemplate) = ValidateTestTemplate(testTemplate, subjectId);
+            (string? errorMessage, testTemplate) = await ValidateTestTemplate(testTemplate, subjectId);
             if (errorMessage != null)
             {
                 return errorMessage;
@@ -169,7 +166,7 @@ namespace BusinessLayer
             }
         }
 
-        public (string?, TestTemplate) ValidateTestTemplate(TestTemplate testTemplate, string subjectId)
+        public async Task<(string?, TestTemplate)> ValidateTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string? errorMessage = null;
             if (subjectId == "")
@@ -178,7 +175,7 @@ namespace BusinessLayer
             }
             else
             {
-                Subject? subject = GetSubjectById(int.Parse(subjectId));
+                Subject? subject = await GetSubjectById(int.Parse(subjectId));
                 if (subject == null)
                 {
                     errorMessage = "Chyba: předmět nenalezen.";
@@ -202,7 +199,7 @@ namespace BusinessLayer
 
             if(testTemplate.MinimumPoints != 0)//new test templates always have minimum points value of 0
             {
-                if (testTemplate.MinimumPoints > GetTestTemplatePointsSum(GetTestTemplate(testTemplate.TestTemplateId)))
+                if (testTemplate.MinimumPoints > GetTestTemplatePointsSum(await GetTestTemplate(testTemplate.TestTemplateId)))
                 {
                     errorMessage = "Chyba: minimální možný počet bodů pro tento test nemůže být vyšší než " + GetTestTemplatePointsSum(testTemplate);
                 }
@@ -262,18 +259,18 @@ namespace BusinessLayer
             return await dataFunctions.DeleteTestTemplate(testTemplate, webRootPath);
         }
 
-        public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, int testTemplateId)
+        public async Task<List<QuestionTemplate>> GetQuestionTemplates(int testTemplateId)
         {
-             return GetQuestionTemplateDbSet()
+             return await GetQuestionTemplateDbSet()
                  .Include(q => q.SubquestionTemplates)
                  .Include(q => q.TestTemplate)
                  .ThenInclude(q => q.Subject)
-                 .Where(q => q.TestTemplate.TestTemplateId == testTemplateId && q.OwnerLogin == login).AsQueryable();
+                 .Where(q => q.TestTemplate.TestTemplateId == testTemplateId).ToListAsync();
         }
 
-        public QuestionTemplate GetQuestionTemplate(string login, int questionTemplateId)
+        public async Task<QuestionTemplate> GetQuestionTemplate(int questionTemplateId)
         {
-            return dataFunctions.GetQuestionTemplate(login, questionTemplateId);
+            return await dataFunctions.GetQuestionTemplate(questionTemplateId);
         }
 
         public async Task<string> AddQuestionTemplate(QuestionTemplate questionTemplate)
@@ -302,8 +299,6 @@ namespace BusinessLayer
 
         public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            //questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
-
             return await dataFunctions.EditQuestionTemplate(questionTemplate);
         }
 
@@ -312,12 +307,12 @@ namespace BusinessLayer
             return await dataFunctions.DeleteQuestionTemplate(login, questionTemplateId, webRootPath);
         }
 
-        public IQueryable<SubquestionTemplate> GetSubquestionTemplates(string login, int questionTemplateId)
+        public async Task<List<SubquestionTemplate>> GetSubquestionTemplates(int questionTemplateId)
         {
-            return GetSubquestionTemplateDbSet()
+            return await GetSubquestionTemplateDbSet()
                 .Include(s => s.QuestionTemplate)
                 .Include(s => s.QuestionTemplate.TestTemplate)
-                .Where(s => s.QuestionTemplateId == questionTemplateId && s.OwnerLogin == login).AsQueryable();
+                .Where(s => s.QuestionTemplateId == questionTemplateId).ToListAsync();
         }
 
         public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
@@ -330,7 +325,7 @@ namespace BusinessLayer
             string message;
             try
             {
-                SubquestionTemplate oldSubquestionTemplate = GetSubquestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.SubquestionTemplateId);
+                SubquestionTemplate oldSubquestionTemplate = await GetSubquestionTemplate(subquestionTemplate.SubquestionTemplateId);
                 oldSubquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText;
                 oldSubquestionTemplate.PossibleAnswers = subquestionTemplate.PossibleAnswers;
                 oldSubquestionTemplate.CorrectAnswers = subquestionTemplate.CorrectAnswers;
@@ -728,36 +723,27 @@ namespace BusinessLayer
             return subquestionTemplate;
         }
 
-        public async Task<string> DeleteSubquestionTemplate(string login, int questionTemplateId, int subquestionTemplateId, string webRootPath)
+        public async Task<string> DeleteSubquestionTemplate(string login, int subquestionTemplateId, string webRootPath)
         {
-            return await dataFunctions.DeleteSubquestionTemplate(login, questionTemplateId, subquestionTemplateId, webRootPath);
+            return await dataFunctions.DeleteSubquestionTemplate(login, subquestionTemplateId, webRootPath);
         }
 
-        public TestTemplate GetTestTemplate(int testTemplateId)
+        public async Task<TestTemplate> GetTestTemplate(int testTemplateId)
         {
-            return GetTestTemplateDbSet()
+            return await GetTestTemplateDbSet()
                 .Include(t => t.Subject)
                 .Include(t => t.Owner)
                 .Include(t => t.QuestionTemplates)
                 .ThenInclude(q => q.SubquestionTemplates)
-                .First(t => t.TestTemplateId == testTemplateId);
+                .FirstAsync(t => t.TestTemplateId == testTemplateId);
         }
 
-        public TestTemplate GetTestTemplate(string login, int testTemplateId)
+        public async Task<SubquestionTemplate> GetSubquestionTemplate(int subquestionTemplateId)
         {
-            return GetTestTemplateDbSet()
-                .Include(t => t.Subject)
-                .Include(t => t.QuestionTemplates)
-                .ThenInclude(q => q.SubquestionTemplates)
-                .First(t => t.TestTemplateId == testTemplateId && t.OwnerLogin == login);
-        }
-
-        public SubquestionTemplate GetSubquestionTemplate(string login, int subquestionTemplateId)
-        {
-            return GetSubquestionTemplateDbSet()
+            return await GetSubquestionTemplateDbSet()
                 .Include(s => s.QuestionTemplate)
                 .Include(s => s.QuestionTemplate.TestTemplate)
-                .First(s => s.SubquestionTemplateId == subquestionTemplateId && s.OwnerLogin == login);
+                .FirstAsync(s => s.SubquestionTemplateId == subquestionTemplateId);
         }
 
         public SubquestionTemplateStatistics? GetSubquestionTemplateStatistics(string login)
@@ -765,99 +751,15 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
         }
 
-        public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
-        {
-            return dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
-        }
-
-        public async Task SetNegativePoints(TestTemplate testTemplate, EnumTypes.NegativePoints negativePoints)
-        {
-            testTemplate.NegativePoints = negativePoints;
-            await dataFunctions.SaveChangesAsync();
-        }
-
-        public async Task<string> SetMinimumPoints(TestTemplate testTemplate, double minimumPoints)
-        {
-            string message;
-            double totalTestPoints = GetTestTemplatePointsSum(testTemplate);
-            if (minimumPoints < 0 || minimumPoints > totalTestPoints)
-            {
-                message = "Chyba: Hodnota musí být mezi 0 a " + Math.Round(totalTestPoints, 2).ToString();
-            }
-            else
-            {
-                testTemplate.MinimumPoints = minimumPoints;
-                message = "Změny úspěšně uloženy.";
-                await dataFunctions.SaveChangesAsync();
-            }
-            return message;
-        }
-
-        public async Task<string> SetSubquestionTemplatePoints(string login, int subquestionTemplateId, string subquestionPoints, string wrongChoicePoints, bool defaultWrongChoicePoints)
-        {
-            string message = string.Empty;
-            var subquestionTemplate = GetSubquestionTemplate(login, subquestionTemplateId);
-            if (subquestionTemplate != null)
-            {
-                double subquestionPointsDouble = 0;
-                if (subquestionPoints != null)
-                {
-                    subquestionPointsDouble = Math.Round(double.Parse(subquestionPoints, CultureInfo.InvariantCulture), 2);
-                }
-                double wrongChoicePointsDouble = 0;
-                if(wrongChoicePoints != null)
-                {
-                    wrongChoicePointsDouble = Math.Round(double.Parse(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
-                }
-
-                if (subquestionPoints == null)
-                {
-                    message = "Chyba: nebyl zadán žádný počet bodů.";
-                }
-                else if (!double.TryParse(subquestionPoints, out _))
-                {
-                    message = "Chyba: \"" + subquestionPoints + "\" není korektní formát počtu bodů. Je nutné zadat číslo.";
-                }
-                else if (subquestionPointsDouble <= 0)
-                {
-                    message = "Chyba: otázce je nutné přidělit kladný počet bodů.";
-                }
-                else if (!defaultWrongChoicePoints && wrongChoicePointsDouble * (-1) > subquestionPointsDouble)
-                {
-                    message = "Chyba: za špatnou volbu nemůže student obdržet méně než " + subquestionPointsDouble * (-1) + " bodů.";
-                }
-                else//todo: overit jestli nema za otazku nektery student pridelen vyssi pocet bodu nez soucasny pocet bodu
-                {
-                    message = "Počet bodů byl úspěšně změněn.";
-                    subquestionTemplate.SubquestionPoints = Math.Round(Convert.ToDouble(subquestionPoints), 2);
-                    subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
-                        Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
-
-                    if (defaultWrongChoicePoints)
-                    {
-                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
-                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
-                    }
-                    else
-                    {
-                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
-                        subquestionTemplate.WrongChoicePoints = Math.Round(Convert.ToDouble(wrongChoicePoints, CultureInfo.InvariantCulture), 2);
-                    }
-                    await dataFunctions.SaveChangesAsync();
-                }
-            }
-            return message;
-        }
-
         public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
         {
             if (subquestionTemplateExists)
             {
-                subquestionTemplate = GetSubquestionTemplate(subquestionTemplate.OwnerLogin, subquestionTemplate.SubquestionTemplateId);
+                subquestionTemplate = await GetSubquestionTemplate(subquestionTemplate.SubquestionTemplateId);
             }
 
             string login = subquestionTemplate.OwnerLogin;
-            User owner = dataFunctions.GetUserByLogin(login);
+            User owner = await dataFunctions.GetUserByLogin(login);
 
             //check if enough subquestion templates have been added to warrant new model training
             bool retrainModel = false;
@@ -868,7 +770,7 @@ namespace BusinessLayer
                 await RetrainSubquestionTemplateModel(owner);
             }
 
-            var testTemplates = dataFunctions.GetTestTemplateList(owner.Login);
+            var testTemplates = await dataFunctions.GetTestTemplateList(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageTemplatePoints(testTemplates);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
@@ -912,25 +814,24 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
 
             //create subquestion template records
-            var testTemplates = dataFunctions.GetTestTemplateList(login);
+            var testTemplates = await dataFunctions.GetTestTemplateList(login);
             var subquestionTemplateRecords = DataGenerator.CreateSubquestionTemplateRecords(testTemplates);
 
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
         }
 
-        public List<TestTemplate> GetTestingDataTestTemplates()
+        public async Task<List<TestTemplate>> GetTestingDataTestTemplates()
         {
-            var testTemplates = GetTestTemplateDbSet()
+            return await GetTestTemplateDbSet()
                 .Include(t => t.QuestionTemplates)
                 .ThenInclude(q => q.SubquestionTemplates)
-                .Where(t => t.IsTestingData).ToList();
-            return testTemplates;
+                .Where(t => t.IsTestingData).ToListAsync();
         }
 
-        public int GetTestingDataSubquestionTemplatesCount()
+        public async Task<int> GetTestingDataSubquestionTemplatesCount()
         {
             int testingDataSubquestionTemplates = 0;
-            var testTemplates = GetTestingDataTestTemplates();
+            var testTemplates = await GetTestingDataTestTemplates();
             for (int i = 0; i < testTemplates.Count; i++)
             {
                 TestTemplate testTemplate = testTemplates[i];
@@ -956,13 +857,13 @@ namespace BusinessLayer
             }
 
             await TestingUsersCheck();
-            User? owner = dataFunctions.GetUserByLogin("login");
-            var existingTestTemplates = GetTestingDataTestTemplates();
+            User? owner = await dataFunctions.GetUserByLogin("login");
+            var existingTestTemplates = await GetTestingDataTestTemplates();
             if (existingTestTemplates.Count() == 0)//no templates exist - we have to add subjects
             {
                 await CreateSubjectTestingData(owner);
             }
-            List<Subject> testingDataSubjects = dataFunctions.GetTestingDataSubjects();
+            List<Subject> testingDataSubjects = await dataFunctions.GetTestingDataSubjects();
             List<TestTemplate> testTemplates = new List<TestTemplate>();
 
             if (action == "addSubquestionTemplateRandomData")
@@ -975,20 +876,20 @@ namespace BusinessLayer
             }
             message = await dataFunctions.AddTestTemplates(testTemplates, owner);//todo: error?
             string login = "login";
-            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            owner = await dataFunctions.GetUserByLoginAsNoTracking();
 
             //delete existing subquestion template records of this user
             dataFunctions.ExecuteSqlRaw("delete from SubquestionTemplateRecord where 'login' = '" + login + "'");
             await dataFunctions.SaveChangesAsync();
 
             //create subquestion template records
-            var testTemplatesToRecord = dataFunctions.GetTestTemplateList(login);
+            var testTemplatesToRecord = await dataFunctions.GetTestTemplateList(login);
 
             var subquestionTemplateRecords = DataGenerator.CreateSubquestionTemplateRecords(testTemplatesToRecord);
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
 
             dataFunctions.ClearChargeTracker();
-            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            owner = await dataFunctions.GetUserByLoginAsNoTracking();
             var subquestionTemplateStatistics = GetSubquestionTemplateStatistics(owner.Login);
             if (subquestionTemplateStatistics == null)
             {
@@ -1044,7 +945,7 @@ namespace BusinessLayer
 
         public async Task TestingUsersCheck()
         {
-            User? owner = dataFunctions.GetUserByLogin("login");
+            User? owner = await dataFunctions.GetUserByLogin("login");
             if(owner == null)
             {
                 owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
@@ -1080,11 +981,11 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public string GetTestDifficultyPrediction(string login, int testTemplateId)
+        public async Task<string> GetTestDifficultyPrediction(string login, int testTemplateId)
         {
             string testDifficultyMessage;
-            TestDifficultyStatistics? testDifficultyStatistics = dataFunctions.GetTestDifficultyStatistics(login);
-            SubquestionResultStatistics subquestionResultStatistics = dataFunctions.GetSubquestionResultStatistics(login);
+            TestDifficultyStatistics? testDifficultyStatistics = await dataFunctions.GetTestDifficultyStatistics(login);
+            SubquestionResultStatistics subquestionResultStatistics = await dataFunctions.GetSubquestionResultStatistics(login);
             //check whether there are enough result statistics to go by
             if (testDifficultyStatistics == null || subquestionResultStatistics == null)
             {
@@ -1094,7 +995,7 @@ namespace BusinessLayer
             //predicted amount of points that the average student will get for this test
             double testTemplatePredictedPoints = PythonFunctions.GetTestTemplatePredictedPoints(false, login, subquestionResultStatistics.UsedModel, testTemplateId);
 
-            List<TestResult> testResults = dataFunctions.GetTestResultsByLogin(login);
+            List<TestResult> testResults = await dataFunctions.GetTestResultsByLogin(login);
             List<(int, int, double)> testResultsPointsShare = new List<(int, int, double)>();
             
             //iterate through every test result to obtain the share between student's points and test total points
@@ -1146,7 +1047,7 @@ namespace BusinessLayer
             {
                 testTemplatesPointsShare[i] = testResultsPointsShare[i].Item3 / testResultsPointsShare[i].Item2;
             }
-            TestTemplate currentTestTemplate = GetTestTemplate(login, testTemplateId);
+            TestTemplate currentTestTemplate = await GetTestTemplate(testTemplateId);
             double currentTestTemplatePointsShare = testTemplatePredictedPoints / GetTestTemplatePointsSum(currentTestTemplate);
             //compare the ratio of predicted test points to total test points with the average points of all test templates (as measured by existing test results)
             double difficulty = currentTestTemplatePointsShare / testTemplatesPointsShare.Average();

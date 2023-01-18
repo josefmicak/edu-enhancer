@@ -25,49 +25,34 @@ namespace BusinessLayer
             return dataFunctions.GetUserDbSet();
         }
 
-        public List<User> GetUserList()
+        public async Task<User?> GetUserByLogin(string login)
         {
-            return dataFunctions.GetUserList();
+            return await dataFunctions.GetUserByLogin(login);
         }
 
-        public User? GetUserByLogin(string login)
+        public async Task<User?> GetUserByEmail(string email)
         {
-            return dataFunctions.GetUserByLogin(login);
-        }
-
-        public User? GetUserByEmail(string email)
-        {
-            return GetUserDbSet().FirstOrDefault(u => u.Email == email);
+            return await GetUserDbSet().FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public DbSet<Student> GetStudentDbSet()
         {
             return dataFunctions.GetStudentDbSet();
         }
-
-        public IQueryable<Student> GetStudents()
-        {
-            return GetStudentDbSet();
-        }
-
-        public List<Student> GetStudentList()
-        {
-            return GetStudentDbSet().ToList();
-        }
         
-        public Student? GetStudentByLogin(string login)
+        public async Task<Student?> GetStudentByLogin(string login)
         {
-            return GetStudentDbSet().Include(s => s.Subjects).FirstOrDefault(s => s.Login == login);
+            return await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);
         }
 
-        public Student? GetStudentByEmail(string email)
+        public async Task<Student?> GetStudentByEmail(string email)
         {
-            return GetStudentDbSet().FirstOrDefault(s => s.Email == email);
+            return await GetStudentDbSet().FirstOrDefaultAsync(s => s.Email == email);
         }
 
-        public User? GetMainAdmin()
+        public async Task<User?> GetMainAdmin()
         {
-            return GetUserDbSet().FirstOrDefault(u => u.Role == EnumTypes.Role.MainAdmin);
+            return await GetUserDbSet().FirstOrDefaultAsync(u => u.Role == EnumTypes.Role.MainAdmin);
         }
 
         public DbSet<UserRegistration> GetUserRegistrationDbSet()
@@ -75,16 +60,16 @@ namespace BusinessLayer
             return dataFunctions.GetUserRegistrationDbSet();
         }
 
-        public IQueryable<UserRegistration> GetUserRegistrations(string email)
+        public async Task<List<UserRegistration>> GetUserRegistrations(string email)
         {
-            return GetUserRegistrationDbSet()
-                .Where(u => u.Email == email);
+            return await GetUserRegistrationDbSet()
+                .Where(u => u.Email == email).ToListAsync();
         }
 
-        public UserRegistration? GetUserRegistration(string email)
+        public async Task<UserRegistration?> GetUserRegistration(string email)
         {
-            return GetUserRegistrationDbSet()
-                .FirstOrDefault(u => u.Email == email);
+            return await GetUserRegistrationDbSet()
+                .FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task RegisterMainAdmin(string firstName, string lastName, string email, string login)
@@ -112,7 +97,7 @@ namespace BusinessLayer
         public async Task<string> CreateUserRegistration(string firstName, string lastName, string email, string login, string role)
         {
             string message;
-            var user = GetUserRegistration(email);
+            var user = await GetUserRegistration(email);
             if (user != null)
             {
                 message = "Chyba: již jste zaregistrován. Nyní je nutné vyčkat na potvrzení registrace správcem.";
@@ -133,11 +118,6 @@ namespace BusinessLayer
                     userRegistration.State = EnumTypes.RegistrationState.Waiting;
                     userRegistration.CreationDate = DateTime.Now;
                     userRegistration.Role = (EnumTypes.Role)Convert.ToInt32(role);
-                    var importedStudent = dataFunctions.GetStudentByLogin(login);
-                    if (importedStudent != null)
-                    {
-                        userRegistration.Student = importedStudent;
-                    }
 
                     await dataFunctions.AddUserRegistration(userRegistration);
                     message = "Registrace úspěšně vytvořena. Nyní je nutné vyčkat na potvrzení registrace správcem.";
@@ -264,7 +244,7 @@ namespace BusinessLayer
 
         public async Task ChangeMainAdmin(User newMainAdmin, string firstName, string lastName, string login, string email)
         {
-            var oldMainAdmin = GetMainAdmin();
+            var oldMainAdmin = await GetMainAdmin();
             if (oldMainAdmin != null)
             {
                 oldMainAdmin.Role = EnumTypes.Role.Admin;
@@ -286,7 +266,7 @@ namespace BusinessLayer
             student.FirstName = firstName;
             student.LastName = lastName;
 
-            var userRegistration = GetUserRegistration(email);
+            var userRegistration = await GetUserRegistration(email);
             if (userRegistration != null)
             {
                 userRegistration.State = EnumTypes.RegistrationState.Accepted;
@@ -303,41 +283,65 @@ namespace BusinessLayer
         public async Task<string> ApproveUserRegistration(string firstName, string lastName, string login, string email, string role)
         {
             string message;
-            User user = new User();
-            user.Email = email;
-            user.FirstName = firstName;
-            user.LastName = lastName;
-            user.Login = login;
-            user.Role = Enum.Parse<EnumTypes.Role>(role);
-            await dataFunctions.AddUser(user);
-            var userRegistration = GetUserRegistration(email);
-            if (userRegistration != null)
+            if(role == "Student")//student
             {
-                userRegistration.State = EnumTypes.RegistrationState.Accepted;
-                await dataFunctions.SaveChangesAsync();
-                message = "Registrace úspěšně schválena.";
-
-                SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
-                subquestionTemplateStatistics.User = user;
-                subquestionTemplateStatistics.UserLogin = user.Login;
-                await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
-
-                SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
-                subquestionResultStatistics.User = user;
-                subquestionResultStatistics.UserLogin = user.Login;
-                await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
+                Student student = new Student();
+                student.Email = email;
+                student.FirstName = firstName;
+                student.LastName = lastName;
+                student.Login = login;
+                await dataFunctions.AddStudent(student);
+                var userRegistration = await GetUserRegistration(email);
+                if (userRegistration != null)
+                {
+                    userRegistration.State = EnumTypes.RegistrationState.Accepted;
+                    await dataFunctions.SaveChangesAsync();
+                    message = "Registrace úspěšně schválena.";
+                }
+                else
+                {
+                    message = "Chyba: registrace nebyla nalezena";
+                }
             }
             else
             {
-                message = "Chyba: registrace nebyla nalezena";
+                User user = new User();
+                user.Email = email;
+                user.FirstName = firstName;
+                user.LastName = lastName;
+                user.Login = login;
+                user.Role = Enum.Parse<EnumTypes.Role>(role);
+                await dataFunctions.AddUser(user);
+                var userRegistration = await GetUserRegistration(email);
+                if (userRegistration != null)
+                {
+                    userRegistration.State = EnumTypes.RegistrationState.Accepted;
+                    await dataFunctions.SaveChangesAsync();
+                    message = "Registrace úspěšně schválena.";
+
+                    SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                    subquestionTemplateStatistics.User = user;
+                    subquestionTemplateStatistics.UserLogin = user.Login;
+                    await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+                    SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+                    subquestionResultStatistics.User = user;
+                    subquestionResultStatistics.UserLogin = user.Login;
+                    await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
+                }
+                else
+                {
+                    message = "Chyba: registrace nebyla nalezena";
+                }
             }
+
             return message;
         }
 
         public async Task<string> RefuseRegistration(string email)
         {
             string message;
-            var userRegistration = GetUserRegistration(email);
+            var userRegistration = await GetUserRegistration(email);
             if (userRegistration != null)
             {
                 userRegistration.State = EnumTypes.RegistrationState.Rejected;
@@ -354,7 +358,7 @@ namespace BusinessLayer
         public async Task<string> DeleteRegistration(string email)
         {
             string message;
-            var userRegistration = GetUserRegistration(email);
+            var userRegistration = await GetUserRegistration(email);
             if (userRegistration != null)
             {
                 await dataFunctions.DeleteRegistration(userRegistration);
@@ -373,7 +377,7 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public bool CanUserAccessPage(EnumTypes.Role requiredRole)
+        public async Task<bool> CanUserAccessPage(EnumTypes.Role requiredRole)
         {
             if (Config.TestingMode)//in case the testing mode is on, no authentication is required at all
             {
@@ -381,8 +385,8 @@ namespace BusinessLayer
             }
 
             string login = Config.Application["login"];
-            var user = GetUserByLogin(login);
-            var student = GetStudentByLogin(login);
+            var user = await GetUserByLogin(login);
+            var student = await GetStudentByLogin(login);
 
             if (requiredRole > EnumTypes.Role.Student)//staff member
             {

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Xml;
 using static Common.EnumTypes;
+using System.Threading.Tasks;
 
 namespace BusinessLayer
 {
@@ -37,21 +38,13 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultDbSet();
         }
 
-        public IQueryable<TestResult> GetTestResultsByOwnerLogin(string login)
+        public async Task<List<TestResult>> GetTurnedTestResults(string login)
         {
-            return GetTestResultDbSet().
-                Include(s => s.Student).
-                Include(t => t.TestTemplate).
-                Where(t => t.OwnerLogin == login);
-        }
-
-        public IQueryable<TestResult> GetTurnedTestResults(string login)
-        {
-            return GetTestResultDbSet().
+            return await GetTestResultDbSet().
                 Include(s => s.Student).
                 Include(t => t.TestTemplate).
                 Where(t => t.OwnerLogin == login
-                && t.IsTurnedIn == true);
+                && t.IsTurnedIn == true).ToListAsync();
         }
 
         public List<TestResult> GetTestResultList(string login)
@@ -68,36 +61,38 @@ namespace BusinessLayer
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
-        public IQueryable<TestResult> GetFinishedTestResultsByStudentLogin(string login)
+        public async Task<List<TestResult>> GetFinishedTestResultsByStudentLogin(string login)
         {
-            return GetTestResultDbSet()
+            return await GetTestResultDbSet()
                 .Include(t => t.Student)
                 .Include(t => t.TestTemplate)
                 .Include(t => t.TestTemplate.Owner)
                 .Where(t => t.Student.Login == login
                     && t.IsTurnedIn == true
-                    && t.TestTemplate.EndDate < DateTime.Now);
+                    && t.TestTemplate.EndDate < DateTime.Now).ToListAsync();
         }
 
-        public int GetAmountOfTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        public async Task<int> GetAmountOfTurnedTestResultsByTestTemplate(string login, int testTemplateId)
         {
-            return GetTestResultDbSet()
+            List<TestResult> turnedTestResultsByTestTemplate = await GetTestResultDbSet()
                 .Where(t => t.Student.Login == login
                     && t.IsTurnedIn == true
-                    && t.TestTemplateId == testTemplateId).Count();
+                    && t.TestTemplateId == testTemplateId).ToListAsync();
+            return turnedTestResultsByTestTemplate.Count();
         }
 
-        public int GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
+        public async Task<int> GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
         {
-            return GetTestResultDbSet()
+            List<TestResult> notTurnedTestResultsByTestTemplate = await GetTestResultDbSet()
                 .Where(t => t.Student.Login == login
                     && t.IsTurnedIn == false
-                    && t.TestTemplateId == testTemplateId).Count();
+                    && t.TestTemplateId == testTemplateId).ToListAsync();
+            return notTurnedTestResultsByTestTemplate.Count();
         }
 
-        public TestResult GetTestResult(int testResultId)
+        public async Task<TestResult> GetTestResult(int testResultId)
         {
-            return dataFunctions.GetTestResult(testResultId);
+            return await dataFunctions.GetTestResult(testResultId);
         }
 
         public async Task<string> DeleteTestResults(string login)
@@ -111,16 +106,16 @@ namespace BusinessLayer
             return await dataFunctions.DeleteTestResult(testResult);
         }
 
-        public IQueryable<QuestionResult> GetQuestionResultsByOwnerLogin(string login, int testResultId)
+        public async Task<List<QuestionResult>> GetQuestionResults(int testResultId)
         {
-            return GetQuestionResultDbSet()
+            return await GetQuestionResultDbSet()
                 .Include(t => t.TestResult)
                 .Include(q => q.QuestionTemplate)
                 .Include(q => q.QuestionTemplate.TestTemplate)
                 .Include(q => q.QuestionTemplate.SubquestionTemplates)
                 .Include(s => s.TestResult.Student)
                 .Include(q => q.SubquestionResults)
-                .Where(t => t.TestResultId == testResultId && t.OwnerLogin == login);
+                .Where(t => t.TestResultId == testResultId).ToListAsync();
         }
 
         public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, int testResultId)
@@ -137,44 +132,23 @@ namespace BusinessLayer
                     && q.OwnerLogin == ownerLogin);
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByOwnerLogin(string login, int questionResultId)
+        public async Task<List<SubquestionResult>> GetSubquestionResults(int questionResultId)
         {
-            return GetSubquestionResultDbSet()
+            return await GetSubquestionResultDbSet()
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.QuestionResult)
                 .Include(s => s.QuestionResult.QuestionTemplate)
                 .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.QuestionResultId == questionResultId && s.OwnerLogin == login);
+                .Where(s => s.QuestionResultId == questionResultId).ToListAsync();
         }
 
-        public IQueryable<SubquestionResult> GetSubquestionResultsByStudentLogin(string studentLogin, int questionResultId)
+        public async Task<SubquestionResult> GetSubquestionResult(int subquestionResultId)
         {
-            return GetSubquestionResultDbSet()
-                .Include(s => s.SubquestionTemplate)
-                .Include(s => s.QuestionResult)
-                .Include(s => s.QuestionResult.QuestionTemplate)
-                .Include(s => s.QuestionResult.QuestionTemplate.TestTemplate)
-                .Where(s => s.QuestionResultId == questionResultId &&
-                s.QuestionResult.TestResult.Student.Login == studentLogin);
-        }
-
-        public SubquestionResult GetSubquestionResult(string login, int subquestionResultId)
-        {
-            return GetSubquestionResultDbSet()
+            return await GetSubquestionResultDbSet()
                 .Include(s => s.SubquestionTemplate)
                 .Include(s => s.SubquestionTemplate.QuestionTemplate)
                 .Include(s => s.SubquestionTemplate.QuestionTemplate.TestTemplate)
-                .First(s => s.SubquestionResultId == subquestionResultId && s.OwnerLogin == login);
-        }
-
-        public IQueryable<SubquestionResult> GetSubquestionResults(string login, int testResultId, int questionTemplateId)
-        {
-            return GetSubquestionResultDbSet()
-                .Include(s => s.QuestionResult)
-                .Include(s => s.QuestionResult.TestResult)
-                .Where(s => s.QuestionTemplateId == questionTemplateId
-                    && s.OwnerLogin == login
-                    && s.TestResultId == testResultId).AsQueryable();
+                .FirstAsync(s => s.SubquestionResultId == subquestionResultId);
         }
 
         public DbSet<SubquestionResultStatistics> GetSubquestionResultStatisticsDbSet()
@@ -182,26 +156,23 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultStatisticsDbSet();
         }
 
-        public DbSet<TestDifficultyStatistics> GetTestDifficultyStatisticsDbSet()
+        public async Task<SubquestionResultStatistics?> GetSubquestionResultStatistics(string login)
         {
-            return dataFunctions.GetTestDifficultyStatisticsDbSet();
+            return await dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
 
-        public SubquestionResultStatistics? GetSubquestionResultStatistics(string login)
+        public async Task<TestDifficultyStatistics?>  GetTestDifficultyStatistics(string login)
         {
-            return dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+            return await dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync
+                (s => s.UserLogin == login);
         }
 
-        public TestDifficultyStatistics? GetTestDifficultyStatistics(string login)
+        public async Task UpdateTestResultTimeStamp(string login, int testTemplateId)
         {
-            return dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
-        }
-
-        public void UpdateTestResultTimeStamp(string login, int testTemplateId)
-        {
-            TestResult testResult = GetTestResultDbSet().First(t => t.StudentLogin == login
+            TestResult testResult = await GetTestResultDbSet().FirstAsync(t => t.StudentLogin == login
                 && t.TestTemplateId == testTemplateId);
             testResult.TimeStamp = DateTime.Now;
+            await dataFunctions.SaveChangesAsync();
         }
 
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
@@ -240,44 +211,27 @@ namespace BusinessLayer
             return message;
         }
 
-        public async Task UpdateStudentsPoints(string login, int questionTemplateId, int subquestionResultId)
+        public async Task<List<TestTemplate>> GetTestingDataTestTemplates()
         {
-            List<SubquestionResult> subquestionResults = dataFunctions.GetSubquestionResults(questionTemplateId, subquestionResultId, login);
-            for(int i = 0; i < subquestionResults.Count; i++)
-            {
-                SubquestionResult subquestionResult = subquestionResults[i];
-                SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
-                (double defaultStudentsPoints, _, _) = CommonFunctions.CalculateStudentsAnswerAttributes(subquestionTemplate.SubquestionType, subquestionTemplate.PossibleAnswers,
-                    subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionPoints, subquestionTemplate.WrongChoicePoints, subquestionResult.StudentsAnswers);
-                subquestionResult.DefaultStudentsPoints = defaultStudentsPoints;
-                subquestionResult.StudentsPoints = defaultStudentsPoints;
-            }
-            await dataFunctions.SaveChangesAsync();
-        }
-
-        public List<TestTemplate> GetTestingDataTestTemplates()
-        {
-            var testTemplates = dataFunctions.GetTestTemplateDbSet()
+            return await dataFunctions.GetTestTemplateDbSet()
                 .Include(t => t.Subject)
                 .Include(t => t.QuestionTemplates)
                 .ThenInclude(q => q.SubquestionTemplates)
-                .Where(t => t.IsTestingData).ToList();
-            return testTemplates;
+                .Where(t => t.IsTestingData).ToListAsync();
         }
 
-        public List<TestResult> GetTestingDataTestResults()
+        public async Task<List<TestResult>> GetTestingDataTestResults()
         {
-            var testResults = GetTestResultDbSet()
+            return await GetTestResultDbSet()
                 .Include(t => t.QuestionResults)
                 .ThenInclude(q => q.SubquestionResults)
-                .Where(t => t.IsTestingData).ToList();
-            return testResults;
+                .Where(t => t.IsTestingData).ToListAsync();
         }
 
-        public int GetTestingDataSubquestionResultsCount()
+        public async Task<int> GetTestingDataSubquestionResultsCount()
         {
             int testingDataSubquestionResults = 0;
-            var testResults = GetTestingDataTestResults();
+            var testResults = await GetTestingDataTestResults();
             for (int i = 0; i < testResults.Count; i++)
             {
                 TestResult testResult = testResults[i];
@@ -297,13 +251,14 @@ namespace BusinessLayer
         {
             string message;
             await TestingUsersCheck();
-            User? owner = dataFunctions.GetUserByLogin("login");
-            var existingTestTemplates = GetTestingDataTestTemplates();
+            User? owner = await dataFunctions.GetUserByLogin("login");
+            var existingTestTemplates = await GetTestingDataTestTemplates();
             if(existingTestTemplates.Count == 0)
             {
                 return "Chyba: nejprve je nutné vytvořit zadání testů.";
             }
-            int testingDataTestResultsCount = GetTestingDataTestResults().Count;
+            var existingTestResults = await GetTestingDataTestResults();
+            int testingDataTestResultsCount = existingTestResults.Count;
 
             List<TestResult> testResults = new List<TestResult>();
             if (action == "addSubquestionResultRandomData")
@@ -316,7 +271,7 @@ namespace BusinessLayer
             }
             message = await dataFunctions.AddTestResults(testResults);
             string login = "login";
-            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            owner = await dataFunctions.GetUserByLoginAsNoTracking();
 
             //delete existing subquestion template records of this user
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where 'login' = '" + login + "'");
@@ -329,9 +284,9 @@ namespace BusinessLayer
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
 
             dataFunctions.ClearChargeTracker();
-            owner = dataFunctions.GetUserByLoginAsNoTracking();
+            owner = await dataFunctions.GetUserByLoginAsNoTracking();
             //managing subquestionResultStatistics
-            var subquestionResultStatistics = GetSubquestionResultStatistics(owner.Login);
+            var subquestionResultStatistics = await GetSubquestionResultStatistics(owner.Login);
             if (subquestionResultStatistics == null)
             {
                 subquestionResultStatistics = new SubquestionResultStatistics();
@@ -379,7 +334,7 @@ namespace BusinessLayer
 
         public async Task ManageTestDifficultyStatistics(List<TestResult> testResults, User owner)
         {
-            var testDifficultyStatistics = GetTestDifficultyStatistics(owner.Login);
+            var testDifficultyStatistics = await GetTestDifficultyStatistics(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             double[] subquestionTypeAverageAnswerCorrectness = DataGenerator.GetSubquestionTypeAverageAnswerCorrectness(testResults);
@@ -421,7 +376,7 @@ namespace BusinessLayer
 
         public async Task TestingUsersCheck()
         {
-            Student? student = dataFunctions.GetStudentByLogin("testingstudent");
+            Student? student = await dataFunctions.GetStudentByLogin("testingstudent");
             if (student == null)
             {
                 student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
@@ -453,18 +408,19 @@ namespace BusinessLayer
 
         public async Task<string> GetSubquestionResultPointsSuggestion(string login, int subquestionResultId)
         {
-            User owner = dataFunctions.GetUserByLogin(login);
+            User owner = await dataFunctions.GetUserByLogin(login);
 
             //check if enough subquestion results have been added to warrant new model training
             bool retrainModel = false;
-            int subquestionResultsAdded = GetSubquestionResultStatistics(login).SubquestionResultsAddedCount;
+            SubquestionResultStatistics? subquestionResultStatistics = await GetSubquestionResultStatistics(login);
+            int subquestionResultsAdded = subquestionResultStatistics.SubquestionResultsAddedCount;
             if (subquestionResultsAdded >= 100)
             {
                 retrainModel = true;
                 await RetrainSubquestionResultModel(owner);
             }
 
-            var subquestionResult = GetSubquestionResult(login, subquestionResultId);
+            var subquestionResult = await GetSubquestionResult(subquestionResultId);
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
 
             var testResults = GetTestResultList(owner.Login);
@@ -475,7 +431,7 @@ namespace BusinessLayer
 
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
                 subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionResultStatistics? currectSubquestionResultStatistics = GetSubquestionResultStatistics(login);
+            SubquestionResultStatistics? currectSubquestionResultStatistics = await GetSubquestionResultStatistics(login);
             if (!currectSubquestionResultStatistics.EnoughSubquestionResultsAdded)
             {
                 return "Pro použití této funkce je nutné aby studenti vyplnili alespoň 100 podotázek.";
@@ -484,7 +440,7 @@ namespace BusinessLayer
             double suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);
             if (subquestionResultsAdded >= 100)
             {
-                SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
+                subquestionResultStatistics = await GetSubquestionResultStatistics(login);
                 subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
                 subquestionResultStatistics.SubquestionResultsAddedCount = 0;
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "ResultNeuralNetwork.py");

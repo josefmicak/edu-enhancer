@@ -3,9 +3,11 @@
 @inject IJSRuntime JSRuntime
 
 <input type="checkbox" @onchange="@ChangeVisibilityAccepted" checked="@accepted">
-<label> Zobrazit schválené registrace</label><br>
+<label> Zobrazit schválené registrace</label>
+<br>
 <input type="checkbox" @onchange="@ChangeVisibilityRejected" checked="@rejected">
-<label> Zobrazit zamítnuté registrace</label><br>
+<label> Zobrazit zamítnuté registrace</label>
+<br>
 <button class="btn btn-primary" @onclick="UpdateVisibility">Uložit</button>
 
 @code {
@@ -18,10 +20,7 @@
     /// <param name="args">Value of checkbox for accepted registrations</param>
     private void ChangeVisibilityAccepted(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
-        if (args.Value != null)
-        {
-            accepted = (bool)args.Value;
-        } 
+        accepted = (bool)args.Value;
     }
 
     /// <summary>
@@ -30,10 +29,7 @@
     /// <param name="args">Value of checkbox for rejected registrations</param>
     private void ChangeVisibilityRejected(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
-        if (args.Value != null)
-        {
-            rejected = (bool)args.Value;
-        }
+        rejected = (bool)args.Value;
     }
 
     /// <summary>
@@ -44,7 +40,7 @@
     {
         await LocalStorage.SetAsync("visibilityAccepted", accepted);
         await LocalStorage.SetAsync("visibilityRejected", rejected);
-        await JSRuntime.InvokeVoidAsync("updateVisibility", accepted, rejected, true);
+        await JSRuntime.InvokeVoidAsync("registrationsTableUpdate", accepted, rejected, true);
     }
 
     /// <summary>
@@ -59,7 +55,7 @@
             accepted = acceptedResult.Success ? acceptedResult.Value : false;
             var rejectedResult = await LocalStorage.GetAsync<bool>("visibilityRejected");
             rejected = rejectedResult.Success ? rejectedResult.Value : false;
-            await JSRuntime.InvokeVoidAsync("updateVisibility", accepted, rejected, false);
+            await JSRuntime.InvokeVoidAsync("registrationsTableUpdate", accepted, rejected, false);
             StateHasChanged();
         }
     }

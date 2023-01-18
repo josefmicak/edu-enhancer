@@ -1,16 +1,16 @@
 //ManageUserRegistrationList.cshtml
 
-window.updateVisibility = function (accepted, rejected, text) {
+function registrationsTableUpdate(accepted, rejected, text) {
     if (accepted == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8].textContent === "Schválena") {
+            if (tr.children[7].textContent === "Schválena") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8].textContent === "Schválena") {
+            if (tr.children[7].textContent === "Schválena") {
                 tr.style.display = '';
             }
         });
@@ -18,14 +18,14 @@ window.updateVisibility = function (accepted, rejected, text) {
 
     if (rejected == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8].textContent === "Zamítnuta") {
+            if (tr.children[8] != null && tr.children[8].textContent === "Zamítnuta") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8].textContent === "Zamítnuta") {
+            if (tr.children[8] != null && tr.children[8].textContent === "Zamítnuta") {
                 tr.style.display = '';
             }
         });

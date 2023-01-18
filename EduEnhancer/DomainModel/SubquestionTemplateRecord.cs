@@ -13,8 +13,6 @@ namespace DomainModel
         [Ignore]
         public int SubquestionTemplateId { get; set; }
         [Ignore]
-        public int QuestionTemplateId { get; set; }
-        [Ignore]
         public SubquestionTemplate SubquestionTemplate { get; set; }
         [Ignore]
         public User Owner { get; set; } = default!;

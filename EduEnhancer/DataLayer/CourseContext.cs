@@ -116,10 +116,6 @@ namespace DataLayer
                 v => v.Split(';', StringSplitOptions.RemoveEmptyEntries));
 
             modelBuilder.Entity<UserRegistration>().ToTable("UserRegistration");
-            modelBuilder.Entity<UserRegistration>()
-                .HasOne(q => q.Student)
-                .WithMany()
-                .OnDelete(DeleteBehavior.SetNull);
             
             modelBuilder.Entity<GlobalSettings>().ToTable("GlobalSettings");
             modelBuilder.Entity<GlobalSettings>().HasData(
@@ -151,7 +147,7 @@ namespace DataLayer
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubquestionResultRecord>().ToTable("SubquestionResultRecord");
-            modelBuilder.Entity<SubquestionResultRecord>().HasKey(s => new { s.SubquestionTemplateRecordId });
+            modelBuilder.Entity<SubquestionResultRecord>().HasKey(s => new { s.SubquestionResultRecordId });
             modelBuilder.Entity<SubquestionResultRecord>()
                 .HasOne(s => s.Owner)
                 .WithMany()
@@ -187,8 +183,6 @@ namespace DataLayer
             modelBuilder.Entity<Subject>()
                 .HasMany(s => s.Students)
                 .WithMany(st => st.Subjects);
-               /* .HasForeignKey(s => s.GuarantorLogin)
-                .OnDelete(DeleteBehavior.Restrict);*/
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

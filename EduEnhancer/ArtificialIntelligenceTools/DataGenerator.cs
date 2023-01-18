@@ -116,7 +116,6 @@ namespace ArtificialIntelligenceTools
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             subquestionTemplateRecord.SubquestionTemplate = subquestionTemplate;
             subquestionTemplateRecord.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
-            subquestionTemplateRecord.QuestionTemplateId = subquestionTemplate.QuestionTemplateId;
             subquestionTemplateRecord.Owner = owner;
             subquestionTemplateRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
@@ -717,9 +716,6 @@ namespace ArtificialIntelligenceTools
 
             SubquestionResultRecord subquestionResultRecord = new SubquestionResultRecord();
             subquestionResultRecord.SubquestionResult = subquestionResult;
-            subquestionResultRecord.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
-            subquestionResultRecord.QuestionTemplateId = subquestionTemplate.QuestionTemplateId;
-            subquestionResultRecord.TestResultId = subquestionResult.TestResultId;
             subquestionResultRecord.Owner = owner;
             subquestionResultRecord.OwnerLogin = owner.Login;
             EnumTypes.SubquestionType subquestionType = subquestionTemplate.SubquestionType;
