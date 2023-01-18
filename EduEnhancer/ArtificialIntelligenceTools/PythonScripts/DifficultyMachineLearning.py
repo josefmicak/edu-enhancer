@@ -32,46 +32,63 @@ def get_accuracy(y_test, y_test_pred):
     print(R2)
 
 
-def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, subquestionPoints, df, model):
-    SubquestionTypeAveragePoints_mean = df["SubquestionTypeAveragePoints"].mean()
-    SubquestionTypeAveragePoints_std = df["SubquestionTypeAveragePoints"].std()
-    AnswerCorrectness_mean = df["AnswerCorrectness"].mean()
-    AnswerCorrectness_std = df["AnswerCorrectness"].std()
-    SubjectAveragePoints_mean = df["SubjectAveragePoints"].mean()
-    SubjectAveragePoints_std = df["SubjectAveragePoints"].std()
-    ContainsImage_mean = df["ContainsImage"].mean()
-    ContainsImage_std = df["ContainsImage"].std()
-    NegativePoints_mean = df["NegativePoints"].mean()
-    NegativePoints_std = df["NegativePoints"].std()
-    MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
-    MinimumPointsShare_std = df["MinimumPointsShare"].std()
+def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, subquestionPoints, df, model, duplicateColumns):
+    finalTensorValues = list() #values from non-duplicate columns
 
-    if SubquestionTypeAveragePoints_std == 0:
-        SubquestionTypeAveragePoints_std = 0.01
-    if AnswerCorrectness_std == 0:
-        AnswerCorrectness_std = 0.01
-    if SubjectAveragePoints_std == 0:
-        SubjectAveragePoints_std = 0.01
-    if ContainsImage_std == 0:
-        ContainsImage_std = 0.01
-    if NegativePoints_std == 0:
-        NegativePoints_std = 0.01
-    if MinimumPointsShare_std == 0:
-        MinimumPointsShare_std = 0.01
+    if duplicateColumns[0] != 1:
+        SubquestionTypeAveragePoints_mean = df["SubquestionTypeAveragePoints"].mean()
+        SubquestionTypeAveragePoints_std = df["SubquestionTypeAveragePoints"].std()
+        if SubquestionTypeAveragePoints_std == 0:
+            SubquestionTypeAveragePoints_std = 0.01
+        SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
+        finalTensorValues.append(SubquestionTypeAveragePoints)
 
-    SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
-    AnswerCorrectness = (AnswerCorrectness - AnswerCorrectness_mean) / AnswerCorrectness_std
-    SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
-    ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
-    NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
-    MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
+    if duplicateColumns[1] != 1:
+        AnswerCorrectness_mean = df["AnswerCorrectness"].mean()
+        AnswerCorrectness_std = df["AnswerCorrectness"].std()
+        if AnswerCorrectness_std == 0:
+            AnswerCorrectness_std= 0.01
+        AnswerCorrectness = (AnswerCorrectness - AnswerCorrectness_mean) / AnswerCorrectness_std
+        finalTensorValues.append(AnswerCorrectness)
 
-    x_unseen = torch.Tensor([SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare])
+    if duplicateColumns[2] != 1:
+        SubjectAveragePoints_mean = df["SubjectAveragePoints"].mean()
+        SubjectAveragePoints_std = df["SubjectAveragePoints"].std()
+        if SubjectAveragePoints_std == 0:
+            SubjectAveragePoints_std = 0.01
+        SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
+        finalTensorValues.append(SubjectAveragePoints)
+
+    if duplicateColumns[3] != 1:
+        ContainsImage_mean = df["ContainsImage"].mean()
+        ContainsImage_std = df["ContainsImage"].std()
+        if ContainsImage_std == 0:
+            ContainsImage_std = 0.01
+        ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
+        finalTensorValues.append(ContainsImage)
+
+    if duplicateColumns[4] != 1:
+        NegativePoints_mean = df["NegativePoints"].mean()
+        NegativePoints_std = df["NegativePoints"].std()
+        if NegativePoints_std == 0:
+            NegativePoints_std = 0.01
+        NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
+        finalTensorValues.append(NegativePoints)
+
+    if duplicateColumns[5] != 1:
+        MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
+        MinimumPointsShare_std = df["MinimumPointsShare"].std()
+        if MinimumPointsShare_std == 0:
+            MinimumPointsShare_std = 0.01
+        MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
+        finalTensorValues.append(MinimumPointsShare)
+
+    x_unseen = torch.Tensor(finalTensorValues)
     y_unseen = model.predict(torch.atleast_2d(x_unseen))
-    if round(y_unseen[0], 2) > subquestionPoints:
+    if round(y_unseen.item(), 2) > subquestionPoints:
         return subquestionPoints
     else:
-        return round(y_unseen[0], 2)
+        return round(y_unseen.item(), 2)
 
 
 def load_model(model, login, X_train, y_train, retrainModel):
@@ -137,6 +154,15 @@ def main(arguments):
     df = df.drop('SubquestionTemplateRecordId', axis=1)  # subquestion identifier is irrelevant in this context
     df = df.drop('SubquestionResultId', axis=1)  # subquestion identifier is irrelevant in this context
     df = df.drop('TestResultId', axis=1)  # test result identifier is irrelevant in this context
+
+    # check for duplicate columns and remove them
+    duplicateColumns = list()
+    for column in df:
+        if (df[column].nunique()) == 1 and column != "StudentsPoints":
+            df.drop(column, axis=1, inplace=True)
+            duplicateColumns.append(1)
+        else:
+            duplicateColumns.append(0)
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -207,7 +233,7 @@ def main(arguments):
             SubquestionTypeAverageAnswerCorrectnessArray[subquestionTemplate["SubquestionType"] - 1])
         SubjectAveragePoints = locale.atof(SubjectAveragePointsArray[TestSubjectIndex])
         PredictedTestPoints += predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
-                    NegativePoints, MinimumPointsShare, subquestionPoints, df, model)
+                    NegativePoints, MinimumPointsShare, subquestionPoints, df, model, duplicateColumns)
     print(round(PredictedTestPoints, 2))
 
 

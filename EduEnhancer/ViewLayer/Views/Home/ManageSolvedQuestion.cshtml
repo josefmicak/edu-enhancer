@@ -32,7 +32,7 @@
     SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
     EnumTypes.NegativePoints negativePoints = subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints;
 
-    ViewData["Title"] = "Správa vyřešené otázky " + subquestionResult.QuestionTemplateId;
+    ViewData["Title"] = "Správa vyřešené otázky";
 
     bool singleSubquestion = true;
     if(Model.Count() > 1)
@@ -117,11 +117,10 @@
             }
         }
     }
-    
 }
 
 <div class="text-center">
-    <h1>Správa vyřešené otázky @subquestionResult.QuestionTemplateId</h1>
+    <h1>Správa vyřešené otázky</h1>
 
     <div id="question-template">
         <h2>Parametry otázky</h2>
@@ -259,7 +258,7 @@
     <div id="subquestion-result-points">
         <h2>Upravit body</h2>
         <p>@ViewBag.Message</p>
-        <form method="POST">
+        <form method="POST" onsubmit="onSubquestionResultPointsFormSubmission()">
             <input type="hidden" value="@subquestionResult.QuestionResult.QuestionResultId" name="questionResultId">
             <input type="hidden" value="@subquestionResult.SubquestionResultId" name="subquestionResultId">
             <input type="hidden" value="@subquestionTemplate.SubquestionPoints" name="subquestionPoints">
@@ -275,7 +274,14 @@
                 }
                 else
                 {
-                    <p>Počet bodů (doporučení AI): <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
+                    <p>
+                        <div id="suggested-points-label">
+                            Doporučený počet bodů za otázku:
+                        </div>
+                        <div id="suggested-points-button">
+                            <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button>
+                        </div>
+                    </p>
                 }
             }
             <button type="submit" value="setPoints" name="action">Uložit</button>

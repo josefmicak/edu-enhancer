@@ -24,7 +24,7 @@
 }
 
 <div class="text-center">
-    <h1>Úprava zadání otázky</h1>
+    <h1>Úprava zadání podotázky</h1>
 
     <div id="subquestion-details">
         <h2>Detaily podotázky</h2>
@@ -316,7 +316,12 @@
                     }
                     else
                     {
-                        <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
+                        <div id="suggested-points-label">
+                            Doporučený počet bodů za otázku:
+                        </div>
+                        <div id="suggested-points-button">
+                            <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button>
+                        </div>
                     }
                 }
                 <p>

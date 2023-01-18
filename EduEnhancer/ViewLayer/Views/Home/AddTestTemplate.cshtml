@@ -5,6 +5,22 @@
 @{
     List<Subject> subjectList = Model.Subjects;
 
+    TestTemplate testTemplate = Model.TestTemplate;
+    if(testTemplate.Subject == null)
+    {
+        testTemplate.Subject = subjectList[0];
+    }
+    var startDate = testTemplate.StartDate.ToString("yyyy-MM-ddTHH:mm");
+    if (startDate == "0001-01-01T00:00")
+    {
+        startDate = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    }
+    var endDate = testTemplate.EndDate.ToString("yyyy-MM-ddTHH:mm");
+    if (endDate == "0001-01-01T00:00")
+    {
+        endDate = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    }
+    
     ViewData["Title"] = "Vytvoření zadání testu";
 }
 
@@ -15,15 +31,15 @@
 
     <form method="POST">
         <label for="title">Nadpis:</label>
-        <input type="text" required id="title" name="Title"><br>
+        <input type="text" required id="title" name="Title" value="@testTemplate.Title"><br>
         <p>Záporné body:</p>
-        <p><input class="radio input" checked title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="negativePointsDisabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
-        <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="negativePointsEnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
-        <p><input class="radio input" title="Zapnuto" type="radio" id="negativePointsEnabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
+        <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
+        <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
+        <p><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
         <p>Čas začátku testu:</p>
-        <p><input type="datetime-local" required name="StartDate"></p>
+        <p><input type="datetime-local" required name="StartDate" value="@startDate"></p>
         <p>Čas konce testu:</p>
-        <p><input type="datetime-local" required name="EndDate"></p>
+        <p><input type="datetime-local" required name="EndDate" value="@endDate"></p>
         @{
             if (subjectList.Count == 0)
             {
@@ -47,6 +63,11 @@
         }
     </form>
 </div>
+
+<script src="/js/site.js"></script>
+<script>
+    editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId');
+</script>
 
 <div id="backBtn">
     <a asp-action="TestTemplateList">Zpět</a>

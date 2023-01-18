@@ -33,11 +33,11 @@
         questionsAdded = false;
     }
 
-    ViewData["Title"] = "Správa zadání testu " + Model.First().TestTemplate.TestTemplateId;
+    ViewData["Title"] = "Správa zadání testu";
 }
 
 <div class="text-center">
-    <h1>Správa zadání testu @Model.First().TestTemplate.TestTemplateId</h1>
+    <h1>Správa zadání testu</h1>
 
     <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testTemplateId="@Model.First().TestTemplate.TestTemplateId">Přidat otázku</a>
 
@@ -123,7 +123,7 @@
 
 <div id="test-difficulty">
     <h2>Obtížnost testu</h2>
-    <form method="POST">
+    <form method="POST" onsubmit="onTestDifficultyFormSubmission()">
         <p>@ViewBag.PredictedTestPointsMessage</p>
         @{
             if (userRequestedDifficultyPrediction)
@@ -133,7 +133,14 @@
             }
             else
             {
-                <p>Předpokládaný průměrný počet bodů: <button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button></p>
+                <p>
+                    <div id="suggested-points-label">
+                        Předpokládaný průměrný počet bodů:
+                    </div>
+                    <div id="suggested-points-button">
+                        <button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button>
+                    </div>
+                </p>
             }
         }
     </form>

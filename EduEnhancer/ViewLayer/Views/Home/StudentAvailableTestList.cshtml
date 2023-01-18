@@ -19,7 +19,6 @@
                         <th>Otevřít</th>
                     </tr>
                     @{
-                        int i = 0;
                         foreach (var item in Model)
                         {
                             string subjectString = item.Subject.SubjectString();
@@ -29,7 +28,7 @@
                                 <td>@Html.DisplayFor(modelItem => subjectString)</td>
                                 <td>@teacherFullName</td>
                                 <td>
-                                    <a class="button" id="testTemplateBtn_@i" title="Správa testu"
+                                    <a class="button" title="Správa testu"
                                        asp-area=""
                                        asp-controller="Home"
                                        asp-action="StudentAvailableTest"

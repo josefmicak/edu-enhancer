@@ -26,7 +26,7 @@
                         <td>@Html.DisplayFor(modelItem => fullName)</td>
                         <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
                         <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultId', null, null, null, null, null)">Smazat test</button></td>
-                        <td><a class="button" id="manageSolvedTestBtn_@i" title="Správa testu"
+                        <td><a class="button" title="Správa testu"
                             asp-area="" 
                             asp-controller="Home" 
                             asp-action="ManageSolvedTest" 

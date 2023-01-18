@@ -18,5 +18,12 @@ namespace Common
         }
         public static Exception AccessDeniedException { get { return new Exception("Chyba: přístup zamítnut."); } }
         public static Exception NoElementsFoundException { get { return new Exception("Chyba: stránku nelze zobrazit."); } }
+        public static Exception PythonException(string fileName, string functionName, string stderr)
+        {
+            return new Exception("Chyba: při práci s python skriptem došlo k chybě." +
+                "\nJméno souboru: " + fileName + 
+                "\nJméno funkce: " + functionName + 
+                "\nChybová hláška: " + stderr);
+        }
     }
 }

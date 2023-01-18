@@ -572,7 +572,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = "Chyba: na prohlížení tohoto testu nemáte právo.";
                 return RedirectToAction(nameof(BrowseSolvedTestList));
             }
-            else if(testResult.TestTemplate.EndDate > DateTime.Now)
+            else if(testResult.TestTemplate.EndDate > DateTime.Now && !testResult.TestTemplate.IsTestingData)
             {
                 ViewBag.Message = "Chyba: tento test budete moct prohlížet až po " + testResult.TestTemplate.EndDate.ToString();
                 return RedirectToAction(nameof(BrowseSolvedTestList));
@@ -1450,11 +1450,11 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> ManageArtificialIntelligence(string action, string amountOfSubquestionTemplates, string amountOfSubquestionResults)
         {
-            if(action == "addSubquestionTemplateRandomData" || action == "addSubquestionTemplateCorrelationalData")
+            if (action == "addSubquestionTemplateRandomData" || action == "addSubquestionTemplateCorrelationalData")
             {
                 TempData["Message"] = await businessLayerFunctions.CreateTemplateTestingData(action, amountOfSubquestionTemplates);
             }
-            else if(action == "deleteSubquestionTemplateTestingData")
+            else if (action == "deleteSubquestionTemplateTestingData")
             {
                 await businessLayerFunctions.DeleteTemplateTestingData();
                 TempData["Message"] = "Testovací data úspěšně vymazány.";
@@ -1468,7 +1468,7 @@ namespace ViewLayer.Controllers
                 await businessLayerFunctions.DeleteResultTestingData();
                 TempData["Message"] = "Testovací data úspěšně vymazány.";
             }
-            else if(action == "getDeviceName")
+            else if (action == "getDeviceName")
             {
                 TempData["DeviceName"] = businessLayerFunctions.GetAIDeviceName();
             }
@@ -1476,7 +1476,7 @@ namespace ViewLayer.Controllers
             return RedirectToAction(nameof(ManageArtificialIntelligence));
         }
 
-        public async Task<IActionResult> AddTestTemplate()
+        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate)
         {
             if (TempData["Message"] != null)
             {
@@ -1484,13 +1484,13 @@ namespace ViewLayer.Controllers
             }
 
             dynamic model = new ExpandoObject();
-            model.TestTemplate = new TestTemplate();
+            model.TestTemplate = testTemplate;
             model.Subjects = await businessLayerFunctions.GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate, string subjectId)
+        public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate, string subjectId, string _)
         {
             string message = await businessLayerFunctions.AddTestTemplate(testTemplate, subjectId);
             TempData["Message"] = message;
@@ -1500,7 +1500,9 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(AddTestTemplate));
+                //testTemplate.Subject.SubjectId = int.Parse(subjectId);
+                return RedirectToAction("AddTestTemplate", "Home", new RouteValueDictionary(testTemplate));
+                //return RedirectToAction("AddTestTemplate", "Home", subjectId, new RouteValueDictionary(testTemplate));
             }
         }
 

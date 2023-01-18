@@ -43,7 +43,7 @@
         subquestionsAdded = false;
     }
 
-    ViewData["Title"] = "Správa zadání otázky " + subquestionTemplate.QuestionTemplate.QuestionTemplateId;
+    ViewData["Title"] = "Správa zadání otázky";
 
     bool singleSubquestion = true;
     if(Model.Count() > 1)
@@ -70,7 +70,7 @@
 }
 
 <div class="text-center">
-    <h1>Správa zadání otázky @subquestionTemplate.QuestionTemplate.QuestionTemplateId</h1>
+    <h1>Správa zadání otázky</h1>
 
     <div id="question-template">
         <h2>Parametry otázky</h2>

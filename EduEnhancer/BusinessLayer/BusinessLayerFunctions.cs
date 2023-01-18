@@ -81,7 +81,8 @@ namespace BusinessLayer
 
         public bool CanUserEditTestTemplate(TestTemplate testTemplate)
         {
-            return templateFunctions.CanUserEditTestTemplate(testTemplate);
+            string login = GetCurrentUserLogin();
+            return templateFunctions.CanUserEditTestTemplate(testTemplate, login);
         }
 
         public IQueryable<QuestionTemplate> GetQuestionTemplates(string login, int testTemplateId)
@@ -289,16 +290,25 @@ namespace BusinessLayer
             Student? student = GetStudentByLogin(login);
             if(student != null)
             {
-                List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
-                    && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
-                foreach (TestTemplate testTemplate in testTemplates)
+                if (student.IsTestingData)
                 {
-                    if (GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
-                    {
-                        testTemplates.Remove(testTemplate);
-                    }
+                    return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
+                        && t.IsTestingData).ToList();
                 }
-                return testTemplates;
+                else
+                {
+                    List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
+                        && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
+                    foreach (TestTemplate testTemplate in testTemplates)
+                    {
+                        if (GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
+                        {
+                            testTemplates.Remove(testTemplate);
+                        }
+                    }
+                    return testTemplates;
+                }
+
             }
             else
             {

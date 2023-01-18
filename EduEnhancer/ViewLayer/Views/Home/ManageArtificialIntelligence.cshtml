@@ -31,20 +31,20 @@
     <p>@ViewBag.Message</p>
 
     <div id="neural-network-templates">
-        <h2>Šablony podotázek</h2>
+        <h2>Zadání podotázek</h2>
+        <p><div id="templates-added-label" style="display:none">Probíhá přidávání zadání podotázek..</div></p>
         <p>Počet existujících testovacích dat (šablony podotázek): @ViewBag.TestingDataSubquestionTemplates</p>
-        <br />
-        <form method="POST">
+        <br>
+        <form method="POST" onsubmit="onAddTestingSubquestionTemplatesFormSubmission()">
             Přidat testovací data - náhodná data<br />
             Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" class="btn btn-primary" />
             <input type="hidden" value="addSubquestionTemplateRandomData" name="action">
         </form>
-        <form method="POST">
+        <form method="POST" onsubmit="onAddTestingSubquestionTemplatesFormSubmission()">
             Přidat testovací data - data s kolerací<br />
             Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" class="btn btn-primary" />
             <input type="hidden" value="addSubquestionTemplateCorrelationalData" name="action">
         </form>
-
         <form method="POST">
             <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
             <input type="hidden" value="deleteSubquestionTemplateTestingData" name="action">
@@ -86,19 +86,19 @@
 
     <div id="neural-network-results">
         <h2>Výsledky podotázek</h2>
+        <p><div id="results-added-label" style="display:none">Probíhá přidávání výsledků podotázek..</div></p>
         <p>Počet existujících testovacích dat (výsledky podotázek): @ViewBag.TestingDataSubquestionResults</p>
-        <br />
-        <form method="POST">
+        <br>
+        <form method="POST" onsubmit="onAddTestingSubquestionResultsFormSubmission()">
             Přidat testovací data - náhodná data<br />
             Počet testovacích dat (výsledky podotázek): <input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" class="btn btn-primary" />
             <input type="hidden" value="addSubquestionResultRandomData" name="action">
         </form>
-        <form method="POST">
+        <form method="POST" onsubmit="onAddTestingSubquestionResultsFormSubmission()">
             Přidat testovací data - data s kolerací<br />
             Počet testovacích dat (výsledky podotázek): <input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" class="btn btn-primary" />
             <input type="hidden" value="addSubquestionResultCorrelationalData" name="action">
         </form>
-
         <form method="POST">
             <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
             <input type="hidden" value="deleteSubquestionResultTestingData" name="action">
@@ -137,8 +137,13 @@
             }
         </table>
     </div>
-
 </div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="/js/site.js"></script>
+<script>
+    testt();
+</script>
 
 <div id="backBtn">
     <a asp-action="MainAdminMenu">Zpět</a>

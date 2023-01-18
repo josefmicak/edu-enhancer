@@ -413,13 +413,16 @@ namespace BusinessLayer
             {
                 errorMessage = "Chyba: nejste přihlášen k tomuto předmětu.";
             }
-            if(testTemplate.StartDate > DateTime.Now)
+            if (!testTemplate.IsTestingData)
             {
-                errorMessage = "Chyba: tento test můžete vyplnit až po " + testTemplate.StartDate;
-            }
-            if (testTemplate.EndDate < DateTime.Now)
-            {
-                errorMessage = "Chyba: tento test bylo možné vyplnit pouze do " + testTemplate.EndDate;
+                if (testTemplate.StartDate > DateTime.Now)
+                {
+                    errorMessage = "Chyba: tento test můžete vyplnit až po " + testTemplate.StartDate;
+                }
+                if (testTemplate.EndDate < DateTime.Now)
+                {
+                    errorMessage = "Chyba: tento test bylo možné vyplnit pouze do " + testTemplate.EndDate;
+                }
             }
             return errorMessage;
         }

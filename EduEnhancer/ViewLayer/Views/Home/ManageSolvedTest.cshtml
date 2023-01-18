@@ -10,11 +10,11 @@
 
     double testPoints = 0;
 
-    ViewData["Title"] = "Správa řešení testu " + Model.First().TestResult.TestResultId;
+    ViewData["Title"] = "Správa vyřešeného testu";
 }
 
 <div class="text-center">
-    <h1>Správa řešení testu @Model.First().TestResult.TestResultId</h1>
+    <h1>Správa vyřešeného testu</h1>
 
     <div id="test-result">
         <h2>Parametry pokusu</h2>
@@ -89,7 +89,7 @@
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
                         <td>@studentsQuestionPointsString</td>
-                        <td><a class="button" id="questionResultBtn_@i" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
+                        <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
                        asp-route-questionResultId="@item.QuestionResultId">Správa otázky</a>
                         </td>
                     </tr>

@@ -837,7 +837,10 @@ namespace DataLayer
 
         public void AttachUser(User user)
         {
-            _context.Users.Attach(user);
+            if(user != null)
+            {
+                _context.Users.Attach(user);
+            }
         }
     }
 }

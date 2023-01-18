@@ -207,25 +207,25 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
     document.getElementById("action").value = action;
     if (action == "deleteTemplate") {
         document.getElementById("testTemplateId").value = identifier;
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit testovou šablonu s identifikátorem '" + identifier + "'?";
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit tuto testovou šablonu?";
     }
     else if (action == "deleteAllTemplates") {
         document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechny testovací šablony?";
     }
     else if (action == "deleteQuestionTemplate") {
         document.getElementById("questionTemplateId").value = identifier;
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání otázky s identifikátorem '" + identifier + "'?";
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit toto zadání otázky?";
     }
     else if (action == "deleteSubquestionTemplate") {
         document.getElementById("subquestionTemplateIdToDelete").value = identifier;
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit zadání podotázky s identifikátorem '" + identifier + "'?";
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit toto zadání podotázky?";
     }
     else if (action == "deleteResult") {
         document.getElementById("testResultId").value = identifier;
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit výsledek s identifikátorem '" + identifier + "'?";
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit toto řešení testu?";
     }
     else if (action == "deleteAllResults") {
-        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechny výsledky testů?";
+        document.getElementById("confirm-action-label").innerHTML = "Opravdu si přejete odstranit všechna řešení testů?";
     }
     else if (action == "deleteRegistration" || action == "refuseRegistration") {
         document.getElementById("email").value = email;
@@ -848,6 +848,11 @@ function deleteCorrectAnswer(clicked_id, subquestionType) {
 
 //just before form submission, certain fields have to be modified so that they get properly binded to the SubquestionTemplate
 function onAddSubquestionFormSubmission(subquestionType) {
+    var suggestedPointsLabel = document.getElementById("suggested-points-label");
+    suggestedPointsLabel.innerHTML = "Doporučený počet bodů za otázku: probíhá výpočet..";
+    var suggestedPointsButton = document.getElementById("suggested-points-button");
+    suggestedPointsButton.style.display = "none";
+
     if (subquestionType == 2 || subquestionType == 6) {
         //correct answer selects are enabled so that they get binded to subquestionTemplate
         $('.correct-answer-select').prop('disabled', false);
@@ -953,7 +958,9 @@ function setSubquestionTypeDetails(subquestionType) {
         "Úkolem je dané možné odpovědi doplnit na správná místa ve větách.",
         "Úkolem je zvolit z posuvníku správnou odpověď (v číselné formě)."
     ];
-    document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[subquestionType + 1];
+    if (document.getElementById("subquestion-type-details") != null) {
+        document.getElementById("subquestion-type-details").innerHTML = subquestionTypeDetailsArray[subquestionType + 1];
+    }
 }
 
 function removeImage() {
@@ -1042,7 +1049,9 @@ function editSubquestionText(action) {
 function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) {
     if (subquestionType != 0 && changeIndex)
     {
-        document.getElementById("subquestionType").selectedIndex = parseInt(subquestionType - 1);
+        if (document.getElementById("subquestionType") != null) {
+            document.getElementById("subquestionType").selectedIndex = parseInt(subquestionType - 1);
+        }
         setSubquestionTypeDetails(subquestionType - 1);
     }
 
@@ -1812,19 +1821,22 @@ function turnTestIn() {
     }
 }
 
-//EditTestTemplate.cshtml
+//AddTestTemplate.cshtml / EditTestTemplate.cshtml
 
-function editTestTemplatePostProcessing(negativePoints, subjectId, startDate, endDate) {
+function editTestTemplatePostProcessing(negativePoints, subjectId) {
+    console.log(negativePoints);
+    console.log(subjectId);
     document.getElementById(negativePoints).checked = true;
     document.getElementById("subject").value = subjectId;
-
-    //document.getElementById("StartDate").value = parseDate(startDate);
-    //document.getElementById("EndDate").value = parseDate(endDate);
 }
 
-function parseDate(date) {
-    return new Date(parseInt(/-?\d+/.exec(date)[0]))
+function onTestDifficultyFormSubmission() {
+    var suggestedPointsLabel = document.getElementById("suggested-points-label");
+    suggestedPointsLabel.innerHTML = "Předpokládaný průměrný počet bodů: probíhá výpočet..";
+    var suggestedPointsButton = document.getElementById("suggested-points-button");
+    suggestedPointsButton.style.display = "none";
 }
+
 
 //SolvedQuestion.cshtml
 
@@ -1845,6 +1857,27 @@ function navigateToSolvedSubquestion(subquestionIndex) {
     var nextSubquestionButton = document.getElementById("nextSubquestion");
     nextSubquestionButton.disabled = false;
     nextSubquestionButton.click();
+}
+
+//ManageSolvedQuestion.cshtml
+
+function onSubquestionResultPointsFormSubmission() {
+    var suggestedPointsLabel = document.getElementById("suggested-points-label");
+    suggestedPointsLabel.innerHTML = "Doporučený počet bodů za otázku: probíhá výpočet..";
+    var suggestedPointsButton = document.getElementById("suggested-points-button");
+    suggestedPointsButton.style.display = "none";
+}
+
+//ManageArtificialIntelligence.cshtml
+
+function onAddTestingSubquestionTemplatesFormSubmission() {
+    var templatesAddedLabel = document.getElementById("templates-added-label");
+    templatesAddedLabel.style.display = "inline";
+}
+
+function onAddTestingSubquestionResultsFormSubmission() {
+    var templatesAddedLabel = document.getElementById("results-added-label");
+    templatesAddedLabel.style.display = "inline";
 }
 
 //General

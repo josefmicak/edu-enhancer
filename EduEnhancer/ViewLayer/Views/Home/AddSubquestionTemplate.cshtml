@@ -35,7 +35,7 @@
 }
 
 <div class="text-center">
-    <h1>Vytvoření zadání otázky</h1>
+    <h1>Vytvoření zadání podotázky</h1>
 
     <div id="subquestion-type">
         <h2>Typ podotázky</h2>
@@ -346,7 +346,14 @@
                         }
                         else
                         {
-                            <p>Doporučený počet bodů za otázku: <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button></p>
+                            <p>
+                                <div id="suggested-points-label">
+                                    Doporučený počet bodů za otázku:
+                                </div>
+                                <div id="suggested-points-button">
+                                    <button type="submit" value="getPointsSuggestion" name="action">Zobrazit</button>
+                                </div>
+                            </p>
                         }
                     }
                     <p>
@@ -380,7 +387,7 @@
 </div>
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="/js/site.js" charset="utf-8"></script>
+<script src="/js/site.js"></script>
 <script>
     addSubquestionTemplatePagePostProcessing(@selectedSubquestionType, 'true');
 </script>

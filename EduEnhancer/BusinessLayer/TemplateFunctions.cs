@@ -228,13 +228,27 @@ namespace BusinessLayer
             return (errorMessage, testTemplate);
         }
 
-        public bool CanUserEditTestTemplate(TestTemplate testTemplate)
+        public bool CanUserEditTestTemplate(TestTemplate testTemplate, string login)
         {
-            if(testTemplate.StartDate > DateTime.Now)
+            if (testTemplate.IsTestingData)
             {
                 return true;
             }
-            return false;
+            bool startTimeCheck = false;
+            bool userLoginCheck = false;
+            if(testTemplate.StartDate > DateTime.Now)
+            {
+                startTimeCheck = true;
+            }
+            if(login == testTemplate.OwnerLogin)
+            {
+                userLoginCheck = true;
+            }
+            if(!startTimeCheck || !userLoginCheck)
+            {
+                return false;
+            }
+            return true;
         }
 
         public async Task<string> DeleteTestTemplates(string login)
@@ -868,7 +882,7 @@ namespace BusinessLayer
                 return "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek.";
             }
             Model usedModel = currentSubquestionTemplateStatistics.UsedModel;
-            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
+            double suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
             if (subquestionTemplatesAdded >= 100)
             {
                 SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
@@ -887,7 +901,7 @@ namespace BusinessLayer
                 await dataFunctions.SaveChangesAsync();
             }
 
-            return suggestedSubquestionPoints;
+            return suggestedSubquestionPoints.ToString();
         }
 
         public async Task RetrainSubquestionTemplateModel(User owner)
@@ -935,6 +949,12 @@ namespace BusinessLayer
         public async Task<string> CreateTemplateTestingData(string action, string amountOfSubquestionTemplates)
         {
             string message;
+
+            if(Convert.ToInt32(amountOfSubquestionTemplates) < 1)
+            {
+                return "Chyba: je nutné zadat kladnou hodnotu počtu testovacích dat.";
+            }
+
             await TestingUsersCheck();
             User? owner = dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = GetTestingDataTestTemplates();

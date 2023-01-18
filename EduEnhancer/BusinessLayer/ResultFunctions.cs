@@ -481,7 +481,7 @@ namespace BusinessLayer
                 return "Pro použití této funkce je nutné aby studenti vyplnili alespoň 100 podotázek.";
             }
             Model usedModel = currectSubquestionResultStatistics.UsedModel;
-            string suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);
+            double suggestedSubquestionPoints = PythonFunctions.GetSubquestionResultSuggestedPoints(login, retrainModel, currentSubquestionResultRecord, usedModel);
             if (subquestionResultsAdded >= 100)
             {
                 SubquestionResultStatistics subquestionResultStatistics = GetSubquestionResultStatistics(login);
@@ -502,7 +502,7 @@ namespace BusinessLayer
                 await dataFunctions.SaveChangesAsync();
             }
 
-            return suggestedSubquestionPoints;
+            return suggestedSubquestionPoints.ToString();
         }
 
         public async Task RetrainSubquestionResultModel(User owner)
@@ -881,7 +881,7 @@ namespace BusinessLayer
 
             //check if test template's end date has already passed
             DateTime endDate = subquestionTemplate.QuestionTemplate.TestTemplate.EndDate;
-            if(endDate < DateTime.Now)
+            if(endDate < DateTime.Now && !subquestionTemplate.QuestionTemplate.TestTemplate.IsTestingData)
             {
                 errorMessage = "Čas na odevdzání testu již vypršel. Test byl automaticky odevzdán.";
             }

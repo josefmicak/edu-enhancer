@@ -962,7 +962,7 @@ namespace ArtificialIntelligenceTools
                     }
                     break;
                 case SubquestionType.GapMatch:
-                    for (int l = 0; l < correctAnswerArray.Length; l++)
+                    for (int l = 0; l < correctAnswerArray.Length / 2; l++)
                     {
                         studentsAnswers.Add(correctAnswerArray[l]);
                     }
@@ -971,7 +971,7 @@ namespace ArtificialIntelligenceTools
                     int answerIndex = 0;
                     while (true)
                     {
-                        if (answerIndex == possibleAnswerArray.Length)
+                        if (answerIndex > possibleAnswerArray.Length / 2)
                         {
                             break;
                         }
