@@ -27,23 +27,23 @@ namespace BusinessLayer
             return dataFunctions.GetGlobalSettingsDbSet();
         }
 
-        public async Task<GlobalSettings> GetGlobalSettings()
+        public GlobalSettings GetGlobalSettings()
         {
-            return await dataFunctions.GetGlobalSettings();
+            return dataFunctions.GetGlobalSettings();
         }
 
-        public async Task<bool> GetTestingMode()
+        public bool GetTestingMode()
         {
-            GlobalSettings globalSettings = await GetGlobalSettings();
+            GlobalSettings globalSettings = GetGlobalSettings();
             return globalSettings.TestingMode;
         }
 
         /// <summary>
         /// In case testing mode has been previously enabled, it is automatically turned on after the application is started again
         /// </summary>
-        public async Task InitialTestingModeSettings()
+        public void InitialTestingModeSettings()
         {
-            Config.TestingMode = await GetTestingMode();
+            Config.TestingMode = GetTestingMode();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace BusinessLayer
 
         public async Task ChangeGlobalSettings(string testingMode)
         {
-            var globalSettings = await GetGlobalSettings();
+            var globalSettings = GetGlobalSettings();
             if (globalSettings != null)
             {
                 if (testingMode == "testingModeOff")

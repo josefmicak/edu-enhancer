@@ -25,12 +25,17 @@ namespace BusinessLayer
             return dataFunctions.GetUserDbSet();
         }
 
-        public async Task<User?> GetUserByLogin(string login)
+        public async Task<User> GetUserByLogin(string login)
         {
             return await dataFunctions.GetUserByLogin(login);
         }
 
-        public async Task<User?> GetUserByEmail(string email)
+        public async Task<User?> GetUserByLoginNullable(string login)
+        {
+            return await dataFunctions.GetUserByLoginNullable(login);
+        }
+
+        public async Task<User?> GetUserByEmailNullable(string email)
         {
             return await GetUserDbSet().FirstOrDefaultAsync(u => u.Email == email);
         }
@@ -40,12 +45,22 @@ namespace BusinessLayer
             return dataFunctions.GetStudentDbSet();
         }
         
-        public async Task<Student?> GetStudentByLogin(string login)
+        public async Task<Student> GetStudentByLogin(string login)
         {
-            return await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);
+            Student? student = await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);
+            if(student == null)
+            {
+                throw Exceptions.StudentNotFoundException(login);
+            }
+            return student;
         }
 
-        public async Task<Student?> GetStudentByEmail(string email)
+        public async Task<Student?> GetStudentByLoginNullable(string login)
+        {
+            return await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);;
+        }
+
+        public async Task<Student?> GetStudentByEmailNullable(string email)
         {
             return await GetStudentDbSet().FirstOrDefaultAsync(s => s.Email == email);
         }

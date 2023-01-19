@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using static Common.EnumTypes;
 using Microsoft.AspNetCore.Http;
+using ArtificialIntelligenceTools;
 
 namespace BusinessLayer
 {
@@ -46,26 +47,27 @@ namespace BusinessLayer
         public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string login = GetCurrentUserLogin();
+            User owner = await GetUserByLogin(login);
             testTemplate.OwnerLogin = login;
-            testTemplate.Owner = await GetUserByLogin(login);
+            testTemplate.Owner = owner;
             return await templateFunctions.AddTestTemplate(testTemplate, subjectId);
         }
 
         public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string login = GetCurrentUserLogin();
-            testTemplate.OwnerLogin = login;
-            testTemplate.Owner = await GetUserByLogin(login);
-            return await templateFunctions.EditTestTemplate(testTemplate, subjectId);
+            return await templateFunctions.EditTestTemplate(login, testTemplate, subjectId);
         }
 
-        public async Task<string> DeleteTestTemplates(string login)
+        public async Task<string> DeleteTestTemplates()
         {
+            string login = GetCurrentUserLogin();
             return await templateFunctions.DeleteTestTemplates(login);
         }
 
-        public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
+        public async Task<string> DeleteTestTemplate(int testTemplateId, string webRootPath)
         {
+            string login = GetCurrentUserLogin();
             return await templateFunctions.DeleteTestTemplate(login, testTemplateId, webRootPath);
         }
 
@@ -92,7 +94,8 @@ namespace BusinessLayer
 
         public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
         {
-            return await templateFunctions.EditQuestionTemplate(questionTemplate);
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.EditQuestionTemplate(questionTemplate, login);
         }
 
         public async Task<string> DeleteQuestionTemplate(int questionTemplateId, string webRootPath)
@@ -119,13 +122,13 @@ namespace BusinessLayer
 
         public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
         {
-            return await templateFunctions.EditSubquestionTemplate(subquestionTemplate, image, webRootPath);
+            string login = GetCurrentUserLogin();
+            return await templateFunctions.EditSubquestionTemplate(subquestionTemplate, image, webRootPath, login);
         }
 
         public async Task<string> DeleteSubquestionTemplate(int subquestionTemplateId, string webRootPath)
         {
             string login = GetCurrentUserLogin();
-            await DeleteSubquestionResults(subquestionTemplateId);
             return await templateFunctions.DeleteSubquestionTemplate(login, subquestionTemplateId, webRootPath);
         }
 
@@ -213,17 +216,15 @@ namespace BusinessLayer
         public async Task<string> AddSubject(Subject subject, string[] enrolledStudentLogin)
         {
             string login = GetCurrentUserLogin();
+            User guarantor = await GetUserByLogin(login);
             subject.GuarantorLogin = login;
-            subject.Guarantor = await GetUserByLogin(login);
+            subject.Guarantor = guarantor;
 
             List<Student> studentList = new List<Student>();
             for(int i = 0; i < enrolledStudentLogin.Length; i++)
             {
-                Student? student = await GetStudentByLogin(enrolledStudentLogin[i]);
-                if(student != null)
-                {
-                    studentList.Add(student);
-                }
+                Student student = await GetStudentByLogin(enrolledStudentLogin[i]);
+                studentList.Add(student);
             }
             subject.Students = studentList;
             return await templateFunctions.AddSubject(subject);
@@ -232,58 +233,55 @@ namespace BusinessLayer
         public async Task<string> EditSubject(Subject subject, string[] enrolledStudentLogin)
         {
             string login = GetCurrentUserLogin();
-            User user = await GetUserByLogin(login);
+            User guarantor = await GetUserByLogin(login);
 
             List<Student> studentList = new List<Student>();
             for (int i = 0; i < enrolledStudentLogin.Length; i++)
             {
-                Student? student = await GetStudentByLogin(enrolledStudentLogin[i]);
-                if (student != null)
-                {
-                    studentList.Add(student);
-                }
+                Student student = await GetStudentByLogin(enrolledStudentLogin[i]);
+                studentList.Add(student);
             }
             subject.Students = studentList;
-            return await templateFunctions.EditSubject(subject, user);
+            return await templateFunctions.EditSubject(subject, guarantor);
         }
 
         public async Task<string> DeleteSubject(int subjectId)
         {
             string login = GetCurrentUserLogin();
             Subject? subject = await GetSubjectById(subjectId);
-            User user = await GetUserByLogin(login);
-            return await templateFunctions.DeleteSubject(subject, user);
+            User guarantor = await GetUserByLogin(login);
+            return await templateFunctions.DeleteSubject(subject, guarantor);
         }
 
         public async Task<List<TestTemplate>> GetStudentAvailableTestList(string login)
         {
-            Student? student = await GetStudentByLogin(login);
-            if(student != null)
+            Student student = await GetStudentByLogin(login);
+            if (student.IsTestingData)
             {
-                if (student.IsTestingData)
-                {
-                    return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
-                        && t.IsTestingData).ToList();
-                }
-                else
-                {
-                    List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
-                        && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
-                    foreach (TestTemplate testTemplate in testTemplates)
-                    {
-                        if (await GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
-                        {
-                            testTemplates.Remove(testTemplate);
-                        }
-                    }
-                    return testTemplates;
-                }
-
+                return GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
+                    && t.IsTestingData).ToList();
             }
             else
             {
-                throw Exceptions.UserNotFoundException;
+                List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
+                    && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
+                foreach (TestTemplate testTemplate in testTemplates)
+                {
+                    if (await GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
+                    {
+                        testTemplates.Remove(testTemplate);
+                    }
+                }
+                return testTemplates;
             }
+        }
+
+        public async Task GenerateTemplatesFile()
+        {
+            var testTemplates = await GetTestTemplates("login");
+            List<Subject> testingDataSubjects = await GetSubjectDbSet().Where(t => t.IsTestingData == true).ToListAsync();
+            bool dataColleration = true;
+            DataGenerator.GenerateTemplatesFile(dataColleration, testingDataSubjects);
         }
 
         //ResultFunctions.cs
@@ -318,44 +316,26 @@ namespace BusinessLayer
             return await resultFunctions.GetTestResult(testResultId);
         }
 
-        public async Task<string?> BeginStudentAttempt(int testTemplateId, string login)
+        public async Task<string?> BeginStudentAttempt(int testTemplateId)
         {
+            string login = GetCurrentUserLogin();
             TestTemplate testTemplate = await GetTestTemplate(testTemplateId);
-            Student? student = await GetStudentByLogin(login);
-            if (student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                return await resultFunctions.BeginStudentAttempt(testTemplate, student);
-            }
+            Student student = await GetStudentByLogin(login);
+            return await resultFunctions.BeginStudentAttempt(testTemplate, student);
         }
 
-        public async Task FinishStudentAttempt(string login)
+        public async Task FinishStudentAttempt()
         {
-            Student? student = await GetStudentByLogin(login);
-            if (student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                await resultFunctions.FinishStudentAttempt(student);
-            }
+            string login = GetCurrentUserLogin();
+            Student student = await GetStudentByLogin(login);
+            await resultFunctions.FinishStudentAttempt(student);
         }
 
-        public async Task<TestResult> LoadLastStudentAttempt(string login)
+        public async Task<TestResult> LoadLastStudentAttempt()
         {
-            Student? student = await GetStudentByLogin(login);
-            if (student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                return await resultFunctions.LoadLastStudentAttempt(student);
-            }
+            string login = GetCurrentUserLogin();
+            Student student = await GetStudentByLogin(login);
+            return await resultFunctions.LoadLastStudentAttempt(student);
         }
 
         public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
@@ -368,42 +348,32 @@ namespace BusinessLayer
             return resultFunctions.GetSubquestionResultsPropertiesFinished(testResult);
         }
 
-        public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, string login)
+        public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex)
         {
-            Student? student = await GetStudentByLogin(login);
-            if (student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                await resultFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, student);
-            }
+            string login = GetCurrentUserLogin();
+            Student student = await GetStudentByLogin(login);
+            await resultFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, student);
         }
 
-        public async Task<(SubquestionResult, string?)> ValidateSubquestionResult(SubquestionResult subquestionResult, int subquestionResultIndex, string login, 
-            string[] possibleAnswers)
+        public async Task<(SubquestionResult, string?)> ValidateSubquestionResult(SubquestionResult subquestionResult, int subquestionResultIndex, 
+                string[] possibleAnswers)
         {
-            Student? student = await GetStudentByLogin(login);
-            if (student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                SubquestionTemplate subquestionTemplate = await resultFunctions.GetSubquestionTemplateBySubquestionResultIndex(subquestionResultIndex, student);
-                subquestionResult.SubquestionTemplate = subquestionTemplate;
-                return resultFunctions.ValidateSubquestionResult(subquestionResult, possibleAnswers);
-            }
+            string login = GetCurrentUserLogin();
+            Student student = await GetStudentByLogin(login);
+            SubquestionTemplate subquestionTemplate = await resultFunctions.GetSubquestionTemplateBySubquestionResultIndex(subquestionResultIndex, student);
+            subquestionResult.SubquestionTemplate = subquestionTemplate;
+            return resultFunctions.ValidateSubquestionResult(subquestionResult, possibleAnswers);
         }
 
-        public async Task<string> DeleteTestResults(string login)
+        public async Task<string> DeleteTestResults()
         {
+            string login = GetCurrentUserLogin();
             return await resultFunctions.DeleteTestResults(login);
         }
 
-        public async Task<string> DeleteTestResult(string login, int testResultId)
+        public async Task<string> DeleteTestResult(int testResultId)
         {
+            string login = GetCurrentUserLogin();
             return await resultFunctions.DeleteTestResult(login, testResultId);
         }
 
@@ -422,9 +392,11 @@ namespace BusinessLayer
             return await resultFunctions.GetSubquestionResult(subquestionResultId);
         }
 
-        public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
+        public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, 
+            SubquestionResult subquestionResult)
         {
-            return await resultFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
+            string login = GetCurrentUserLogin();
+            return await resultFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult, login);
         }
 
         public async Task<int> GetTestingDataSubquestionResultsCount()
@@ -457,14 +429,10 @@ namespace BusinessLayer
             return resultFunctions.ProcessSubquestionResultForView(subquestionResult);
         }
 
-        public async Task DeleteSubquestionResults(int subquestionTemplateId)
-        {
-            await resultFunctions.DeleteSubquestionResults(subquestionTemplateId);
-        }
-
         public async Task DeleteQuestionResults(int questionTemplateId)
         {
-            await resultFunctions.DeleteQuestionResults(questionTemplateId);
+            string login = GetCurrentUserLogin();
+            await resultFunctions.DeleteQuestionResults(questionTemplateId, login);
         }
 
         public async Task<double> GetTestResultPointsSum(int testResultId)
@@ -473,9 +441,17 @@ namespace BusinessLayer
             return resultFunctions.GetTestResultPointsSum(testResult);
         }
 
-        public async Task UpdateTestResultTimeStamp(string login, int testTemplateId)
+        public async Task UpdateTestResultTimeStamp(int testTemplateId)
         {
+            string login = GetCurrentUserLogin();
             await resultFunctions.UpdateTestResultTimeStamp(login, testTemplateId);
+        }
+
+        public async Task GenerateResultsFile()
+        {
+            var testTemplates = await GetTestTemplates("login");
+            bool dataColleration = true;
+            DataGenerator.GenerateResultsFile(testTemplates, dataColleration);
         }
 
         //UserFunctions.cs
@@ -485,14 +461,19 @@ namespace BusinessLayer
             return userFunctions.GetUserDbSet();
         }
 
-        public async Task<User?> GetUserByLogin(string login)
+        public async Task<User> GetUserByLogin(string login)
         {
             return await userFunctions.GetUserByLogin(login);
         }
 
-        public async Task<User?> GetUserByEmail(string email)
+        public async Task<User?> GetUserByLoginNullable(string login)
         {
-            return await userFunctions.GetUserByEmail(email);
+            return await userFunctions.GetUserByLoginNullable(login);
+        }
+
+        public async Task<User?> GetUserByEmailNullable(string email)
+        {
+            return await userFunctions.GetUserByEmailNullable(email);
         }
 
         public DbSet<Student> GetStudentDbSet()
@@ -500,14 +481,19 @@ namespace BusinessLayer
             return userFunctions.GetStudentDbSet();
         }
 
-        public async Task<Student?> GetStudentByLogin(string login)
+        public async Task<Student> GetStudentByLogin(string login)
         {
             return await userFunctions.GetStudentByLogin(login);
         }
 
-        public async Task<Student?> GetStudentByEmail(string email)
+        public async Task<Student?> GetStudentByLoginNullable(string login)
         {
-            return await userFunctions.GetStudentByEmail(email);
+            return await userFunctions.GetStudentByLoginNullable(login);
+        }
+
+        public async Task<Student?> GetStudentByEmailNullable(string email)
+        {
+            return await userFunctions.GetStudentByEmailNullable(email);
         }
 
         public async Task EditStudent(string firstName, string lastName, string login, string email, Student studentLoginCheck)
@@ -611,22 +597,16 @@ namespace BusinessLayer
             return await userFunctions.CanUserAccessPage(requiredRole);
         }
 
-        public async Task<string?> CanStudentAccessTest(string login, int testTemplateId)
+        public async Task<string?> CanStudentAccessTest(int testTemplateId)
         {
-            Student? student = await GetStudentByLogin(login);
+            string login = GetCurrentUserLogin();
+            Student student = await GetStudentByLogin(login);
             TestTemplate testTemplate = await GetTestTemplate(testTemplateId);
             if(await GetAmountOfNotTurnedTestResultsByTestTemplate(login, testTemplateId) > 0)
             {
                 return "Pokus probíhá.";
             }
-            if(student == null)
-            {
-                throw Exceptions.UserNotFoundException;
-            }
-            else
-            {
-                return userFunctions.CanStudentAccessTest(student, testTemplate);
-            }
+            return userFunctions.CanStudentAccessTest(student, testTemplate);
         }
 
         //OtherFunctions.cs
@@ -644,9 +624,9 @@ namespace BusinessLayer
         /// <summary>
         /// In case testing mode has been previously enabled, it is automatically turned on after the application is started again
         /// </summary>
-        public async Task InitialTestingModeSettings()
+        public void InitialTestingModeSettings()
         {
-            await otherFunctions.InitialTestingModeSettings();
+            otherFunctions.InitialTestingModeSettings();
         }
 
         /// <summary>

@@ -3,8 +3,6 @@ using Common;
 using CsvHelper;
 using System.Globalization;
 using static Common.EnumTypes;
-using System;
-using System.Collections.Generic;
 
 namespace ArtificialIntelligenceTools
 {
@@ -14,27 +12,28 @@ namespace ArtificialIntelligenceTools
         /// Generates .csv file of a number of subquestion templates with parameters that are used by the neural network
         /// </summary>
         /// <param name="dataColleration">Decides whether the generated data will be randomized or if there are going to be collerations between the templates</param>
-        public static void GenerateTemplatesFile(string dataColleration)
+        /// <param name="testingDataSubjects">Existing testing data subjects (subjects where IsTestingData == true)</param>
+        public static void GenerateTemplatesFile(bool dataColleration, List<Subject> testingDataSubjects)
         {
             List<TestTemplate> testTemplates = new List<TestTemplate>();
-            if (dataColleration == "none")
+            if (!dataColleration)
             {
-                testTemplates = GenerateRandomTestTemplates(testTemplates, 500, null);//todo: predat List<Subject> testingDataSubjects
+                testTemplates = GenerateRandomTestTemplates(testTemplates, 500, testingDataSubjects);
             }
-            else if (dataColleration == "on")
+            else
             {
-                testTemplates = GenerateCorrelationalTestTemplates(testTemplates, 500, null);
+                testTemplates = GenerateCorrelationalTestTemplates(testTemplates, 500, testingDataSubjects);
             }
             var subquestionTemplateRecords = CreateSubquestionTemplateRecords(testTemplates);
 
             string filePath = "";
-            if (dataColleration == "none")
+            if (!dataColleration)
             {
-                filePath = "D:\\Users\\granders\\Desktop\\RandomTemplatesFile.csv";
+                filePath = Directory.GetParent(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\RandomTemplatesFile.csv";
             }
-            else if (dataColleration == "on")
+            else if (dataColleration)
             {
-                filePath = "D:\\Users\\granders\\Desktop\\CorrelationalTemplatesFile.csv";
+                filePath = Directory.GetParent(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\CorrelationalTemplatesFile.csv";
             }
 
             File.Delete(filePath);
@@ -46,26 +45,26 @@ namespace ArtificialIntelligenceTools
 
         }
 
-        public static void GenerateResultsFile(List<TestTemplate> testTemplates, string dataColleration)
+        public static void GenerateResultsFile(List<TestTemplate> testTemplates, bool dataColleration)
         {
-            List<TestResult> testResults = new List<TestResult>();
-            if (dataColleration == "none")
+            List<TestResult> testResults;
+            if (!dataColleration)
             {
                 testResults = GenerateRandomTestResults(testTemplates, 0, 500);
             }
-            else if (dataColleration == "on")
+            else
             {
                 testResults = GenerateCorrelationalTestResults(testTemplates, 0, 500);
             }
             var subquestionResultRecords = CreateSubquestionResultRecords(testResults);
             string filePath = "";
-            if (dataColleration == "none")
+            if (!dataColleration)
             {
-                filePath = "D:\\Users\\granders\\Desktop\\RandomResultsFile.csv";
+                filePath = Directory.GetParent(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\RandomResultsFile.csv";
             }
-            else if (dataColleration == "on")
+            else if (dataColleration)
             {
-                filePath = "D:\\Users\\granders\\Desktop\\CorrelationalResultsFile.csv";
+                filePath = Directory.GetParent(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\CorrelationalResultsFile.csv";
             }
             File.Delete(filePath);
             using (var writer = new StreamWriter(filePath))
@@ -124,11 +123,11 @@ namespace ArtificialIntelligenceTools
             int correctAnswersCount = 0;
             if (subquestionTemplate.PossibleAnswers != null)
             {
-                possibleAnswersCount = subquestionTemplate.PossibleAnswers.Count();
+                possibleAnswersCount = subquestionTemplate.PossibleAnswers.Length;
             }
             if (subquestionTemplate.CorrectAnswers != null)
             {
-                correctAnswersCount = subquestionTemplate.CorrectAnswers.Count();
+                correctAnswersCount = subquestionTemplate.CorrectAnswers.Length;
             }
 
             if (possibleAnswersCount != 0)
@@ -246,7 +245,6 @@ namespace ArtificialIntelligenceTools
                             break;
                         }
 
-                        string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
@@ -360,7 +358,6 @@ namespace ArtificialIntelligenceTools
                             break;
                         }
 
-                        string subquestionId = k.ToString();
                         SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                         int subquestionType = random.Next(1, 11);
                         subquestionTemplate.SubquestionType = (EnumTypes.SubquestionType)subquestionType;
@@ -1000,7 +997,7 @@ namespace ArtificialIntelligenceTools
         /// </summary>
         public static double[] GetSubquestionTypeAverageTemplatePoints(List<TestTemplate> testTemplates)
         {
-            int subquestionTypeCount = 10;//todo: po predelani subquestionType na enum predelat tuto promennou
+            int subquestionTypeCount = 10;
             double[] subquestionTypePointsShare = new double[subquestionTypeCount];
             double[] subquestionCountByType = new double[subquestionTypeCount];
 
@@ -1032,7 +1029,7 @@ namespace ArtificialIntelligenceTools
 
         public static double[] GetSubquestionTypeAverageStudentsPoints(List<TestResult> testResults)
         {
-            int subquestionTypeCount = 10;//todo: po predelani subquestionType na enum predelat tuto promennou
+            int subquestionTypeCount = 10;
             double[] subquestionTypePointsShare = new double[subquestionTypeCount];
             double[] subquestionCountByType = new double[subquestionTypeCount];
 
@@ -1064,7 +1061,7 @@ namespace ArtificialIntelligenceTools
 
         public static double[] GetSubquestionTypeAverageAnswerCorrectness(List<TestResult> testResults)
         {
-            int subquestionTypeCount = 10;//todo: po predelani subquestionType na enum predelat tuto promennou
+            int subquestionTypeCount = 10;
             double[] subquestionTypeAnswerCorrectness = new double[subquestionTypeCount];
             double[] subquestionCountByType = new double[subquestionTypeCount];
 
@@ -1100,8 +1097,8 @@ namespace ArtificialIntelligenceTools
         public static List<(Subject, double)> GetSubjectAverageTemplatePoints(List<TestTemplate> testTemplates)
         {
             List<Subject> subjectList = testTemplates.Select(t => t.Subject).Distinct().ToList();
-            double[] subjectPointsShare = new double[subjectList.Count()];
-            double[] subquestionCountBySubject = new double[subjectList.Count()];
+            double[] subjectPointsShare = new double[subjectList.Count];
+            double[] subquestionCountBySubject = new double[subjectList.Count];
 
             for (int i = 0; i < testTemplates.Count; i++)
             {
@@ -1138,8 +1135,8 @@ namespace ArtificialIntelligenceTools
         public static List<(Subject, double)> GetSubjectAverageStudentsPoints(List<TestResult> testResults)
         {
             List<Subject> subjectList = testResults.Select(t => t.TestTemplate.Subject).Distinct().ToList();
-            double[] subjectPointsShare = new double[subjectList.Count()];
-            double[] subquestionCountBySubject = new double[subjectList.Count()];
+            double[] subjectPointsShare = new double[subjectList.Count];
+            double[] subquestionCountBySubject = new double[subjectList.Count];
 
             for (int i = 0; i < testResults.Count; i++)
             {

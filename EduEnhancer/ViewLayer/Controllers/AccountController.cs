@@ -7,6 +7,7 @@ using System.Security.Claims;
 using DomainModel;
 using DataLayer;
 using Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace ViewLayer.Controllers
 {
@@ -69,7 +70,7 @@ namespace ViewLayer.Controllers
                             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                             // Redirect after login
-                            return AfterSignInRedirect(claimsIdentity);
+                            return await AfterSignInRedirect(claimsIdentity);
                         }
                     }
                 }
@@ -85,10 +86,10 @@ namespace ViewLayer.Controllers
         /// <summary>
         /// After the user is successfully signed in, he gets redirected to the proper page according to his role
         /// </summary>
-        public IActionResult AfterSignInRedirect(ClaimsIdentity claimsIdentity)
+        public async Task<IActionResult> AfterSignInRedirect(ClaimsIdentity claimsIdentity)
         {
-            User? user = _context.Users.FirstOrDefault(u => u.Email == claimsIdentity.Claims.ToList()[2].Value);
-            Student? student = _context.Students.FirstOrDefault(s => s.Email == claimsIdentity.Claims.ToList()[2].Value);
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Email == claimsIdentity.Claims.ToList()[2].Value);
+            Student? student = await _context.Students.FirstOrDefaultAsync(s => s.Email == claimsIdentity.Claims.ToList()[2].Value);
             if (user == null && student == null)
             {
                 string fullName = claimsIdentity.Claims.ToList()[1].Value;
@@ -121,7 +122,7 @@ namespace ViewLayer.Controllers
                     return RedirectToAction("StudentMenu", "Home");
                 }
                 //throw an exception in case no user or student with this email exists
-                throw Exceptions.UserNotFoundException;
+                throw Exceptions.UserEmailNotFoundException(claimsIdentity.Claims.ToList()[2].Value);
             }
         }
 
@@ -137,7 +138,7 @@ namespace ViewLayer.Controllers
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, email));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            return AfterSignInRedirect(claimsIdentity);
+            return await AfterSignInRedirect(claimsIdentity);
         }
 
         /// <summary>

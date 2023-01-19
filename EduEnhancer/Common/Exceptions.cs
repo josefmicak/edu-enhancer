@@ -11,10 +11,29 @@ namespace Common
         //Data exceptions
         public static Exception SubquestionTemplateNotFoundException { get { return new Exception("Chyba: šablona podotázky nebyla nalezena."); } }
         public static Exception SubquestionResultNotFoundException { get { return new Exception("Chyba: výsledek podotázky nebyl nalezen."); } }
-        public static Exception UserNotFoundException { get { return new Exception("Chyba: uživatel nebyl nalezen."); } }
-        public static Exception UserAlreadyExistsException(string login)
+        public static Exception UserNotFoundException(string login)
         {
-            return new Exception("Chyba: uživatel s loginem " + login + " již existuje.");
+            return new Exception("Chyba: uživatel s loginem " + login + " nebyl nalezen.");
+        }
+        public static Exception UserEmailNotFoundException(string login)
+        {
+            return new Exception("Chyba: uživatel s emailem " + login + " nebyl nalezen.");
+        }
+        public static Exception StudentNotFoundException(string login)
+        {
+            return new Exception("Chyba: student s loginem " + login + " nebyl nalezen.");
+        }
+        public static Exception SubquestionTemplateStatisticsNotFoundException(string login)
+        {
+            return new Exception("Chyba: statistiky zadání podotázek uživatele s loginem " + login + " nebyly nalezeny.");
+        }
+        public static Exception SubquestionResultStatisticsNotFoundException(string login)
+        {
+            return new Exception("Chyba: statistiky výsledků podotázek uživatele s loginem " + login + " nebyly nalezeny.");
+        }
+        public static Exception TestDifficultyStatisticsNotFoundException(string login)
+        {
+            return new Exception("Chyba: statistiky obtížnosti testů uživatele s loginem " + login + " nebyly nalezeny.");
         }
         public static Exception AccessDeniedException { get { return new Exception("Chyba: přístup zamítnut."); } }
         public static Exception NoElementsFoundException { get { return new Exception("Chyba: stránku nelze zobrazit."); } }
@@ -25,5 +44,6 @@ namespace Common
                 "\nJméno funkce: " + functionName + 
                 "\nChybová hláška: " + stderr);
         }
+        public static Exception GlobalSettingsNotFound { get { return new Exception("Chyba: globální nastavení nenalezena."); } }
     }
 }

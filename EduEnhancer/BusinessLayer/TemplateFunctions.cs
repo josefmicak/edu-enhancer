@@ -37,7 +37,10 @@ namespace BusinessLayer
         public async Task<List<TestTemplate>> GetTestTemplates(string login)
         {
             return await GetTestTemplateDbSet()
+                .Include(t => t.Owner)
                 .Include(t => t.Subject)
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(t => t.SubquestionTemplates)
                 .Where(t => t.OwnerLogin == login).ToListAsync();
         }
 
@@ -140,6 +143,15 @@ namespace BusinessLayer
             }
         }
 
+        public bool CanUserModifyTemplate(string currentUserlogin, string templateOwnerLogin)
+        {
+            if(currentUserlogin == templateOwnerLogin)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public async Task<string> AddTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             (string? errorMessage, testTemplate) = await ValidateTestTemplate(testTemplate, subjectId);
@@ -153,8 +165,12 @@ namespace BusinessLayer
             }
         }
 
-        public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
+        public async Task<string> EditTestTemplate(string login, TestTemplate testTemplate, string subjectId)
         {
+            if(!CanUserModifyTemplate(login, testTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
             (string? errorMessage, testTemplate) = await ValidateTestTemplate(testTemplate, subjectId);
             if (errorMessage != null)
             {
@@ -256,6 +272,10 @@ namespace BusinessLayer
         public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
         {
             TestTemplate testTemplate = GetTestTemplateDbSet().First(t => t.OwnerLogin == login && t.TestTemplateId == testTemplateId);
+            if (!CanUserModifyTemplate(login, testTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
             return await dataFunctions.DeleteTestTemplate(testTemplate, webRootPath);
         }
 
@@ -297,14 +317,23 @@ namespace BusinessLayer
             return errorMessage;
         }
 
-        public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate)
+        public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate, string login)
         {
+            if (!CanUserModifyTemplate(login, questionTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
             return await dataFunctions.EditQuestionTemplate(questionTemplate);
         }
 
         public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
         {
-            return await dataFunctions.DeleteQuestionTemplate(login, questionTemplateId, webRootPath);
+            QuestionTemplate questionTemplate = await GetQuestionTemplate(questionTemplateId);
+            if (!CanUserModifyTemplate(login, questionTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
+            return await dataFunctions.DeleteQuestionTemplate(questionTemplateId, webRootPath);
         }
 
         public async Task<List<SubquestionTemplate>> GetSubquestionTemplates(int questionTemplateId)
@@ -320,12 +349,16 @@ namespace BusinessLayer
             return await dataFunctions.AddSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
-        public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
+        public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath, string login)
         {
             string message;
             try
             {
                 SubquestionTemplate oldSubquestionTemplate = await GetSubquestionTemplate(subquestionTemplate.SubquestionTemplateId);
+                if (!CanUserModifyTemplate(login, oldSubquestionTemplate.OwnerLogin))
+                {
+                    return "K této akci nemáte oprávnění.";
+                }
                 oldSubquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText;
                 oldSubquestionTemplate.PossibleAnswers = subquestionTemplate.PossibleAnswers;
                 oldSubquestionTemplate.CorrectAnswers = subquestionTemplate.CorrectAnswers;
@@ -400,8 +433,8 @@ namespace BusinessLayer
                 subquestionTemplate.SubquestionText = "";
                 for (int i = 0; i < subquestionTextArray.Length; i++)
                 {
-                    subquestionTextArray[i].Replace("|", "");//replace gap separator
-                    subquestionTextArray[i].Replace(";", "");//replace answer separator
+                    subquestionTextArray[i] = subquestionTextArray[i].Replace("|", "");//replace gap separator
+                    subquestionTextArray[i] = subquestionTextArray[i].Replace(";", "");//replace answer separator
                     if (i != subquestionTextArray.Length - 1)
                     {
                         subquestionTemplate.SubquestionText += subquestionTextArray[i] + "|";
@@ -414,8 +447,8 @@ namespace BusinessLayer
             }
             else
             {
-                subquestionTemplate.SubquestionText.Replace("|", "");//replace gap separator
-                subquestionTemplate.SubquestionText.Replace(";", "");//replace answer separator
+                subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace("|", "");//replace gap separator
+                subquestionTemplate.SubquestionText = subquestionTemplate.SubquestionText.Replace(";", "");//replace answer separator
             }
 
             //change possible and correct answer lists if necessary
@@ -454,12 +487,11 @@ namespace BusinessLayer
                     break;
             }
 
-            //todo: remove convert
             //set choice points
             if(subquestionTemplate.SubquestionPoints > 0)
             {
                 subquestionTemplate.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
-                double correctChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(Convert.ToDouble(subquestionTemplate.SubquestionPoints),
+                double correctChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(subquestionTemplate.SubquestionPoints,
                     subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
                 subquestionTemplate.CorrectChoicePoints = correctChoicePoints;
                 subquestionTemplate.DefaultWrongChoicePoints = correctChoicePoints * (-1);
@@ -504,12 +536,12 @@ namespace BusinessLayer
                 }
             }
 
-            if (subquestionTemplate.PossibleAnswers.Distinct().Count() != subquestionTemplate.PossibleAnswers.Count())
+            if (subquestionTemplate.PossibleAnswers.Distinct().Count() != subquestionTemplate.PossibleAnswers.Length)
             {
                 errorMessage = "Chyba: duplikátní možná odpověď.";
             }
 
-            if (subquestionTemplate.CorrectAnswers.Distinct().Count() != subquestionTemplate.CorrectAnswers.Count() &&
+            if (subquestionTemplate.CorrectAnswers.Distinct().Count() != subquestionTemplate.CorrectAnswers.Length &&
                 subquestionTemplate.SubquestionType != SubquestionType.MultipleQuestions)
             {
                 errorMessage = "Chyba: duplikátní správná odpověď.";
@@ -725,7 +757,12 @@ namespace BusinessLayer
 
         public async Task<string> DeleteSubquestionTemplate(string login, int subquestionTemplateId, string webRootPath)
         {
-            return await dataFunctions.DeleteSubquestionTemplate(login, subquestionTemplateId, webRootPath);
+            SubquestionTemplate subquestionTemplate = await GetSubquestionTemplate(subquestionTemplateId);
+            if(!CanUserModifyTemplate(login, subquestionTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
+            return await dataFunctions.DeleteSubquestionTemplate(subquestionTemplateId, webRootPath);
         }
 
         public async Task<TestTemplate> GetTestTemplate(int testTemplateId)
@@ -746,9 +783,19 @@ namespace BusinessLayer
                 .FirstAsync(s => s.SubquestionTemplateId == subquestionTemplateId);
         }
 
-        public SubquestionTemplateStatistics? GetSubquestionTemplateStatistics(string login)
+        public async Task<SubquestionTemplateStatistics> GetSubquestionTemplateStatistics(string login)
         {
-            return dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefault(s => s.UserLogin == login);
+            SubquestionTemplateStatistics? subquestionTemplateStatistics = await dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
+            if(subquestionTemplateStatistics == null)
+            {
+                throw Exceptions.SubquestionTemplateStatisticsNotFoundException(login);
+            }
+            return subquestionTemplateStatistics;
+        }
+
+        public async Task<SubquestionTemplateStatistics?> GetSubquestionTemplateStatisticsNullable(string login)
+        {
+            return await dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
 
         public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
@@ -763,7 +810,8 @@ namespace BusinessLayer
 
             //check if enough subquestion templates have been added to warrant new model training
             bool retrainModel = false;
-            int subquestionTemplatesAdded = GetSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin).SubquestionTemplatesAddedCount;
+            SubquestionTemplateStatistics subquestionTemplateStatistics = await GetSubquestionTemplateStatistics(subquestionTemplate.OwnerLogin);
+            int subquestionTemplatesAdded = subquestionTemplateStatistics.SubquestionTemplatesAddedCount;
             if (subquestionTemplatesAdded >= 100)
             {
                 retrainModel = true;
@@ -778,7 +826,7 @@ namespace BusinessLayer
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
                 subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionTemplateStatistics? currentSubquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+            SubquestionTemplateStatistics currentSubquestionTemplateStatistics = await GetSubquestionTemplateStatistics(login);
             if (!currentSubquestionTemplateStatistics.EnoughSubquestionTemplatesAdded)
             {
                 return "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek.";
@@ -787,7 +835,7 @@ namespace BusinessLayer
             double suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
             if (subquestionTemplatesAdded >= 100)
             {
-                SubquestionTemplateStatistics subquestionTemplateStatistics = GetSubquestionTemplateStatistics(login);
+                subquestionTemplateStatistics = await GetSubquestionTemplateStatistics(login);
                 subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 subquestionTemplateStatistics.SubquestionTemplatesAddedCount = 0;
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
@@ -857,9 +905,9 @@ namespace BusinessLayer
             }
 
             await TestingUsersCheck();
-            User? owner = await dataFunctions.GetUserByLogin("login");
+            User owner = await dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = await GetTestingDataTestTemplates();
-            if (existingTestTemplates.Count() == 0)//no templates exist - we have to add subjects
+            if (existingTestTemplates.Count == 0)//no templates exist - we have to add subjects
             {
                 await CreateSubjectTestingData(owner);
             }
@@ -874,7 +922,7 @@ namespace BusinessLayer
             {
                 testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates), testingDataSubjects);
             }
-            message = await dataFunctions.AddTestTemplates(testTemplates, owner);//todo: error?
+            message = await dataFunctions.AddTestTemplates(testTemplates, owner);
             string login = "login";
             owner = await dataFunctions.GetUserByLoginAsNoTracking();
 
@@ -890,7 +938,7 @@ namespace BusinessLayer
 
             dataFunctions.ClearChargeTracker();
             owner = await dataFunctions.GetUserByLoginAsNoTracking();
-            var subquestionTemplateStatistics = GetSubquestionTemplateStatistics(owner.Login);
+            var subquestionTemplateStatistics = await GetSubquestionTemplateStatistics(owner.Login);
             if (subquestionTemplateStatistics == null)
             {
                 subquestionTemplateStatistics = new SubquestionTemplateStatistics();
@@ -898,8 +946,8 @@ namespace BusinessLayer
                 subquestionTemplateStatistics.UserLogin = owner.Login;
                 subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
-                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
-                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)//todo: true?
+                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateMachineLearning.py");
+                if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
                 {
                     subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;
                 }
@@ -945,7 +993,7 @@ namespace BusinessLayer
 
         public async Task TestingUsersCheck()
         {
-            User? owner = await dataFunctions.GetUserByLogin("login");
+            User? owner = await dataFunctions.GetUserByLoginNullable("login");
             if(owner == null)
             {
                 owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
@@ -984,8 +1032,8 @@ namespace BusinessLayer
         public async Task<string> GetTestDifficultyPrediction(string login, int testTemplateId)
         {
             string testDifficultyMessage;
-            TestDifficultyStatistics? testDifficultyStatistics = await dataFunctions.GetTestDifficultyStatistics(login);
-            SubquestionResultStatistics subquestionResultStatistics = await dataFunctions.GetSubquestionResultStatistics(login);
+            TestDifficultyStatistics? testDifficultyStatistics = await dataFunctions.GetTestDifficultyStatisticsNullable(login);
+            SubquestionResultStatistics? subquestionResultStatistics = await dataFunctions.GetSubquestionResultStatisticsNullable(login);
             //check whether there are enough result statistics to go by
             if (testDifficultyStatistics == null || subquestionResultStatistics == null)
             {

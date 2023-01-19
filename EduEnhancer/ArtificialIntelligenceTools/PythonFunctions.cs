@@ -29,7 +29,6 @@ namespace ArtificialIntelligenceTools
                 //neural network is used by default
                 fileName = "TemplateNeuralNetwork.py";
             }
-            fileName = "TemplateNeuralNetwork.py";
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
@@ -84,7 +83,6 @@ namespace ArtificialIntelligenceTools
                 //neural network is used by default
                 fileName = "ResultNeuralNetwork.py";
             }
-            fileName = "ResultNeuralNetwork.py";
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
@@ -175,7 +173,6 @@ namespace ArtificialIntelligenceTools
             {
                 fileName = "DifficultyNeuralNetwork.py";
             }
-            fileName = "DifficultyNeuralNetwork.py";
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",

@@ -78,7 +78,7 @@ namespace BusinessLayer
                 .Where(t => t.Student.Login == login
                     && t.IsTurnedIn == true
                     && t.TestTemplateId == testTemplateId).ToListAsync();
-            return turnedTestResultsByTestTemplate.Count();
+            return turnedTestResultsByTestTemplate.Count;
         }
 
         public async Task<int> GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
@@ -87,7 +87,7 @@ namespace BusinessLayer
                 .Where(t => t.Student.Login == login
                     && t.IsTurnedIn == false
                     && t.TestTemplateId == testTemplateId).ToListAsync();
-            return notTurnedTestResultsByTestTemplate.Count();
+            return notTurnedTestResultsByTestTemplate.Count;
         }
 
         public async Task<TestResult> GetTestResult(int testResultId)
@@ -102,7 +102,13 @@ namespace BusinessLayer
 
         public async Task<string> DeleteTestResult(string login, int testResultId)
         {
-            TestResult testResult = GetTestResultDbSet().First(t => t.OwnerLogin == login && t.TestResultId == testResultId);
+            TestResult testResult = GetTestResultDbSet()
+                .Include(t => t.TestTemplate)
+                .First(t => t.TestResultId == testResultId);
+            if(!CanUserModifyResult(login, testResult.TestTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
             return await dataFunctions.DeleteTestResult(testResult);
         }
 
@@ -156,15 +162,34 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultStatisticsDbSet();
         }
 
-        public async Task<SubquestionResultStatistics?> GetSubquestionResultStatistics(string login)
+        public async Task<SubquestionResultStatistics> GetSubquestionResultStatistics(string login)
         {
-            return await dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
+            SubquestionResultStatistics? subquestionResultStatistics = await dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
+            if(subquestionResultStatistics == null)
+            {
+                throw Exceptions.SubquestionResultStatisticsNotFoundException(login);
+            }
+            return subquestionResultStatistics;
         }
 
-        public async Task<TestDifficultyStatistics?>  GetTestDifficultyStatistics(string login)
+        public async Task<TestDifficultyStatistics> GetTestDifficultyStatistics(string login)
         {
-            return await dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync
+            TestDifficultyStatistics? testDifficultyStatistics = await dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync
                 (s => s.UserLogin == login);
+            if(testDifficultyStatistics == null)
+            {
+                throw Exceptions.TestDifficultyStatisticsNotFoundException(login);
+            }
+            return testDifficultyStatistics;
+        }
+
+        public bool CanUserModifyResult(string currentUserlogin, string resultOwnerLogin)
+        {
+            if (currentUserlogin == resultOwnerLogin)
+            {
+                return true;
+            }
+            return false;
         }
 
         public async Task UpdateTestResultTimeStamp(string login, int testTemplateId)
@@ -175,8 +200,13 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints, SubquestionResult subquestionResult)
+        public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints,
+                SubquestionResult subquestionResult, string login)
         {
+            if (!CanUserModifyResult(login, subquestionResult.SubquestionTemplate.OwnerLogin))
+            {
+                return "K této akci nemáte oprávnění.";
+            }
             string message;
             if (subquestionPoints == null)
             {
@@ -251,7 +281,6 @@ namespace BusinessLayer
         {
             string message;
             await TestingUsersCheck();
-            User? owner = await dataFunctions.GetUserByLogin("login");
             var existingTestTemplates = await GetTestingDataTestTemplates();
             if(existingTestTemplates.Count == 0)
             {
@@ -271,7 +300,7 @@ namespace BusinessLayer
             }
             message = await dataFunctions.AddTestResults(testResults);
             string login = "login";
-            owner = await dataFunctions.GetUserByLoginAsNoTracking();
+            User owner = await dataFunctions.GetUserByLoginAsNoTracking();
 
             //delete existing subquestion template records of this user
             dataFunctions.ExecuteSqlRaw("delete from SubquestionResultRecord where 'login' = '" + login + "'");
@@ -376,7 +405,7 @@ namespace BusinessLayer
 
         public async Task TestingUsersCheck()
         {
-            Student? student = await dataFunctions.GetStudentByLogin("testingstudent");
+            Student? student = await dataFunctions.GetStudentByLoginNullable("testingstudent");
             if (student == null)
             {
                 student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
@@ -443,7 +472,7 @@ namespace BusinessLayer
                 subquestionResultStatistics = await GetSubquestionResultStatistics(login);
                 subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
                 subquestionResultStatistics.SubquestionResultsAddedCount = 0;
-                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "ResultNeuralNetwork.py");
+                subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultNeuralNetwork.py");
                 subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
                 if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
                 {
@@ -662,8 +691,8 @@ namespace BusinessLayer
             {
                 if(subquestionResult.StudentsAnswers[i] != null)
                 {
-                    subquestionResult.StudentsAnswers[i].Replace("|", "");//replace gap separator
-                    subquestionResult.StudentsAnswers[i].Replace(";", "");//replace answer separator
+                    subquestionResult.StudentsAnswers[i] = subquestionResult.StudentsAnswers[i].Replace("|", "");//replace gap separator
+                    subquestionResult.StudentsAnswers[i] = subquestionResult.StudentsAnswers[i].Replace(";", "");//replace answer separator
                 }
             }
 
@@ -864,7 +893,6 @@ namespace BusinessLayer
                     {
                         subquestionFound = true;
                         questionResult.SubquestionResults.ElementAt(j).StudentsAnswers = subquestionResult.StudentsAnswers;
-                        //todo: status, correctness
                         break;
                     }
                     subquestionCounter++;
@@ -962,17 +990,13 @@ namespace BusinessLayer
         /// <summary>
         /// Used to delete all question results of a certain question template
         /// </summary>
-        public async Task DeleteQuestionResults(int questionTemplateId)
+        public async Task DeleteQuestionResults(int questionTemplateId, string login)
         {
-            await dataFunctions.DeleteQuestionResults(questionTemplateId);
-        }
-
-        /// <summary>
-        /// Used to delete all subquestion results of a certain subquestion template
-        /// </summary>
-        public async Task DeleteSubquestionResults(int subquestionTemplateId)
-        {
-            await dataFunctions.DeleteSubquestionResults(subquestionTemplateId);
+            QuestionTemplate questionTemplate = await dataFunctions.GetQuestionTemplate(questionTemplateId);
+            if (CanUserModifyResult(login, questionTemplate.OwnerLogin))
+            {
+                await dataFunctions.DeleteQuestionResults(questionTemplateId);
+            }
         }
 
         public double GetTestResultPointsSum(TestResult testResult)

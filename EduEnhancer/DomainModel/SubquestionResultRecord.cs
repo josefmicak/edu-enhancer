@@ -11,11 +11,12 @@ namespace DomainModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int SubquestionResultRecordId { get; set; }
         [Ignore]
-        public SubquestionResult SubquestionResult { get; set; }
+        public SubquestionResult SubquestionResult { get; set; } = default!;
         [Ignore]
         public User Owner { get; set; } = default!;
         [Ignore]
         public int SubquestionResultId { get; set; }
+        [Ignore]
         public string OwnerLogin { get; set; } = default!;
         public double SubquestionTypeAveragePoints { get; set; }
         public double AnswerCorrectness { get; set; }

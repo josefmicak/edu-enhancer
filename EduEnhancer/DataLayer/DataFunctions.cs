@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace DataLayer
 {
@@ -276,7 +277,7 @@ namespace DataLayer
             return message;
         }
 
-        public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
+        public async Task<string> DeleteQuestionTemplate(int questionTemplateId, string webRootPath)
         {
             QuestionTemplate questionTemplate = await GetQuestionTemplate(questionTemplateId);
             if(questionTemplate.SubquestionTemplates != null)
@@ -357,17 +358,26 @@ namespace DataLayer
             return newFileName;
         }
 
-        public async Task<string> DeleteSubquestionTemplate(string login, int subquestionTemplateId, string webRootPath)
+        public async Task<string> DeleteSubquestionTemplate(int subquestionTemplateId, string webRootPath)
         {
-            SubquestionTemplate subquestionTemplate = await GetSubquestionTemplate(subquestionTemplateId);
-            _context.SubquestionTemplates.Remove(subquestionTemplate);
-            await _context.SaveChangesAsync();
-            if(subquestionTemplate.ImageSource != null)
+            string message;
+            try
             {
-                DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                await DeleteSubquestionResults(subquestionTemplateId);
+                SubquestionTemplate subquestionTemplate = await GetSubquestionTemplate(subquestionTemplateId);
+                _context.SubquestionTemplates.Remove(subquestionTemplate);
+                await _context.SaveChangesAsync();
+                if (subquestionTemplate.ImageSource != null)
+                {
+                    DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
+                }
+                message = "Podotázka byla úspěšně smazána.";
             }
-            
-            string message = "Podotázka byla úspěšně smazána.";
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při mazání podotázky nastala neočekávaná chyba.";
+            }
             return message;
         }
 
@@ -437,7 +447,7 @@ namespace DataLayer
             return _context.SubquestionResultStatistics;
         }
 
-        public async Task<SubquestionResultStatistics?> GetSubquestionResultStatistics(string login)
+        public async Task<SubquestionResultStatistics?> GetSubquestionResultStatisticsNullable(string login)
         {
             return await GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
@@ -447,7 +457,7 @@ namespace DataLayer
             return _context.TestDifficultyStatistics;
         }
 
-        public async Task<TestDifficultyStatistics?> GetTestDifficultyStatistics(string login)
+        public async Task<TestDifficultyStatistics?> GetTestDifficultyStatisticsNullable(string login)
         {
             return await GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
@@ -622,14 +632,29 @@ namespace DataLayer
             return _context.Users;
         }
 
-        public async Task<User?> GetUserByLogin(string login)
+        public async Task<User> GetUserByLogin(string login)
+        {
+            User? user = await GetUserDbSet().FirstOrDefaultAsync(u => u.Login == login);
+            if(user == null)
+            {
+                throw Exceptions.UserNotFoundException(login);
+            }
+            return user;
+        }
+
+        public async Task<User?> GetUserByLoginNullable(string login)
         {
             return await GetUserDbSet().FirstOrDefaultAsync(u => u.Login == login);
         }
 
-        public async Task<User?> GetUserByLoginAsNoTracking()
+        public async Task<User> GetUserByLoginAsNoTracking()
         {
-            return await GetUserDbSet().AsNoTracking().FirstOrDefaultAsync(u => u.Login == "login");
+            User? user = await GetUserDbSet().AsNoTracking().FirstOrDefaultAsync(u => u.Login == "login");
+            if (user == null)
+            {
+                throw Exceptions.UserNotFoundException("login");
+            }
+            return user;
         }
 
         public DbSet<Student> GetStudentDbSet()
@@ -637,9 +662,19 @@ namespace DataLayer
             return _context.Students;
         }
 
-        public async Task<Student?> GetStudentByLogin(string login)
+        public async Task<Student> GetStudentByLogin(string login)
         {
-            return await GetStudentDbSet().FirstOrDefaultAsync(s => s.Login == login);
+            Student? student = await GetStudentDbSet().FirstOrDefaultAsync(u => u.Login == login);
+            if(student == null)
+            {
+                throw Exceptions.StudentNotFoundException(login);
+            }
+            return student;
+        }
+
+        public async Task<Student?> GetStudentByLoginNullable(string login)
+        {
+            return await GetStudentDbSet().FirstOrDefaultAsync(u => u.Login == login);
         }
 
         public DbSet<UserRegistration> GetUserRegistrationDbSet()
@@ -669,12 +704,9 @@ namespace DataLayer
         public async Task RefreshTestingStudentSubjects()
         {
             ExecuteSqlRaw("delete from StudentSubject");
-            Student? student = await GetStudentByLogin("testingstudent");
+            Student student = await GetStudentByLogin("testingstudent");
             List<Subject> subjects = await GetSubjectDbSet().Where(s => s.IsTestingData == true).ToListAsync();
-            if(student != null)
-            {
-                student.Subjects = subjects;
-            }
+            student.Subjects = subjects;
             await _context.SaveChangesAsync();
         }
 
@@ -703,16 +735,15 @@ namespace DataLayer
             return _context.GlobalSettings;
         }
 
-        public async Task<GlobalSettings> GetGlobalSettings()
+        public GlobalSettings GetGlobalSettings()
         {
             if(_context.GlobalSettings.First() != null)
             {
-                return await _context.GlobalSettings.FirstAsync();
+                return _context.GlobalSettings.First();
             }
             else
             {
-                //todo: throw exception globalni nastaveni nenalezena
-                return null;
+                throw Exceptions.GlobalSettingsNotFound;
             }
         }
 
