@@ -96,7 +96,7 @@ namespace ViewLayer.Controllers
             }
 
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            var user = await businessLayerFunctions.GetUserByLogin(login);
+            User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user.Role == EnumTypes.Role.Teacher)
             {
                 ViewBag.Return = "TeacherMenu";
@@ -114,7 +114,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            var testTemplates = await businessLayerFunctions.GetTestTemplates(login);
+            List<TestTemplate> testTemplates = await businessLayerFunctions.GetTestTemplates(login);
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
             View(testTemplates) :
             Problem("Entity set 'CourseContext.TestTemplates'  is null.");
@@ -142,15 +142,6 @@ namespace ViewLayer.Controllers
             {
                 return AccessDeniedAction();
             }
-
-            if (TempData["NegativePointsMessage"] != null)
-            {
-                ViewBag.NegativePointsMessage = TempData["NegativePointsMessage"]!.ToString();
-            }
-            if (TempData["MinimumPointsMessage"] != null)
-            {
-                ViewBag.MinimumPointsMessage = TempData["MinimumPointsMessage"]!.ToString();
-            }
             if (TempData["TestDifficultyMessage"] != null)
             {
                 ViewBag.TestDifficultyMessage = TempData["TestDifficultyMessage"]!.ToString();
@@ -160,7 +151,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            var questionTemplates = await businessLayerFunctions.GetQuestionTemplates(int.Parse(testTemplateId));
+            List<QuestionTemplate> questionTemplates = await businessLayerFunctions.GetQuestionTemplates(int.Parse(testTemplateId));
 
             if (questionTemplates.Count > 0)
             {
@@ -185,7 +176,7 @@ namespace ViewLayer.Controllers
             string? testDifficultyMessage = null;
             string? message = null;
 
-            var testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
+            TestTemplate testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
             if (action == "getDifficultyPrediction")
             {
                 testDifficultyMessage = await businessLayerFunctions.GetTestDifficultyPrediction(login, int.Parse(testTemplateId));
@@ -336,7 +327,7 @@ namespace ViewLayer.Controllers
             }
 
             string login = businessLayerFunctions.GetCurrentUserLogin();
-            var user = await businessLayerFunctions.GetUserByLogin(login);
+            User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user.Role == EnumTypes.Role.Teacher)
             {
                 ViewBag.Return = "TeacherMenu";
@@ -391,7 +382,7 @@ namespace ViewLayer.Controllers
 
             string login = businessLayerFunctions.GetCurrentUserLogin();
 
-            var questionResults = await businessLayerFunctions.GetQuestionResults(int.Parse(testResultId));
+            List<QuestionResult> questionResults = await businessLayerFunctions.GetQuestionResults(int.Parse(testResultId));
 
             if (questionResults.Count > 0)
             {
@@ -481,7 +472,7 @@ namespace ViewLayer.Controllers
                 //the teacher is changing student's points
                 if (studentsPoints != null)
                 {
-                    var subquestionResult = await businessLayerFunctions.GetSubquestionResult(int.Parse(subquestionResultId));
+                    SubquestionResult subquestionResult = await businessLayerFunctions.GetSubquestionResult(int.Parse(subquestionResultId));
 
                     if (subquestionResult != null)
                     {
@@ -499,7 +490,7 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    var subquestionResult = await businessLayerFunctions.GetSubquestionResult(int.Parse(subquestionResultId));
+                    SubquestionResult subquestionResult = await businessLayerFunctions.GetSubquestionResult(int.Parse(subquestionResultId));
                     double answerCorrectness = subquestionResult.AnswerCorrectness;
                     if(answerCorrectness == 1)//in case student's answer is entirely correct, full amount of subquestion points gets recommended
                     {
@@ -536,7 +527,7 @@ namespace ViewLayer.Controllers
             string login = businessLayerFunctions.GetCurrentUserLogin();
             dynamic model = new ExpandoObject();
             model.TestResults = await businessLayerFunctions.GetFinishedTestResultsByStudentLogin(login);
-            model.Student = businessLayerFunctions.GetStudentByLogin(login);
+            model.Student = await businessLayerFunctions.GetStudentByLogin(login);
             return businessLayerFunctions.GetTestResultDbSet() != null ?
                 View(model) :
             Problem("Entity set 'CourseContext.TestResults'  is null.");
@@ -597,8 +588,8 @@ namespace ViewLayer.Controllers
                 ViewBag.SubquestionTypeTextArray = businessLayerFunctions.GetSubquestionTypeTextArray();
                 ViewBag.SubquestionsCount = subquestionResultsPropertiesFinished.Count;
                 ViewBag.SubquestionResultIndex = questionNr;
-                ViewBag.TestResultPointsSum = businessLayerFunctions.GetTestResultPointsSum(int.Parse(testResultId));
-                ViewBag.TestTemplatePointsSum = businessLayerFunctions.GetTestTemplatePointsSum(testResult.TestTemplateId);
+                ViewBag.TestResultPointsSum = await businessLayerFunctions.GetTestResultPointsSum(int.Parse(testResultId));
+                ViewBag.TestTemplatePointsSum = await businessLayerFunctions.GetTestTemplatePointsSum(testResult.TestTemplateId);
                 subquestionResult = businessLayerFunctions.ProcessSubquestionResultForView(subquestionResult);
                 subquestionResult.SubquestionTemplate = businessLayerFunctions.ProcessSubquestionTemplateForView(subquestionResult.SubquestionTemplate);
                 return View(subquestionResult);
@@ -704,11 +695,11 @@ namespace ViewLayer.Controllers
                 isEmailValid = false;
             }
 
-            var studentLoginCheck = await businessLayerFunctions.GetStudentByLoginNullable(login);
-            var studentEmailCheck = await businessLayerFunctions.GetStudentByEmailNullable(email);
+            Student? studentLoginCheck = await businessLayerFunctions.GetStudentByLoginNullable(login);
+            Student? studentEmailCheck = await businessLayerFunctions.GetStudentByEmailNullable(email);
 
-            var userLoginCheck = await businessLayerFunctions.GetUserByLoginNullable(login);
-            var userEmailCheck = await businessLayerFunctions.GetUserByEmailNullable(email);
+            User? userLoginCheck = await businessLayerFunctions.GetUserByLoginNullable(login);
+            User? userEmailCheck = await businessLayerFunctions.GetUserByEmailNullable(email);
 
             if(action == "deleteAllStudents")
             {
@@ -725,13 +716,13 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
-                else if (userLoginCheck != null)
+                else if (studentLoginCheck != null || userLoginCheck != null)
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
                 else
                 {
-                    TempData["StudentMessage"] = await businessLayerFunctions.AddStudent(firstName, lastName, login, email, studentLoginCheck);
+                    TempData["StudentMessage"] = await businessLayerFunctions.AddStudent(firstName, lastName, login, email);
                 }
             }
             else if(action == "editStudent")
@@ -739,7 +730,7 @@ namespace ViewLayer.Controllers
                 //it's necessary to ensure that there won't be two or more users with the same email/login
                 if(studentLoginCheck != null)
                 {
-                    var studentByNewEmail = await businessLayerFunctions.GetStudentByEmailNullable(email);
+                    Student? studentByNewEmail = await businessLayerFunctions.GetStudentByEmailNullable(email);
                     if (!isEmailValid)
                     {
                         TempData["StudentMessage"] = "Chyba: \"" + email + "\" není správně formátovaná emailová adresa.";
@@ -773,7 +764,7 @@ namespace ViewLayer.Controllers
             }
             else if(action == "deleteStudent")
             {
-                var student = await businessLayerFunctions.GetStudentByLogin(login);
+                Student student = await businessLayerFunctions.GetStudentByLogin(login);
                 await businessLayerFunctions.DeleteStudent(student);
                 TempData["StudentMessage"] = "Student úspěšně smazán.";
             }
@@ -998,11 +989,11 @@ namespace ViewLayer.Controllers
                 isEmailValid = false;
             }
 
-            var studentLoginCheck = await businessLayerFunctions.GetStudentByLoginNullable(login);
-            var studentEmailCheck = await businessLayerFunctions.GetStudentByEmailNullable(email);
+            Student? studentLoginCheck = await businessLayerFunctions.GetStudentByLoginNullable(login);
+            Student? studentEmailCheck = await businessLayerFunctions.GetStudentByEmailNullable(email);
 
-            var userLoginCheck = await businessLayerFunctions.GetUserByLoginNullable(login);
-            var userEmailCheck = await businessLayerFunctions.GetUserByEmailNullable(email);
+            User? userLoginCheck = await businessLayerFunctions.GetUserByLoginNullable(login);
+            User? userEmailCheck = await businessLayerFunctions.GetUserByEmailNullable(email);
 
             if (action == "addStudent")
             {
@@ -1014,13 +1005,13 @@ namespace ViewLayer.Controllers
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s emailem \"" + email + "\" již existuje.";
                 }
-                else if(userLoginCheck != null)
+                else if (studentLoginCheck != null || userLoginCheck != null)
                 {
                     TempData["StudentMessage"] = "Chyba: uživatel s loginem \"" + login + "\" již existuje.";
                 }
                 else
                 {
-                    TempData["StudentMessage"] = await businessLayerFunctions.AddStudent(firstName, lastName, login, email, studentLoginCheck);
+                    TempData["StudentMessage"] = await businessLayerFunctions.AddStudent(firstName, lastName, login, email);
                 }
             }
             else if (action == "editStudent")
@@ -1061,7 +1052,7 @@ namespace ViewLayer.Controllers
             }
             else if (action == "deleteStudent")
             {
-                var student = await businessLayerFunctions.GetStudentByLogin(login);
+                Student student = await businessLayerFunctions.GetStudentByLogin(login);
                 await businessLayerFunctions.DeleteStudent(student);
                 TempData["StudentMessage"] = "Student úspěšně smazán.";
             }
@@ -1127,7 +1118,7 @@ namespace ViewLayer.Controllers
             }
             else if (action == "deleteTeacher")
             {
-                var user = await businessLayerFunctions.GetUserByLogin(login);
+                User user = await businessLayerFunctions.GetUserByLogin(login);
                 await businessLayerFunctions.DeleteUser(user);
                 TempData["TeacherMessage"] = "Učitel úspěšně smazán.";
             }
@@ -1157,11 +1148,11 @@ namespace ViewLayer.Controllers
             string? message = null;
             if(action == "acceptRegistration")
             {
-                var userByEmail = businessLayerFunctions.GetUserByEmailNullable(email);
-                var studentByEmail = businessLayerFunctions.GetStudentByEmailNullable(email);
+                User? userByEmail = await businessLayerFunctions.GetUserByEmailNullable(email);
+                Student? studentByEmail = await businessLayerFunctions.GetStudentByEmailNullable(email);
 
-                var userByLogin = businessLayerFunctions.GetUserByLoginNullable(login);
-                var studentByLogin = businessLayerFunctions.GetStudentByLoginNullable(login);
+                User? userByLogin = await businessLayerFunctions.GetUserByLoginNullable(login);
+                Student? studentByLogin = await businessLayerFunctions.GetStudentByLoginNullable(login);
 
                 if (userByEmail != null || studentByEmail != null)
                 {
@@ -1216,11 +1207,11 @@ namespace ViewLayer.Controllers
             string? message = null;
             if (action == "acceptRegistration")
             {
-                var userByEmail = businessLayerFunctions.GetUserByEmailNullable(email);
-                var studentByEmail = businessLayerFunctions.GetStudentByEmailNullable(email);
+                User? userByEmail = await businessLayerFunctions.GetUserByEmailNullable(email);
+                Student? studentByEmail = await businessLayerFunctions.GetStudentByEmailNullable(email);
 
-                var userByLogin = businessLayerFunctions.GetUserByLoginNullable(login);
-                var studentByLogin = businessLayerFunctions.GetStudentByLoginNullable(login);
+                User? userByLogin = await businessLayerFunctions.GetUserByLoginNullable(login);
+                Student? studentByLogin = await businessLayerFunctions.GetStudentByLoginNullable(login);
 
                 if (userByEmail != null || studentByEmail != null)
                 {
@@ -1390,9 +1381,7 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                //testTemplate.Subject.SubjectId = int.Parse(subjectId);
                 return RedirectToAction("AddTestTemplate", "Home", new RouteValueDictionary(testTemplate));
-                //return RedirectToAction("AddTestTemplate", "Home", subjectId, new RouteValueDictionary(testTemplate));
             }
         }
 
@@ -1407,7 +1396,7 @@ namespace ViewLayer.Controllers
             if (businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
             {
                 dynamic model = new ExpandoObject();
-                model.TestTemplate = businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
+                model.TestTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
                 model.Subjects = await businessLayerFunctions.GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
                 return View(model);
             }
@@ -1676,7 +1665,7 @@ namespace ViewLayer.Controllers
         {
             string login = businessLayerFunctions.GetCurrentUserLogin();
             ViewBag.login = login;
-            var user = await businessLayerFunctions.GetUserByLogin(login);
+            User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user != null)
             {
                 if (user.Role == EnumTypes.Role.Teacher)
@@ -1739,7 +1728,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> EditSubject(string subjectId)
         {
-            Subject? subject = await businessLayerFunctions.GetSubjectById(int.Parse(subjectId));
+            Subject subject = await businessLayerFunctions.GetSubjectById(int.Parse(subjectId));
             dynamic model = new ExpandoObject();
             model.Subject = subject;
             model.Students = await businessLayerFunctions.GetStudentDbSet().ToListAsync();
@@ -1806,7 +1795,7 @@ namespace ViewLayer.Controllers
             if (errorMessage == null || errorMessage == "Pokus probíhá.")
             {
                 testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
-                ViewBag.TestTemplatePointsSum = businessLayerFunctions.GetTestTemplatePointsSum(int.Parse(testTemplateId));
+                ViewBag.TestTemplatePointsSum = await businessLayerFunctions.GetTestTemplatePointsSum(int.Parse(testTemplateId));
                 bool notTurnedInExists = false;
                 int amountOfNotTurnedIn = await businessLayerFunctions.GetAmountOfNotTurnedTestResultsByTestTemplate(login, int.Parse(testTemplateId));
                 if(amountOfNotTurnedIn > 0)
@@ -1871,63 +1860,56 @@ namespace ViewLayer.Controllers
             }
 
             //the user has just started the attempt - the very first subquestion is shown to him then
-            int studentSubquestionResultId;
-            if(int.TryParse(businessLayerFunctions.GetStudentSubquestionResultId(), out studentSubquestionResultId))
+            if (businessLayerFunctions.GetStudentSubquestionResultId() == null 
+                || !subquestionResultsProperties.Any(s => s.Item1 == int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
             {
-                if (businessLayerFunctions.GetStudentSubquestionResultId() == null || !subquestionResultsProperties.Any(s => s.Item1 == studentSubquestionResultId))
+                for (int i = 0; i < testResult.QuestionResults.Count; i++)
                 {
-                    for (int i = 0; i < testResult.QuestionResults.Count; i++)
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
+
+                    //the question must include at least one subquestion
+                    if (questionResult.SubquestionResults.Count > 0)
                     {
-                        QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
-
-                        //the question must include at least one subquestion
-                        if (questionResult.SubquestionResults.Count > 0)
-                        {
-                            subquestionResult = questionResult.SubquestionResults.ElementAt(0);
-                            break;
-                        }
+                        subquestionResult = questionResult.SubquestionResults.ElementAt(0);
+                        break;
                     }
-                    businessLayerFunctions.SetStudentSubquestionResultId(subquestionResult.SubquestionResultId);
-
-                    ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
-                    ViewBag.SubquestionResultIdIndex = 0;
                 }
-                else
-                {
-                    int newSubquestionResultId;
-                    if (questionNr < 0 || questionNr > subquestionResultsProperties.Count)
-                    {
-                        newSubquestionResultId = subquestionResultsProperties[0].Item1;
-                        ViewBag.Message = "Chyba: tato otázka neexistuje.";
-                    }
-                    else
-                    {
-                        newSubquestionResultId = subquestionResultsProperties[questionNr].Item1;
-                    }
-                    businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
+                businessLayerFunctions.SetStudentSubquestionResultId(subquestionResult.SubquestionResultId);
 
-                    for (int i = 0; i < testResult.QuestionResults.Count; i++)
-                    {
-                        QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
-
-                        for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
-                        {
-                            SubquestionResult subquestionResultTemp = questionResult.SubquestionResults.ElementAt(j);
-                            if (subquestionResultTemp.SubquestionResultId == newSubquestionResultId)
-                            {
-                                subquestionResult = subquestionResultTemp;
-                                break;
-                            }
-                        }
-                    }
-
-                    ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
-                    ViewBag.SubquestionResultIdIndex = questionNr;
-                }
+                ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
+                ViewBag.SubquestionResultIdIndex = 0;
             }
             else
             {
-                throw new Exception("Chyba: " + businessLayerFunctions.GetStudentSubquestionResultId() + " není platné Id výsledku podotázky.");
+                int newSubquestionResultId;
+                if (questionNr < 0 || questionNr > subquestionResultsProperties.Count())
+                {
+                    newSubquestionResultId = subquestionResultsProperties[0].Item1;
+                    ViewBag.Message = "Chyba: tato otázka neexistuje.";
+                }
+                else
+                {
+                    newSubquestionResultId = subquestionResultsProperties[questionNr].Item1;
+                }
+                businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
+
+                for (int i = 0; i < testResult.QuestionResults.Count; i++)
+                {
+                    QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
+
+                    for (int j = 0; j < questionResult.SubquestionResults.Count; j++)
+                    {
+                        SubquestionResult subquestionResultTemp = questionResult.SubquestionResults.ElementAt(j);
+                        if (subquestionResultTemp.SubquestionResultId == newSubquestionResultId)
+                        {
+                            subquestionResult = subquestionResultTemp;
+                            break;
+                        }
+                    }
+                }
+
+                ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
+                ViewBag.SubquestionResultIdIndex = questionNr;
             }
             int[] answerCompleteness = new int[subquestionResultsProperties.Count];
             for(int i = 0; i < subquestionResultsProperties.Count; i++)

@@ -8,6 +8,8 @@
     string waitingString = "Čekající";
     string acceptedString = "Schválena";
     string rejectedString = "Zamítnuta";
+    int studentsRegistrationsCount = Model.Where(u => u.Role == EnumTypes.Role.Student).Count();
+    int staffRegistrationsCount = Model.Where(u => u.Role == EnumTypes.Role.Teacher || u.Role == EnumTypes.Role.Admin).Count();
 
     ViewData["Title"] = "Správa registrací";
 }
@@ -17,157 +19,177 @@
     <p>@ViewBag.Message</p>
 
     <div id="student-registration-list">
-        <h2>Registrace studentů</h2>    
-        <table>
-            <tr>
-                <th>Jméno</th>
-                <th>Login</th>
-                <th>Email</th>
-                <th>Datum vytvoření</th>
-                <th>Schválení</th>
-                <th>Zamítnutí</th>
-                <th>Smazání</th>
-                <th>Stav</th>
-            </tr>
-            @{
-                foreach(var item in Model)
-                {
-                    if (item.Role != EnumTypes.Role.Student)
-                    {
-                        continue;
-                    }
-                    string fullName = item.FullName();
+        <h2>Registrace studentů</h2>
+        @{
+            if (studentsRegistrationsCount > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => fullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CreationDate)</td>
-                        @{
-                            if(item.State == EnumTypes.RegistrationState.Waiting)
-                            {
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
-                            }
-                            else
-                            {
-                                <td>Registraci nelze schválit.</td>
-                            }
-
-                            if (item.State == EnumTypes.RegistrationState.Waiting)
-                            {
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
-                            }
-                            else
-                            {
-                                <td>Registraci nelze zamítnout.</td>
-                            }
-
-                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
-
-                            string state = "";
-                            if (item.State == EnumTypes.RegistrationState.Waiting)
-                            {
-                                state = waitingString;
-                            }
-                            else if (item.State == EnumTypes.RegistrationState.Accepted)
-                            {
-                                state = acceptedString;
-                            }
-                            else if (item.State == EnumTypes.RegistrationState.Rejected)
-                            {
-                                state = rejectedString;
-                            }
-                            <td>@Html.DisplayFor(modelItem => state)</td>
-                        }
+                        <th>Jméno</th>
+                        <th>Login</th>
+                        <th>Email</th>
+                        <th>Datum vytvoření</th>
+                        <th>Schválení</th>
+                        <th>Zamítnutí</th>
+                        <th>Smazání</th>
+                        <th>Stav</th>
                     </tr>
-                }
+                    @{
+                        foreach (var item in Model)
+                        {
+                            if (item.Role != EnumTypes.Role.Student)
+                            {
+                                continue;
+                            }
+                            string fullName = item.FullName();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td>@Html.DisplayFor(modelItem => item.CreationDate)</td>
+                                @{
+                                    if (item.State == EnumTypes.RegistrationState.Waiting)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>Registraci nelze schválit.</td>
+                                    }
+
+                                    if (item.State == EnumTypes.RegistrationState.Waiting)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>Registraci nelze zamítnout.</td>
+                                    }
+
+                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+
+                                    string state = "";
+                                    if (item.State == EnumTypes.RegistrationState.Waiting)
+                                    {
+                                        state = waitingString;
+                                    }
+                                    else if (item.State == EnumTypes.RegistrationState.Accepted)
+                                    {
+                                        state = acceptedString;
+                                    }
+                                    else if (item.State == EnumTypes.RegistrationState.Rejected)
+                                    {
+                                        state = rejectedString;
+                                    }
+                                    <td>@Html.DisplayFor(modelItem => state)</td>
+                                }
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Žádné registrace studentů nebyly nalezeny.</p>
+            }
+        }
+
     </div>
 
     <div id="staff-registration-list">
         <h2>Registrace učitelů a administrátorů</h2>  
-        <table>
-            <tr>
-                <th>Jméno</th>
-                <th>Login</th>
-                <th>Email</th>
-                <th>Datum vytvoření</th>
-                <th>Role</th>
-                <th>Schválení</th>
-                <th>Zamítnutí</th>
-                <th>Smazání</th>
-                <th>Stav</th>
-            </tr>
-            @{
-                foreach(var item in Model)
-                {
-                    if (item.Role != EnumTypes.Role.Teacher && item.Role != EnumTypes.Role.Admin)
-                    {
-                        continue;
-                    }
-                    string fullName = item.FullName();
-                    string role = "";
-                    if (item.Role == EnumTypes.Role.Teacher)
-                    {
-                        role = "Učitel";
-                    }
-                    else if (item.Role == EnumTypes.Role.Admin)
-                    {
-                        role = "Správce";
-                    }
+        @{
+            if (staffRegistrationsCount > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => fullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CreationDate)</td>
-                        <td>@Html.DisplayFor(modelItem => role)</td>
-                        @{
-                            if (item.State == EnumTypes.RegistrationState.Waiting && item.Role == EnumTypes.Role.Teacher)
+                        <th>Jméno</th>
+                        <th>Login</th>
+                        <th>Email</th>
+                        <th>Datum vytvoření</th>
+                        <th>Role</th>
+                        <th>Schválení</th>
+                        <th>Zamítnutí</th>
+                        <th>Smazání</th>
+                        <th>Stav</th>
+                    </tr>
+                    @{
+                        foreach (var item in Model)
+                        {
+                            if (item.Role != EnumTypes.Role.Teacher && item.Role != EnumTypes.Role.Admin)
                             {
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
+                                continue;
                             }
-                            else
-                            {
-                                <td>Registraci nelze schválit.</td>
-                            }
-
-                            if (item.State == EnumTypes.RegistrationState.Waiting && item.Role == EnumTypes.Role.Teacher)
-                            {
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
-                            }
-                            else
-                            {
-                                <td>Registraci nelze zamítnout.</td>
-                            }
-
+                            string fullName = item.FullName();
+                            string role = "";
                             if (item.Role == EnumTypes.Role.Teacher)
                             {
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+                                role = "Učitel";
                             }
-                            else
+                            else if (item.Role == EnumTypes.Role.Admin)
                             {
-                                <td>Registraci nelze smazat.</td>
+                                role = "Správce";
                             }
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td>@Html.DisplayFor(modelItem => item.CreationDate)</td>
+                                <td>@Html.DisplayFor(modelItem => role)</td>
+                                @{
+                                    if (item.State == EnumTypes.RegistrationState.Waiting && item.Role == EnumTypes.Role.Teacher)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>Registraci nelze schválit.</td>
+                                    }
 
-                            string state = "";
-                            if (item.State == EnumTypes.RegistrationState.Waiting)
-                            {
-                                state = waitingString;
-                            }
-                            else if (item.State == EnumTypes.RegistrationState.Accepted)
-                            {
-                                state = acceptedString;
-                            }
-                            else if (item.State == EnumTypes.RegistrationState.Rejected)
-                            {
-                                state = rejectedString;
-                            }
-                            <td>@Html.DisplayFor(modelItem => state)</td>
+                                    if (item.State == EnumTypes.RegistrationState.Waiting && item.Role == EnumTypes.Role.Teacher)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>Registraci nelze zamítnout.</td>
+                                    }
+
+                                    if (item.Role == EnumTypes.Role.Teacher)
+                                    {
+                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+                                    }
+                                    else
+                                    {
+                                        <td>Registraci nelze smazat.</td>
+                                    }
+
+                                    string state = "";
+                                    if (item.State == EnumTypes.RegistrationState.Waiting)
+                                    {
+                                        state = waitingString;
+                                    }
+                                    else if (item.State == EnumTypes.RegistrationState.Accepted)
+                                    {
+                                        state = acceptedString;
+                                    }
+                                    else if (item.State == EnumTypes.RegistrationState.Rejected)
+                                    {
+                                        state = rejectedString;
+                                    }
+                                    <td>@Html.DisplayFor(modelItem => state)</td>
+                                }
+                            </tr>
                         }
-                    </tr>
-                }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Žádné registrace učitelů a administátorů nebyly nalezeny.</p>
+            }
+        }
+
     </div>
 
     <div id="confirm-action">

@@ -34,6 +34,10 @@ namespace BusinessLayer
             return dataFunctions.GetTestTemplateDbSet();
         }
 
+        /// <summary>
+        /// Returns the list of test templates of the teacher
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<List<TestTemplate>> GetTestTemplates(string login)
         {
             return await GetTestTemplateDbSet()
@@ -69,9 +73,14 @@ namespace BusinessLayer
             return await GetSubjectDbSet().Include(s => s.Guarantor).ToListAsync();
         }
 
-        public async Task<Subject?> GetSubjectById(int subjectId)
+        public async Task<Subject> GetSubjectById(int subjectId)
         {
-            return await GetSubjectDbSet().Include(s => s.Students).FirstOrDefaultAsync(s => s.SubjectId == subjectId);
+            Subject? subject = await GetSubjectDbSet().Include(s => s.Students).FirstOrDefaultAsync(s => s.SubjectId == subjectId);
+            if(subject == null)
+            {
+                throw Exceptions.SubjectNotFoundException(subjectId);
+            }
+            return subject;
         }
 
         public async Task<string> AddSubject(Subject subject)
@@ -79,14 +88,15 @@ namespace BusinessLayer
             return await dataFunctions.AddSubject(subject);
         }
 
+        /// <summary>
+        /// Updates subject
+        /// </summary>
+        /// <param name="subject">Subject</param>
+        /// <param name="user">User performing the update (only subject's guarantor can make changes to the subject)</param>
         public async Task<string> EditSubject(Subject subject, User user)
         {
-            Subject? oldSubject = await GetSubjectById(subject.SubjectId);
-            if(oldSubject == null)
-            {
-                return "Chyba: předmět nebyl nalezen.";
-            }
-            else if(oldSubject.GuarantorLogin != user.Login && user.Role != Role.MainAdmin)
+            Subject oldSubject = await GetSubjectById(subject.SubjectId);
+            if(oldSubject.GuarantorLogin != user.Login && user.Role != Role.MainAdmin)
             {
                 return "Chyba: na tuto akci nemáte oprávnění";
             }
@@ -113,6 +123,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Valitates subject (checks whether all the fields are properly filled)
+        /// </summary>
         public string? ValidateSubject(Subject subject)
         {
             string? errorMessage = null;
@@ -124,7 +137,12 @@ namespace BusinessLayer
             return errorMessage;
         }
 
-        public async Task<string> DeleteSubject(Subject? subject, User user)
+        /// <summary>
+        /// Deletes subject
+        /// </summary>
+        /// <param name="subject">Subject</param>
+        /// <param name="user">User performing the deletion (only subject's guarantor can make changes to the subject)</param>
+        public async Task<string> DeleteSubject(Subject subject, User user)
         {
             if(subject != null)
             {
@@ -143,6 +161,11 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Checks whether (test/question/subquestion) template can be modified by the user (templates can only be modified by its owners)
+        /// </summary>
+        /// <param name="currentUserlogin">Current user's login</param>
+        /// <param name="templateOwnerLogin">Template owner's login</param>
         public bool CanUserModifyTemplate(string currentUserlogin, string templateOwnerLogin)
         {
             if(currentUserlogin == templateOwnerLogin)
@@ -165,6 +188,12 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Updates test template
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        /// <param name="testTemplate">Test template (with updated values)</param>
+        /// <param name="subjectId">Selected subject Id of updated test template</param>
         public async Task<string> EditTestTemplate(string login, TestTemplate testTemplate, string subjectId)
         {
             if(!CanUserModifyTemplate(login, testTemplate.OwnerLogin))
@@ -182,6 +211,12 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Validates whether test template's parameters valid and the test template can be added/edited
+        /// This function is used to prevent the student from invalid data  being submitted(which could result in unexpected behavior)
+        /// </summary>
+        /// <param name="testTemplate">Test template that is yet to be validated</param>
+        /// <param name="subjectId">Selected subject Id of updated test template</param>
         public async Task<(string?, TestTemplate)> ValidateTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string? errorMessage = null;
@@ -191,15 +226,8 @@ namespace BusinessLayer
             }
             else
             {
-                Subject? subject = await GetSubjectById(int.Parse(subjectId));
-                if (subject == null)
-                {
-                    errorMessage = "Chyba: předmět nenalezen.";
-                }
-                else
-                {
-                    testTemplate.Subject = subject;
-                }
+                Subject subject = await GetSubjectById(int.Parse(subjectId));
+                testTemplate.Subject = subject;
             }
 
             if(testTemplate.Title.Length == 0)
@@ -241,6 +269,13 @@ namespace BusinessLayer
             return (errorMessage, testTemplate);
         }
 
+        /// <summary>
+        /// Checks whether test template can be modified by the teacher
+        /// - test template can only be edited by its owner
+        /// - test template can only be edited before test template's start date
+        /// </summary>
+        /// <param name="testTemplate">Test template</param>
+        /// <param name="login">Teacher's login</param>
         public bool CanUserEditTestTemplate(TestTemplate testTemplate, string login)
         {
             if (testTemplate.IsTestingData)
@@ -264,11 +299,21 @@ namespace BusinessLayer
             return true;
         }
 
+        /// <summary>
+        /// Deletes test templates of the teacher
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<string> DeleteTestTemplates(string login)
         {
             return await dataFunctions.DeleteTestTemplates(login);
         }
 
+        /// <summary>
+        /// Deletes a test result
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        /// <param name="testTemplateId">Id of test template</param>
+        /// <param name="webRootPath">Web root path - used to locate images belonging to test template that are deleted together with the test template</param>
         public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
         {
             TestTemplate testTemplate = GetTestTemplateDbSet().First(t => t.OwnerLogin == login && t.TestTemplateId == testTemplateId);
@@ -307,6 +352,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Validates whether question template is valid and can be added or edited
+        /// </summary>
         public string? ValidateQuestionTemplate(QuestionTemplate questionTemplate)
         {
             string? errorMessage = null;
@@ -317,6 +365,11 @@ namespace BusinessLayer
             return errorMessage;
         }
 
+        /// <summary>
+        /// Updates question template
+        /// </summary>
+        /// <param name="questionTemplate">Question template</param>
+        /// <param name="login">Login of the user performing the update (only template's owner can make changes to the template)</param>
         public async Task<string> EditQuestionTemplate(QuestionTemplate questionTemplate, string login)
         {
             if (!CanUserModifyTemplate(login, questionTemplate.OwnerLogin))
@@ -326,6 +379,12 @@ namespace BusinessLayer
             return await dataFunctions.EditQuestionTemplate(questionTemplate);
         }
 
+        /// <summary>
+        /// Deletes a question template
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        /// <param name="questionTemplateId">Id of question template</param>
+        /// <param name="webRootPath">Web root path - used to locate images belonging to test template that are deleted together with the question template</param>
         public async Task<string> DeleteQuestionTemplate(string login, int questionTemplateId, string webRootPath)
         {
             QuestionTemplate questionTemplate = await GetQuestionTemplate(questionTemplateId);
@@ -349,6 +408,13 @@ namespace BusinessLayer
             return await dataFunctions.AddSubquestionTemplate(subquestionTemplate, image, webRootPath);
         }
 
+        /// <summary>
+        /// Updates subquestion template
+        /// </summary>
+        /// <param name="subquestionTemplate">Subquestion template</param>
+        /// <param name="image">Image - can be null</param>
+        /// <param name="webRootPath">Web root path - all images are saved to the Uploads folder located within the web root path</param>
+        /// <param name="login">Teacher's login</param>
         public async Task<string> EditSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath, string login)
         {
             string message;
@@ -403,8 +469,13 @@ namespace BusinessLayer
         }
 
         /// <summary>
-        /// Validates the integrity of added subquestion template and changes certain fields before adding
+        /// Validates whether subquestion template's fields are valid and subquestion template can be added/edited
+        /// This function is used to prevent invalid from being added (which could result in unexpected behavior)
         /// </summary>
+        /// <param name="subquestionTemplate">Subquestion template that is yet to be validated</param>
+        /// <param name="subquestionTextArray">Array of subquestion text fragments (used only for subquestion types that include gaps - 7, 8 and 9)</param>
+        /// <param name="subquestionTextArray">String that includes slider values (possible and correct answers; used only for subquestion type slider - 10)</param>
+        /// <param name="image">Image - can be null</param>
         public (SubquestionTemplate, string?) ValidateSubquestionTemplate(SubquestionTemplate subquestionTemplate, string[] subquestionTextArray, string sliderValues,
             IFormFile? image)
         {
@@ -670,8 +741,8 @@ namespace BusinessLayer
         }
 
         /// <summary>
-        /// Changes certain fields of subquestion template before finally sending them to the presentation layer
-        /// </summary>
+        /// Processes subquestion templates for view - certain chars are replaced with more intuitive strings
+        /// <summary>
         public List<SubquestionTemplate> ProcessSubquestionTemplatesForView(List<SubquestionTemplate> subquestionTemplates)
         {
             List<SubquestionTemplate> processedSubquestionTemplates = new List<SubquestionTemplate>();
@@ -684,6 +755,9 @@ namespace BusinessLayer
             return processedSubquestionTemplates;
         }
 
+        /// <summary>
+        /// Processes subquestion template for view - certain chars are replaced with more intuitive strings
+        /// <summary>
         public SubquestionTemplate ProcessSubquestionTemplateForView(SubquestionTemplate subquestionTemplate)
         {
             string[] possibleAnswerList;
@@ -755,6 +829,12 @@ namespace BusinessLayer
             return subquestionTemplate;
         }
 
+        /// <summary>
+        /// Deletes a subquestion template
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        /// <param name="subquestionTemplateId">Id of subquestion template</param>
+        /// <param name="webRootPath">Web root path - used to locate image that belongs to subquestion template</param>
         public async Task<string> DeleteSubquestionTemplate(string login, int subquestionTemplateId, string webRootPath)
         {
             SubquestionTemplate subquestionTemplate = await GetSubquestionTemplate(subquestionTemplateId);
@@ -783,6 +863,9 @@ namespace BusinessLayer
                 .FirstAsync(s => s.SubquestionTemplateId == subquestionTemplateId);
         }
 
+        /// <summary>
+        /// Returns teacher's subquestion template statistics - throws exception if statistics are not found
+        /// </summary>
         public async Task<SubquestionTemplateStatistics> GetSubquestionTemplateStatistics(string login)
         {
             SubquestionTemplateStatistics? subquestionTemplateStatistics = await dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
@@ -793,11 +876,19 @@ namespace BusinessLayer
             return subquestionTemplateStatistics;
         }
 
+        /// <summary>
+        /// Returns teacher's subquestion template statistics - doesn't throw an exception if statistics are not found
+        /// </summary>
         public async Task<SubquestionTemplateStatistics?> GetSubquestionTemplateStatisticsNullable(string login)
         {
             return await dataFunctions.GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
 
+        /// <summary>
+        /// Suggests the amount of points that the subquestion template should get
+        /// </summary>
+        /// <param name="subquestionTemplate">Subquestion template</param>
+        /// <param name="subquestionTemplateExists">Suggestion can be made for both existing and non-existing subquestion templates</param>
         public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
         {
             if (subquestionTemplateExists)
@@ -854,6 +945,10 @@ namespace BusinessLayer
             return suggestedSubquestionPoints.ToString();
         }
 
+        /// <summary>
+        /// Deletes all existing subquestion template records of the teacher and replaces them with records of current subquestion templates
+        /// <param name="owner">Teacher</param>
+        /// </summary>
         public async Task RetrainSubquestionTemplateModel(User owner)
         {
             string login = owner.Login;
@@ -868,6 +963,9 @@ namespace BusinessLayer
             await dataFunctions.SaveSubquestionTemplateRecords(subquestionTemplateRecords, owner);
         }
 
+        /// <summary>
+        /// Returns all test templates marked as testing data
+        /// </summary>
         public async Task<List<TestTemplate>> GetTestingDataTestTemplates()
         {
             return await GetTestTemplateDbSet()
@@ -876,6 +974,9 @@ namespace BusinessLayer
                 .Where(t => t.IsTestingData).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns the amount of subquestion templates marked as testing data
+        /// </summary>
         public async Task<int> GetTestingDataSubquestionTemplatesCount()
         {
             int testingDataSubquestionTemplates = 0;
@@ -895,6 +996,12 @@ namespace BusinessLayer
             return testingDataSubquestionTemplates;
         }
 
+        /// <summary>
+        /// Creates a number of subquestion templates marked as testing data
+        /// This function is accessible via the ManageArtificialIntelligence view
+        /// </summary>
+        /// <param name="action">addSubquestionTemplateRandomData or addSubquestionTemplateCorrelationalData</param>
+        /// <param name="amountOfSubquestionTemplates">Amount of subquestion templates to be created</param>
         public async Task<string> CreateTemplateTestingData(string action, string amountOfSubquestionTemplates)
         {
             string message;
@@ -922,7 +1029,7 @@ namespace BusinessLayer
             {
                 testTemplates = DataGenerator.GenerateCorrelationalTestTemplates(existingTestTemplates, Convert.ToInt32(amountOfSubquestionTemplates), testingDataSubjects);
             }
-            message = await dataFunctions.AddTestTemplates(testTemplates, owner);
+            message = await dataFunctions.AddTestTemplates(testTemplates);
             string login = "login";
             owner = await dataFunctions.GetUserByLoginAsNoTracking();
 
@@ -938,7 +1045,7 @@ namespace BusinessLayer
 
             dataFunctions.ClearChargeTracker();
             owner = await dataFunctions.GetUserByLoginAsNoTracking();
-            var subquestionTemplateStatistics = await GetSubquestionTemplateStatistics(owner.Login);
+            SubquestionTemplateStatistics? subquestionTemplateStatistics = await GetSubquestionTemplateStatisticsNullable(owner.Login);
             if (subquestionTemplateStatistics == null)
             {
                 subquestionTemplateStatistics = new SubquestionTemplateStatistics();
@@ -977,6 +1084,10 @@ namespace BusinessLayer
             return message;
         }
 
+        /// <summary>
+        /// Creates a number of subjects marked as testing data
+        /// </summary>
+        /// <param name="owner">Owner - testing data teacher</param>
         public async Task CreateSubjectTestingData(User owner)
         {
             Subject[] testingDataSubjects = new Subject[] { 
@@ -991,6 +1102,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Checks whether user marked as testing data exists, and creates him if he doesn't
+        /// </summary>
         public async Task TestingUsersCheck()
         {
             User? owner = await dataFunctions.GetUserByLoginNullable("login");
@@ -1001,6 +1115,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Deletes all testing data related to templates (and results too as they are dependent on templates)
+        /// </summary>
         public async Task DeleteTemplateTestingData()
         {
             dataFunctions.ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
@@ -1029,6 +1146,10 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Predicts the amount of points that students will receive for the test on average
+        /// <param name="login">Teacher's login</param>
+        /// <param name="testTemplateId">Id of the test template</param>
         public async Task<string> GetTestDifficultyPrediction(string login, int testTemplateId)
         {
             string testDifficultyMessage;
@@ -1117,6 +1238,9 @@ namespace BusinessLayer
             return testDifficultyMessage;
         }
 
+        /// <summary>
+        /// Returns the max amount of points that is awarded for the test
+        /// </summary>
         public double GetTestTemplatePointsSum(TestTemplate testTemplate)
         {
             double testPoints = 0;
@@ -1134,6 +1258,9 @@ namespace BusinessLayer
             return Math.Round(testPoints, 2);
         }
 
+        /// <summary>
+        /// Returns the amount of subquestion templates that belong to the test template
+        /// </summary>
         public int GetTestTemplateSubquestionsCount(TestTemplate testTemplate)
         {
             int subquestionsCount = 0;
@@ -1150,6 +1277,9 @@ namespace BusinessLayer
             return subquestionsCount;
         }
 
+        /// <summary>
+        /// Returns the description of subquestion type based on its identifying number
+        /// </summary>
         public string GetSubquestionTypeText(int subquestionType)
         {
             switch (subquestionType)
@@ -1181,6 +1311,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Array containing descriptions of subquestion types
+        /// </summary>
         public string[] SubquestionTypeTextArray = {
         "Neznámý nebo nepodporovaný typ otázky!",
         "Seřazení pojmů",
@@ -1194,6 +1327,10 @@ namespace BusinessLayer
         "Dosazování pojmů do mezer",
         "Posuvník; jedna správná odpověď (číslo)"};
 
+
+        /// <summary>
+        /// Returns the description of subquestion type based on its identifying number
+        /// </summary>
         public string[] GetSubquestionTypeTextArray()
         {
             return SubquestionTypeTextArray;

@@ -4,9 +4,14 @@
 
 @{
     List<Subject> subjectList = Model.Subjects;
+    bool subjectsExist = true;
+    if (subjectList.Count == 0)
+    {
+        subjectsExist = false;
+    }
 
     TestTemplate testTemplate = Model.TestTemplate;
-    if(testTemplate.Subject == null)
+    if (testTemplate.Subject == null && subjectsExist)
     {
         testTemplate.Subject = subjectList[0];
     }
@@ -65,9 +70,14 @@
 </div>
 
 <script src="/js/site.js"></script>
-<script>
-    editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId');
-</script>
+@{
+    if (subjectsExist)
+    {
+        <script>
+            editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject!.SubjectId');
+        </script>
+    }
+}
 
 <div id="backBtn">
     <a asp-action="TestTemplateList">Zpět</a>

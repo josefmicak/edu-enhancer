@@ -45,6 +45,11 @@ namespace ArtificialIntelligenceTools
 
         }
 
+        /// <summary>
+        /// Generates .csv file of a number of subquestion results with parameters that are used by the neural network
+        /// </summary>
+        /// <param name="testTemplates">Existing testing data templates (test templates where IsTestingData == true)</param>
+        /// <param name="dataColleration">Decides whether the generated data will be randomized or if there are going to be collerations between the templates</param>
         public static void GenerateResultsFile(List<TestTemplate> testTemplates, bool dataColleration)
         {
             List<TestResult> testResults;
@@ -108,6 +113,9 @@ namespace ArtificialIntelligenceTools
             return subquestionTemplateRecords;
         }
 
+        /// <summary>
+        /// Creates a subquestion template with parameters that are used by the neural network
+        /// </summary>
         public static SubquestionTemplateRecord CreateSubquestionTemplateRecord(SubquestionTemplate subquestionTemplate, User owner, 
             List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double minimumPointsShare)
         {
@@ -193,6 +201,7 @@ namespace ArtificialIntelligenceTools
         /// Generates random test templates - their subquestion points are randomized, not dependent on any variables
         /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
         /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
+        /// <param name="testingDataSubjects">Existing testing data subjects (subjects where IsTestingData == true)</param>
         /// </summary>
         public static List<TestTemplate> GenerateRandomTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated,
             List<Subject> testingDataSubjects)
@@ -300,6 +309,7 @@ namespace ArtificialIntelligenceTools
         /// Generates correlational test templates - their subquestion points are dependent on variables such as subquestion type, subject etc.
         /// <param name="existingTestTemplates">Already existing test templates owned by the testing user</param>
         /// <param name="amountOfSubquestionTemplatesToBeGenerated">Amount of subquestion templates to be generated</param>
+        /// <param name="testingDataSubjects">Existing testing data subjects (subjects where IsTestingData == true)</param>
         /// </summary>
         public static List<TestTemplate> GenerateCorrelationalTestTemplates(List<TestTemplate> existingTestTemplates, int amountOfSubquestionTemplatesToBeGenerated,
             List<Subject> testingDataSubjects)
@@ -311,7 +321,6 @@ namespace ArtificialIntelligenceTools
             User owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
             int subquestionCount = 0;
             bool stopDataGeneration = false;
-            //int[] subquestionPointsByTypeArray = { 0, 2, -4, -3, -4, 5, -1, -1, 2, -3, 0 };
             int[] subquestionPointsByTypeArray = { 0, 4, -2, -1, -2, 7, 1, 1, 4, -1, 2 };
             int[] subquestionPointsBySubjectArray = { 3, -1, 3, 1, 1 };
             int[] negativePointsArray = { -4, -2, 0 };
@@ -675,6 +684,9 @@ namespace ArtificialIntelligenceTools
             return testResults;
         }
 
+        /// <summary>
+        /// Creates a list of subquestion results with parameters that are used by the neural network
+        /// </summary>
         public static List<SubquestionResultRecord> CreateSubquestionResultRecords(List<TestResult> testResults)
         {
             List<SubquestionResultRecord> subquestionResultRecords = new List<SubquestionResultRecord>();
@@ -705,6 +717,9 @@ namespace ArtificialIntelligenceTools
             return subquestionResultRecords;
         }
 
+        /// <summary>
+        /// Creates a subquestion result with parameters that are used by the neural network
+        /// </summary>
         public static SubquestionResultRecord CreateSubquestionResultRecord(SubquestionResult subquestionResult, User owner, 
             List<(Subject, double)> subjectAveragePointsTuple, double[] subquestionTypeAveragePoints, double minimumPointsShare)
         {
@@ -733,6 +748,11 @@ namespace ArtificialIntelligenceTools
             return subquestionResultRecord;
         }
 
+        /// <summary>
+        /// Generates subquestion text, possible answers and correct answers
+        /// <param name="subquestionType">Subquestion type, based on which the text and possible/correct answers will be generated</param>
+        /// <param name="random">Instance of the Random class</param>
+        /// </summary>
         public static (string, int, int, string[], string[]) CreateSubquestionAnswers(int subquestionType, Random random)
         {
             string subquestionText = "(TESTOVACÍ OTÁZKA): ";
@@ -908,6 +928,11 @@ namespace ArtificialIntelligenceTools
             return (subquestionText, possibleAnswersCount, correctAnswersCount, possibleAnswers, correctAnswers);
         }
 
+        /// <summary>
+        /// Generates student's answers
+        /// <param name="subquestionTemplate">Subquestion template containing subquestion type, based on which the text and possible/correct answers will be generated</param>
+        /// <param name="random">Instance of the Random class</param>
+        /// </summary>
         public static string[] CreateStudentsAnswers(SubquestionTemplate subquestionTemplate, Random random)
         {
             string[] possibleAnswerArray = subquestionTemplate.PossibleAnswers;
@@ -1027,6 +1052,9 @@ namespace ArtificialIntelligenceTools
             return subquestionTypePointsShare;
         }
 
+        /// <summary>
+        /// Generates a double[10] array of average student's points based on subquestion type
+        /// </summary>
         public static double[] GetSubquestionTypeAverageStudentsPoints(List<TestResult> testResults)
         {
             int subquestionTypeCount = 10;
@@ -1059,6 +1087,9 @@ namespace ArtificialIntelligenceTools
             return subquestionTypePointsShare;
         }
 
+        /// <summary>
+        /// Generates a double[10] array of average answer correctness based on subquestion type
+        /// </summary>
         public static double[] GetSubquestionTypeAverageAnswerCorrectness(List<TestResult> testResults)
         {
             int subquestionTypeCount = 10;
@@ -1092,7 +1123,7 @@ namespace ArtificialIntelligenceTools
         }
 
         /// <summary>
-        /// Returns array of average points for each subject
+        /// Returns a list of tuples containing a subject and an average amount of points that the subquestion template of this subject has
         /// </summary>
         public static List<(Subject, double)> GetSubjectAverageTemplatePoints(List<TestTemplate> testTemplates)
         {
@@ -1132,6 +1163,10 @@ namespace ArtificialIntelligenceTools
             return subjectAveragePointsTuple;
         }
 
+        /// <summary>
+        /// Returns a list of tuples containing a subject and an average amount of points that a student has received for his
+        /// answer for a subquestion of this subject
+        /// </summary>
         public static List<(Subject, double)> GetSubjectAverageStudentsPoints(List<TestResult> testResults)
         {
             List<Subject> subjectList = testResults.Select(t => t.TestTemplate.Subject).Distinct().ToList();

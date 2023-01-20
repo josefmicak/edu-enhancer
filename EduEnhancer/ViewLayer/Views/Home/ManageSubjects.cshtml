@@ -2,6 +2,7 @@
 
 @{
     string login = ViewBag.login;
+    int guarantorSubjectsCount = Model.Where(s => s.GuarantorLogin == login).Count();
     ViewData["Title"] = "Správa předmětů";
 }
 
@@ -14,57 +15,75 @@
 
     <div id="user-subjects-list">
         <h2>Vámi garantované předměty</h2>
-        <table>
-            <tr>
-                <th>Zkratka</th>
-                <th>Jméno předmětu</th>
-                <th>Upravit</th>
-                <th>Smazat</th>
-            </tr>
-            @{
-                foreach (var item in Model)
-                {
-                    if(item.GuarantorLogin != login)
-                    {
-                        continue;
-                    }
+        @{
+            if (guarantorSubjectsCount > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                        <td>
-                            <a class="button" title="Správa testu"
-                               asp-area=""
-                               asp-controller="Home"
-                               asp-action="EditSubject"
-                               asp-route-subjectId="@item.SubjectId">Upravit předmět</a>
-                        </td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.SubjectId', null, null, null, null, null)">Smazat předmět</button></td>
+                        <th>Zkratka</th>
+                        <th>Jméno předmětu</th>
+                        <th>Upravit</th>
+                        <th>Smazat</th>
                     </tr>
-                }
+                    @{
+                        foreach (var item in Model)
+                        {
+                            if (item.GuarantorLogin != login)
+                            {
+                                continue;
+                            }
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                                <td>
+                                    <a class="button" title="Správa testu"
+                                       asp-area=""
+                                       asp-controller="Home"
+                                       asp-action="EditSubject"
+                                       asp-route-subjectId="@item.SubjectId">Upravit předmět</a>
+                                </td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.SubjectId', null, null, null, null, null)">Smazat předmět</button></td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Žádné vámi garantované předměty nebyly přidány.</p>
+            }
+        }
     </div>
 
     <div id="all-subjects-list">
         <h2>Všechny předměty</h2>
-        <table>
-            <tr>
-                <th>Zkratka</th>
-                <th>Jméno předmětu</th>
-                <th>Garant</th>
-            </tr>
-            @{
-                foreach (var item in Model)
-                {
-                    string fullName = item.Guarantor.FullName();
+        @{
+            if (Model.Count() > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                        <td>@Html.DisplayFor(modelItem => fullName)</td>
+                        <th>Zkratka</th>
+                        <th>Jméno předmětu</th>
+                        <th>Garant</th>
                     </tr>
-                }
+                    @{
+                        foreach (var item in Model)
+                        {
+                            string fullName = item.Guarantor.FullName();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.Abbreviation)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Nebyly přidány žádné předměty.</p>
+            }
+        }
     </div>
 
     <div id="confirm-action">

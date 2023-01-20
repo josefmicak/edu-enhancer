@@ -44,45 +44,55 @@
     <div id="question-template-list">
         <p>@ViewBag.Message</p>
         <h2>Seznam otázek</h2>
-        <table>
-            <tr>
-               <th>Nadpis</th>
-               <th>Počet bodů</th>
-               <th>Úprava</th>
-               <th>Smazat</th>
-               <th>Otevřít</th>
-            </tr>
-            @{
-                foreach (var item in Model)
-                {
-                    if (item.QuestionTemplateId == -1)
-                    {
-                        continue;
-                    }
-
-                    double questionPoints = 0;
-                    foreach(SubquestionTemplate subquestionTemplate in item.SubquestionTemplates)
-                    {
-                        questionPoints += subquestionTemplate.SubquestionPoints;
-                    }
-                    testPoints += questionPoints;
-                    string questionPointsString = Math.Round(questionPoints, 2).ToString();
+        @{
+            if(Model.Count() > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Title)</td>
-                        <td>@questionPointsString</td>
-                        <td>
-                            <a class="button" title="Upravit otázku" asp-area="" asp-controller="Home" asp-action="EditQuestionTemplate"
-                                asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
-                        </td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
-                        <td>
-                            <a class="button" title="Otevřít otázku" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                                asp-route-questionTemplateId="@item.QuestionTemplateId">Otevřít otázku</a>
-                        </td>
+                        <th>Nadpis</th>
+                        <th>Počet bodů</th>
+                        <th>Úprava</th>
+                        <th>Smazat</th>
+                        <th>Otevřít</th>
                     </tr>
-                }
+                    @{
+                        foreach (var item in Model)
+                        {
+                            if (item.QuestionTemplateId == -1)
+                            {
+                                continue;
+                            }
+
+                            double questionPoints = 0;
+                            foreach (SubquestionTemplate subquestionTemplate in item.SubquestionTemplates)
+                            {
+                                questionPoints += subquestionTemplate.SubquestionPoints;
+                            }
+                            testPoints += questionPoints;
+                            string questionPointsString = Math.Round(questionPoints, 2).ToString();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                                <td>@questionPointsString</td>
+                                <td>
+                                    <a class="button" title="Upravit otázku" asp-area="" asp-controller="Home" asp-action="EditQuestionTemplate"
+                       asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
+                                </td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
+                                <td>
+                                    <a class="button" title="Otevřít otázku" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
+                       asp-route-questionTemplateId="@item.QuestionTemplateId">Otevřít otázku</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Žádná zadání otázek nebyla přidána.</p>
+            }
+        }
+
     </div>
 </div>
 

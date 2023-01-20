@@ -3,7 +3,6 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -32,71 +31,73 @@ def get_accuracy(y_test, y_test_pred):
     print(R2)
 
 
-def predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage, NegativePoints, MinimumPointsShare, subquestionPoints, df, model, duplicateColumns):
-    finalTensorValues = list() #values from non-duplicate columns
+def predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, contains_image,
+                negative_points, minimum_points_share, subquestion_points, df, model, duplicate_columns):
+    final_tensor_values = list() #values from non-duplicate columns
 
-    if duplicateColumns[0] != 1:
-        SubquestionTypeAveragePoints_mean = df["SubquestionTypeAveragePoints"].mean()
-        SubquestionTypeAveragePoints_std = df["SubquestionTypeAveragePoints"].std()
-        if SubquestionTypeAveragePoints_std == 0:
-            SubquestionTypeAveragePoints_std = 0.01
-        SubquestionTypeAveragePoints = (SubquestionTypeAveragePoints - SubquestionTypeAveragePoints_mean) / SubquestionTypeAveragePoints_std
-        finalTensorValues.append(SubquestionTypeAveragePoints)
+    if duplicate_columns[0] != 1:
+        subquestion_type_average_points_mean = df["SubquestionTypeAveragePoints"].mean()
+        subquestion_type_average_points_std = df["SubquestionTypeAveragePoints"].std()
+        if subquestion_type_average_points_std == 0:
+            subquestion_type_average_points_std = 0.01
+        subquestion_type_average_points = (subquestion_type_average_points
+                                           - subquestion_type_average_points_mean) / subquestion_type_average_points_std
+        final_tensor_values.append(subquestion_type_average_points)
 
-    if duplicateColumns[1] != 1:
-        AnswerCorrectness_mean = df["AnswerCorrectness"].mean()
-        AnswerCorrectness_std = df["AnswerCorrectness"].std()
-        if AnswerCorrectness_std == 0:
-            AnswerCorrectness_std= 0.01
-        AnswerCorrectness = (AnswerCorrectness - AnswerCorrectness_mean) / AnswerCorrectness_std
-        finalTensorValues.append(AnswerCorrectness)
+    if duplicate_columns[1] != 1:
+        answer_correctness_mean = df["AnswerCorrectness"].mean()
+        answer_correctness_std = df["AnswerCorrectness"].std()
+        if answer_correctness_std == 0:
+            answer_correctness_std = 0.01
+        answer_correctness = (answer_correctness - answer_correctness_mean) / answer_correctness_std
+        final_tensor_values.append(answer_correctness)
 
-    if duplicateColumns[2] != 1:
-        SubjectAveragePoints_mean = df["SubjectAveragePoints"].mean()
-        SubjectAveragePoints_std = df["SubjectAveragePoints"].std()
-        if SubjectAveragePoints_std == 0:
-            SubjectAveragePoints_std = 0.01
-        SubjectAveragePoints = (SubjectAveragePoints - SubjectAveragePoints_mean) / SubjectAveragePoints_std
-        finalTensorValues.append(SubjectAveragePoints)
+    if duplicate_columns[2] != 1:
+        subject_average_points_mean = df["SubjectAveragePoints"].mean()
+        subject_average_points_std = df["SubjectAveragePoints"].std()
+        if subject_average_points_std == 0:
+            subject_average_points_std = 0.01
+        subject_average_points = (subject_average_points - subject_average_points_mean) / subject_average_points_std
+        final_tensor_values.append(subject_average_points)
 
-    if duplicateColumns[3] != 1:
-        ContainsImage_mean = df["ContainsImage"].mean()
-        ContainsImage_std = df["ContainsImage"].std()
-        if ContainsImage_std == 0:
-            ContainsImage_std = 0.01
-        ContainsImage = (ContainsImage - ContainsImage_mean) / ContainsImage_std
-        finalTensorValues.append(ContainsImage)
+    if duplicate_columns[3] != 1:
+        contains_image_mean = df["ContainsImage"].mean()
+        contains_image_std = df["ContainsImage"].std()
+        if contains_image_std == 0:
+            contains_image_std = 0.01
+        contains_image = (contains_image - contains_image_mean) / contains_image_std
+        final_tensor_values.append(contains_image)
 
-    if duplicateColumns[4] != 1:
-        NegativePoints_mean = df["NegativePoints"].mean()
-        NegativePoints_std = df["NegativePoints"].std()
-        if NegativePoints_std == 0:
-            NegativePoints_std = 0.01
-        NegativePoints = (NegativePoints - NegativePoints_mean) / NegativePoints_std
-        finalTensorValues.append(NegativePoints)
+    if duplicate_columns[4] != 1:
+        negative_points_mean = df["NegativePoints"].mean()
+        negative_points_std = df["NegativePoints"].std()
+        if negative_points_std == 0:
+            negative_points_std = 0.01
+        negative_points = (negative_points - negative_points_mean) / negative_points_std
+        final_tensor_values.append(negative_points)
 
-    if duplicateColumns[5] != 1:
-        MinimumPointsShare_mean = df["MinimumPointsShare"].mean()
-        MinimumPointsShare_std = df["MinimumPointsShare"].std()
-        if MinimumPointsShare_std == 0:
-            MinimumPointsShare_std = 0.01
-        MinimumPointsShare = (MinimumPointsShare - MinimumPointsShare_mean) / MinimumPointsShare_std
-        finalTensorValues.append(MinimumPointsShare)
+    if duplicate_columns[5] != 1:
+        minimum_points_share_mean = df["MinimumPointsShare"].mean()
+        minimum_points_share_std = df["MinimumPointsShare"].std()
+        if minimum_points_share_std == 0:
+            minimum_points_share_std = 0.01
+        minimum_points_share = (minimum_points_share - minimum_points_share_mean) / minimum_points_share_std
+        final_tensor_values.append(minimum_points_share)
 
-    x_unseen = torch.Tensor(finalTensorValues)
+    x_unseen = torch.Tensor(final_tensor_values)
     y_unseen = model.predict(torch.atleast_2d(x_unseen))
-    if round(y_unseen.item(), 2) > subquestionPoints:
-        return subquestionPoints
+    if round(y_unseen.item(), 2) > subquestion_points:
+        return subquestion_points
     else:
         return round(y_unseen.item(), 2)
 
 
-def load_model(model, login, X_train, y_train, retrainModel):
+def load_model(model, login, X_train, y_train, retrain_model):
     base_path = Path(__file__)
     file_path_string = "../model/results/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
 
-    if retrainModel is True:
+    if retrain_model is True:
         model.fit(X_train, y_train)
         save_model(model, login)
     else:
@@ -119,10 +120,12 @@ def main(arguments):
     if len(arguments) > 1:
         platform = arguments[1]
         login = arguments[2]
-        retrainModel = eval(arguments[3])
+        retrain_model = eval(arguments[3])
         testTemplateId = arguments[4]
     else:
+        platform = 'Windows'
         login = "login"
+        retrain_model = False
 
     locale.setlocale(locale.LC_NUMERIC, 'cs_CZ')
 
@@ -153,13 +156,13 @@ def main(arguments):
     df = df.drop('SubquestionResultId', axis=1)  # subquestion identifier is irrelevant in this context
 
     # check for duplicate columns and remove them
-    duplicateColumns = list()
+    duplicate_columns = list()
     for column in df:
-        if (df[column].nunique()) == 1 and column != "StudentsPoints":
+        if (df[column].nunique()) == 1 and column != "SubquestionPoints":
             df.drop(column, axis=1, inplace=True)
-            duplicateColumns.append(1)
+            duplicate_columns.append(1)
         else:
-            duplicateColumns.append(0)
+            duplicate_columns.append(0)
 
     # necessary preprocessing
     data = df[df.columns[:-1]]
@@ -175,63 +178,67 @@ def main(arguments):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
     model = LinearRegression()
-    model = load_model(model, login, X_train, y_train, retrainModel)
+    model = load_model(model, login, X_train, y_train, retrain_model)
 
     y_train_pred = model.predict(X_train)
     y_test_pred = model.predict(X_test)
 
     #selected testTemplate
     sql = "SELECT * FROM TestTemplate WHERE OwnerLogin = '" + login + "' AND TestTemplateId = '" + testTemplateId + "'"
-    testTemplateDf = pd.read_sql(sql, engine)
-    NegativePoints = testTemplateDf.iloc[0]['NegativePoints']
-    MinimumPoints = testTemplateDf.iloc[0]['MinimumPoints']
+    test_template_df = pd.read_sql(sql, engine)
+    negative_points = test_template_df.iloc[0]['NegativePoints']
+    minimum_points = test_template_df.iloc[0]['MinimumPoints']
 
-    # question number identifiers of every question included in the test
-    sql = "SELECT DISTINCT QuestionTemplateId FROM QuestionTemplate WHERE OwnerLogin = '" + login + \
+    #question number identifiers of every question included in the test
+    sql = "SELECT DISTINCT QuestionTemplateId FROM QuestionTemplate WHERE OwnerLogin = '" + login +\
           "' AND TestTemplateId = '" + testTemplateId + "'"
-    questionTemplateIdList = pd.read_sql(sql, engine).values.tolist()
-    questionTemplateIds = ""
-    some_list_len = len(questionTemplateIdList)
+    question_template_id_list = pd.read_sql(sql, engine).values.tolist()
+    question_template_ids = ""
+    some_list_len = len(question_template_id_list)
     for i in range(some_list_len):
-        # the question number identifier must be properly formatted in order to be used in a SQL query
-        questionTemplateId = str(questionTemplateIdList[i])
-        questionTemplateId = questionTemplateId[1:]
-        questionTemplateId = questionTemplateId[:len(questionTemplateId) - 1]
-        questionTemplateIds += questionTemplateId + ", "
-    questionTemplateIds = questionTemplateIds[:len(questionTemplateIds) - 2]
+        #the question number identifier must be properly formatted in order to be used in a SQL query
+        question_template_id = str(question_template_id_list[i])
+        question_template_id = question_template_id[1:]
+        question_template_id = question_template_id[:len(question_template_id) - 1]
+        question_template_ids += question_template_id + ", "
+    question_template_ids = question_template_ids[:len(question_template_ids) - 2]
 
     #test difficulty statistics (all relevant data needed to measure the test difficulty)
     sql = "SELECT * FROM TestDifficultyStatistics WHERE UserLogin = '" + login + "'"
-    testDifficultyStatisticsDf = pd.read_sql(sql, engine)
-    SubjectsIdsArray = testDifficultyStatisticsDf.iloc[0]['SubjectIds'].split("|")
-    SubjectAveragePointsArray = testDifficultyStatisticsDf.iloc[0]['SubjectAveragePoints'].split("|")
-    SubquestionTypeAveragePointsArray = testDifficultyStatisticsDf.iloc[0]['SubquestionTypeAveragePoints'].split("|")
-    SubquestionTypeAverageAnswerCorrectnessArray = testDifficultyStatisticsDf.iloc[0]['SubquestionTypeAverageAnswerCorrectness'].split("|")
+    test_difficulty_statistics_df = pd.read_sql(sql, engine)
+    subjects_ids_array = test_difficulty_statistics_df.iloc[0]['SubjectIds'].split("|")
+    subject_average_points_array = test_difficulty_statistics_df.iloc[0]['SubjectAveragePoints'].split("|")
+    subquestion_type_average_points_array =\
+        test_difficulty_statistics_df.iloc[0]['SubquestionTypeAveragePoints'].split("|")
+    subquestion_type_average_answer_correctness_array =\
+        test_difficulty_statistics_df.iloc[0]['SubquestionTypeAverageAnswerCorrectness'].split("|")
 
-    TestSubjectIndex = SubjectsIdsArray.index(str(testTemplateDf.iloc[0]['SubjectId']))
+    TestSubjectIndex = subjects_ids_array.index(str(test_template_df.iloc[0]['SubjectId']))
 
     #all subquestion templates included in the test
-    sql = "SELECT * FROM SubquestionTemplate WHERE OwnerLogin = '" + login + "' AND QuestionTemplateId IN (" + questionTemplateIds + ")"
-    subquestionTemplatesDf = pd.read_sql(sql, engine)
-    TotalTestPoints = subquestionTemplatesDf['SubquestionPoints'].sum()
-    MinimumPointsShare = MinimumPoints / TotalTestPoints
-    PredictedTestPoints = 0
+    sql = "SELECT * FROM SubquestionTemplate WHERE OwnerLogin = '" + login + "' AND QuestionTemplateId IN (" + \
+          question_template_ids + ")"
+    subquestion_templates_df = pd.read_sql(sql, engine)
+    total_test_points = subquestion_templates_df['SubquestionPoints'].sum()
+    minimum_points_share = minimum_points / total_test_points
+    predicted_test_points = 0
 
-    for i in range(subquestionTemplatesDf.shape[0]):
-        subquestionTemplate = subquestionTemplatesDf.iloc[i]
-        subquestionPoints = subquestionTemplate["SubquestionPoints"]
-        ContainsImage = 0
-        if (len(str(subquestionTemplate["ImageSource"])) > 0):
-            ContainsImage = 1
+    for i in range(subquestion_templates_df.shape[0]):
+        subquestion_template = subquestion_templates_df.iloc[i]
+        subquestion_points = subquestion_template["SubquestionPoints"]
+        contains_image = 0
+        if len(str(subquestion_template["ImageSource"])) > 0:
+            contains_image = 1
 
-        SubquestionTypeAveragePoints = locale.atof(
-            SubquestionTypeAveragePointsArray[subquestionTemplate["SubquestionType"] - 1])
-        AnswerCorrectness = locale.atof(
-            SubquestionTypeAverageAnswerCorrectnessArray[subquestionTemplate["SubquestionType"] - 1])
-        SubjectAveragePoints = locale.atof(SubjectAveragePointsArray[TestSubjectIndex])
-        PredictedTestPoints += predict_new(SubquestionTypeAveragePoints, AnswerCorrectness, SubjectAveragePoints, ContainsImage,
-                    NegativePoints, MinimumPointsShare, subquestionPoints, df, model, duplicateColumns)
-    print(round(PredictedTestPoints, 2))
+        subquestion_type_average_points = locale.atof(
+            subquestion_type_average_points_array[subquestion_template["SubquestionType"] - 1])
+        answer_correctness = locale.atof(
+            subquestion_type_average_answer_correctness_array[subquestion_template["SubquestionType"] - 1])
+        subject_average_points = locale.atof(subject_average_points_array[TestSubjectIndex])
+        predicted_test_points += predict_new(subquestion_type_average_points, answer_correctness,
+                                             subject_average_points, contains_image, negative_points,
+                                             minimum_points_share, subquestion_points, df, model, duplicate_columns)
+    print(round(predicted_test_points, 2))
 
 
 if __name__ == '__main__':

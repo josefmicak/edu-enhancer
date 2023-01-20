@@ -8,32 +8,43 @@
     <h1>Správa vyřešených testů</h1>
 
     <div id="test-result-list">
-        <table>
-            <tr>
-                <th>Datum</th>
-                <th>Jméno studenta</th>
-                <th>Login studenta</th>
-                <th>Smazat</th>
-                <th>Správa</th>
-            </tr>
-            @{
-                foreach (var item in Model)
-                {
-                    string fullName = item.Student.FullName();
+        @{
+            if (Model.Count() > 0)
+            {
+                <table>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
-                        <td>@Html.DisplayFor(modelItem => fullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
-                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultId', null, null, null, null, null)">Smazat test</button></td>
-                        <td><a class="button" title="Správa testu"
-                            asp-area="" 
-                            asp-controller="Home" 
-                            asp-action="ManageSolvedTest" 
-                            asp-route-testResultId="@item.TestResultId">Správa testu</a></td>
+                        <th>Datum</th>
+                        <th>Jméno studenta</th>
+                        <th>Login studenta</th>
+                        <th>Smazat</th>
+                        <th>Správa</th>
                     </tr>
-                }
+                    @{
+                        foreach (var item in Model)
+                        {
+                            string fullName = item.Student.FullName();
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.TimeStamp)</td>
+                                <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
+                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultId', null, null, null, null, null)">Smazat test</button></td>
+                                <td>
+                                    <a class="button" title="Správa testu"
+                                       asp-area=""
+                                       asp-controller="Home"
+                                       asp-action="ManageSolvedTest"
+                                       asp-route-testResultId="@item.TestResultId">Správa testu</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
             }
-        </table>
+            else
+            {
+                <p>Nebyly přidány žádná řešení testů.</p>
+            }
+        }
     </div>
 
     <p>@ViewBag.Message</p>

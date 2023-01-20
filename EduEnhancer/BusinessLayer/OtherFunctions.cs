@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ArtificialIntelligenceTools;
 using System.Runtime.InteropServices;
+using System.Net.NetworkInformation;
 
 namespace BusinessLayer
 {
@@ -32,6 +33,9 @@ namespace BusinessLayer
             return dataFunctions.GetGlobalSettings();
         }
 
+        /// <summary>
+        /// Checks whether the testing mode is on or off
+        /// </summary>
         public bool GetTestingMode()
         {
             GlobalSettings globalSettings = GetGlobalSettings();
@@ -61,6 +65,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Sets testing mode (on/off)
+        /// </summary>
         public async Task ChangeGlobalSettings(string testingMode)
         {
             var globalSettings = GetGlobalSettings();
@@ -81,26 +88,41 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Checks whether computations performed in the Python scripts are performed via GPU or CPU
+        /// </summary>
         public string GetAIDeviceName()
         {
             return PythonFunctions.GetDevice();
         }
 
+        /// <summary>
+        /// Returns Google Client ID (used for OAuth 2.0)
+        /// </summary>
         public string GetGoogleClientId()
         {
             return _configuration["Authentication:Google:ClientId"];
         }
 
+        /// <summary>
+        /// Returns login of currently logged in user
+        /// </summary>
         public string GetCurrentUserLogin()
         {
             return Config.Application["login"];
         }
 
+        /// <summary>
+        /// Sets user's login after he connects using OAuth 2.0 (in case he's previously made an account)
+        /// </summary>
         public void SetCurrentUserLogin(string login)
         {
             Config.Application["login"] = login;
         }
 
+        /// <summary>
+        /// Returns ID of subquestion result that the student is solving
+        /// </summary>
         public string? GetStudentSubquestionResultId()
         {
             if (Config.Application.TryGetValue("subquestionResultId", out _))
@@ -110,6 +132,9 @@ namespace BusinessLayer
             return null;
         }
 
+        /// <summary>
+        /// Sets ID of subquestion result that the student is solving
+        /// </summary>
         public void SetStudentSubquestionResultId(string subquestionResultId)
         {
             Config.Application["subquestionResultId"] = subquestionResultId;

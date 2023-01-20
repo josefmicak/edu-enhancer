@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Common.EnumTypes;
+﻿using static Common.EnumTypes;
 
 namespace Common
 {
@@ -12,6 +7,12 @@ namespace Common
     /// </summary>
     public class CommonFunctions
     {
+        /// <summary>
+        /// Calculates subquestion's correct choice points based on its parameters
+        /// </summary>
+        /// <param name="subquestionPoints">Subquestion template's points</param>
+        /// <param name="correctChoiceArray">Subquestion template's correct choice array</param>
+        /// <param name="subquestionType">Subquestion template's subquestion type</param>
         public static double CalculateCorrectChoicePoints(double subquestionPoints, string[] correctChoiceArray, SubquestionType subquestionType)
         {
             double correctChoicePoints = 0;
@@ -30,7 +31,18 @@ namespace Common
             }
             return Math.Round(correctChoicePoints, 2);
         }
-
+        /// <summary>
+        /// Calculates several attributes of subquestion result based on its parameters
+        /// - default student's points 
+        /// - answer correctness (0-1) 
+        /// - answer status (correct/partically correct/incorrect/not answered/cannot be determined)
+        /// </summary>
+        /// <param name="subquestionType">Subquestion template's subquestion type</param>
+        /// <param name="possibleAnswersArray">Subquestion template's possible answers array</param>
+        /// <param name="correctAnswersArray">Subquestion template's correct answers array</param>
+        /// <param name="subquestionPoints">Subquestion template's points</param>
+        /// <param name="wrongChoicePoints">Subquestion template's wrong choice points</param>
+        /// <param name="studentsAnswers">Subquestion result's student's points</param>
         public static (double, double, EnumTypes.AnswerStatus) CalculateStudentsAnswerAttributes(SubquestionType subquestionType, string[] possibleAnswersArray, 
             string[] correctAnswersArray, double subquestionPoints, double wrongChoicePoints, string[] studentsAnswers)
         {

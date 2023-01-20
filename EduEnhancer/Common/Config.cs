@@ -63,7 +63,7 @@
         }
 
         public static readonly string[] PythonScriptsPath = new string[] {
-            Path.GetDirectoryName(Environment.CurrentDirectory),
+            Path.GetDirectoryName(Environment.CurrentDirectory)!,
             "/home/fei/mic0378/EduEnhancer"
         };
 

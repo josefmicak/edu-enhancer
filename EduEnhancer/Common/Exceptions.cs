@@ -8,7 +8,6 @@ namespace Common
     /// </summary>
     public static class Exceptions
     {
-        //Data exceptions
         public static Exception SubquestionTemplateNotFoundException { get { return new Exception("Chyba: šablona podotázky nebyla nalezena."); } }
         public static Exception SubquestionResultNotFoundException { get { return new Exception("Chyba: výsledek podotázky nebyl nalezen."); } }
         public static Exception UserNotFoundException(string login)
@@ -22,6 +21,10 @@ namespace Common
         public static Exception StudentNotFoundException(string login)
         {
             return new Exception("Chyba: student s loginem " + login + " nebyl nalezen.");
+        }
+        public static Exception SubjectNotFoundException(int subjectId)
+        {
+            return new Exception("Chyba: předmět s Id " + subjectId + " nebyl nalezen.");
         }
         public static Exception SubquestionTemplateStatisticsNotFoundException(string login)
         {

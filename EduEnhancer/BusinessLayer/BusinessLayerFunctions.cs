@@ -56,6 +56,9 @@ namespace BusinessLayer
         public async Task<string> EditTestTemplate(TestTemplate testTemplate, string subjectId)
         {
             string login = GetCurrentUserLogin();
+            TestTemplate oldTestTemplate = await GetTestTemplate(testTemplate.TestTemplateId);
+            testTemplate.Owner = oldTestTemplate.Owner;
+            testTemplate.OwnerLogin = oldTestTemplate.OwnerLogin;
             return await templateFunctions.EditTestTemplate(login, testTemplate, subjectId);
         }
 
@@ -208,7 +211,7 @@ namespace BusinessLayer
             return await templateFunctions.GetSubjects();
         }
 
-        public async Task<Subject?> GetSubjectById(int subjectId)
+        public async Task<Subject> GetSubjectById(int subjectId)
         {
             return await templateFunctions.GetSubjectById(subjectId);
         }
@@ -248,7 +251,7 @@ namespace BusinessLayer
         public async Task<string> DeleteSubject(int subjectId)
         {
             string login = GetCurrentUserLogin();
-            Subject? subject = await GetSubjectById(subjectId);
+            Subject subject = await GetSubjectById(subjectId);
             User guarantor = await GetUserByLogin(login);
             return await templateFunctions.DeleteSubject(subject, guarantor);
         }
@@ -586,11 +589,10 @@ namespace BusinessLayer
             await userFunctions.DeleteAllStudents();
         }
 
-        public async Task<string> AddStudent(string firstName, string lastName, string login, string email, Student? studentLoginCheck)
+        public async Task<string> AddStudent(string firstName, string lastName, string login, string email)
         {
-            return await userFunctions.AddStudent(firstName, lastName, login, email, studentLoginCheck);
+            return await userFunctions.AddStudent(firstName, lastName, login, email);
         }
-
 
         public async Task<bool> CanUserAccessPage(EnumTypes.Role requiredRole)
         {

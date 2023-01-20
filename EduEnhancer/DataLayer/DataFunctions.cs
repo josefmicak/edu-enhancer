@@ -1,17 +1,13 @@
 ﻿using Common;
 using DomainModel;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using System;
 using System.Diagnostics;
-using System.Linq.Expressions;
 
 namespace DataLayer
 {
     /// <summary>
-    /// The only place in the application that handles direct work with data stored in the database
+    /// The primary place in the application that handles direct work with data stored in the database
     /// </summary>
     public class DataFunctions
     {
@@ -87,6 +83,24 @@ namespace DataLayer
             return message;
         }
 
+        /*public async Task DeleteSubjects(List<string> adminLogins)
+        {
+            string message;
+            try
+            {
+                _context.Subjects.Remove(subject);
+                await _context.SaveChangesAsync();
+                message = "Předmět byl úspěšně smazán.";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                message = "Při mazání předmětu nastala neočekávaná chyba.";
+
+            }
+            return message;
+        }*/
+
         public async Task<List<Subject>> GetTestingDataSubjects()
         {
             return await GetSubjectDbSet().AsNoTracking().Where(s => s.IsTestingData == true).ToListAsync();
@@ -101,7 +115,7 @@ namespace DataLayer
                 .Where(t => t.OwnerLogin == login).ToListAsync();
         }
 
-        public async Task<string> AddTestTemplates(List<TestTemplate> testTemplates, User? owner)
+        public async Task<string> AddTestTemplates(List<TestTemplate> testTemplates)
         {
             int successCount = 0;
             int errorCount = 0;
@@ -398,6 +412,10 @@ namespace DataLayer
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// After a subquestion template is added, teacher's subquestion template statistics' field is incremented by one
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task IncrementSubquestionTemplateStatistics(string login)
         {
             SubquestionTemplateStatistics subquestionTemplateStatistics = await GetSubquestionTemplateStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
@@ -614,6 +632,11 @@ namespace DataLayer
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// After a number of subquestion result is added, teacher's subquestion result statistics' field is incremented by this number
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        /// <param name="subquestionsCount">Amount of added subquestion results</param>
         public async Task IncrementSubquestionResultStatistics(string login, int subquestionsCount)
         {
             SubquestionResultStatistics subquestionResultStatistics = await GetSubquestionResultStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
@@ -701,6 +724,9 @@ namespace DataLayer
             return "Student s loginem \"" + student.Login + "\" úspěšně přidán.";
         }
 
+        /// <summary>
+        /// After subquestion results marked as testing data are added, the student marked as testing data is re-assigned to all subjects marked as testing data
+        /// </summary>
         public async Task RefreshTestingStudentSubjects()
         {
             ExecuteSqlRaw("delete from StudentSubject");
@@ -754,16 +780,25 @@ namespace DataLayer
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Directly executes the entered SQl command
+        /// </summary>
         public void ExecuteSqlRaw(string command)
         {
             _context.Database.ExecuteSqlRaw(command);
         }
 
+        /// <summary>
+        /// Clears any tracked changes in EF Core
+        /// </summary>
         public void ClearChargeTracker()
         {
             _context.ChangeTracker.Clear();
         }
 
+        /// <summary>
+        /// Attaches an existing entity (in case one exists)
+        /// </summary>
         public void AttachUser(User user)
         {
             if(user != null)

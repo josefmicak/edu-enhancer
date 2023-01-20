@@ -4,6 +4,11 @@
 @using Common;
 
 @{
+    int studentsCount = Model.Students.Count;
+    List<User> users = Model.Users;
+    int teachersCount = users.Where(u => u.Role == EnumTypes.Role.Teacher).Count();
+    int adminsCount = users.Where(u => u.Role == EnumTypes.Role.Admin || u.Role == EnumTypes.Role.MainAdmin).Count();
+
     ViewData["Title"] = "Správa uživatelů";
 }
 
@@ -16,39 +21,48 @@
 
         <div id="student-list">
             <h3>Seznam studentů</h3>
-            <table id="student-table">
-                <tr>
-                    <th>Jméno</th>
-                    <th>Login</th>
-                    <th>Email</th>
-                    <th>Úprava</th>
-                    <th>Smazání</th>
-                </tr>
-                @{
-                    int i = 1;
-                    foreach (Student item in Model.Students)
-                    {
-                        string fullName = item.FullName();
+            @{
+                if (studentsCount > 0)
+                {
+                    <table id="student-table">
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            @{
-                                if(item.Email == null)
-                                {
-                                    <td><button type="button" class="btn btn-primary" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
-                                }
-                                else
-                                {
-                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                                }
-                            }
-                            <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
-                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
+                            <th>Jméno</th>
+                            <th>Login</th>
+                            <th>Email</th>
+                            <th>Úprava</th>
+                            <th>Smazání</th>
                         </tr>
-                        i++;
-                    }
+                        @{
+                            int i = 1;
+                            foreach (Student item in Model.Students)
+                            {
+                                string fullName = item.FullName();
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                    @{
+                                        if (item.Email == null)
+                                        {
+                                            <td><button type="button" class="btn btn-primary" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
+                                        }
+                                        else
+                                        {
+                                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                        }
+                                    }
+                                    <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
+                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
+                                </tr>
+                                i++;
+                            }
+                        }
+                    </table>
                 }
-            </table>
+                else
+                {
+                    <p>Žádní studenti nebyli nalezeni.</p>
+                }
+            }
         </div>
 
         <div id="add-student">
@@ -84,32 +98,41 @@
 
         <h3>Seznam učitelů</h3>
         <div id="teacher-list">
-            <table>
-                <tr>
-                    <th>Jméno</th>
-                    <th>Login</th>
-                    <th>Email</th>
-                    <th>Úprava</th>
-                    <th>Smazání</th>
-                </tr>
-                @{
-                    foreach (User item in Model.Users)
-                    {
-                        if(item.Role != EnumTypes.Role.Teacher)
-                        {
-                            continue;
-                        }
-                        string fullName = item.FullName();
+            @{
+                if (teachersCount > 0)
+                {
+                    <table>
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
-                            <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
+                            <th>Jméno</th>
+                            <th>Login</th>
+                            <th>Email</th>
+                            <th>Úprava</th>
+                            <th>Smazání</th>
                         </tr>
-                    }
+                        @{
+                            foreach (User item in Model.Users)
+                            {
+                                if (item.Role != EnumTypes.Role.Teacher)
+                                {
+                                    continue;
+                                }
+                                string fullName = item.FullName();
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                    <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
+                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
+                                </tr>
+                            }
+                        }
+                    </table>
                 }
-            </table>
+                else
+                {
+                    <p>Žádní učitelé nebyli nalezeni.</p>
+                }
+            }
         </div>
 
         <div id="add-teacher">
@@ -136,49 +159,56 @@
                 <input type="submit" value="Uložit">
             </form>
         </div>
-        
     </div>
 
     <div id="admin-management">
         <h2>Seznam správců</h2>
         <p>@ViewBag.AdminMessage</p>
         <div id="admin-list">
-            <table>
-                <tr>
-                    <th>Jméno</th>
-                    <th>Login</th>
-                    <th>Email</th>
-                    <th>Typ</th>
-                </tr>
-                @{
-                    foreach (User item in Model.Users)
-                    {
-                        if(item.Role != EnumTypes.Role.Admin && item.Role != EnumTypes.Role.MainAdmin)
-                        {
-                            continue;
-                        }
-                        string fullName = item.FullName();
-
-                        string type = "";
-                        if(item.Role == EnumTypes.Role.Admin)
-                        {
-                            type = "Správce";
-                        }
-                        else
-                        {
-                            type = "Hlavní administrátor";
-                        }
+            @{
+                if (adminsCount > 0)
+                {
+                    <table>
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => fullName)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td>@Html.DisplayFor(modelItem => type)</td>
+                            <th>Jméno</th>
+                            <th>Login</th>
+                            <th>Email</th>
+                            <th>Typ</th>
                         </tr>
-                    }
-                }
-            </table>
-        </div>
+                        @{
+                            foreach (User item in Model.Users)
+                            {
+                                if (item.Role != EnumTypes.Role.Admin && item.Role != EnumTypes.Role.MainAdmin)
+                                {
+                                    continue;
+                                }
+                                string fullName = item.FullName();
 
+                                string type = "";
+                                if (item.Role == EnumTypes.Role.Admin)
+                                {
+                                    type = "Správce";
+                                }
+                                else
+                                {
+                                    type = "Hlavní administrátor";
+                                }
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => fullName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Login)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                    <td>@Html.DisplayFor(modelItem => type)</td>
+                                </tr>
+                            }
+                        }
+                    </table>
+                }
+                else
+                {
+                    <p>Žádní správci nebyli nalezeni.</p>
+                }
+            }
+        </div>
     </div>
 </div>
 

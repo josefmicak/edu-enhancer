@@ -2,9 +2,7 @@
 using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
-using static Common.EnumTypes;
 using System.Diagnostics;
-using System.Xml;
 
 namespace BusinessLayer
 {
@@ -25,16 +23,25 @@ namespace BusinessLayer
             return dataFunctions.GetUserDbSet();
         }
 
+        /// <summary>
+        /// Returns user by login - throws exception if user doesn't exist
+        /// </summary>
         public async Task<User> GetUserByLogin(string login)
         {
             return await dataFunctions.GetUserByLogin(login);
         }
 
+        /// <summary>
+        /// Returns user by login - doesn't throw an exception if user doesn't exist
+        /// </summary>
         public async Task<User?> GetUserByLoginNullable(string login)
         {
             return await dataFunctions.GetUserByLoginNullable(login);
         }
 
+        /// <summary>
+        /// Returns user by email - doesn't throw an exception if user doesn't exist
+        /// </summary>
         public async Task<User?> GetUserByEmailNullable(string email)
         {
             return await GetUserDbSet().FirstOrDefaultAsync(u => u.Email == email);
@@ -44,7 +51,10 @@ namespace BusinessLayer
         {
             return dataFunctions.GetStudentDbSet();
         }
-        
+
+        /// <summary>
+        /// Returns student by login - throws exception if student doesn't exist
+        /// </summary>
         public async Task<Student> GetStudentByLogin(string login)
         {
             Student? student = await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);
@@ -55,16 +65,25 @@ namespace BusinessLayer
             return student;
         }
 
+        /// <summary>
+        /// Returns student by login - doesn't throw an exception if student doesn't exist
+        /// </summary>
         public async Task<Student?> GetStudentByLoginNullable(string login)
         {
             return await GetStudentDbSet().Include(s => s.Subjects).FirstOrDefaultAsync(s => s.Login == login);;
         }
 
+        /// <summary>
+        /// Returns student by email - doesn't throw an exception if user doesn't exist
+        /// </summary>
         public async Task<Student?> GetStudentByEmailNullable(string email)
         {
             return await GetStudentDbSet().FirstOrDefaultAsync(s => s.Email == email);
         }
 
+        /// <summary>
+        /// Returns main admin - doesn't throw an exception if main admin doesn't exist
+        /// </summary>
         public async Task<User?> GetMainAdmin()
         {
             return await GetUserDbSet().FirstOrDefaultAsync(u => u.Role == EnumTypes.Role.MainAdmin);
@@ -75,18 +94,28 @@ namespace BusinessLayer
             return dataFunctions.GetUserRegistrationDbSet();
         }
 
+        /// <summary>
+        /// Returns all registrations made by the email address
+        /// </summary>
         public async Task<List<UserRegistration>> GetUserRegistrations(string email)
         {
             return await GetUserRegistrationDbSet()
                 .Where(u => u.Email == email).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns the registration made by the email address (in case one exists)
+        /// </summary>
         public async Task<UserRegistration?> GetUserRegistration(string email)
         {
             return await GetUserRegistrationDbSet()
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        /// <summary>
+        /// Creates a main admin account
+        /// Function is called after the very first user logs in after the application is launched
+        /// </summary>
         public async Task RegisterMainAdmin(string firstName, string lastName, string email, string login)
         {
             User mainAdmin = new User();
@@ -109,6 +138,10 @@ namespace BusinessLayer
             await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
         }
 
+        /// <summary>
+        /// Creates an user registration, only one registration per user is permitted
+        /// </summary>
+        /// <param name="role">Role of the user (student/teacher/admin/main admin)</param>
         public async Task<string> CreateUserRegistration(string firstName, string lastName, string email, string login, string role)
         {
             string message;
@@ -152,23 +185,14 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public async Task<string> AddStudent(string firstName, string lastName, string login, string email, Student? studentLoginCheck)
+        public async Task<string> AddStudent(string firstName, string lastName, string login, string email)
         {
-            if (studentLoginCheck == null)
-            {
-                Student student = new Student();
-                student.Login = login;
-                student.Email = email;
-                student.FirstName = firstName;
-                student.LastName = lastName;
-                return await dataFunctions.AddStudent(student);
-            }
-            else
-            {
-                studentLoginCheck.Email = email;
-                await dataFunctions.SaveChangesAsync();
-                return "Studentovi s loginem " + login + " byla úspěšně přiřazena emailová adresa.";
-            }
+            Student student = new Student();
+            student.Login = login;
+            student.Email = email;
+            student.FirstName = firstName;
+            student.LastName = lastName;
+            return await dataFunctions.AddStudent(student);
         }
 
         public async Task EditStudent(string firstName, string lastName, string login, string email, Student studentLoginCheck)
@@ -226,12 +250,22 @@ namespace BusinessLayer
 
         public async Task DeleteAllTeachers()
         {
+            List<Subject> teacherSubjects = await dataFunctions.GetSubjectDbSet()
+                .Include(s => s.Guarantor)
+                .Where(s => s.Guarantor.Role == EnumTypes.Role.Teacher).ToListAsync();
+            dataFunctions.GetSubjectDbSet().RemoveRange(teacherSubjects);
+            await dataFunctions.SaveChangesAsync();
             dataFunctions.ExecuteSqlRaw("delete from [User] where role = 2");
             await dataFunctions.SaveChangesAsync();
         }
 
         public async Task DeleteAllAdmins()
         {
+            List<Subject> adminSubjects = await dataFunctions.GetSubjectDbSet()
+                .Include(s => s.Guarantor)
+                .Where(s => s.Guarantor.Role == EnumTypes.Role.Admin).ToListAsync();
+            dataFunctions.GetSubjectDbSet().RemoveRange(adminSubjects);
+            await dataFunctions.SaveChangesAsync();
             dataFunctions.ExecuteSqlRaw("delete from [User] where role = 3");
             await dataFunctions.SaveChangesAsync();
         }
@@ -257,6 +291,10 @@ namespace BusinessLayer
             await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
         }
 
+        /// <summary>
+        /// Changes the role of the selected account to main admin
+        /// Only one main admin can exist in the application, so the old account's role is changed to regular admin
+        /// </summary>
         public async Task ChangeMainAdmin(User newMainAdmin, string firstName, string lastName, string login, string email)
         {
             var oldMainAdmin = await GetMainAdmin();
@@ -274,31 +312,10 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
-        public async Task<string> ApproveStudentRegistration(Student student, string firstName, string lastName, string login, string email)
-        {
-            string message;
-            student.Email = email;
-            student.FirstName = firstName;
-            student.LastName = lastName;
-
-            var userRegistration = await GetUserRegistration(email);
-            if (userRegistration != null)
-            {
-                userRegistration.State = EnumTypes.RegistrationState.Accepted;
-                await dataFunctions.SaveChangesAsync();
-                message = "Registrace úspěšně schválena.";
-            }
-            else
-            {
-                message = "Chyba: registrace nebyla nalezena";
-            }
-            return message;
-        }
-
         public async Task<string> ApproveUserRegistration(string firstName, string lastName, string login, string email, string role)
         {
             string message;
-            if(role == "Student")//student
+            if(role == "Student")
             {
                 Student student = new Student();
                 student.Email = email;
@@ -392,6 +409,10 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Checks whether the user can access the page (each page has a minimum required role to be accessed)
+        /// </summary>
+        /// <param name="requiredRole">Minimum required role, users with a lower role cannot access the page</param>
         public async Task<bool> CanUserAccessPage(EnumTypes.Role requiredRole)
         {
             if (Config.TestingMode)//in case the testing mode is on, no authentication is required at all
@@ -400,8 +421,8 @@ namespace BusinessLayer
             }
 
             string login = Config.Application["login"];
-            var user = await GetUserByLogin(login);
-            var student = await GetStudentByLogin(login);
+            var user = await GetUserByLoginNullable(login);
+            var student = await GetStudentByLoginNullable(login);
 
             if (requiredRole > EnumTypes.Role.Student)//staff member
             {
@@ -425,6 +446,11 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Checks whether the student can access the test (in regards to test subject and start/end dates of the test)
+        /// </summary>
+        /// <param name="student">Student trying to access the test</param>
+        /// <param name="testTemplate">Test that the student is trying to access</param>
         public string? CanStudentAccessTest(Student student, TestTemplate testTemplate)
         {
             string? errorMessage = null;

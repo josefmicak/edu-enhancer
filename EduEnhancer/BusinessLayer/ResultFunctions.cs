@@ -38,6 +38,10 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultDbSet();
         }
 
+        /// <summary>
+        /// Returns the list of test results that have been turned in (students cannot make changes to them anymore)
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<List<TestResult>> GetTurnedTestResults(string login)
         {
             return await GetTestResultDbSet().
@@ -47,12 +51,18 @@ namespace BusinessLayer
                 && t.IsTurnedIn == true).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns the list of test results of the teacher
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public List<TestResult> GetTestResultList(string login)
         {
             return GetTestResultDbSet()
                 .Include(s => s.Student)
                 .Include(t => t.TestTemplate)
                 .ThenInclude(t => t.Subject)
+                .Include(t => t.TestTemplate)
+                .ThenInclude(t => t.Owner)
                 .Include(t => t.TestTemplate)
                 .ThenInclude(t => t.QuestionTemplates)
                 .ThenInclude(q => q.SubquestionTemplates)
@@ -61,6 +71,10 @@ namespace BusinessLayer
                 .Where(t => t.OwnerLogin == login).ToList();
         }
 
+        /// <summary>
+        /// Returns the list of test results that have been turned in by the student
+        /// </summary>
+        /// <param name="login">Student's login</param>
         public async Task<List<TestResult>> GetFinishedTestResultsByStudentLogin(string login)
         {
             return await GetTestResultDbSet()
@@ -72,6 +86,12 @@ namespace BusinessLayer
                     && t.TestTemplate.EndDate < DateTime.Now).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns the amount of test results (of the test template) that have been turned in by the student
+        /// Function is used to make sure that the student cannot take the same test more than once
+        /// </summary>
+        /// <param name="login">Student's login</param>
+        /// <param name="testTemplateId">Id of the test template</param>
         public async Task<int> GetAmountOfTurnedTestResultsByTestTemplate(string login, int testTemplateId)
         {
             List<TestResult> turnedTestResultsByTestTemplate = await GetTestResultDbSet()
@@ -81,6 +101,12 @@ namespace BusinessLayer
             return turnedTestResultsByTestTemplate.Count;
         }
 
+        /// <summary>
+        /// Returns the amount of test results (of the test template) that have been turned in by the student
+        /// Function is used to make sure that the student cannot take the same test more than once
+        /// </summary>
+        /// <param name="login">Student's login</param>
+        /// <param name="testTemplateId">Id of the test template</param>
         public async Task<int> GetAmountOfNotTurnedTestResultsByTestTemplate(string login, int testTemplateId)
         {
             List<TestResult> notTurnedTestResultsByTestTemplate = await GetTestResultDbSet()
@@ -95,11 +121,19 @@ namespace BusinessLayer
             return await dataFunctions.GetTestResult(testResultId);
         }
 
+        /// <summary>
+        /// Deletes test results of the teacher
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<string> DeleteTestResults(string login)
         {
             return await dataFunctions.DeleteTestResults(login);
         }
 
+        /// <summary>
+        /// Deletes a test result
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<string> DeleteTestResult(string login, int testResultId)
         {
             TestResult testResult = GetTestResultDbSet()
@@ -122,20 +156,6 @@ namespace BusinessLayer
                 .Include(s => s.TestResult.Student)
                 .Include(q => q.SubquestionResults)
                 .Where(t => t.TestResultId == testResultId).ToListAsync();
-        }
-
-        public IQueryable<QuestionResult> GetQuestionResultsByStudentLogin(string studentLogin, string ownerLogin, int testResultId)
-        {
-            return GetQuestionResultDbSet()
-                .Include(q => q.TestResult)
-                .Include(q => q.QuestionTemplate)
-                .Include(q => q.QuestionTemplate.TestTemplate)
-                .Include(q => q.TestResult.TestTemplate.Owner)
-                .Include(q => q.QuestionTemplate.SubquestionTemplates)
-                .Include(q => q.TestResult.Student)
-                .Include(q => q.SubquestionResults)
-                .Where(q => q.TestResultId == testResultId && q.TestResult.Student.Login == studentLogin
-                    && q.OwnerLogin == ownerLogin);
         }
 
         public async Task<List<SubquestionResult>> GetSubquestionResults(int questionResultId)
@@ -162,6 +182,10 @@ namespace BusinessLayer
             return dataFunctions.GetSubquestionResultStatisticsDbSet();
         }
 
+        /// <summary>
+        /// Returns subquestion result statistics of the teacher - throws an exception if statistics are not found
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
         public async Task<SubquestionResultStatistics> GetSubquestionResultStatistics(string login)
         {
             SubquestionResultStatistics? subquestionResultStatistics = await dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
@@ -172,17 +196,30 @@ namespace BusinessLayer
             return subquestionResultStatistics;
         }
 
-        public async Task<TestDifficultyStatistics> GetTestDifficultyStatistics(string login)
+        /// <summary>
+        /// Returns subquestion result statistics of the teacher - doesn't throw an exception if statistics are not found
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        public async Task<SubquestionResultStatistics?> GetSubquestionResultStatisticsNullable(string login)
         {
-            TestDifficultyStatistics? testDifficultyStatistics = await dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync
-                (s => s.UserLogin == login);
-            if(testDifficultyStatistics == null)
-            {
-                throw Exceptions.TestDifficultyStatisticsNotFoundException(login);
-            }
-            return testDifficultyStatistics;
+            return await dataFunctions.GetSubquestionResultStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
         }
 
+        /// <summary>
+        /// Returns test difficulty statistics of the teacher - doesn't throw an exception if statistics are not found
+        /// </summary>
+        /// <param name="login">Teacher's login</param>
+        public async Task<TestDifficultyStatistics?> GetTestDifficultyStatisticsNullable(string login)
+        {
+            return await dataFunctions.GetTestDifficultyStatisticsDbSet().FirstOrDefaultAsync
+                (s => s.UserLogin == login);
+        }
+
+        /// <summary>
+        /// Checks whether (test/question/subquestion) result can be modified by the user (results can only be modified by creators of result's templates)
+        /// </summary>
+        /// <param name="currentUserlogin">Current user's login</param>
+        /// <param name="resultOwnerLogin">Result owner's login</param>
         public bool CanUserModifyResult(string currentUserlogin, string resultOwnerLogin)
         {
             if (currentUserlogin == resultOwnerLogin)
@@ -192,6 +229,12 @@ namespace BusinessLayer
             return false;
         }
 
+        /// <summary>
+        /// Updates test result's timestamp to current date
+        /// This is done after student logs out and then later returns to finish the test
+        /// </summary>
+        /// <param name="login">Student's login</param>
+        /// <param name="testTemplateId">Id of the test template</param>
         public async Task UpdateTestResultTimeStamp(string login, int testTemplateId)
         {
             TestResult testResult = await GetTestResultDbSet().FirstAsync(t => t.StudentLogin == login
@@ -200,6 +243,14 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Updates subquestion result's student's points
+        /// </summary>
+        /// <param name="subquestionPoints">Subquestion template's points</param>
+        /// <param name="studentsPoints">Student's points</param>
+        /// <param name="negativePoints">Negative points of the test template (enabled/enabled for question/disabled)</param>
+        /// <param name="subquestionResult">Subquestion result whose points are being changed</param>
+        /// <param name="login">Teacher's login</param>
         public async Task<string> SetSubquestionResultPoints(string subquestionPoints, string studentsPoints, string negativePoints,
                 SubquestionResult subquestionResult, string login)
         {
@@ -241,6 +292,9 @@ namespace BusinessLayer
             return message;
         }
 
+        /// <summary>
+        /// Returns all test templates marked as testing data
+        /// </summary>
         public async Task<List<TestTemplate>> GetTestingDataTestTemplates()
         {
             return await dataFunctions.GetTestTemplateDbSet()
@@ -250,6 +304,9 @@ namespace BusinessLayer
                 .Where(t => t.IsTestingData).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns all test results marked as testing data
+        /// </summary>
         public async Task<List<TestResult>> GetTestingDataTestResults()
         {
             return await GetTestResultDbSet()
@@ -258,6 +315,9 @@ namespace BusinessLayer
                 .Where(t => t.IsTestingData).ToListAsync();
         }
 
+        /// <summary>
+        /// Returns the amount of subquestion results marked as testing data
+        /// </summary>
         public async Task<int> GetTestingDataSubquestionResultsCount()
         {
             int testingDataSubquestionResults = 0;
@@ -277,6 +337,12 @@ namespace BusinessLayer
             return testingDataSubquestionResults;
         }
 
+        /// <summary>
+        /// Creates a number of subquestion results marked as testing data
+        /// This function is accessible via the ManageArtificialIntelligence view
+        /// </summary>
+        /// <param name="action">addSubquestionResultRandomData or addSubquestionResultCorrelationalData</param>
+        /// <param name="amountOfSubquestionResults">Amount of subquestion results to be created</param>
         public async Task<string> CreateResultTestingData(string action, string amountOfSubquestionResults)
         {
             string message;
@@ -315,7 +381,7 @@ namespace BusinessLayer
             dataFunctions.ClearChargeTracker();
             owner = await dataFunctions.GetUserByLoginAsNoTracking();
             //managing subquestionResultStatistics
-            var subquestionResultStatistics = await GetSubquestionResultStatistics(owner.Login);
+            var subquestionResultStatistics = await GetSubquestionResultStatisticsNullable(owner.Login);
             if (subquestionResultStatistics == null)
             {
                 subquestionResultStatistics = new SubquestionResultStatistics();
@@ -361,9 +427,15 @@ namespace BusinessLayer
             return message;
         }
 
+        /// <summary>
+        /// Manages test difficulty statistics
+        /// This function is called after testing data are created, or after every 100th subquestion result has been processed for the teacher
+        /// <param name="testResults">List of teacher's test results</param>
+        /// <param name="owner">Teacher</param>
+        /// </summary>
         public async Task ManageTestDifficultyStatistics(List<TestResult> testResults, User owner)
         {
-            var testDifficultyStatistics = await GetTestDifficultyStatistics(owner.Login);
+            var testDifficultyStatistics = await GetTestDifficultyStatisticsNullable(owner.Login);
             double[] subquestionTypeAveragePoints = DataGenerator.GetSubquestionTypeAverageStudentsPoints(testResults);
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageStudentsPoints(testResults);
             double[] subquestionTypeAverageAnswerCorrectness = DataGenerator.GetSubquestionTypeAverageAnswerCorrectness(testResults);
@@ -403,6 +475,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Checks whether student marked as testing data exists, and creates him if he doesn't
+        /// </summary>
         public async Task TestingUsersCheck()
         {
             Student? student = await dataFunctions.GetStudentByLoginNullable("testingstudent");
@@ -413,6 +488,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Deletes all testing data related to results
+        /// </summary>
         public async Task DeleteResultTestingData()
         {
             dataFunctions.ExecuteSqlRaw("delete from TestResult where IsTestingData = 1");
@@ -435,13 +513,18 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Suggests the amount of points that the teacher should award the student for the answer
+        /// <param name="login">Teacher's login</param>
+        /// <param name="subquestionResultId">Id of the subquestion result</param>
+        /// </summary>
         public async Task<string> GetSubquestionResultPointsSuggestion(string login, int subquestionResultId)
         {
             User owner = await dataFunctions.GetUserByLogin(login);
 
             //check if enough subquestion results have been added to warrant new model training
             bool retrainModel = false;
-            SubquestionResultStatistics? subquestionResultStatistics = await GetSubquestionResultStatistics(login);
+            SubquestionResultStatistics subquestionResultStatistics = await GetSubquestionResultStatistics(login);
             int subquestionResultsAdded = subquestionResultStatistics.SubquestionResultsAddedCount;
             if (subquestionResultsAdded >= 100)
             {
@@ -460,7 +543,7 @@ namespace BusinessLayer
 
             SubquestionResultRecord currentSubquestionResultRecord = DataGenerator.CreateSubquestionResultRecord(subquestionResult, owner,
                 subjectAveragePointsTuple, subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionResultStatistics? currectSubquestionResultStatistics = await GetSubquestionResultStatistics(login);
+            SubquestionResultStatistics currectSubquestionResultStatistics = await GetSubquestionResultStatistics(login);
             if (!currectSubquestionResultStatistics.EnoughSubquestionResultsAdded)
             {
                 return "Pro použití této funkce je nutné aby studenti vyplnili alespoň 100 podotázek.";
@@ -490,6 +573,10 @@ namespace BusinessLayer
             return suggestedSubquestionPoints.ToString();
         }
 
+        /// <summary>
+        /// Deletes all existing subquestion result records of the teacher and replaces them with records of current subquestion results
+        /// <param name="owner">Teacher</param>
+        /// </summary>
         public async Task RetrainSubquestionResultModel(User owner)
         {
             string login = owner.Login;
@@ -504,6 +591,11 @@ namespace BusinessLayer
             await dataFunctions.SaveSubquestionResultRecords(subquestionResultRecords, owner);
         }
 
+        /// <summary>
+        /// Creates a new test result, each student can only be assigned to a single test result of the test template
+        /// <param name="testTemplate">Test template of the test result</param>
+        /// <param name="student">Student</param>
+        /// </summary>
         public async Task<string?> BeginStudentAttempt(TestTemplate testTemplate, Student student)
         {
             TestResult testResult = new TestResult();
@@ -551,11 +643,18 @@ namespace BusinessLayer
             return await dataFunctions.AddTestResult(testResult);
         }
 
+        /// <summary>
+        /// Loads student's last test result (based on test result's timestamp)
+        /// </summary>
         public async Task<TestResult> LoadLastStudentAttempt(Student student)
         {
             return await dataFunctions.LoadLastStudentAttempt(student);
         }
 
+        /// <summary>
+        /// Returns a list of tuples containing subquestion result's Id and completeness (Answered/PartiallyAnswered/Unanswered)
+        /// This function is used mainly to obtain the list of subquestion results independent of question results
+        /// </summary>
         public List<(int, AnswerCompleteness)> GetSubquestionResultsProperties(TestResult testResult)
         {
             List<(int, AnswerCompleteness)> subquestionResultsProperties = new List<(int, AnswerCompleteness)>();
@@ -661,6 +760,10 @@ namespace BusinessLayer
             return subquestionResultsProperties;
         }
 
+        /// <summary>
+        /// Same as GetSubquestionResultsProperties, but tuples contain answer status
+        /// (Correct/PartiallyCorrect/Incorrect/NotAnswered/CannotBeDetermined) instead of completeness
+        /// </summary>
         public List<(int, AnswerStatus)> GetSubquestionResultsPropertiesFinished(TestResult testResult)
         {
             List<(int, AnswerStatus)> subquestionResultsProperties = new List<(int, AnswerStatus)>();
@@ -677,6 +780,13 @@ namespace BusinessLayer
             return subquestionResultsProperties;
         }
 
+        /// <summary>
+        /// Validates whether student's answers are valid and can be added to the subquestion result
+        /// This function is used to prevent the student from entering invalid data (which could result in unexpected behavior)
+        /// Error codes (such as 1001) are used to prevent the "attacker" from learning what made his answers get rejected
+        /// </summary>
+        /// <param name="subquestionResult">Subquestion result that is yet to be validated</param>
+        /// <param name="possibleAnswers">Array of student's answers (used only for subquestion type 4 - multiple questions)</param>
         public (SubquestionResult, string?) ValidateSubquestionResult(SubquestionResult subquestionResult, string[] possibleAnswers)
         {
             SubquestionTemplate subquestionTemplate = subquestionResult.SubquestionTemplate;
@@ -874,6 +984,12 @@ namespace BusinessLayer
             return (subquestionResult, errorMessage);
         }
 
+        /// <summary>
+        /// Updates subquestion result's student's answers
+        /// </summary>
+        /// <param name="subquestionResult">Subquestion result</param>
+        /// <param name="subquestionResultIndex">Subquestion result index - used to locate the subquestion result within the test result</param>
+        /// <param name="student">Student</param>
         public async Task UpdateSubquestionResultStudentsAnswers(SubquestionResult subquestionResult, int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
@@ -901,6 +1017,10 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+
+        /// <summary>
+        /// Returns subquestion template based on subquestion result index
+        /// <summary>
         public async Task<SubquestionTemplate> GetSubquestionTemplateBySubquestionResultIndex(int subquestionResultIndex, Student student)
         {
             TestResult testResult = await LoadLastStudentAttempt(student);
@@ -921,6 +1041,10 @@ namespace BusinessLayer
             throw Exceptions.SubquestionTemplateNotFoundException;
         }
 
+        /// <summary>
+        /// Finishes student's attempt - test result is marked as IsTurnedIn
+        /// After this function is executed, student cannot make changes to the test result while teacher can
+        /// <summary>
         public async Task FinishStudentAttempt(Student student)
         {
             TestResult testResult = await dataFunctions.LoadLastStudentAttempt(student);
@@ -947,6 +1071,9 @@ namespace BusinessLayer
             await dataFunctions.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Processes subquestion result for view - certain chars are replaced with more intuitive strings
+        /// <summary>
         public SubquestionResult ProcessSubquestionResultForView(SubquestionResult subquestionResult)
         {
             switch (subquestionResult.SubquestionTemplate.SubquestionType)
@@ -990,6 +1117,8 @@ namespace BusinessLayer
         /// <summary>
         /// Used to delete all question results of a certain question template
         /// </summary>
+        /// <param name="questionTemplateId">Question template Id</param>
+        /// <param name="login">Teacher's login</param>
         public async Task DeleteQuestionResults(int questionTemplateId, string login)
         {
             QuestionTemplate questionTemplate = await dataFunctions.GetQuestionTemplate(questionTemplateId);
@@ -999,6 +1128,9 @@ namespace BusinessLayer
             }
         }
 
+        /// <summary>
+        /// Returns the amount of points that the student has obtained for this test result
+        /// </summary>
         public double GetTestResultPointsSum(TestResult testResult)
         {
             double testPoints = 0;
