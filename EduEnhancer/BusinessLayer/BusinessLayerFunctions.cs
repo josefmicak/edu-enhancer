@@ -287,6 +287,11 @@ namespace BusinessLayer
             DataGenerator.GenerateTemplatesFile(dataColleration, testingDataSubjects);
         }
 
+        public async Task<string> CreateNUnitData()
+        {
+            return await templateFunctions.CreateNUnitData();
+        }
+
         //ResultFunctions.cs
 
         public DbSet<TestResult> GetTestResultDbSet()

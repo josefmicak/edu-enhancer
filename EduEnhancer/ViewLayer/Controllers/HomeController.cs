@@ -1293,10 +1293,19 @@ namespace ViewLayer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GlobalSettings(string testingMode)
+        public async Task<IActionResult> GlobalSettings(string action, string testingMode)
         {
-            await businessLayerFunctions.ChangeGlobalSettings(testingMode);
-            TempData["Message"] = "Změny úspěšně uloženy.";
+            if(action == "setTestingMode")
+            {
+                await businessLayerFunctions.ChangeGlobalSettings(testingMode);
+                TempData["Message"] = "Změny úspěšně uloženy.";
+            }
+            else if(action == "addNUnitData")
+            {
+                string message = await businessLayerFunctions.CreateNUnitData();
+                TempData["Message"] = message;
+            }
+
             return RedirectToAction(nameof(GlobalSettings));
         }
 

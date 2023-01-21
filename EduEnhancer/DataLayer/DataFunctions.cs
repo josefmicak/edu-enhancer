@@ -197,7 +197,7 @@ namespace DataLayer
             return message;
         }
 
-        public async Task<string> DeleteTestTemplate(TestTemplate testTemplate, string webRootPath)
+        public async Task<string> DeleteTestTemplate(TestTemplate testTemplate, string? webRootPath)
         {
             if(testTemplate.QuestionTemplates != null)
             {
@@ -207,7 +207,7 @@ namespace DataLayer
                     for (int j = 0; j < questionTemplate.SubquestionTemplates.Count; j++)
                     {
                         SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
-                        if (subquestionTemplate.ImageSource != null)
+                        if (subquestionTemplate.ImageSource != null && webRootPath != null)
                         {
                             DeleteSubquestionTemplateImage(webRootPath, subquestionTemplate.ImageSource);
                         }
@@ -317,7 +317,7 @@ namespace DataLayer
                 .FirstAsync(s => s.SubquestionTemplateId == subquestionTemplateId);
         }
 
-        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string webRootPath)
+        public async Task<string> AddSubquestionTemplate(SubquestionTemplate subquestionTemplate, IFormFile? image, string? webRootPath)
         {
             string message;
             try
@@ -330,7 +330,7 @@ namespace DataLayer
                 message = "Zadání podotázky bylo úspěšně přidáno.";
 
                 //only save image in case one has been uploaded, and all validity checks have already been passed
-                if(image != null)
+                if(image != null && webRootPath != null)
                 {
                     subquestionTemplate.ImageSource = SaveImage(image, webRootPath, null);
                     await _context.SaveChangesAsync();
@@ -418,7 +418,11 @@ namespace DataLayer
         /// <param name="login">Teacher's login</param>
         public async Task IncrementSubquestionTemplateStatistics(string login)
         {
-            SubquestionTemplateStatistics subquestionTemplateStatistics = await GetSubquestionTemplateStatisticsDbSet().FirstAsync(s => s.UserLogin == login);
+            SubquestionTemplateStatistics? subquestionTemplateStatistics = await GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
+            if(subquestionTemplateStatistics == null)
+            {
+                //AddSubquestionTemplateStatistics()
+            }
             subquestionTemplateStatistics.SubquestionTemplatesAddedCount += 1;
             if(subquestionTemplateStatistics.SubquestionTemplatesAddedCount == 100)
             {
@@ -440,6 +444,33 @@ namespace DataLayer
                 }
             }
             return subquestionsCount;
+        }
+
+        public async Task<User> GetNUnitTestingAdmin()
+        {
+            User? user = await GetUserByLoginNullable("nunittestingadmin");
+            if(user != null)
+            {
+                return user;
+            }
+            else
+            {
+                User NUnitTestingAdmin = new User();
+                NUnitTestingAdmin.Login = "nunittestingadmin";
+                NUnitTestingAdmin.FirstName = "Name";
+                NUnitTestingAdmin.LastName = "Surname";
+                NUnitTestingAdmin.Email = "Email";
+                NUnitTestingAdmin.Role = EnumTypes.Role.Admin;
+                NUnitTestingAdmin.IsTestingData = true;
+                await AddUser(NUnitTestingAdmin);
+
+                SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                subquestionTemplateStatistics.User = NUnitTestingAdmin;
+                subquestionTemplateStatistics.UserLogin = NUnitTestingAdmin.Login;
+                await AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+                return NUnitTestingAdmin;
+            }
         }
 
 

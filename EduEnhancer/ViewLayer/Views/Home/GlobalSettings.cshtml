@@ -11,13 +11,22 @@
 
     <p>@ViewBag.Message</p>
 
+    <div id="testing-mode-settings">
+        <form method="POST">
+            <p>Testovací režim:</p>
+            <input type="radio" id="testingModeOff" name="testingMode" value="testingModeOff">
+            <label for="testingModeOff">Vypnuto</label><br>
+            <input type="radio" id="testingModeOn" name="testingMode" value="testingModeOn">
+            <label for="testingModeOn">Zapnuto</label><br><br>
+            <input type="hidden" value="setTestingMode" name="action">
+            <input type="submit" value="Uložit">
+        </form>
+    </div>
+
+    <br>
     <form method="POST">
-        <p>Testovací režim:</p>
-        <input type="radio" id="testingModeOff" name="testingMode" value="testingModeOff">
-        <label for="testingModeOff">Vypnuto</label><br>
-        <input type="radio" id="testingModeOn" name="testingMode" value="testingModeOn">
-        <label for="testingModeOn">Zapnuto</label><br><br>
-        <input type="submit" value="Uložit">
+        <input type="hidden" value="addNUnitData" name="action">
+        <input type="submit" value="Přidat NUnit data">
     </form>
     
 </div>

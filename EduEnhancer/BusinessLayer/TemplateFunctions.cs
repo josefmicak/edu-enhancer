@@ -1327,13 +1327,90 @@ namespace BusinessLayer
         "Dosazování pojmů do mezer",
         "Posuvník; jedna správná odpověď (číslo)"};
 
-
         /// <summary>
         /// Returns the description of subquestion type based on its identifying number
         /// </summary>
         public string[] GetSubquestionTypeTextArray()
         {
             return SubquestionTypeTextArray;
+        }
+
+        public async Task<string> CreateNUnitData()
+        {
+            //before NUnit data is added, all previously existing records of NUnit data is deleted
+            await DeleteNUnitData();
+
+            User NUnitTestingAdmin = await dataFunctions.GetNUnitTestingAdmin();
+
+            Subject subject = new Subject();
+            subject.Abbreviation = "POS";
+            subject.Name = "Počítačové sítě";
+            subject.Guarantor = NUnitTestingAdmin;
+            subject.GuarantorLogin = NUnitTestingAdmin.Login;
+            subject.IsTestingData = true;
+            await AddSubject(subject);
+
+            TestTemplate testTemplate = new TestTemplate();
+            testTemplate.Title = "postest";
+            testTemplate.NegativePoints = NegativePoints.Enabled;
+            testTemplate.MinimumPoints = 0;
+            testTemplate.StartDate = new DateTime(2023, 12, 30, 11, 30, 00);
+            testTemplate.EndDate = new DateTime(2023, 12, 31, 11, 30, 00);
+            testTemplate.IsTestingData = true;
+            testTemplate.Subject = await GetSubjectDbSet().FirstAsync(s => s.Abbreviation == "POS" && s.IsTestingData == true);
+            testTemplate.Owner = NUnitTestingAdmin;
+            testTemplate.OwnerLogin = NUnitTestingAdmin.Login;
+            testTemplate.QuestionTemplates = new List<QuestionTemplate>();
+            string _ = await dataFunctions.AddTestTemplate(testTemplate);
+
+            QuestionTemplate questionTemplate = new QuestionTemplate();
+            questionTemplate.Title = "Seřazení vrstev";
+            questionTemplate.TestTemplate = testTemplate;
+            questionTemplate.OwnerLogin = testTemplate.OwnerLogin;
+            questionTemplate.SubquestionTemplates = new List<SubquestionTemplate>();
+            _ = await dataFunctions.AddQuestionTemplate(questionTemplate);
+
+            SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
+            subquestionTemplate.SubquestionType = SubquestionType.OrderingElements;
+            subquestionTemplate.SubquestionText = "(NUNIT TESTOVACÍ OTÁZKA): Seřaďte ISO/OSI vrstvy od nejnižší po nejvyšší.";
+            subquestionTemplate.PossibleAnswers = new string[] { "Fyzická vrstva", "Linková vrstva", "Síťová vrstva", "Transportní vrstva",
+                "Relační vrstva", "Prezentační vrstva", "Aplikační vrstva"};
+            subquestionTemplate.CorrectAnswers = subquestionTemplate.PossibleAnswers;
+            subquestionTemplate.SubquestionPoints = 9;
+            subquestionTemplate.CorrectChoicePoints = 9;
+            subquestionTemplate.DefaultWrongChoicePoints = -9;
+            subquestionTemplate.WrongChoicePoints = -9;
+            subquestionTemplate.QuestionTemplate =
+                await dataFunctions.GetQuestionTemplateDbSet()
+                .Include(q => q.TestTemplate)
+                .FirstAsync(q => q.Title == "Seřazení vrstev" && q.TestTemplate.IsTestingData == true);
+            subquestionTemplate.QuestionTemplateId = subquestionTemplate.QuestionTemplate.QuestionTemplateId;
+            subquestionTemplate.OwnerLogin = questionTemplate.OwnerLogin;
+            _ = await dataFunctions.AddSubquestionTemplate(subquestionTemplate, null, null);
+            //subquestionTemplates.Add(subquestionTemplate);
+
+            //questionTemplate.SubquestionTemplates = subquestionTemplates;
+
+            //testTemplate.QuestionTemplates = questionTemplates;
+            return "placeholder";
+        }
+
+        public async Task DeleteNUnitData()
+        {
+            Subject? subject = await GetSubjectDbSet().FirstOrDefaultAsync(s => s.Abbreviation == "POS" && s.IsTestingData == true);
+            if(subject != null)
+            {
+                await dataFunctions.DeleteSubject(subject);
+            }
+
+            TestTemplate? testTemplate = await GetTestTemplateDbSet().FirstOrDefaultAsync(t => t.Title == "postest" && t.IsTestingData == true);
+            if (testTemplate != null)
+            {
+                await dataFunctions.DeleteTestTemplate(testTemplate, null);
+            }
+
+            User NUnitTestingAdmin = await dataFunctions.GetNUnitTestingAdmin();
+            await dataFunctions.DeleteUser(NUnitTestingAdmin);
         }
     }
 }
