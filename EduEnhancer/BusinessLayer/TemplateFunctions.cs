@@ -83,6 +83,11 @@ namespace BusinessLayer
             return subject;
         }
 
+        public async Task<Subject?> GetSubjectByIdNullable(int subjectId)
+        {
+            return await GetSubjectDbSet().Include(s => s.Students).FirstOrDefaultAsync(s => s.SubjectId == subjectId);
+        }
+
         public async Task<string> AddSubject(Subject subject)
         {
             return await dataFunctions.AddSubject(subject);
@@ -504,8 +509,12 @@ namespace BusinessLayer
                 subquestionTemplate.SubquestionText = "";
                 for (int i = 0; i < subquestionTextArray.Length; i++)
                 {
-                    subquestionTextArray[i] = subquestionTextArray[i].Replace("|", "");//replace gap separator
-                    subquestionTextArray[i] = subquestionTextArray[i].Replace(";", "");//replace answer separator
+                    if(subquestionTextArray[i] != null)
+                    {
+                        subquestionTextArray[i] = subquestionTextArray[i].Replace("|", "");//replace gap separator
+                        subquestionTextArray[i] = subquestionTextArray[i].Replace(";", "");//replace answer separator
+                    }
+
                     if (i != subquestionTextArray.Length - 1)
                     {
                         subquestionTemplate.SubquestionText += subquestionTextArray[i] + "|";
@@ -889,7 +898,8 @@ namespace BusinessLayer
         /// </summary>
         /// <param name="subquestionTemplate">Subquestion template</param>
         /// <param name="subquestionTemplateExists">Suggestion can be made for both existing and non-existing subquestion templates</param>
-        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists)
+        /// <param name="isNUnitTest">Whether function is ran as a part of an NUnit test (false by default)</param>
+        public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists, bool isNUnitTest = false)
         {
             if (subquestionTemplateExists)
             {
@@ -898,6 +908,12 @@ namespace BusinessLayer
 
             string login = subquestionTemplate.OwnerLogin;
             User owner = await dataFunctions.GetUserByLogin(login);
+
+            SubquestionTemplateStatistics currentSubquestionTemplateStatistics = await GetSubquestionTemplateStatistics(login);
+            if (!currentSubquestionTemplateStatistics.EnoughSubquestionTemplatesAdded)
+            {
+                return "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek.";
+            }
 
             //check if enough subquestion templates have been added to warrant new model training
             bool retrainModel = false;
@@ -917,20 +933,27 @@ namespace BusinessLayer
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
                 subquestionTypeAveragePoints, minimumPointsShare);
-            SubquestionTemplateStatistics currentSubquestionTemplateStatistics = await GetSubquestionTemplateStatistics(login);
-            if (!currentSubquestionTemplateStatistics.EnoughSubquestionTemplatesAdded)
-            {
-                return "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek.";
-            }
             Model usedModel = currentSubquestionTemplateStatistics.UsedModel;
-            double suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
+            double suggestedSubquestionPoints = 0;
+            if (!isNUnitTest)
+            {
+                suggestedSubquestionPoints = PythonFunctions.GetSubquestionTemplateSuggestedPoints(login, retrainModel, currentSubquestionTemplateRecord, usedModel);
+            }
             if (subquestionTemplatesAdded >= 100)
             {
                 subquestionTemplateStatistics = await GetSubquestionTemplateStatistics(login);
                 subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 subquestionTemplateStatistics.SubquestionTemplatesAddedCount = 0;
-                subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
-                subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                if (!isNUnitTest)
+                {
+                    subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateNeuralNetwork.py");
+                    subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(false, login, "TemplateMachineLearning.py");
+                }
+                else
+                {
+                    subquestionTemplateStatistics.NeuralNetworkAccuracy = 1;
+                    subquestionTemplateStatistics.MachineLearningAccuracy = 1;
+                }
                 if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
                 {
                     subquestionTemplateStatistics.UsedModel = Model.NeuralNetwork;

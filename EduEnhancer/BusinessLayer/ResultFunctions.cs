@@ -997,10 +997,6 @@ namespace BusinessLayer
             bool subquestionFound = false;
             for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
-                if (subquestionFound)
-                {
-                    break;
-                }
                 QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
                 for(int j = 0; j < questionResult.SubquestionResults.Count; j++)
@@ -1013,6 +1009,10 @@ namespace BusinessLayer
                     }
                     subquestionCounter++;
                 }
+            }
+            if (!subquestionFound)
+            {
+                throw Exceptions.InvalidSubquestionResultIndexException;
             }
             await dataFunctions.SaveChangesAsync();
         }

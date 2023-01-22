@@ -226,7 +226,7 @@ namespace ArtificialIntelligenceTools
                 testTemplate.NegativePoints = (EnumTypes.NegativePoints)random.Next(1, 4);
                 double totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
-                int subject = random.Next(0, 5);
+                int subject = random.Next(0, testingDataSubjects.Count);
                 testTemplate.Subject = testingDataSubjects[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;
@@ -339,7 +339,7 @@ namespace ArtificialIntelligenceTools
                 testTemplate.NegativePoints = (EnumTypes.NegativePoints)negativePoints;
                 double totalSubquestionPoints = 0;
                 int minimumPointsShare = random.Next(0, 52);
-                int subject = random.Next(0, 5);
+                int subject = random.Next(0, testingDataSubjects.Count);
                 testTemplate.Subject = testingDataSubjects[subject];
                 testTemplate.OwnerLogin = owner.Login;
                 testTemplate.Owner = owner;

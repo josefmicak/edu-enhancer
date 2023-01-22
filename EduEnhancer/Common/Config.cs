@@ -59,11 +59,24 @@
 
         public static string GetPythonScriptsPath()
         {
-            return PythonScriptsPath[(int)SelectedPlatform];
+            string path = Environment.CurrentDirectory;
+            while (true)
+            {
+                if(Path.GetFileName(path) == "EduEnhancer")
+                {
+                    return path;
+                }
+                else
+                {
+                    path = Directory.GetParent(Environment.CurrentDirectory).FullName;
+                }
+            }
+           // return PythonScriptsPath[(int)SelectedPlatform];
         }
 
         public static readonly string[] PythonScriptsPath = new string[] {
-            Path.GetDirectoryName(Environment.CurrentDirectory)!,
+            @"EduEnhancer",
+            //Path.GetDirectoryName(Environment.CurrentDirectory)!,
             "/home/fei/mic0378/EduEnhancer"
         };
 

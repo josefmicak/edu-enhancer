@@ -816,7 +816,11 @@ namespace DataLayer
         /// </summary>
         public void ExecuteSqlRaw(string command)
         {
-            _context.Database.ExecuteSqlRaw(command);
+            //prevents this command from being executed when used database is not relational - during NUnit tests
+            if (_context.Database.IsRelational())
+            {
+                _context.Database.ExecuteSqlRaw(command);
+            }
         }
 
         /// <summary>
