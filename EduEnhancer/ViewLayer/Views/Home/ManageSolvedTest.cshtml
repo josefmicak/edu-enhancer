@@ -89,8 +89,11 @@
                     <tr>
                         <td>@Html.DisplayFor(modelItem => item.QuestionTemplate.Title)</td>
                         <td>@studentsQuestionPointsString</td>
-                        <td><a class="button" title="Správa otázky" asp-area="" asp-controller="Home" asp-action="ManageSolvedQuestion"
-                       asp-route-questionResultId="@item.QuestionResultId">Správa otázky</a>
+                        <td><a class="button" title="Správa otázky" id="manage-solved-question-@i"
+                            asp-area="" 
+                            asp-controller="Home" 
+                            asp-action="ManageSolvedQuestion"
+                            asp-route-questionResultId="@item.QuestionResultId">Správa otázky</a>
                         </td>
                     </tr>
                 }

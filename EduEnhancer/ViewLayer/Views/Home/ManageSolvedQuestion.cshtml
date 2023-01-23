@@ -135,7 +135,7 @@
             </tr>
             <tr>
                 <th>Počet bodů získaných studentem</th>
-                <td>@studentsQuestionPointsString</td>
+                <td id="students-question-points">@studentsQuestionPointsString</td>
             </tr>
         </table>
     </div>
@@ -149,7 +149,7 @@
             </tr>
             <tr>
                 <th>Počet bodů za podotázku</th>
-                <td>@studentsSubquestionPoints</td>
+                <td id="students-subquestion-points">@studentsSubquestionPoints</td>
             </tr>
             @{
                 if (subquestionTemplate.ImageSource != null)
@@ -258,7 +258,7 @@
 
     <div id="subquestion-result-points">
         <h2>Upravit body</h2>
-        <p>@ViewBag.Message</p>
+        <p id="subquestion-result-points-message">@ViewBag.Message</p>
         <form method="POST" onsubmit="onSubquestionResultPointsFormSubmission()">
             <input type="hidden" value="@subquestionResult.QuestionResult.QuestionResultId" name="questionResultId">
             <input type="hidden" value="@subquestionResult.SubquestionResultId" name="subquestionResultId">
@@ -285,7 +285,7 @@
                     </p>
                 }
             }
-            <button type="submit" value="setPoints" name="action">Uložit</button>
+            <button type="submit" value="setPoints" name="action" id="save-students-points">Uložit</button>
         </form>
     </div>
 </div>

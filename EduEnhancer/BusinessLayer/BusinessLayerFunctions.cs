@@ -268,7 +268,7 @@ namespace BusinessLayer
             {
                 List<TestTemplate> testTemplates = GetTestTemplateDbSet().Include(t => t.Owner).Where(t => student.Subjects.Contains(t.Subject)
                     && t.StartDate < DateTime.Now && t.EndDate > DateTime.Now).ToList();
-                foreach (TestTemplate testTemplate in testTemplates)
+                foreach (TestTemplate testTemplate in testTemplates.ToList())
                 {
                     if (await GetAmountOfTurnedTestResultsByTestTemplate(login, testTemplate.TestTemplateId) > 0)
                     {

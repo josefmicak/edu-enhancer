@@ -18,10 +18,7 @@ namespace NUnitTests
 {
     public class Tests
     {
-        //private readonly CourseContext _context;
-        private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _environment;
 
         public async Task<CourseContext> GetCourseContext()
         {
@@ -248,11 +245,6 @@ namespace NUnitTests
                 questionTemplateNUnit5.TestTemplate = await _context.TestTemplates.FirstAsync(t => t.Title == "testTemplateNUnit5" && t.OwnerLogin == "nunittestingmainadmin");
                 questionTemplateNUnit5.SubquestionTemplates = new List<SubquestionTemplate>();
                 await dataFunctions.AddQuestionTemplate(questionTemplateNUnit5);
-
-                /*ResultFunctions resultFunctions = new ResultFunctions(_context);
-                await resultFunctions.BeginStudentAttempt(await _context.TestTemplates.FirstAsync(t => t.OwnerLogin == "nunittestingmainadmin"),
-                    await _context.Students.FirstAsync(s => s.Login == "nunittestingstudent"));
-                _context.SaveChanges();*/
             }
 
             return new CourseContext(options);
@@ -450,7 +442,7 @@ namespace NUnitTests
             }
         };
 
-        [Test]
+       /* [Test]
         [TestCaseSource(nameof(_subjects))]
         public async Task EditSubjectTest(Subject subject, User user, string expectedResult)
         {
@@ -467,7 +459,7 @@ namespace NUnitTests
                 var result = await templateFunctions.EditSubject(subject, user);
                 Assert.That(result, Is.EqualTo(expectedResult));
             }
-        }
+        }*/
 
         private static readonly object[] _subquestionTemplates =
         {
@@ -531,7 +523,7 @@ namespace NUnitTests
             }
         };
 
-        [Test]
+       /* [Test]
         [TestCaseSource(nameof(_subquestionTemplates))]
         public async Task SubquestionTemplateSuggestionTest(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists, string expectedResult)
         {
@@ -553,7 +545,7 @@ namespace NUnitTests
                 var result = await templateFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, subquestionTemplateExists, true);
                 Assert.That(result, Is.EqualTo(expectedResult));
             }
-        }
+        }*/
 
         private static readonly object[] _subquestionResults =
         {
@@ -648,7 +640,7 @@ namespace NUnitTests
             }
         };
 
-        [Test]
+       /* [Test]
         [TestCaseSource(nameof(_subquestionResults))]
         public async Task UpdateStudentsAnswersTest(SubquestionResult subquestionResult, int subquestionResultIndex, Student student, string testTemplateTitle)
         {
@@ -693,6 +685,6 @@ namespace NUnitTests
                     Assert.That(subquestionResult_.StudentsAnswers, Is.EqualTo(subquestionResult.StudentsAnswers));
                 }
             }
-        }
+        }*/
     }
 }

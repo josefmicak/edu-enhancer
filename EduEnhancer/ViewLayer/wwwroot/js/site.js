@@ -1,3 +1,23 @@
+//Index.cshtml
+
+function optGroupUpdate(login, email, role, mainAdminCount, adminCount, teacherCount) {
+    opt = document.createElement('OPTION');
+    opt.textContent = "Email: " + email + ", login: " + login;
+    opt.value = login;
+    if (role == "Teacher") {
+        document.getElementById("teacher-optgroup").appendChild(opt);
+        document.getElementById("teacher-optgroup").setAttribute('label', 'Učitelé (' + teacherCount + ")");
+    }
+    else if (role == "Admin") {
+        document.getElementById("admin-optgroup").appendChild(opt);
+        document.getElementById("admin-optgroup").setAttribute('label', 'Správci (' + adminCount + ")");
+    }
+    else if (role == "MainAdmin") {
+        document.getElementById("main-admin-optgroup").appendChild(opt);
+        document.getElementById("main-admin-optgroup").setAttribute('label', 'Hlavní administrátoři (' + mainAdminCount + ")");
+    }
+}
+
 //ManageUserRegistrationList.cshtml
 
 function registrationsTableUpdate(accepted, rejected, text) {

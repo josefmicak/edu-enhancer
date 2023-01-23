@@ -459,7 +459,7 @@ namespace DataLayer
                 NUnitTestingAdmin.Login = "nunittestingadmin";
                 NUnitTestingAdmin.FirstName = "Name";
                 NUnitTestingAdmin.LastName = "Surname";
-                NUnitTestingAdmin.Email = "Email";
+                NUnitTestingAdmin.Email = "EmailAdmin";
                 NUnitTestingAdmin.Role = EnumTypes.Role.Admin;
                 NUnitTestingAdmin.IsTestingData = true;
                 await AddUser(NUnitTestingAdmin);

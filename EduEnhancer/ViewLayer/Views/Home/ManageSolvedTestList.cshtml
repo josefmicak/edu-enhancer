@@ -20,6 +20,7 @@
                         <th>Správa</th>
                     </tr>
                     @{
+                        int i = 0;
                         foreach (var item in Model)
                         {
                             string fullName = item.Student.FullName();
@@ -29,13 +30,14 @@
                                 <td>@Html.DisplayFor(modelItem => item.Student.Login)</td>
                                 <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteResult', '@item.TestResultId', null, null, null, null, null)">Smazat test</button></td>
                                 <td>
-                                    <a class="button" title="Správa testu"
+                                    <a class="button" title="Správa testu" id="manage-solved-test-@i"
                                        asp-area=""
                                        asp-controller="Home"
                                        asp-action="ManageSolvedTest"
                                        asp-route-testResultId="@item.TestResultId">Správa testu</a>
                                 </td>
                             </tr>
+                            i++;
                         }
                     }
                 </table>
