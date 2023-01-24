@@ -94,7 +94,7 @@
             </tr>
             <tr>
                 <th>Počet bodů</th>
-                <td>@questionPointsString</td>
+                <td id="question-points-string">@questionPointsString</td>
             </tr>
         </table>
     </div>
@@ -111,7 +111,7 @@
                     </tr>
                     <tr>
                         <th>Počet bodů za podotázku</th>
-                        <td>@Math.Round(double.Parse(subquestionPoints), 2)</td>
+                        <td id="subquestion-points-string">@Math.Round(double.Parse(subquestionPoints), 2)</td>
                     </tr>
                     @{
                         if (subquestionTemplate.ImageSource != null)
@@ -164,7 +164,7 @@
 
     <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionTemplateId="@Model.First().QuestionTemplate.QuestionTemplateId">Přidat podotázku</a>
 
-    <p>@ViewBag.Message</p>
+    <p id="question-template-message">@ViewBag.Message</p>
     <div id="subquestion-selection">
         <h2>Výběr podotázky</h2>
         <form method="POST">
@@ -226,7 +226,7 @@
         <div id="edit-subquestion">
             <form method="POST">
                 <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="subquestionTemplateId">
-                <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" name="action">Upravit podotázku</button>
+                <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" id="edit-subquestion-template" name="action">Upravit podotázku</button>
             </form>
         </div>
         <div id="delete-subquestion">

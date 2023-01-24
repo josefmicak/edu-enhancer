@@ -57,7 +57,11 @@
             "/usr/bin/python3"
         };
 
-        public static string GetPythonScriptsPath()
+        /// <summary>
+        /// Returns path to the solution root folder (EduEnhancer)
+        /// This path can be different depending on the used OS (Windows/Ubuntu) and the used project (ViewLayer/NUnitTests)
+        /// </summary>
+        public static string GetSolutionRootFolderPath()
         {
             string path = Environment.CurrentDirectory;
             while (true)
@@ -71,14 +75,7 @@
                     path = Directory.GetParent(Environment.CurrentDirectory).FullName;
                 }
             }
-           // return PythonScriptsPath[(int)SelectedPlatform];
         }
-
-        public static readonly string[] PythonScriptsPath = new string[] {
-            @"EduEnhancer",
-            //Path.GetDirectoryName(Environment.CurrentDirectory)!,
-            "/home/fei/mic0378/EduEnhancer"
-        };
 
         /// <summary>
         /// All possible path separators (Windows paths use backslashes, whereas Linux paths use forward slashes)

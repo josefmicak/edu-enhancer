@@ -5,6 +5,8 @@ using DataLayer;
 using DomainModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using NUnit.Framework.Internal;
+using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -20,12 +22,11 @@ namespace NUnitTests
     {
         private IWebDriver driver;
         private IJavaScriptExecutor js;
-        private readonly IConfiguration _configuration;
 
         [SetUp]
         public void SetUp()
         {
-            driver = new ChromeDriver("../../../../");
+            driver = new ChromeDriver("../../../../");//the driver is located inside the "bin" folder in the NUnitTests project folder
             js = (IJavaScriptExecutor)driver;
         }
 
@@ -35,127 +36,7 @@ namespace NUnitTests
             driver.Quit();
         }
 
-        public async Task<CourseContext> GetCourseContext()
-        {
-
-            var options = new DbContextOptionsBuilder<CourseContext>()
-            .UseInMemoryDatabase(databaseName: "EduEnhancerDB")
-            .Options;
-
-            using (var _context = new CourseContext(options))
-            {
-                _context.Database.EnsureDeleted();
-
-                //first test
-
-                _context.Users.Add(new User
-                {
-                    Login = "nunittestingadmin",
-                    Email = "Email",
-                    FirstName = "Name",
-                    LastName = "Surname",
-                    Role = EnumTypes.Role.Admin,
-                    IsTestingData = true
-                });
-                _context.Students.Add(new Student
-                {
-                    Login = "nunittestingstudent",
-                    Email = "Email",
-                    FirstName = "Name",
-                    LastName = "Surname",
-                    IsTestingData = true
-                });
-                _context.SaveChanges();
-
-                _context.Subjects.Add(new Subject
-                {
-                    Abbreviation = "POS",
-                    Name = "Počítačové sítě",
-                    Guarantor = _context.Users.First(u => u.Login == "nunittestingadmin"),
-                    GuarantorLogin = "nunittestingadmin",
-                    IsTestingData = true,
-                    Students = new List<Student> { _context.Students.First() }
-                });
-                _context.SaveChanges();
-
-                DataFunctions dataFunctions = new DataFunctions(_context);
-                TestTemplate testTemplateNUnit = new TestTemplate();
-                testTemplateNUnit.Title = "postest";
-                testTemplateNUnit.MinimumPoints = 0;
-                testTemplateNUnit.StartDate = new DateTime(2022, 12, 30, 00, 00, 00);
-                testTemplateNUnit.EndDate = new DateTime(2022, 12, 31, 00, 00, 00);
-                testTemplateNUnit.Subject = await _context.Subjects.FirstAsync(s => s.Abbreviation == "POS" && s.IsTestingData == true);
-                testTemplateNUnit.Owner = await _context.Users.FirstAsync(u => u.Login == "nunittestingadmin");
-                testTemplateNUnit.OwnerLogin = "nunittestingadmin";
-                testTemplateNUnit.IsTestingData = true;
-                testTemplateNUnit.QuestionTemplates = new List<QuestionTemplate>();
-                await dataFunctions.AddTestTemplate(testTemplateNUnit);
-
-                QuestionTemplate questionTemplateNUnit = new QuestionTemplate();
-                questionTemplateNUnit.Title = "NUnit title";
-                questionTemplateNUnit.OwnerLogin = "nunittestingadmin";
-                questionTemplateNUnit.TestTemplate = await _context.TestTemplates.FirstAsync(t => t.Title == "postest" && t.OwnerLogin == "nunittestingadmin");
-                questionTemplateNUnit.SubquestionTemplates = new List<SubquestionTemplate>();
-                await dataFunctions.AddQuestionTemplate(questionTemplateNUnit);
-
-                SubquestionTemplate subquestionTemplateNUnit = new SubquestionTemplate();
-                subquestionTemplateNUnit.SubquestionType = EnumTypes.SubquestionType.OrderingElements;
-                subquestionTemplateNUnit.SubquestionText = "";
-                subquestionTemplateNUnit.PossibleAnswers = new string[] { "test1", "test2", "test3" };
-                subquestionTemplateNUnit.CorrectAnswers = new string[] { "test1", "test2", "test3" };
-                subquestionTemplateNUnit.SubquestionPoints = 10;
-                subquestionTemplateNUnit.CorrectChoicePoints = 10 / 3;
-                subquestionTemplateNUnit.DefaultWrongChoicePoints = (10 / 3) * (-1);
-                subquestionTemplateNUnit.WrongChoicePoints = (10 / 3) * (-1);
-                subquestionTemplateNUnit.QuestionTemplate = await _context.QuestionTemplates.FirstAsync(q => q.OwnerLogin == "nunittestingadmin");
-                subquestionTemplateNUnit.QuestionTemplateId = subquestionTemplateNUnit.QuestionTemplate.QuestionTemplateId;
-                subquestionTemplateNUnit.OwnerLogin = "nunittestingadmin";
-                await dataFunctions.AddSubquestionTemplate(subquestionTemplateNUnit, null, null);
-
-                TestResult testResult = new TestResult();
-                testResult.TestTemplate = await _context.TestTemplates.FirstAsync();
-                testResult.TestTemplateId = testResult.TestTemplate.TestTemplateId;
-                testResult.TimeStamp = DateTime.Now;
-                testResult.Student = await _context.Students.FirstAsync();
-                testResult.StudentLogin = testResult.Student.Login;
-                testResult.OwnerLogin = testResult.TestTemplate.OwnerLogin;
-                testResult.IsTurnedIn = true;
-                testResult.IsTestingData = true;
-                testResult.QuestionResults = new List<QuestionResult>();
-                _context.TestResults.Add(testResult);
-                await _context.SaveChangesAsync();
-
-                QuestionResult questionResult = new QuestionResult();
-                questionResult.TestResult = await _context.TestResults.FirstAsync();
-                questionResult.QuestionTemplate = await _context.QuestionTemplates.FirstAsync();
-                questionResult.OwnerLogin = questionResult.TestResult.OwnerLogin;
-                questionResult.QuestionTemplateId = questionResult.QuestionTemplate.QuestionTemplateId;
-                questionResult.TestResultId = questionResult.TestResult.TestResultId;
-                questionResult.SubquestionResults = new List<SubquestionResult>();
-                _context.QuestionResults.Add(questionResult);
-                await _context.SaveChangesAsync();
-
-                SubquestionResult subquestionResult = new SubquestionResult();
-                subquestionResult.QuestionResult = await _context.QuestionResults.Include(q => q.QuestionTemplate).FirstAsync();
-                subquestionResult.QuestionResultId = subquestionResult.QuestionResult.QuestionResultId;
-                subquestionResult.QuestionTemplateId = subquestionResult.QuestionResult.QuestionTemplateId;
-                subquestionResult.TestResultId = await _context.TestResults.Select(t => t.TestResultId).FirstAsync();
-                subquestionResult.SubquestionTemplate = await _context.SubquestionTemplates.FirstAsync();
-                subquestionResult.SubquestionTemplateId = subquestionResult.SubquestionTemplate.SubquestionTemplateId;
-                subquestionResult.OwnerLogin = subquestionResult.QuestionResult.OwnerLogin;
-                subquestionResult.StudentsAnswers = new string[] { "test1", "test3", "test2" };
-                subquestionResult.StudentsPoints = 0;
-                subquestionResult.DefaultStudentsPoints = 0;
-                subquestionResult.AnswerCorrectness = 0.5;
-                subquestionResult.AnswerStatus = EnumTypes.AnswerStatus.Incorrect;
-                _context.SubquestionResults.Add(subquestionResult);
-                await _context.SaveChangesAsync();
-            }
-
-            return new CourseContext(options);
-        }
-
-        private static readonly object[] subquestionResultPoints =
+        private static readonly object[] _subquestionResultPoints =
 {
             new object[] { "10.01", false, "Chyba: příliš vysoký počet bodů. Nejvyšší počet bodů, které může za tuto podotázku student obdržet, je 10."},
             new object[] { "10", true, "Studentův počet bodů byl úspěšně změněn."},
@@ -164,12 +45,12 @@ namespace NUnitTests
         };
 
         [Test]
-        [TestCaseSource(nameof(subquestionResultPoints))]
+        [TestCaseSource(nameof(_subquestionResultPoints))]
         public void SubquestionResultPointsTest(string studentsPoints, bool pointsChangeExpected, string expectedOutcome)
         {
             double defaultStudentsPoints = 0;
             double defaultSubquestionTemplatePoints = 10;
-            driver.Navigate().GoToUrl("https://localhost:7026");
+            driver.Navigate().GoToUrl(Config.GetURL());
             var selectedUserLogin = driver.FindElement(By.Id("selectedUserLogin"));
             selectedUserLogin.Click();
             var selectElement = new SelectElement(selectedUserLogin);
@@ -212,6 +93,174 @@ namespace NUnitTests
             newStudentsPointsInput.SendKeys(defaultStudentsPoints.ToString());
             driver.FindElement(By.Id("save-students-points")).Click();
             Assert.That(oldSubquestionPoints.ToString(), Is.EqualTo(defaultStudentsPoints.ToString()));
+        }
+
+        private static readonly object[] _userParameters =
+        {
+            //unique student - successfully added
+            new object[] { "Name", "Surname", "UniqueStudentLogin", "UniqueStudent@Email.com", "student", true, 
+                "Student s loginem \"UniqueStudentLogin\" úspěšně přidán." },
+            //unique teacher - successfully added
+            new object[] { "Name", "Surname", "UniqueTeacherLogin", "UniqueTeacher@Email.com", "teacher", true,
+                "Učitel byl úspěšně přidán." },
+            //student with no first name - error message is sent back
+            new object[] { "", "Surname", "UniqueStudentLogin", "UniqueStudent@Email.com", "student", false,
+                "Chyba: je nutné vyplnit všechna pole." },
+            //student with invalid email - error message is sent back
+            new object[] { "", "Surname", "UniqueStudentLogin", "InvalidStudentEmail", "student", false,
+                 "Chyba: \"InvalidStudentEmail\" není správně formátovaná emailová adresa." },
+            //student with login of an existing user - error message is sent back
+            new object[] { "Name", "Surname", "nunittestingstudent", "UniqueStudent@Email.com", "student", false,
+                "Chyba: uživatel s loginem \"nunittestingstudent\" již existuje." },
+            //student with email of an existing user - error message is sent back
+            new object[] { "Name", "Surname", "UniqueStudentLogin", "EmailAdmin", "student", false,
+                "Chyba: uživatel s emailem \"LoginAdmin\" již existuje." },
+            //teacher with login of an existing user - error message is sent back
+            new object[] { "Name", "Surname", "nunittestingteacher", "UniqueTeacher@Email.com", "teacher", false,
+                "Chyba: uživatel s loginem \"nunittestingteacher\" již existuje." },
+             //teacher with email of an existing user - error message is sent back
+            new object[] { "Name", "Surname", "nunittestingteacher", "EmailStudent", "teacher", false,
+                "Chyba: uživatel s emailem \"EmailStudent\" již existuje." }
+        };
+
+        [Test]
+        [TestCaseSource(nameof(_userParameters))]
+        public void RegistrationApprovalTest(string firstName, string lastName, string login, string email, string role, 
+            bool newUserExpected, string expectedOutcome)
+        {
+            driver.Navigate().GoToUrl(Config.GetURL());
+            var selectedUserLogin = driver.FindElement(By.Id("selectedUserLogin"));
+            selectedUserLogin.Click();
+            var selectElement = new SelectElement(selectedUserLogin);
+            selectElement.SelectByText("Email: EmailAdmin, login: nunittestingadmin");
+
+            driver.FindElement(By.Id("testing-sign-in")).Click();
+            driver.FindElement(By.Id("manage-user-list")).Click();
+
+            IWebElement firstNameInput = driver.FindElement(By.Id(role + "FirstName"));
+            firstNameInput.Clear();
+            firstNameInput.SendKeys(firstName);
+
+            IWebElement lastNameInput = driver.FindElement(By.Id(role + "LastName"));
+            lastNameInput.Clear();
+            lastNameInput.SendKeys(lastName);
+
+            IWebElement loginInput = driver.FindElement(By.Id(role + "Login"));
+            loginInput.Clear();
+            loginInput.SendKeys(login);
+
+            IWebElement emailInput = driver.FindElement(By.Id(role + "Email"));
+            emailInput.Clear();
+            emailInput.SendKeys(email);
+
+            driver.FindElement(By.Id("save-" + role)).Click();
+
+            if (newUserExpected)
+            {
+                var userMessage = driver.FindElement(By.Id(role + "-message")).Text;
+                Assert.That(userMessage, Is.EqualTo(expectedOutcome));
+            }
+
+            //restore old state - delete added user, confirm whether he's been deleted
+            if (newUserExpected)
+            {
+                driver.FindElement(By.Id("delete-" + login)).Click();
+                driver.FindElement(By.Id("confirm-action-yes")).Click();
+                var userMessage = driver.FindElement(By.Id(role + "-message")).Text;
+                if (role == "student")
+                {
+                    Assert.That(userMessage, Is.EqualTo("Student úspěšně smazán."));
+                }
+                else if (role == "teacher")
+                {
+                    Assert.That(userMessage, Is.EqualTo("Učitel úspěšně smazán."));
+                }
+            }
+        }
+
+        private static readonly object[] _subquestionTemplatePoints =
+        {
+            //non-positive value entered for subquestion points - error message is sent back
+            new object[] { "0", "-0,01", false, "Chyba: nekompletní zadání podotázky (body)." },
+            //valid values entered for both subquestion and wrong choice points - points are successfully changed
+            new object[] { "0,01", "-0,01", true, "Zadání podotázky bylo úspěšně upraveno." },
+            //wrong choice points equals less than subquestion points * (-1) - error message is sent back
+            new object[] { "0,01", "-0,02", false, "Chyba: nejmenší možný počet bodů za špatnou volbu je -0,01." },
+            //non-negative entered for wrong choice points - error message is sent back
+            new object[] { "0,01", "0", false, "Chyba: za špatnou volbu nemůže být udělen nezáporný počet bodů." }
+        };
+
+
+        [Test]
+        [TestCaseSource(nameof(_subquestionTemplatePoints))]
+        public void SubquestionTemplatePointsTest(string subquestionPoints, string wrongChoicePoints, bool pointsChangeExpected, string expectedOutcome)
+        {
+            double defaultQuestionTemplatePoints = 10;
+            double defaultSubquestionTemplatePoints = 10;
+            double defaultWrongChoicePoints = -10;
+            driver.Navigate().GoToUrl(Config.GetURL());
+            var selectedUserLogin = driver.FindElement(By.Id("selectedUserLogin"));
+            selectedUserLogin.Click();
+            var selectElement = new SelectElement(selectedUserLogin);
+            selectElement.SelectByText("Email: EmailAdmin, login: nunittestingadmin");
+            
+            driver.FindElement(By.Id("testing-sign-in")).Click();
+            driver.FindElement(By.Id("test-template-list-link")).Click();
+            driver.FindElement(By.Id("open-test-template-0")).Click();
+            driver.FindElement(By.Id("open-question-template-0")).Click();
+            driver.FindElement(By.Id("edit-subquestion-template")).Click();
+            
+            IWebElement oldSubquestionPointsInput = driver.FindElement(By.Id("subquestion-points"));
+            oldSubquestionPointsInput.Clear();
+            oldSubquestionPointsInput.SendKeys(subquestionPoints);
+
+            driver.FindElement(By.Id("wrongChoicePoints_manual_radio")).Click();
+            IWebElement oldWrongChoicePointsManualInput = driver.FindElement(By.Id("wrongChoicePoints_manual"));
+            oldWrongChoicePointsManualInput.Clear();
+            oldWrongChoicePointsManualInput.SendKeys(wrongChoicePoints);
+
+            driver.FindElement(By.Id("subquestion-add")).Click();
+            //Thread.Sleep(2000);
+            if (pointsChangeExpected)
+            {
+                var questionPointsString = driver.FindElement(By.Id("question-points-string")).Text;
+                Assert.That(questionPointsString, Is.EqualTo(subquestionPoints));
+                var subquestionPointsString = driver.FindElement(By.Id("subquestion-points-string")).Text;
+                Assert.That(subquestionPointsString, Is.EqualTo(subquestionPoints));
+                var questionTemplateMessage = driver.FindElement(By.Id("question-template-message")).Text;
+                Assert.That(questionTemplateMessage, Is.EqualTo(expectedOutcome));
+            }
+            else
+            {
+                var newSubquestionPoints = driver.FindElement(By.Id("subquestion-points")).GetAttribute("value");
+                Assert.That(newSubquestionPoints, Is.EqualTo(defaultSubquestionTemplatePoints.ToString()));
+                var newWrongChoicePoints = driver.FindElement(By.Id("wrongChoicePoints_manual")).GetAttribute("value");
+                Assert.That(newWrongChoicePoints, Is.Not.EqualTo(wrongChoicePoints.ToString()));
+                var editSubquestionTemplateMessage = driver.FindElement(By.Id("edit-subquestion-template-message")).Text;
+                Assert.That(editSubquestionTemplateMessage, Is.EqualTo(expectedOutcome));
+            }
+
+            //restore old value
+            if (pointsChangeExpected)
+            {
+                driver.FindElement(By.Id("edit-subquestion-template")).Click();
+                IWebElement newSubquestionPointsInput = driver.FindElement(By.Id("subquestion-points"));
+                newSubquestionPointsInput.Clear();
+                newSubquestionPointsInput.SendKeys(defaultSubquestionTemplatePoints.ToString());
+
+                driver.FindElement(By.Id("wrongChoicePoints_manual_radio")).Click();
+                IWebElement newWrongChoicePointsManualInput = driver.FindElement(By.Id("wrongChoicePoints_manual"));
+                newWrongChoicePointsManualInput.Clear();
+                newWrongChoicePointsManualInput.SendKeys(defaultWrongChoicePoints.ToString());
+
+                driver.FindElement(By.Id("subquestion-add")).Click();
+                var questionPointsStringNew = driver.FindElement(By.Id("question-points-string")).Text;
+                Assert.That(questionPointsStringNew, Is.EqualTo(defaultQuestionTemplatePoints.ToString()));
+                var subquestionPointsStringNew = driver.FindElement(By.Id("subquestion-points-string")).Text;
+                Assert.That(subquestionPointsStringNew, Is.EqualTo(defaultSubquestionTemplatePoints.ToString()));
+                var questionTemplateMessageNew = driver.FindElement(By.Id("question-template-message")).Text;
+                Assert.That(questionTemplateMessageNew, Is.EqualTo(expectedOutcome));
+            }
         }
     }
 }

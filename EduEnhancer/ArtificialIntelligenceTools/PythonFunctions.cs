@@ -32,7 +32,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
+                Config.GetSolutionRootFolderPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -86,7 +86,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
+                Config.GetSolutionRootFolderPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -131,7 +131,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function);
+                Config.GetSolutionRootFolderPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -176,7 +176,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1} {2} {3} {4}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, testTemplateId);
+                Config.GetSolutionRootFolderPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + fileName + " ", Config.SelectedPlatform.ToString(), login, retrainModel, testTemplateId);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
@@ -205,7 +205,7 @@ namespace ArtificialIntelligenceTools
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = Config.GetPythonPath();
             start.Arguments = string.Format("{0} {1}",
-                Config.GetPythonScriptsPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + "OtherFunctions.py ", function);
+                Config.GetSolutionRootFolderPath() + Config.GetPathSeparator() + "ArtificialIntelligenceTools" + Config.GetPathSeparator() + "PythonScripts" + Config.GetPathSeparator() + "OtherFunctions.py ", function);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;

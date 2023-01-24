@@ -108,7 +108,7 @@ def main(arguments):
         platform = 'Windows'
         login = "login"
         retrain_model = False
-    locale.setlocale(locale.LC_NUMERIC, 'cs_CZ')
+    locale.setlocale(locale.LC_NUMERIC, 'cs_CZ.utf8')
 
     conn_str = ""
     if platform == 'Windows':

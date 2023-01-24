@@ -56,6 +56,7 @@
                         <th>Otevřít</th>
                     </tr>
                     @{
+                        int i = 0;
                         foreach (var item in Model)
                         {
                             if (item.QuestionTemplateId == -1)
@@ -74,15 +75,22 @@
                                 <td>@Html.DisplayFor(modelItem => item.Title)</td>
                                 <td>@questionPointsString</td>
                                 <td>
-                                    <a class="button" title="Upravit otázku" asp-area="" asp-controller="Home" asp-action="EditQuestionTemplate"
-                       asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
+                                    <a class="button" title="Upravit otázku" 
+                                        asp-area=""
+                                        asp-controller="Home" 
+                                        asp-action="EditQuestionTemplate"
+                                        asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
                                 </td>
                                 <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
                                 <td>
-                                    <a class="button" title="Otevřít otázku" asp-area="" asp-controller="Home" asp-action="QuestionTemplate"
-                       asp-route-questionTemplateId="@item.QuestionTemplateId">Otevřít otázku</a>
+                                    <a class="button" title="Otevřít otázku" id="open-question-template-@i"
+                                        asp-area="" 
+                                        asp-controller="Home"
+                                        asp-action="QuestionTemplate"
+                                        asp-route-questionTemplateId="@item.QuestionTemplateId">Otevřít otázku</a>
                                 </td>
                             </tr>
+                            i++;
                         }
                     }
                 </table>

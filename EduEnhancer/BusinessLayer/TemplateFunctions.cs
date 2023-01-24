@@ -583,6 +583,10 @@ namespace BusinessLayer
                         errorMessage = "Chyba: nejmenší možný počet bodů za špatnou volbu je " + subquestionTemplate.DefaultWrongChoicePoints + ".";
                     }
                 }
+                if(subquestionTemplate.WrongChoicePoints >= 0)
+                {
+                    errorMessage = "Chyba: za špatnou volbu nemůže být udělen nezáporný počet bodů.";
+                }
             }
             else
             {
@@ -1358,19 +1362,31 @@ namespace BusinessLayer
             return SubquestionTypeTextArray;
         }
 
+        /// <summary>
+        /// Creates data that is used during NUnit tests - users, students, templates, results, statistics..
+        /// </summary>
         public async Task<string> CreateNUnitData()
         {
             //before NUnit data is added, all previously existing records of NUnit data is deleted
             await DeleteNUnitData();
 
-            User user = new User();
-            user.Login = "nunittestingadmin";
-            user.Email = "EmailAdmin";
-            user.FirstName = "Name";
-            user.LastName = "Surname";
-            user.Role = EnumTypes.Role.Admin;
-            user.IsTestingData = true;
-            await dataFunctions.AddUser(user);
+            User admin = new User();
+            admin.Login = "nunittestingadmin";
+            admin.Email = "EmailAdmin";
+            admin.FirstName = "Name";
+            admin.LastName = "Surname";
+            admin.Role = EnumTypes.Role.Admin;
+            admin.IsTestingData = true;
+            await dataFunctions.AddUser(admin);
+
+            User teacher = new User();
+            teacher.Login = "nunittestingteacher";
+            teacher.Email = "EmailTeacher";
+            teacher.FirstName = "Name";
+            teacher.LastName = "Surname";
+            teacher.Role = EnumTypes.Role.Teacher;
+            teacher.IsTestingData = true;
+            await dataFunctions.AddUser(teacher);
 
             SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
             subquestionTemplateStatistics.User = await dataFunctions.GetUserByLogin("nunittestingadmin");
@@ -1427,13 +1443,13 @@ namespace BusinessLayer
 
             SubquestionTemplate subquestionTemplateNUnit = new SubquestionTemplate();
             subquestionTemplateNUnit.SubquestionType = EnumTypes.SubquestionType.OrderingElements;
-            subquestionTemplateNUnit.SubquestionText = "";
+            subquestionTemplateNUnit.SubquestionText = "NUnit subquestion text";
             subquestionTemplateNUnit.PossibleAnswers = new string[] { "test1", "test2", "test3" };
             subquestionTemplateNUnit.CorrectAnswers = new string[] { "test1", "test2", "test3" };
             subquestionTemplateNUnit.SubquestionPoints = 10;
-            subquestionTemplateNUnit.CorrectChoicePoints = 10 / 3;
-            subquestionTemplateNUnit.DefaultWrongChoicePoints = (10 / 3) * (-1);
-            subquestionTemplateNUnit.WrongChoicePoints = (10 / 3) * (-1);
+            subquestionTemplateNUnit.CorrectChoicePoints = 10;
+            subquestionTemplateNUnit.DefaultWrongChoicePoints = -10;
+            subquestionTemplateNUnit.WrongChoicePoints = -10;
             subquestionTemplateNUnit.QuestionTemplate = await GetQuestionTemplateDbSet().FirstAsync(q => q.OwnerLogin == "nunittestingadmin");
             subquestionTemplateNUnit.QuestionTemplateId = subquestionTemplateNUnit.QuestionTemplate.QuestionTemplateId;
             subquestionTemplateNUnit.OwnerLogin = "nunittestingadmin";
@@ -1460,9 +1476,7 @@ namespace BusinessLayer
 
             SubquestionResult subquestionResult = new SubquestionResult();
             subquestionResult.QuestionResult = questionResult;
-           // subquestionResult.QuestionResultId = subquestionResult.QuestionResult.QuestionResultId;
             subquestionResult.QuestionTemplateId = subquestionResult.QuestionResult.QuestionTemplateId;
-          //  subquestionResult.TestResultId = await _context.TestResults.Select(t => t.TestResultId).FirstAsync();
             subquestionResult.SubquestionTemplate = await GetSubquestionTemplateDbSet().FirstAsync(t => t.OwnerLogin == "nunittestingadmin");
             subquestionResult.SubquestionTemplateId = subquestionResult.SubquestionTemplate.SubquestionTemplateId;
             subquestionResult.OwnerLogin = subquestionResult.QuestionResult.OwnerLogin;
@@ -1479,9 +1493,12 @@ namespace BusinessLayer
 
             await dataFunctions.AddTestResult(testResult);
 
-            return "placeholder";
+            return "NUnit data byla úspěšně přidána.";
         }
 
+        /// <summary>
+        /// Deletes data that is used during NUnit tests - users, students, templates, results, statistics..
+        /// </summary>
         public async Task DeleteNUnitData()
         {
             Subject? subject = await GetSubjectDbSet().FirstOrDefaultAsync(s => s.Abbreviation == "POS" && s.IsTestingData == true);
@@ -1500,6 +1517,12 @@ namespace BusinessLayer
             if(admin != null)
             {
                 await dataFunctions.DeleteUser(admin);
+            }
+
+            User? teacher = await dataFunctions.GetUserDbSet().FirstOrDefaultAsync(s => s.Login == "nunittestingteacher");
+            if (teacher != null)
+            {
+                await dataFunctions.DeleteUser(teacher);
             }
 
             Student? student = await dataFunctions.GetStudentDbSet().FirstOrDefaultAsync(s => s.Login == "nunittestingstudent");

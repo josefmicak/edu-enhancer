@@ -17,7 +17,7 @@
     <div id="student-management">
         <h2>Správa studentů</h2>
 
-        <p>@ViewBag.StudentMessage</p>
+        <p id="student-message">@ViewBag.StudentMessage</p>
 
         <div id="student-list">
             <h3>Seznam studentů</h3>
@@ -50,8 +50,18 @@
                                             <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                         }
                                     }
-                                    <td><button type="button" class="btn btn-primary" onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
-                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary"
+                                        onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">
+                                            Upravit studenta
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary" id="delete-@item.Login"
+                                        onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">
+                                            Smazat studenta
+                                        </button>
+                                    </td>
                                 </tr>
                                 i++;
                             }
@@ -86,7 +96,7 @@
                 <label for="studentEmail">Email:</label>
                 <input type="text" required id="studentEmail" name="email"><br><br>
                 <input type="hidden" value="addStudent" id="student-action" name="action">
-                <input type="submit" value="Uložit">
+                <input type="submit" id="save-student" value="Uložit">
             </form>
         </div>
     </div>
@@ -94,7 +104,7 @@
     <div id="teacher-management">
         <h2>Správa učitelů</h2>
 
-        <p>@ViewBag.TeacherMessage</p>
+        <p id="teacher-message">@ViewBag.TeacherMessage</p>
 
         <h3>Seznam učitelů</h3>
         <div id="teacher-list">
@@ -121,8 +131,11 @@
                                     <td>@Html.DisplayFor(modelItem => fullName)</td>
                                     <td>@Html.DisplayFor(modelItem => item.Login)</td>
                                     <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                                    <td><button type="button" class="btn btn-primary" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
-                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
+                                    <td><button type="button" class="btn btn-primary" 
+                                        onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName', 'true')">Upravit učitele</button></td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary" id="delete-@item.Login"
+                                        onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
                                 </tr>
                             }
                         }
@@ -156,14 +169,14 @@
                 <label for="teacherEmail">Email:</label>
                 <input type="text" required id="teacherEmail" name="email"><br><br>
                 <input type="hidden" value="addTeacher" id="teacher-action" name="action">
-                <input type="submit" value="Uložit">
+                <input type="submit" id="save-teacher" value="Uložit">
             </form>
         </div>
     </div>
 
     <div id="admin-management">
         <h2>Seznam správců</h2>
-        <p>@ViewBag.AdminMessage</p>
+        <p id="admin-message">@ViewBag.AdminMessage</p>
         <div id="admin-list">
             @{
                 if (adminsCount > 0)
@@ -215,8 +228,8 @@
 <div id="confirm-action">
     <form method="POST">
         <label><div id="confirm-action-label"></div></label><br>
-        <input title="Ano" type="submit" value="Ano"><br>
-        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input title="Ano" type="submit" value="Ano" id="confirm-action-yes"><br>
+        <input title="Ne" type="button" value="Ne" id="confirm-action-no" onclick="hideConfirmActionForm()">
         <input type="hidden" id="email" name="email">
         <input type="hidden" id="login" name="login">
         <input type="hidden" id="firstName" name="firstName">

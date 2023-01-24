@@ -29,7 +29,7 @@
     <div id="subquestion-details">
         <h2>Detaily podotázky</h2>
         @{
-            <p>@ViewBag.Message</p>
+            <p id="edit-subquestion-template-message">@ViewBag.Message</p>
             if (selectedSubquestionType != 0)
             {
                 <p>Typ otázky: @subquestionTypeTextArray[selectedSubquestionType]</p>

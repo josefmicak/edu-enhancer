@@ -950,17 +950,17 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
                 correctChoicePoints = subquestionPoints;
                 break;
             case 2:
-                correctChoicePoints = Number.parseFloat(subquestionPoints.replace(',', '.')) / correctChoiceArrayLength;
+                correctChoicePoints = Number.parseFloat(subquestionPoints) / correctChoiceArrayLength;
                 break;
             case 3:
             case 4:
             case 9:
-                correctChoicePoints = Number.parseFloat(subquestionPoints.replace(',', '.')) / (correctChoiceArrayLength / 2) / 2;
+                correctChoicePoints = Number.parseFloat(subquestionPoints) / (correctChoiceArrayLength / 2) / 2;
                 break;
         }
 
-        document.getElementById("correct-choice-points").value = correctChoicePoints;
-        document.getElementById("wrongChoicePoints_automatic").value = Number.parseFloat(correctChoicePoints.toString().replace(',', '.')) * (-1);
+        document.getElementById("correct-choice-points").value = correctChoicePoints.replace(".", ",");
+        document.getElementById("wrongChoicePoints_automatic").value = ("-" + correctChoicePoints).replace(".", ",");
     }
 }
 
@@ -1186,7 +1186,13 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     if (subquestionType == 1 || subquestionType == 2 || subquestionType == 4 || subquestionType == 9) {
         if (correctAnswerListLength > correctAnswerTableLength) {
             var difference = correctAnswerListLength - correctAnswerTableLength;
+            console.log("difference = " + correctAnswerListLength + " - " + correctAnswerTableLength);
+            console.log(correctAnswerList);
+            /*if (subquestionType == 9) {
+                difference -= 1;
+            }*/
             for (var i = 0; i < difference; i++) {
+                console.log("added");
                 addCorrectAnswer(subquestionType, true);
             }
         }
@@ -1244,7 +1250,7 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
     else if (subquestionType == 9) {
         var subquestionTextSplit = subquestionText.split("|");
         for (var i = 0; i < subquestionTextSplit.length; i++) {
-            if (i > 0 && i < subquestionTextSplit.length - 1) {//due to gap that exist by default
+            if (i > 0 && i < subquestionTextSplit.length - 1) {//due to gap that exists by default and empty string
                 addGap();
             }
             document.getElementsByClassName("subquestion-text")[i].value = subquestionTextSplit[i];
@@ -1263,10 +1269,11 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
         sliderQuestion.value = correctAnswerList[0];
         sliderQuestion.nextElementSibling.value = correctAnswerList[0];
     }
-
+    
     //set manual wrong choice points radio to checked in case it was checked before
     if (defaultWrongChoicePoints != wrongChoicePoints) {
         document.getElementById("wrongChoicePoints_manual_radio").checked = true;
+        document.getElementById("wrongChoicePoints_manual").disabled = false;
     }
 
     modifyInputNumbers();
