@@ -4,16 +4,23 @@
     ViewData["Title"] = "Student";
 }
 
-<div class="text-center">
-    <h1>Student</h1>
-    <br>
-    <p>@ViewBag.Message</p>
-    <a asp-action="StudentAvailableTestList">Vyřešit test</a>
-    <br>
-    <a asp-action="BrowseSolvedTestList">Prohlížení vyřešených testů</a>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <div id="user-information">
-        <table>
+<div id="main">
+    <div class="panel panel-medium">
+        <div class="panel-content">
+            <a asp-action="StudentAvailableTestList" class="button">Vyřešit test</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="BrowseSolvedTestList" class="button">Prohlížení vyřešených testů</a>
+        </div>
+    </div>
+
+    <div class="panel panel-medium">
+        <table id="user-information" class="panel-table">
             <tr>
                 <th>Jméno</th>
                 <td>@Model.FullName()</td>
@@ -30,6 +37,6 @@
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="Index">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="Index">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

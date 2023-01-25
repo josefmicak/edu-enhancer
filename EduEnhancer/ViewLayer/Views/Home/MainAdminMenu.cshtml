@@ -4,25 +4,37 @@
     ViewData["Title"] = "Hlavní administrátor";
 }
 
-<div class="text-center">
-    <h1>Hlavní administrátor</h1>
-    <br>
-    <a asp-action="TestTemplateList" id="test-template-list-link">Správa zadání testů</a>
-    <br>
-    <a asp-action="ManageSolvedTestList" id="manage-solved-tests">Správa vyřešených testů</a>
-    <br>
-    <a asp-action="ManageSubjects">Správa předmětů</a>
-    <br>
-    <a asp-action="ManageUserList" id="manage-user-list">Správa uživatelů</a>
-    <br>
-    <a asp-action="ManageUserRegistrationList">Správa registrací</a>
-    <br>
-    <a asp-action="ManageArtificialIntelligence">Správa nástrojů umělé inteligence</a>
-    <br>
-    <a asp-action="GlobalSettings">Globální nastavení</a>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+</div>
 
-    <div id="user-information">
-        <table>
+<div id="main">
+    <div class="panel panel-medium">
+        <div class="panel-content">
+            <a asp-action="TestTemplateList" id="test-template-list-link" class="button">Správa zadání testů</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="ManageSolvedTestList" id="manage-solved-tests" class="button">Správa vyřešených testů</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="ManageSubjects" class="button">Správa předmětů</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="ManageUserList" id="manage-user-list" class="button">Správa uživatelů</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="ManageUserRegistrationList" class="button">Správa registrací</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="ManageArtificialIntelligence" class="button">Správa nástrojů umělé inteligence</a>
+        </div>
+        <div class="panel-content">
+            <a asp-action="GlobalSettings" class="button">Globální nastavení</a>
+        </div>
+    </div>
+
+    <div class="panel panel-medium">
+        <table id="user-information" class="panel-table">
             <tr>
                 <th>Jméno</th>
                 <td>@Model.FullName()</td>
@@ -39,6 +51,6 @@
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="Index">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="Index">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

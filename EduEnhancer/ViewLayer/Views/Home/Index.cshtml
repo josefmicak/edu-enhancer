@@ -15,85 +15,88 @@
 
 <script src="/js/site.js"></script>
 
-<div class="text-center">
-    <h1>EduEnhancer</h1>
-    <p>@ViewBag.Message</p>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
 </div>
 
-<div id="test-login">
-    <h2>Testovací přihlášení</h2>
-
-    <form method="POST">
-        <select name="selectedUserLogin" id="selectedUserLogin">
-        @{
-            <optgroup id="main-admin-optgroup" label="Hlavní administrátoři (0)"></optgroup>
-            <optgroup id="admin-optgroup" label="Správci (0)"></optgroup>
-            <optgroup id="teacher-optgroup" label="Učitelé (0)"></optgroup>
-            if(Model != null)
-            {
-                foreach(User item in Model.Users)
+<div id="main">
+    <form method="POST" id="test-login" class="panel panel-medium">
+        <div class="panel-title panel-content">Testovací přihlášení</div>
+        <div class="panel-content">
+            <select name="selectedUserLogin" id="selectedUserLogin">
+            @{
+                <optgroup id="main-admin-optgroup" label="Hlavní administrátoři (0)"></optgroup>
+                <optgroup id="admin-optgroup" label="Správci (0)"></optgroup>
+                <optgroup id="teacher-optgroup" label="Učitelé (0)"></optgroup>
+                if(Model != null)
                 {
-                    if(item.Role == EnumTypes.Role.Teacher)
+                    foreach(User item in Model.Users)
                     {
-                        teacherCount++;
+                        if(item.Role == EnumTypes.Role.Teacher)
+                        {
+                            teacherCount++;
+                        }
+                        else if (item.Role == EnumTypes.Role.Admin)
+                        {
+                            adminCount++;
+                        }
+                        else if (item.Role == EnumTypes.Role.MainAdmin)
+                        {
+                            mainAdminCount++;
+                        }
+                        <script>
+                            optGroupUpdate('@item.Login', '@item.Email', '@item.Role', '@mainAdminCount', '@adminCount', '@teacherCount');
+                        </script>
                     }
-                    else if (item.Role == EnumTypes.Role.Admin)
-                    {
-                        adminCount++;
-                    }
-                    else if (item.Role == EnumTypes.Role.MainAdmin)
-                    {
-                        mainAdminCount++;
-                    }
-                    <script>
-                        optGroupUpdate('@item.Login', '@item.Email', '@item.Role', '@mainAdminCount', '@adminCount', '@teacherCount');
-                    </script>
-                }
 
-                <optgroup label="Studenti (@Model.Students.Count)">
-                @{
-                    foreach(Student item in Model.Students)
-                    {
-                        string email = "";
-                        if(item.Email != null)
+                    <optgroup label="Studenti (@Model.Students.Count)">
+                    @{
+                        foreach(Student item in Model.Students)
                         {
-                            email = item.Email;
+                            string email = "";
+                            if(item.Email != null)
+                            {
+                                email = item.Email;
+                            }
+                            else
+                            {
+                                email = "<nevyplněno>";
+                            }
+                            <option value="@item.Login">Email: @email, Login: @item.Login</option>
                         }
-                        else
-                        {
-                            email = "<nevyplněno>";
-                        }
-                        <option value="@item.Login">Email: @email, Login: @item.Login</option>
                     }
+                    </optgroup>
                 }
-                </optgroup>
             }
-        }
-        </select>
-        <input type="submit" value="Přihlásit se" id="testing-sign-in">
+            </select>
+        </div>
+        <div class="panel-content">
+            <input type="submit" value="Přihlásit se" id="testing-sign-in">
+        </div>
     </form>
-</div>
 
-<div id="google-login">
-    @{
-        string signInURL = Config.GetSignInURL();
-        <h2>Google přihlášení</h2>
-        <div id="g_id_onload"
-                data-client_id="@Config.GoogleClientId"
-                data-context="signin"
-                data-ux_mode="redirect"
-                data-login_uri="@signInURL"
-                data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin"
-                data-type="standard"
-                data-size="large"
-                data-theme="outline"
-                data-text="sign_in_with"
-                data-shape="rectangular"
-                data-logo_alignment="left">
-        </div>
-    }
+    <div id="google-login" class="panel panel-medium">
+        @{
+            string signInURL = Config.GetSignInURL();
+            <div class="panel-title panel-content">Google přihlášení</div>
+            <div id="g_id_onload"
+                    data-client_id="@Config.GoogleClientId"
+                    data-context="signin"
+                    data-ux_mode="redirect"
+                    data-login_uri="@signInURL"
+                    data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin panel-content" style="display:block ruby;"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="outline"
+                    data-text="sign_in_with"
+                    data-shape="rectangular"
+                    data-logo_alignment="left">
+            </div>
+        }
+    </div>
 </div>
 
 @{
