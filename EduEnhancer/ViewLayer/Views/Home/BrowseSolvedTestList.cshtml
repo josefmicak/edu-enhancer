@@ -6,15 +6,17 @@
     ViewData["Title"] = "Prohlížení vyřešených testů";
 }
 
-<div class="text-center">
-    <h1>Prohlížení vyřešených testů</h1>
-    <p>@ViewBag.Message</p>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <div id="test-result-list">
+<div id="main">
+    <div id="test-result-list" class="panel panel-medium">
         @{
             if (Model.TestResults.Count > 0)
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Datum</th>
                         <th>Vyučující</th>
@@ -42,13 +44,13 @@
             }
             else
             {
-                <p>Nejsou dostupné žádné testy k prohlížení.</p>
+                <div class="panel-content">Nejsou dostupné žádné testy k prohlížení.</div>
             }
         }
     </div>
 
-    <div id="student-information">
-        <table>
+    <div class="panel panel-medium">
+        <table id="student-information" class="panel-table">
             <tr>
                 <th>Jméno</th>
                 <td>@Model.Student.FullName()</td>
@@ -69,6 +71,6 @@
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="StudentMenu">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="StudentMenu">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

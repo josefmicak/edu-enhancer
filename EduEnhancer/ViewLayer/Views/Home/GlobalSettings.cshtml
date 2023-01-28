@@ -6,34 +6,37 @@
     ViewData["Title"] = "Globální nastavení";
 }
 
-<div class="text-center">
-    <h1>Globální nastavení</h1>
-
-    <p>@ViewBag.Message</p>
-
-    <div id="testing-mode-settings">
-        <form method="POST">
-            <p>Testovací režim:</p>
-            <input type="radio" id="testingModeOff" name="testingMode" value="testingModeOff">
-            <label for="testingModeOff">Vypnuto</label><br>
-            <input type="radio" id="testingModeOn" name="testingMode" value="testingModeOn">
-            <label for="testingModeOn">Zapnuto</label><br><br>
-            <input type="hidden" value="setTestingMode" name="action">
-            <input type="submit" value="Uložit">
-        </form>
-    </div>
-
-    <br>
-    <form method="POST">
-        <input type="hidden" value="addNUnitData" name="action">
-        <input type="submit" value="Přidat NUnit data">
-    </form>
-    
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
 </div>
 
-<div id="backBtn"><a asp-action="MainAdminMenu">Zpět</a></div>
+<div id="main">
+    <form method="POST" id="testing-mode-settings" class="panel panel-medium">
+        <div class="panel-title panel-content">Testovací režim</div>
+        <div class="panel-content">
+            <input type="radio" id="testingModeOff" name="testingMode" value="testingModeOff"><label for="testingModeOff">Vypnuto</label>
+        </div>
+        <div class="panel-content">
+            <input type="radio" id="testingModeOn" name="testingMode" value="testingModeOn"><label for="testingModeOn">Zapnuto</label>
+        </div>
+        <div class="panel-content">
+            <input type="hidden" value="setTestingMode" name="action">
+            <input type="submit" value="Uložit">
+        </div>
+    </form>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+    <form method="POST" class="panel panel-medium">
+        <div class="panel-content">
+            <input type="hidden" value="addNUnitData" name="action">
+            <input type="submit" value="Přidat NUnit data">
+        </div>
+    </form>
+</div>
+
+<a id="backBtn" class="button" asp-action="MainAdminMenu">Zpět</a>
+
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
 
 @{
     if(Model.TestingMode)
