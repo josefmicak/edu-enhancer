@@ -2,13 +2,15 @@
 @inject ProtectedLocalStorage LocalStorage
 @inject IJSRuntime JSRuntime
 
-<input type="checkbox" @onchange="@ChangeVisibilityAccepted" checked="@accepted">
-<label> Zobrazit schválené registrace</label>
-<br>
-<input type="checkbox" @onchange="@ChangeVisibilityRejected" checked="@rejected">
-<label> Zobrazit zamítnuté registrace</label>
-<br>
-<button class="btn btn-primary" @onclick="UpdateVisibility">Uložit</button>
+<div class="panel-content">
+    <input type="checkbox" @onchange="@ChangeVisibilityAccepted" checked="@accepted"><label>Zobrazit schválené registrace</label>
+</div>
+<div class="panel-content">
+    <input type="checkbox" @onchange="@ChangeVisibilityRejected" checked="@rejected"><label>Zobrazit zamítnuté registrace</label>
+</div>
+<div class="panel-content">
+    <button class="btn btn-primary" @onclick="UpdateVisibility">Uložit</button>
+</div>
 
 @code {
     private bool accepted;

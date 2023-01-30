@@ -17,11 +17,11 @@
 15 ManageSolvedQuestion                 PLANNED
 16 ManageSolvedTest                     PLANNED
 17 ManageSolvedTestList                 DONE
-18 ManageSubjects                       PLANNED
+18 ManageSubjects                       DONE
 19 ManageUserList                       PLANNED
 20 ManageUserListForAdmin               PLANNED
-21 ManageUserRegistrationList           PLANNED
-22 ManageUserRegistrationListForAdmin   PLANNED
+21 ManageUserRegistrationList           DONE
+22 ManageUserRegistrationListForAdmin   DONE
 23 QuestionTemplate                     PLANNED
 24 SolvedQuestion                       PLANNED
 25 SolveQuestion                        PLANNED
@@ -32,8 +32,9 @@
 30 TestTemplate                         PLANNED
 31 TestTemplateList                     DONE
 32 UserRegistration                     PLANNED
+33 site.js (dynamic content)            PLANNED
 ----------------------------------------------------
-                                        10 / 32 DONE
+                                        13 / 33 DONE
 */
 
 :root {
@@ -108,6 +109,7 @@ body {
     background: var(--panel-bg-color);
     border: 2px solid var(--panel-border-color);
     border-radius: 1rem;
+    padding-block: 1rem;
     margin: 0.5rem auto 0;
     display: grid;
     overflow: hidden;
@@ -126,28 +128,10 @@ body {
     text-align: center;
 }
 
-.panel > .panel-content:first-of-type {
-    padding-top: 1rem;
-}
-
-.panel > .panel-content:last-of-type {
-    padding-bottom: 1rem;
-}
-
 .panel-table th,
 .panel-table td {
     padding: 0.25rem;
     text-align: left;
-}
-
-.panel-table tr:first-of-type > th,
-.panel-table tr:first-of-type > td {
-    padding-top: 1rem;
-}
-
-.panel-table tr:last-of-type > th,
-.panel-table tr:last-of-type > td {
-    padding-bottom: 1rem;
 }
 
 .panel-table tr > th:first-of-type,
@@ -160,7 +144,7 @@ body {
     padding-right: 1rem;
 }
 
-label, input:not([type="radio"]):not([type="submit"]):not([type="button"]), select, button, input[type="radio"], input[type="submit"], input[type="button"], .button {
+label, input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, button, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], .button {
     font-size: 0.8rem;
     border-radius: 0.25rem;
     line-height: 2.5rem;
@@ -169,16 +153,16 @@ label, input:not([type="radio"]):not([type="submit"]):not([type="button"]), sele
     vertical-align: middle;
 }
 
-label, button, input[type="radio"], input[type="submit"], input[type="button"], .button {
+label, button, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], .button {
     padding: 0 0.5rem;
 }
 
-label, input[type="radio"] {
+label, input[type="checkbox"], input[type="radio"] {
     line-height: 1.75rem;
     height: 1.75rem;
 }
 
-input:not([type="radio"]):not([type="submit"]):not([type="button"]), select {
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select {
     color: var(--input-fg-color);
     background: var(--input-bg-color);
     border: 1px solid var(--input-border-color);
@@ -193,7 +177,7 @@ button, input[type="submit"], input[type="button"], .button {
     text-decoration: none;
 }
 
-button:hover, input[type="radio"]:hover, input[type="submit"]:hover, input[type="button"]:hover, .button:hover {
+button:hover, input[type="checkbox"]:hover, input[type="radio"]:hover, input[type="submit"]:hover, input[type="button"]:hover, .button:hover {
     color: var(--button-hover-fg-color);
     background: var(--button-hover-bg-color);
     border: 1px solid var(--button-hover-border-color);
@@ -476,7 +460,7 @@ img {
 
 /*ManageUserRegistrationList.cshtml*/
 
-#student-registration-list {
+/*#student-registration-list {
     position: absolute;
     left: 30%;
     top: 20%;
@@ -498,7 +482,7 @@ img {
     top: 30%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*ManageUserList.cshtml*/
 
@@ -579,7 +563,7 @@ input[type=file] {
 
 /*ManageSubjects.cshtml*/
 
-#user-subjects-list {
+/*#user-subjects-list {
     position: absolute;
     left: 15%;
     top: 10%;
@@ -593,7 +577,7 @@ input[type=file] {
     top: 10%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*SolveQuestion.cshtml*/
 

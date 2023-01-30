@@ -14,18 +14,18 @@
     ViewData["Title"] = "Správa registrací";
 }
 
-<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="SignOut">Odhlásit se</a></div>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-<div class="text-center">
-    <h1>Správa registrací</h1>
-    <p>@ViewBag.Message</p>
-
-    <div id="student-registration-list">
-        <h2>Registrace studentů</h2>
+<div id="main">
+    <div id="student-registration-list" class="panel panel-medium">
+        <div class="panel-title panel-content">Registrace studentů</div>
         @{
             if (studentsRegistrationsCount > 0)
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Jméno</th>
                         <th>Login</th>
@@ -52,7 +52,7 @@
                                 @{
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
                                     {
-                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
+                                        <td><button type="button" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
                                     }
                                     else
                                     {
@@ -61,14 +61,14 @@
 
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
                                     {
-                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
+                                        <td><button type="button" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
                                     }
                                     else
                                     {
                                         <td>Registraci nelze zamítnout.</td>
                                     }
 
-                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+                                    <td><button type="button" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
 
                                     string state = "";
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
@@ -92,17 +92,17 @@
             }
             else
             {
-                <p>Žádné registrace studentů nebyly nalezeny.</p>
+                <div class="panel-content">Žádné registrace studentů nebyly nalezeny.</div>
             }
         }
     </div>
 
-    <div id="staff-registration-list">
-        <h2>Registrace učitelů a administrátorů</h2>
+    <div id="staff-registration-list" class="panel panel-medium">
+        <div class="panel-title panel-content">Registrace učitelů a administrátorů</div>
         @{
-            if(staffRegistrationsCount > 0)
+            if (staffRegistrationsCount > 0)
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Jméno</th>
                         <th>Login</th>
@@ -140,7 +140,7 @@
                                 @{
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
                                     {
-                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
+                                        <td><button type="button" onclick="showConfirmActionForm('acceptRegistration', null, '@item.Email', '@item.Login', '@item.FirstName', '@item.LastName', '@item.Role')">Schválit registraci</button></td>
                                     }
                                     else
                                     {
@@ -149,14 +149,14 @@
 
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
                                     {
-                                        <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
+                                        <td><button type="button" onclick="showConfirmActionForm('refuseRegistration', null, '@item.Email', null, null, null, null)">Zamítnout registraci</button></td>
                                     }
                                     else
                                     {
                                         <td>Registraci nelze zamítnout.</td>
                                     }
 
-                                    <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
+                                    <td><button type="button" onclick="showConfirmActionForm('deleteRegistration', null, '@item.Email', null, null, null, null)">Smazat registraci</button></td>
 
                                     string state = "";
                                     if (item.State == EnumTypes.RegistrationState.Waiting)
@@ -180,15 +180,19 @@
             }
             else
             {
-                <p>Žádné registrace učitelů a administrátorů nebyly nalezeny.</p>
+                <div class="panel-content">Žádné registrace učitelů a administrátorů nebyly nalezeny.</div>
             }
         }
     </div>
 
-    <div id="confirm-action">
-        <form method="POST">
-            <label>Opravdu si přejete provést tuto akci?</label><br>
-            <input title="Ano" type="submit" value="Ano"><br>
+    <form method="POST" id="confirm-action" class="panel panel-medium">
+        <div class="panel-content">
+            <label>Opravdu si přejete provést tuto akci?</label>
+        </div>
+        <div class="panel-content">
+            <input title="Ano" type="submit" value="Ano">
+        </div>
+        <div class="panel-content">
             <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
             <input type="hidden" id="email" name="email">
             <input type="hidden" id="login" name="login">
@@ -196,17 +200,15 @@
             <input type="hidden" id="lastName" name="lastName">
             <input type="hidden" id="role" name="role">
             <input type="hidden" id="action" name="action">
-        </form>
-    </div>
+        </div>
+    </form>
 
-    <div id="registration-visibility">
-        <p id="visibility-text"></p>
+    <div id="registration-visibility" class="panel panel-medium">
+        <div id="visibility-text" class="panel-content"></div>
         @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>
 </div>
 
-<script src="/js/site.js"></script>
+<a id="backBtn" class="button" asp-action="MainAdminMenu">Zpět</a>
 
-<div id="backBtn"><a asp-action="MainAdminMenu">Zpět</a></div>
-
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
