@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="~/EduEnhancer.styles.css" asp-append-version="true" />
     <base href="~/" />
     <script src="_framework/blazor.server.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 </head>
 <body>
      <!-- <header>
@@ -44,9 +46,9 @@
              &copy; 2022 - EduEnhancer - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>-->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!--<script src="~/lib/jquery/dist/jquery.min.js"></script>-->
     <!--<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>-->
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!--<script src="~/js/site.js" asp-append-version="true"></script>-->
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

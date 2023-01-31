@@ -11,36 +11,33 @@
     ViewData["Title"] = "Úprava zadání testu";
 }
 
-<div class="text-center">
-    <h1>Úprava zadání testu</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <p>@ViewBag.Message</p>
-
-    <form method="POST">
-        <label for="title">Nadpis:</label>
-        <input type="text" required id="title" name="Title" value="@testTemplate.Title"><br>
-        <p>Záporné body:</p>
-        <p><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></p>
-        <p><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></p>
-        <p><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></p>
-        <p>Čas začátku testu:</p>
-        <p><input type="datetime-local" required id="StartDate" name="StartDate" value="@startDate"></p>
-        <p>Čas konce testu:</p>
-        <p><input type="datetime-local" required id="EndDate" name="EndDate" value="@endDate"></p>
-        <p>
-            Minimální počet bodů: <input class="input-number" type="text" required id="subquestion-points" name="MinimumPoints" value="@testTemplate.MinimumPoints">
-        </p>
+<div id="main">
+    <form method="POST" class="panel panel-medium">
+        <div class="panel-content"><label for="title">Nadpis:</label></div>
+        <div class="panel-content"><input type="text" required id="title" name="Title" value="@testTemplate.Title"></div>
+        <div class="panel-content">Záporné body:</div>
+        <div class="panel-content"><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></div>
+        <div class="panel-content"><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></div>
+        <div class="panel-content"><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></div>
+        <div class="panel-content">Čas začátku testu:</div>
+        <div class="panel-content"><input type="datetime-local" required id="StartDate" name="StartDate" value="@startDate"></div>
+        <div class="panel-content">Čas konce testu:</div>
+        <div class="panel-content"><input type="datetime-local" required id="EndDate" name="EndDate" value="@endDate"></div>
         @{
             if (subjectList.Count == 0)
             {
-                <p>Chyba: v systému neexistuje žádný předmět. Před přidáním testu přidejte do systému alespoň jeden předmět.</p>
+                <div class="panel-content">Chyba: v systému neexistuje žádný předmět. Před přidáním testu přidejte do systému alespoň jeden předmět.</div>
             }
             else
             {
-                <label for="subject">Předmět:</label>
-
-                <br>
-                <select class="input" name="subjectId" id="subject">
+                <div class="panel-content"><label for="subject">Předmět:</label></div>
+                <div class="panel-content">
+                    <select class="input" name="subjectId" id="subject">
                     @{
                         for (int i = 0; i < subjectList.Count; i++)
                         {
@@ -48,22 +45,19 @@
                             <option value="@subjectList[i].SubjectId">@optionString</option>
                         }
                     }
-                </select>
-                <br>
-                <input class="button" title="Uložit" type="submit" value="Uložit">
+                    </select>
+                </div>
+                <div class="panel-content"><input class="button" title="Uložit" type="submit" value="Uložit"></div>
             }
         }
     </form>
 </div>
 
-<script src="/js/site.js"></script>
+<a id="backBtn" class="button" asp-action="TestTemplateList">Zpět</a>
+
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
+
 <script>
     editTestTemplatePostProcessing('@testTemplate.NegativePoints', '@testTemplate.Subject.SubjectId');
     modifyInputNumbers();
 </script>
-
-<div id="backBtn">
-    <a asp-action="TestTemplateList">Zpět</a>
-</div>
-
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

@@ -1,40 +1,40 @@
 /* Design TODO list
 ----------------------------------------------------
- 1 AddQuestionTemplate                  PLANNED
+ 1 AddQuestionTemplate                  DONE
  2 AddSubject                           DONE
- 3 AddSubquestionTemplate               PLANNED
- 4 AddTestTemplate                      PLANNED
+ 3 AddSubquestionTemplate               PLANNED - 3
+ 4 AddTestTemplate                      DONE
  5 AdminMenu                            DONE
  6 BrowseSolvedTestList                 DONE
- 7 EditQuestionTemplate                 PLANNED
+ 7 EditQuestionTemplate                 DONE
  8 EditSubject                          DONE
- 9 EditSubquestionTemplate              PLANNED
-10 EditTestTemplate                     PLANNED
+ 9 EditSubquestionTemplate              PLANNED - 3
+10 EditTestTemplate                     DONE
 11 GlobalSettings                       DONE
 12 Index                                DONE
 13 MainAdminMenu                        DONE
 14 ManageArtificialIntelligence         DONE
-15 ManageSolvedQuestion                 PLANNED
-16 ManageSolvedTest                     PLANNED
+15 ManageSolvedQuestion                 PLANNED - 2
+16 ManageSolvedTest                     PLANNED - 3
 17 ManageSolvedTestList                 DONE
 18 ManageSubjects                       DONE
 19 ManageUserList                       DONE
 20 ManageUserListForAdmin               DONE
 21 ManageUserRegistrationList           DONE
 22 ManageUserRegistrationListForAdmin   DONE
-23 QuestionTemplate                     PLANNED
-24 SolvedQuestion                       PLANNED
-25 SolveQuestion                        PLANNED
+23 QuestionTemplate                     DONE
+24 SolvedQuestion                       PLANNED - 2
+25 SolveQuestion                        PLANNED - 2
 26 StudentAvailableTest                 DONE
 27 StudentAvailableTestList             DONE
 28 StudentMenu                          DONE
 29 TeacherMenu                          DONE
-30 TestTemplate                         PLANNED
+30 TestTemplate                         DONE
 31 TestTemplateList                     DONE
 32 UserRegistration                     DONE
-33 site.js (dynamic content)            PLANNED
+33 site.js (dynamic content)            PLANNED - 4
 ----------------------------------------------------
-                                        20 / 33 DONE
+                                        26 / 33 DONE
 */
 
 :root {
@@ -389,7 +389,7 @@ img {
 
 /*QuestionTemplate.cshtml*/
 
-#question-template {
+/*#question-template {
     position: absolute;
     left: 20%;
     top: 20%;
@@ -428,7 +428,7 @@ img {
     top: 45%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*ManageSolvedTestList.cshtml*/
 

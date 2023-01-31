@@ -36,18 +36,18 @@
     ViewData["Title"] = "Správa zadání testu";
 }
 
-<div class="text-center">
-    <h1>Správa zadání testu</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <br><a asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testTemplateId="@Model.First().TestTemplate.TestTemplateId">Přidat otázku</a>
-
-    <div id="question-template-list">
-        <p>@ViewBag.Message</p>
-        <h2>Seznam otázek</h2>
+<div id="main">
+    <div id="question-template-list" class="panel panel-large">
+        <div class="panel-title panel-content">Seznam otázek</div>
         @{
-            if(Model.Count() > 0)
+            if (Model.Count() > 0)
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Nadpis</th>
                         <th>Počet bodů</th>
@@ -81,7 +81,7 @@
                                         asp-action="EditQuestionTemplate"
                                         asp-route-questionTemplateId="@item.QuestionTemplateId">Upravit otázku</a>
                                 </td>
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
+                                <td><button type="button" onclick="showConfirmActionForm('deleteQuestionTemplate', '@item.QuestionTemplateId', null, null, null, null, null)">Smazat otázku</button></td>
                                 <td>
                                     <a class="button" title="Otevřít otázku" id="open-question-template-@i"
                                         asp-area="" 
@@ -97,83 +97,77 @@
             }
             else
             {
-                <p>Žádná zadání otázek nebyla přidána.</p>
+                <div class="panel-content">Žádná zadání otázek nebyla přidána.</div>
             }
         }
-
+        <div class="panel-content"><a class="button" asp-controller="Home" asp-action="AddQuestionTemplate" asp-route-testTemplateId="@Model.First().TestTemplate.TestTemplateId">Přidat otázku</a></div>
     </div>
-</div>
 
-@{
-    testPointsString = Math.Round(testPoints, 2).ToString();
-}
+    @{
+        testPointsString = Math.Round(testPoints, 2).ToString();
+    }
 
-<div id="test-template">
-    <h2>Parametry testu</h2>
-    <table>
-        <tr>
-            <th>Nadpis</th>
-            <td>@Model.First().TestTemplate.Title</td>
-        </tr>
-        <tr>
-            <th>Předmět</th>
-            <td>@Model.First().TestTemplate.Subject.SubjectString()</td>
-        </tr>
-        <tr>
-            <th>Počet otázek</th>
+    <div id="test-template" class="panel panel-large">
+        <div class="panel-title panel-content">Parametry testu</div>
+        <table class="panel-table">
+            <tr>
+                <th>Nadpis</th>
+                <td>@Model.First().TestTemplate.Title</td>
+            </tr>
+            <tr>
+                <th>Předmět</th>
+                <td>@Model.First().TestTemplate.Subject.SubjectString()</td>
+            </tr>
+            <tr>
+                <th>Počet otázek</th>
+                    @{
+                        if (!questionsAdded)
+                        {
+                            <td>0</td>
+                        }
+                        else
+                        {
+                            <td>@Model.Count()</td>
+                        }
+                    }
+            </tr>
+            <tr>
+                <th>Počet bodů</th>
+                <td>@testPointsString</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="test-difficulty" class="panel panel-large">
+        <div class="panel-title panel-content">Obtížnost testu</div>
+        <form method="POST" onsubmit="onTestDifficultyFormSubmission()">
+            <div class="panel-content">@ViewBag.PredictedTestPointsMessage</div>
             @{
-                if (!questionsAdded)
+                if (userRequestedDifficultyPrediction)
                 {
-                    <td>0</td>
+                    <div class="panel-content">Předpokládaný průměrný počet bodů: @testTemplatePredictedPoints</div>
+                    <div class="panel-content">@difficultyText</div>
                 }
                 else
                 {
-                    <td>@Model.Count()</td>
+                    <div id="suggested-points-label" class="panel-content">Předpokládaný průměrný počet bodů:</div>
+                    <div id="suggested-points-button" class="panel-content"><button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button></div>
                 }
             }
-        </tr>
-        <tr>
-            <th>Počet bodů</th>
-            <td>@testPointsString</td>
-        </tr>
-    </table>
+        </form>
+    </div>
 </div>
 
-<div id="test-difficulty">
-    <h2>Obtížnost testu</h2>
-    <form method="POST" onsubmit="onTestDifficultyFormSubmission()">
-        <p>@ViewBag.PredictedTestPointsMessage</p>
-        @{
-            if (userRequestedDifficultyPrediction)
-            {
-                <p>Předpokládaný průměrný počet bodů: @testTemplatePredictedPoints</p>
-                <p>@difficultyText</p>
-            }
-            else
-            {
-                <p>
-                    <div id="suggested-points-label">
-                        Předpokládaný průměrný počet bodů:
-                    </div>
-                    <div id="suggested-points-button">
-                        <button type="submit" value="getDifficultyPrediction" name="action">Zobrazit</button>
-                    </div>
-                </p>
-            }
-        }
-    </form>
-</div>
-
-<div id="confirm-action">
-    <form method="POST">
-        <label><div id="confirm-action-label"></div></label><br>
-        <input title="Ano" type="submit" value="Ano"><br>
+<form method="POST" id="confirm-action" class="panel panel-large">
+    <div class="panel-content"><label><div id="confirm-action-label"></div></label></div>
+    <div class="panel-content"><input title="Ano" type="submit" value="Ano"></div>
+    <div class="panel-content">
         <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
         <input type="hidden" id="questionTemplateId" name="questionTemplateId">
         <input type="hidden" id="action" name="action">
-    </form>
-</div>
+    </div>
+</form>
 
-<div id="backBtn"><a asp-action="TestTemplateList">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="TestTemplateList">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

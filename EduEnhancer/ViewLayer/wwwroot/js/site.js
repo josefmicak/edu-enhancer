@@ -187,12 +187,14 @@ function adminFormSubmit(event) {
     }
 }
 
-//check if admin-form exists to prevent invalid JS element call
-var elementExists = document.getElementById("admin-form");
-if (elementExists) {
-    const adminForm = document.getElementById('admin-form');
-    adminForm.addEventListener('submit', adminFormSubmit);
-}
+document.addEventListener('DOMContentLoaded', function (event) {
+    //check if admin-form exists to prevent invalid JS element call
+    var elementExists = document.getElementById("admin-form");
+    if (elementExists) {
+        const adminForm = document.getElementById('admin-form');
+        adminForm.addEventListener('submit', adminFormSubmit);
+    }
+});
 
 //QuestionTemplate.cshtml
 

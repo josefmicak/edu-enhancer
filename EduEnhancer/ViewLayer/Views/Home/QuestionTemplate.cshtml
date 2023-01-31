@@ -69,12 +69,15 @@
     }
 }
 
-<div class="text-center">
-    <h1>Správa zadání otázky</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice question-template-message">@ViewBag.Message</div>
+</div>
 
-    <div id="question-template">
-        <h2>Parametry otázky</h2>
-        <table>
+<div id="main">
+    <div id="question-template" class="panel panel-large">
+        <div class="panel-title panel-content">Parametry otázky</div>
+        <table class="panel-table">
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionTemplate.Title</td>
@@ -82,7 +85,7 @@
             <tr>
                 <th>Počet podotázek</th>
                 @{
-                    if(subquestionsAdded)
+                    if (subquestionsAdded)
                     {
                         <td>@Model.Count()</td>
                     }
@@ -99,12 +102,12 @@
         </table>
     </div>
 
-    <div id="subquestion-template">
-        <h2>Parametry podotázky</h2>
+    <div id="subquestion-template" class="panel panel-large">
+        <div class="panel-title panel-content">Parametry podotázky</div>
         @{
             if (subquestionsAdded)
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Typ podotázky</th>
                         <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
@@ -162,25 +165,24 @@
         }
     </div>
 
-    <br><a asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionTemplateId="@Model.First().QuestionTemplate.QuestionTemplateId">Přidat podotázku</a>
-
-    <p id="question-template-message">@ViewBag.Message</p>
-    <div id="subquestion-selection">
-        <h2>Výběr podotázky</h2>
+    <div id="subquestion-selection" class="panel panel-large">
+        <div class="panel-title panel-content">Výběr podotázky</div>
         <form method="POST">
-            <input type="hidden" value="@Model.First().QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
-            <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="currentSubquestionTemplateId">
-            <button type="submit" id="previousSubquestion"  value="previousSubquestion" name="action">Předchozí</button>
-            <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+            <div class="panel-content">
+                <input type="hidden" value="@Model.First().QuestionTemplate.QuestionTemplateId" name="questionTemplateId">
+                <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="currentSubquestionTemplateId">
+                <button type="submit" id="previousSubquestion"  value="previousSubquestion" name="action">Předchozí</button>
+                <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+            </div>
             @{
                 string subquestionLabel = "";
-                if(Model.Count() > 1)
+                if (Model.Count() > 1)
                 {
                     subquestionLabel = "Vyberte podotázku ze seznamu";
                 }
                 else
                 {
-                    if(!subquestionsAdded)
+                    if (!subquestionsAdded)
                     {
                         subquestionLabel = "Tato otázka neobsahuje žádné podotázky.";
                     }
@@ -190,68 +192,68 @@
 
                     }
                 }
-                <p>@subquestionLabel</p>
+                <div class="panel-content">@subquestionLabel</div>
             }
-
-            <select class="input" name="subquestionTemplateId" id="subquestionTemplateId" disabled="@singleSubquestion">
-                @{
-                    int i = 0;
-                    foreach (var item in Model)
-                    {
-                        if (item.SubquestionTemplateId == -1)
+            <div class="panel-content">
+                <select class="input" name="subquestionTemplateId" id="subquestionTemplateId" disabled="@singleSubquestion">
+                    @{
+                        int i = 0;
+                        foreach (var item in Model)
                         {
-                            continue;
+                            if (item.SubquestionTemplateId == -1)
+                            {
+                                continue;
+                            }
+                            if (item.SubquestionText.Length > 60)
+                            {
+                                <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@(item.SubquestionText.Substring(0, 60) + " ...")</option>
+                            }
+                            else
+                            {
+                                <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@item.SubquestionText</option>
+                            }
+                            i++;
                         }
-                        if(item.SubquestionText.Length > 60)
-                        {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@(item.SubquestionText.Substring(0, 60) + " ...")</option>
-                        }
-                        else
-                        {
-                            <option id="subquestion-item-@(i+1)" value="@item.SubquestionTemplateId">@item.SubquestionText</option>
-                        }
-                        i++;
                     }
                 }
-            }
-            </select>
-
-            <input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat" disabled="@singleSubquestion">
-
+                </select>
+            </div>
+            <div class="panel-content"><input class="button" id="selectSubquestionButton" title="Vybrat" type="submit" value="Vybrat" disabled="@singleSubquestion"></div>
         </form>
     </div>
 
-    @if(subquestionsAdded)
-    {
-        <div id="edit-subquestion">
-            <form method="POST">
-                <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="subquestionTemplateId">
-                <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" id="edit-subquestion-template" name="action">Upravit podotázku</button>
+    <div class="panel panel-large">
+        <div class="panel-content"><a class="button" asp-controller="Home" asp-action="AddSubquestionTemplate" asp-route-questionTemplateId="@Model.First().QuestionTemplate.QuestionTemplateId">Přidat podotázku</a></div>
+        @if (subquestionsAdded)
+        {
+            <form method="POST" id="edit-subquestion">
+                <div class="panel-content">
+                    <input type="hidden" value="@subquestionTemplate.SubquestionTemplateId" name="subquestionTemplateId">
+                    <button type="submit" class="btn btn-primary" value="editSubquestionTemplate" id="edit-subquestion-template" name="action">Upravit podotázku</button>
+                </div>
             </form>
-        </div>
-        <div id="delete-subquestion">
-            <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionTemplateId', null, null, null, null, null)">Smazat podotázku</button>
-        </div>
-    }
+            <div id="delete-subquestion" class="panel-content">
+                <button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubquestionTemplate', '@subquestionTemplate.SubquestionTemplateId', null, null, null, null, null)">Smazat podotázku</button>
+            </div>
+        }
+    </div>
 </div>
 
-<div id="confirm-action">
-    <form method="POST">
-        <label><div id="confirm-action-label"></div></label><br>
-        <input title="Ano" type="submit" value="Ano"><br>
+<form method="POST" id="confirm-action">
+    <div class="panel-content"><label><div id="confirm-action-label"></div></label></div>
+    <div class="panel-content"><input title="Ano" type="submit" value="Ano"></div>
+    <div class="panel-content">
         <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
         <input type="hidden" id="subquestionTemplateIdToDelete" name="subquestionTemplateId">
         <input type="hidden" name="questionTemplateId" value="@Model.First().QuestionTemplateId">
         <input type="hidden" id="action" name="action">
-    </form>
-</div>
+    </div>
+</form>
 
-<div id="backBtn"><a asp-action="TestTemplate"
-       asp-route-testTemplateId="@Model.First().QuestionTemplate.TestTemplate.TestTemplateId">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="TestTemplate" asp-route-testTemplateId="@Model.First().QuestionTemplate.TestTemplate.TestTemplateId">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
 
-<script src="/js/site.js"></script>
 @{
     <script>
         questionTemplatePagePostProcessing(@subquestionNumber, @Model.Count(), 'subquestionTemplateId');
