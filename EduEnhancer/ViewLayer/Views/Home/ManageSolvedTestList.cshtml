@@ -10,7 +10,7 @@
 </div>
 
 <div id="main">
-    <div id="test-result-list" class="panel panel-medium">
+    <div id="test-result-list" class="panel panel-large">
         @{
             if (Model.Count() > 0)
             {
@@ -55,21 +55,21 @@
             <button type="button" onclick="showConfirmActionForm('deleteAllResults', null, null, null, null, null, null)">Smazat všechny testy</button>
         </div>
     </div>
-
-    <form method="POST" id="confirm-action" class="panel panel-medium">
-        <div class="panel-content">
-            <label><div id="confirm-action-label"></div></label>
-        </div>
-        <div class="panel-content">
-            <input title="Ano" type="submit" value="Ano">
-        </div>
-        <div class="panel-content">
-            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-            <input type="hidden" id="testResultId" name="testResultId">
-            <input type="hidden" id="action" name="action">
-        </div>
-    </form>
 </div>
+
+<form method="POST" id="confirm-action" class="panel panel-large">
+    <div class="panel-content">
+        <label><div id="confirm-action-label"></div></label>
+    </div>
+    <div class="panel-content">
+        <input title="Ano" type="submit" value="Ano">
+    </div>
+    <div class="panel-content">
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="testResultId" name="testResultId">
+        <input type="hidden" id="action" name="action">
+    </div>
+</form>
 
 <a id="backBtn" class="button" asp-action="@ViewBag.Return">Zpět</a>
 

@@ -173,6 +173,8 @@ namespace DataLayer
                 oldTestTemplate.Subject = testTemplate.Subject;
                 oldTestTemplate.MinimumPoints = testTemplate.MinimumPoints;
                 oldTestTemplate.NegativePoints = testTemplate.NegativePoints;
+                oldTestTemplate.StartDate = testTemplate.StartDate;
+                oldTestTemplate.EndDate = testTemplate.EndDate;
                 await _context.SaveChangesAsync();
                 message = "Zadání testu bylo úspěšně upraveno.";
             }

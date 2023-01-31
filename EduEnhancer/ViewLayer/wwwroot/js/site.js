@@ -77,8 +77,8 @@ function addStudentDetails(clicked_id) {
 
 function showEditStudentLabel(oldLogin, email, firstName, lastName) {
     document.getElementById("student-action").value = 'editStudent';
-    document.getElementById("added-student").style.visibility = 'hidden';
-    document.getElementById("edited-student").style.visibility = 'visible';
+    document.getElementById("added-student").style.display = 'none';
+    document.getElementById("edited-student").style.display = 'block';
     document.getElementById("studentOldLogin").value = oldLogin;
     document.getElementById("studentFirstName").value = firstName;
     document.getElementById('studentFirstName').readOnly = false;
@@ -91,8 +91,8 @@ function showEditStudentLabel(oldLogin, email, firstName, lastName) {
 
 function hideEditStudentLabel() {
     document.getElementById("student-action").value = 'addStudent';
-    document.getElementById("added-student").style.visibility = 'visible';
-    document.getElementById("edited-student").style.visibility = 'hidden';
+    document.getElementById("added-student").style.display = 'block';
+    document.getElementById("edited-student").style.display = 'none';
     document.getElementById("studentFirstName").value = "";
     document.getElementById("studentLastName").value = "";
     document.getElementById("studentLogin").value = "";
@@ -102,8 +102,8 @@ function hideEditStudentLabel() {
 
 function showEditTeacherLabel(oldLogin, email, firstName, lastName, makeVisible) {
     document.getElementById("teacher-action").value = 'editTeacher';
-    document.getElementById("added-teacher").style.visibility = 'hidden';
-    document.getElementById("edited-teacher").style.visibility = 'visible';
+    document.getElementById("added-teacher").style.display = 'none';
+    document.getElementById("edited-teacher").style.display = 'block';
     document.getElementById("teacherOldLogin").value = oldLogin;
     document.getElementById("teacherFirstName").value = firstName;
     document.getElementById("teacherLastName").value = lastName;
@@ -112,15 +112,15 @@ function showEditTeacherLabel(oldLogin, email, firstName, lastName, makeVisible)
     document.getElementById("teacherEmail").value = email;
 
     if (makeVisible) {
-        document.getElementById("teacher-edit-role").style.visibility = 'visible';
+        document.getElementById("teacher-edit-role").style.display = 'block';
     }
 }
 
 function hideEditTeacherLabel() {
     document.getElementById("teacher-action").value = 'addTeacher';
-    document.getElementById("added-teacher").style.visibility = 'visible';
-    document.getElementById("edited-teacher").style.visibility = 'hidden';
-    document.getElementById("teacher-edit-role").style.visibility = 'hidden';
+    document.getElementById("added-teacher").style.display = 'block';
+    document.getElementById("edited-teacher").style.display = 'none';
+    document.getElementById("teacher-edit-role").style.display = 'none';
     document.getElementById("teacherFirstName").value = "";
     document.getElementById("teacherLastName").value = "";
     document.getElementById("teacherLogin").value = "";
@@ -130,9 +130,9 @@ function hideEditTeacherLabel() {
 
 function showEditAdminLabel(oldLogin, email, firstName, lastName, role) {
     document.getElementById("admin-action").value = 'editAdmin';
-    document.getElementById("added-admin").style.visibility = 'hidden';
-    document.getElementById("edited-admin").style.visibility = 'visible';
-    document.getElementById("admin-edit-role").style.visibility = 'visible';
+    document.getElementById("added-admin").style.display = 'none';
+    document.getElementById("edited-admin").style.display = 'block';
+    document.getElementById("admin-edit-role").style.display = 'block';
     document.getElementById("adminOldLogin").value = oldLogin;
     document.getElementById("adminFirstName").value = firstName;
     document.getElementById("adminLastName").value = lastName;
@@ -150,9 +150,9 @@ function showEditAdminLabel(oldLogin, email, firstName, lastName, role) {
 
 function hideEditAdminLabel() {
     document.getElementById("admin-action").value = 'addAdmin';
-    document.getElementById("added-admin").style.visibility = 'visible';
-    document.getElementById("edited-admin").style.visibility = 'hidden';
-    document.getElementById("admin-edit-role").style.visibility = 'hidden';
+    document.getElementById("added-admin").style.display = 'block';
+    document.getElementById("edited-admin").style.display = 'none';
+    document.getElementById("admin-edit-role").style.display = 'none';
     document.getElementById("adminFirstName").value = "";
     document.getElementById("adminLastName").value = "";
     document.getElementById("adminLogin").value = "";

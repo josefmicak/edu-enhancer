@@ -31,14 +31,15 @@
     ViewData["Title"] = "Test k vyřešení";
 }
 
-<div class="text-center">
-    <h1>Test k vyřešení</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <p>@ViewBag.Message</p>
-
-    <div id="test-template">
-        <h2>Parametry testu</h2>
-        <table>
+<div id="main">
+    <div id="test-template" class="panel panel-medium">
+        <div class="panel-title panel-content">Parametry testu</div>
+        <table class="panel-table">
             <tr>
                 <th>Nadpis</th>
                 <td>@testTemplate.Title</td>
@@ -66,13 +67,14 @@
         </table>
     </div>
 
-    <form method="POST">
-        <input type="hidden" value="@Model.TestTemplateId" name="testTemplateId">
-        <button type="submit" value="beginAttempt" name="action">@beginAttemptText</button>
+    <form method="POST" class="panel panel-medium">
+        <div class="panel-content">
+            <input type="hidden" value="@Model.TestTemplateId" name="testTemplateId">
+            <button type="submit" value="beginAttempt" name="action">@beginAttemptText</button>
+        </div>
     </form>
-
 </div>
 
-<div id="backBtn"><a asp-action="StudentAvailableTestList">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="StudentAvailableTestList">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

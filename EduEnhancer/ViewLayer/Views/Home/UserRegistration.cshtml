@@ -6,22 +6,23 @@
     ViewData["Title"] = "Registrace";
 }
 
-<div id="signOutBtn"><a class="button" title="Odhlásit se" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-<div class="text-center">
-    <h1>Registrace</h1>
-    <p>@ViewBag.firstRegistrationMessage</p>
-
-    <div id="user-registration">
-        <h2>Vaše registrace:</h2>
+<div id="main">
+    <div id="user-registration" class="panel panel-max">
+        <div class="panel-title panel-content">Vaše registrace</div>
+        <div class="panel-content">@ViewBag.firstRegistrationMessage</div>
         @{
-            if(Model.Count() == 0)
+            if (Model.Count() == 0)
             {
-                <p>Zatím jste se nezaregistroval</p>
+                <div class="panel-content">Zatím jste se nezaregistroval</div>
             }
             else
             {
-                <table>
+                <table class="panel-table">
                     <tr>
                         <th>Jméno</th>
                         <th>Příjmení</th>
@@ -70,32 +71,31 @@
             }
         }
     </div>
-</div>
 
-<div id="registration-form">
-    <p>@ViewBag.message</p>
-    <form method="POST">
-        <label for="firstName">Jméno:</label>
-        <input type="text" id="firstName" name="firstName" value="@ViewBag.firstName"><br><br>
-        <label for="lastName">Příjmení:</label>
-        <input type="text" id="lastName" name="lastName" value="@ViewBag.lastName"><br><br>
-        <label for="login">Login:</label>
-        <input type="text" id="login" name="login"><br>
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" value="@ViewBag.email" readonly><br><br>
-        <label for="role">Role:</label>
-        <select name="role" id="role">
-            <option value="1">Student</option>
-            <option value="2">Učitel</option>
-            <option value="3">Správce</option>
-        </select><br><br>
-        <input type="submit" value="Zaregistrovat se">
+    <form method="POST" id="registration-form" class="panel panel-max">
+        <div class="panel-content"><label for="firstName">Jméno:</label></div>
+        <div class="panel-content"><input type="text" id="firstName" name="firstName" value="@ViewBag.firstName"></div>
+        <div class="panel-content"><label for="lastName">Příjmení:</label></div>
+        <div class="panel-content"><input type="text" id="lastName" name="lastName" value="@ViewBag.lastName"></div>
+        <div class="panel-content"><label for="login">Login:</label></div>
+        <div class="panel-content"><input type="text" id="login" name="login"></div>
+        <div class="panel-content"><label for="email">Email:</label></div>
+        <div class="panel-content"><input type="text" id="email" name="email" value="@ViewBag.email" readonly></div>
+        <div class="panel-content"><label for="role">Role:</label></div>
+        <div class="panel-content">
+            <select name="role" id="role">
+                <option value="1">Student</option>
+                <option value="2">Učitel</option>
+                <option value="3">Správce</option>
+            </select>
+        </div>
+        <div class="panel-content"><input type="submit" value="Zaregistrovat se"></div>
     </form>
 </div>
 
-<div id="backBtn"><a asp-action="Index">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="Index">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
 
 @{
     if(ViewBag.firstRegistrationMessage != null)

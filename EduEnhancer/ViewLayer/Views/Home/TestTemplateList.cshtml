@@ -10,7 +10,7 @@
 </div>
 
 <div id="main">
-    <div id="test-template-list" class="panel panel-medium">
+    <div id="test-template-list" class="panel panel-large">
         @{
             if (Model.Count() > 0)
             {
@@ -34,7 +34,7 @@
                                     <a class="button" title="Upravit test" asp-area="" asp-controller="Home" asp-action="EditTestTemplate"
                                         asp-route-testTemplateId="@item.TestTemplateId">Upravit test</a>
                                 </td>
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteTemplate', '@item.TestTemplateId', null, null, null, null, null)">Smazat test</button></td>
+                                <td><button type="button" onclick="showConfirmActionForm('deleteTemplate', '@item.TestTemplateId', null, null, null, null, null)">Smazat test</button></td>
                                 <td>
                                     <a class="button" title="Otevřít test" id="open-test-template-@i"
                                         asp-area="" 
@@ -59,26 +59,26 @@
         </div>
     </div>
 
-    <div class="panel panel-medium">
+    <div class="panel panel-large">
         <div class="panel-content">
             <a class="button" asp-action="AddTestTemplate">Přidat test</a>
         </div>
     </div>
-
-    <form method="POST" id="confirm-action" class="panel panel-medium">
-        <div class="panel-content">
-            <label><div id="confirm-action-label"></div></label>
-        </div>
-        <div class="panel-content">
-            <input title="Ano" type="submit" value="Ano">
-        </div>
-        <div class="panel-content">
-            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-            <input type="hidden" id="testTemplateId" name="testTemplateId">
-            <input type="hidden" id="action" name="action">
-        </div>
-    </form>
 </div>
+
+<form method="POST" id="confirm-action" class="panel panel-large">
+    <div class="panel-content">
+        <label><div id="confirm-action-label"></div></label>
+    </div>
+    <div class="panel-content">
+        <input title="Ano" type="submit" value="Ano">
+    </div>
+    <div class="panel-content">
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="testTemplateId" name="testTemplateId">
+        <input type="hidden" id="action" name="action">
+    </div>
+</form>
 
 <a id="backBtn" class="button" asp-action="@ViewBag.Return">Zpět</a>
 

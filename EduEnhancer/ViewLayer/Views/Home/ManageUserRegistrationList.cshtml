@@ -20,7 +20,7 @@
 </div>
 
 <div id="main">
-    <div id="student-registration-list" class="panel panel-medium">
+    <div id="student-registration-list" class="panel panel-max">
         <div class="panel-title panel-content">Registrace studentů</div>
         @{
             if (studentsRegistrationsCount > 0)
@@ -97,7 +97,7 @@
         }
     </div>
 
-    <div id="staff-registration-list" class="panel panel-medium">
+    <div id="staff-registration-list" class="panel panel-max">
         <div class="panel-title panel-content">Registrace učitelů a administrátorů</div>
         @{
             if (staffRegistrationsCount > 0)
@@ -184,30 +184,29 @@
             }
         }
     </div>
-
-    <form method="POST" id="confirm-action" class="panel panel-medium">
-        <div class="panel-content">
-            <label>Opravdu si přejete provést tuto akci?</label>
-        </div>
-        <div class="panel-content">
-            <input title="Ano" type="submit" value="Ano">
-        </div>
-        <div class="panel-content">
-            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-            <input type="hidden" id="email" name="email">
-            <input type="hidden" id="login" name="login">
-            <input type="hidden" id="firstName" name="firstName">
-            <input type="hidden" id="lastName" name="lastName">
-            <input type="hidden" id="role" name="role">
-            <input type="hidden" id="action" name="action">
-        </div>
-    </form>
-
-    <div id="registration-visibility" class="panel panel-medium">
+    <div id="registration-visibility" class="panel panel-max">
         <div id="visibility-text" class="panel-content"></div>
         @(await Html.RenderComponentAsync<ViewLayer.Views.Shared.Components.RegistrationVisibility>(RenderMode.ServerPrerendered))
     </div>
 </div>
+
+<form method="POST" id="confirm-action" class="panel panel-max">
+    <div class="panel-content">
+        <label>Opravdu si přejete provést tuto akci?</label>
+    </div>
+    <div class="panel-content">
+        <input title="Ano" type="submit" value="Ano">
+    </div>
+    <div class="panel-content">
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="email" name="email">
+        <input type="hidden" id="login" name="login">
+        <input type="hidden" id="firstName" name="firstName">
+        <input type="hidden" id="lastName" name="lastName">
+        <input type="hidden" id="role" name="role">
+        <input type="hidden" id="action" name="action">
+    </div>
+</form>
 
 <a id="backBtn" class="button" asp-action="MainAdminMenu">Zpět</a>
 

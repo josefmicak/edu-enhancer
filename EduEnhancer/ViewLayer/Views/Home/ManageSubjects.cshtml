@@ -12,13 +12,13 @@
 </div>
 
 <div id="main">
-    <div class="panel panel-medium">
+    <div class="panel panel-large">
         <div class="panel-content">
             <a class="button" asp-controller="Home" asp-action="AddSubject">Přidat předmět</a>
         </div>
     </div>
 
-    <div id="user-subjects-list" class="panel panel-medium">
+    <div id="user-subjects-list" class="panel panel-large">
         <div class="panel-title panel-content">Vámi garantované předměty</div>
         @{
             if (guarantorSubjectsCount > 0)
@@ -47,7 +47,7 @@
                                        asp-action="EditSubject"
                                        asp-route-subjectId="@item.SubjectId">Upravit předmět</a>
                                 </td>
-                                <td><button type="button" class="btn btn-primary" onclick="showConfirmActionForm('deleteSubject', '@item.SubjectId', null, null, null, null, null)">Smazat předmět</button></td>
+                                <td><button type="button" onclick="showConfirmActionForm('deleteSubject', '@item.SubjectId', null, null, null, null, null)">Smazat předmět</button></td>
                             </tr>
                         }
                     }
@@ -60,7 +60,7 @@
         }
     </div>
 
-    <div id="all-subjects-list" class="panel panel-medium">
+    <div id="all-subjects-list" class="panel panel-large">
         <div class="panel-title panel-content">Všechny předměty</div>
         @{
             if (Model.Count() > 0)
@@ -90,21 +90,21 @@
             }
         }
     </div>
-
-    <form method="POST" id="confirm-action" class="panel panel-medium">
-        <div class="panel-content">
-            <label><div id="confirm-action-label"></div></label>
-        </div>
-        <div class="panel-content">
-            <input title="Ano" type="submit" value="Ano">
-        </div>
-        <div class="panel-content">
-            <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
-            <input type="hidden" id="subjectId" name="subjectId">
-            <input type="hidden" id="action" name="action">
-        </div>
-    </form>
 </div>
+
+<form method="POST" id="confirm-action" class="panel panel-large">
+    <div class="panel-content">
+        <label><div id="confirm-action-label"></div></label>
+    </div>
+    <div class="panel-content">
+        <input title="Ano" type="submit" value="Ano">
+    </div>
+    <div class="panel-content">
+        <input title="Ne" type="button" value="Ne" onclick="hideConfirmActionForm()">
+        <input type="hidden" id="subjectId" name="subjectId">
+        <input type="hidden" id="action" name="action">
+    </div>
+</form>
 
 <a id="backBtn" class="button" asp-action="@ViewBag.Return">Zpět</a>
 

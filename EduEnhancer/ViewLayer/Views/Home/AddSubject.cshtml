@@ -6,17 +6,19 @@
     ViewData["Title"] = "Vytvoření předmětu";
 }
 
-<div class="text-center">
-    <h1>Vytvoření předmětu</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+</div>
 
-    <form method="POST">
-        <label for="abbreviation">Zkratka předmětu:</label>
-        <input type="text" required id="abbreviation" name="Abbreviation"><br>
-        <label for="name">Jméno předmětu:</label>
-        <input type="text" required id="name" name="Name"><br>
-
-        <h2>Seznam studentů</h2>
-        <table id="unenrolled-students-table">
+<div id="main">
+    <form method="POST" class="panel panel-medium">
+        <div class="panel-content"><label for="abbreviation">Zkratka předmětu:</label></div>
+        <div class="panel-content"><input type="text" required id="abbreviation" name="Abbreviation"></div>
+        <div class="panel-content"><label for="name">Jméno předmětu:</label></div>
+        <div class="panel-content"><input type="text" required id="name" name="Name"></div>
+        
+        <div class="panel-sub-title panel-content">Seznam studentů</div>
+        <table id="unenrolled-students-table" class="panel-table">
             <tr>
                 <th>Jméno studenta</th>
                 <th>Login studenta</th>
@@ -34,24 +36,21 @@
                 }
             }
         </table>
-        <button type="button" class="btn btn-primary" onclick="addStudentsToSubject()">Zapsat studenty</button>
-
-        <h2>Seznam studentů zapsaných do předmětu</h2>
-        <table id="enrolled-students-table">
+        <div class="panel-content"><button type="button" onclick="addStudentsToSubject()">Zapsat studenty</button></div>
+        
+        <div class="panel-sub-title panel-content">Seznam studentů zapsaných do předmětu</div>
+        <table id="enrolled-students-table" class="panel-table">
             <tr>
                 <th>Jméno studenta</th>
                 <th>Login studenta</th>
                 <th>Odebrat</th>
             </tr>
         </table>
-        <button type="button" class="btn btn-primary" onclick="removeStudentsFromSubject()">Odebrat studenty</button>
-        <br>
-        <input class="button" title="Uložit" type="submit" value="Uložit">
+        <div class="panel-content"><button type="button" onclick="removeStudentsFromSubject()">Odebrat studenty</button></div>
+        <div class="panel-content"><input class="button" title="Uložit" type="submit" value="Uložit"></div>
     </form>
 </div>
 
-<div id="backBtn">
-    <a asp-action="ManageSubjects">Zpět</a>
-</div>
+<a id="backBtn" class="button" asp-action="ManageSubjects">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

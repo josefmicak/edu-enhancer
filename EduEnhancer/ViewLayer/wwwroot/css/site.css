@@ -1,40 +1,40 @@
 /* Design TODO list
 ----------------------------------------------------
  1 AddQuestionTemplate                  PLANNED
- 2 AddSubject                           PLANNED
+ 2 AddSubject                           DONE
  3 AddSubquestionTemplate               PLANNED
  4 AddTestTemplate                      PLANNED
  5 AdminMenu                            DONE
  6 BrowseSolvedTestList                 DONE
  7 EditQuestionTemplate                 PLANNED
- 8 EditSubject                          PLANNED
+ 8 EditSubject                          DONE
  9 EditSubquestionTemplate              PLANNED
 10 EditTestTemplate                     PLANNED
 11 GlobalSettings                       DONE
 12 Index                                DONE
 13 MainAdminMenu                        DONE
-14 ManageArtificialIntelligence         PLANNED
+14 ManageArtificialIntelligence         DONE
 15 ManageSolvedQuestion                 PLANNED
 16 ManageSolvedTest                     PLANNED
 17 ManageSolvedTestList                 DONE
 18 ManageSubjects                       DONE
-19 ManageUserList                       PLANNED
-20 ManageUserListForAdmin               PLANNED
+19 ManageUserList                       DONE
+20 ManageUserListForAdmin               DONE
 21 ManageUserRegistrationList           DONE
 22 ManageUserRegistrationListForAdmin   DONE
 23 QuestionTemplate                     PLANNED
 24 SolvedQuestion                       PLANNED
 25 SolveQuestion                        PLANNED
-26 StudentAvailableTest                 PLANNED
+26 StudentAvailableTest                 DONE
 27 StudentAvailableTestList             DONE
 28 StudentMenu                          DONE
 29 TeacherMenu                          DONE
 30 TestTemplate                         PLANNED
 31 TestTemplateList                     DONE
-32 UserRegistration                     PLANNED
+32 UserRegistration                     DONE
 33 site.js (dynamic content)            PLANNED
 ----------------------------------------------------
-                                        13 / 33 DONE
+                                        20 / 33 DONE
 */
 
 :root {
@@ -119,13 +119,30 @@ body {
     max-width: 64ch;
 }
 
-.panel-title {
-    font-size: 1.5rem;
+.panel-large {
+    max-width: 96ch;
+}
+
+.panel-max {
+    max-width: 128ch;
 }
 
 .panel-content {
     padding: 0.25rem 1rem;
     text-align: center;
+}
+
+.panel-title {
+    font-size: 1.75rem;
+}
+
+.panel-sub-title {
+    font-size: 1.5rem;
+    padding-top: 1rem;
+}
+
+.panel-table {
+    width: 100%;
 }
 
 .panel-table th,
@@ -151,15 +168,17 @@ label, input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not
     margin: 0;
     display: inline-block;
     vertical-align: middle;
+    box-sizing: border-box;
 }
 
 label, button, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], .button {
-    padding: 0 0.5rem;
+    line-height: 1.5rem;
+    min-height: 1.5rem;
+    padding: 0.5rem;
 }
 
-label, input[type="checkbox"], input[type="radio"] {
-    line-height: 1.75rem;
-    height: 1.75rem;
+label {
+    padding-block: 0.25rem;
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select {
@@ -168,6 +187,21 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type=
     border: 1px solid var(--input-border-color);
     height: 2.5rem;
     padding: 0 0.25rem;
+}
+
+.panel-medium input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.panel-medium select {
+    min-width: 32ch;
+}
+
+.panel-large input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.panel-large select {
+    min-width: 48ch;
+}
+
+.panel-max input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.panel-max select {
+    min-width: 64ch;
 }
 
 button, input[type="submit"], input[type="button"], .button {
@@ -184,6 +218,7 @@ button:hover, input[type="checkbox"]:hover, input[type="radio"]:hover, input[typ
 }
 
 #testing-mode {
+    z-index: 1;
     position: fixed;
     bottom: 0.5rem;
     right: 0.5rem;
@@ -278,7 +313,8 @@ img {
 }*/
 
 #confirm-action {
-    position: absolute;
+    z-index: 2;
+    position: fixed;
     left: 50%;
     top: 50%;
     display: none;
@@ -308,6 +344,10 @@ img {
     border-style: solid;
 }*/
 
+#test-login {
+    display: none;
+}
+
 /*#test-login {
     position: absolute;
     left: 40%;
@@ -327,7 +367,7 @@ img {
 
 /*TestTemplate.cshtml*/
 
-#test-template {
+/*#test-template {
     position: absolute;
     left: 20%;
     top: 20%;
@@ -345,7 +385,7 @@ img {
     top: 70%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*QuestionTemplate.cshtml*/
 
@@ -442,7 +482,7 @@ img {
 
 /*UserRegistration.cshtml*/
 
-#user-registration {
+/*#user-registration {
     position: absolute;
     left: 50%;
     top: 20%;
@@ -456,7 +496,7 @@ img {
     top: 20%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*ManageUserRegistrationList.cshtml*/
 
@@ -486,7 +526,7 @@ img {
 
 /*ManageUserList.cshtml*/
 
-#student-management {
+/*#student-management {
     position: absolute;
     left: 5%;
     top: 20%;
@@ -508,7 +548,7 @@ img {
     top: 20%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*AdminMenu.cshtml*/
 
@@ -522,7 +562,7 @@ img {
 
 /*ManageNeuralNewtworks.cshtml*/
 
-#neural-network-templates {
+/*#neural-network-templates {
     position: absolute;
     left: 15%;
     top: 10%;
@@ -536,7 +576,7 @@ img {
     top: 10%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*AddSubquestionTemplate.cshtml*/
 

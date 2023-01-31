@@ -12,45 +12,46 @@
     }
 }
 
-<div class="text-center">
-    <h1>Správa umělé inteligence</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
+<div id="main">
     @{
         if (userRequestedDeviceName)
         {
-            <p>Používané zařízení (CPU/GPU): @ViewBag.DeviceName</p>
+            <div class="panel panel-large">
+                <div class="panel-content">Používané zařízení (CPU/GPU): @ViewBag.DeviceName</div>
+            </div>
         }
         else
         {
-            <form method="POST">
-                <p>Používané zařízení (CPU/GPU): <button type="submit" value="getDeviceName" name="action">Zobrazit</button></p>
+            <form method="POST" class="panel panel-large">
+                <div class="panel-content">Používané zařízení (CPU/GPU): <button type="submit" value="getDeviceName" name="action">Zobrazit</button></div>
             </form>
         }
     }
 
-    <p>@ViewBag.Message</p>
-
-    <div id="neural-network-templates">
-        <h2>Zadání podotázek</h2>
-        <p><div id="templates-added-label" style="display:none">Probíhá přidávání zadání podotázek..</div></p>
-        <p>Počet existujících testovacích dat (šablony podotázek): @ViewBag.TestingDataSubquestionTemplates</p>
-        <br>
+    <div id="neural-network-templates" class="panel panel-large">
+        <div class="panel-title panel-content">Zadání podotázek</div>
+        <div id="templates-added-label" class="panel-content" style="display:none">Probíhá přidávání zadání podotázek..</div>
+        <div class="panel-content">Počet existujících testovacích dat (šablony podotázek): @ViewBag.TestingDataSubquestionTemplates</div>
         <form method="POST" onsubmit="onAddTestingSubquestionTemplatesFormSubmission()">
-            Přidat testovací data - náhodná data<br />
-            Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" class="btn btn-primary" />
-            <input type="hidden" value="addSubquestionTemplateRandomData" name="action">
+            <div class="panel-content"><b>Přidat testovací data - náhodná data</b></div>
+            <div class="panel-content">Počet testovacích dat (šablony podotázek):</div>
+            <div class="panel-content"><input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" /><input type="hidden" value="addSubquestionTemplateRandomData" name="action"></div>
         </form>
         <form method="POST" onsubmit="onAddTestingSubquestionTemplatesFormSubmission()">
-            Přidat testovací data - data s kolerací<br />
-            Počet testovacích dat (šablony podotázek): <input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" class="btn btn-primary" />
-            <input type="hidden" value="addSubquestionTemplateCorrelationalData" name="action">
+            <div class="panel-content"><b>Přidat testovací data - data s kolerací</b></div>
+            <div class="panel-content">Počet testovacích dat (šablony podotázek):</div>
+            <div class="panel-content"><input type="number" step="1" required name="amountOfSubquestionTemplates" /> <input type="submit" value="Přidat" /><input type="hidden" value="addSubquestionTemplateCorrelationalData" name="action"></div>
         </form>
         <form method="POST">
-            <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
-            <input type="hidden" value="deleteSubquestionTemplateTestingData" name="action">
+            <div class="panel-content"><input type="submit" value="Smazat testovací data" /><input type="hidden" value="deleteSubquestionTemplateTestingData" name="action"></div>
         </form>
 
-        <table>
+        <table class="panel-table">
             <tr>
                 <th>Login</th>
                 <th>Přesnost - neuronová síť</th>
@@ -61,11 +62,11 @@
                 foreach (SubquestionTemplateStatistics item in Model.SubquestionTemplateStatistics)
                 {
                     string usedModel = string.Empty;
-                    if(item.UsedModel == EnumTypes.Model.NeuralNetwork)
+                    if (item.UsedModel == EnumTypes.Model.NeuralNetwork)
                     {
                         usedModel = "Neuronová síť";
                     }
-                    else if(item.UsedModel == EnumTypes.Model.MachineLearning)
+                    else if (item.UsedModel == EnumTypes.Model.MachineLearning)
                     {
                         usedModel = "Strojové učení";
                     }
@@ -84,27 +85,25 @@
         </table>
     </div>
 
-    <div id="neural-network-results">
-        <h2>Výsledky podotázek</h2>
-        <p><div id="results-added-label" style="display:none">Probíhá přidávání výsledků podotázek..</div></p>
-        <p>Počet existujících testovacích dat (výsledky podotázek): @ViewBag.TestingDataSubquestionResults</p>
-        <br>
+    <div id="neural-network-results" class="panel panel-large">
+        <div class="panel-title panel-content">Výsledky podotázek</div>
+        <div id="results-added-label" class="panel-content" style="display:none">Probíhá přidávání výsledků podotázek..</div>
+        <div class="panel-content">Počet existujících testovacích dat (výsledky podotázek): @ViewBag.TestingDataSubquestionResults</div>
         <form method="POST" onsubmit="onAddTestingSubquestionResultsFormSubmission()">
-            Přidat testovací data - náhodná data<br />
-            Počet testovacích dat (výsledky podotázek): <input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" class="btn btn-primary" />
-            <input type="hidden" value="addSubquestionResultRandomData" name="action">
+            <div class="panel-content"><b>Přidat testovací data - náhodná data</b></div>
+            <div class="panel-content">Počet testovacích dat (výsledky podotázek):</div>
+            <div class="panel-content"><input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" /><input type="hidden" value="addSubquestionResultRandomData" name="action"></div>
         </form>
         <form method="POST" onsubmit="onAddTestingSubquestionResultsFormSubmission()">
-            Přidat testovací data - data s kolerací<br />
-            Počet testovacích dat (výsledky podotázek): <input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" class="btn btn-primary" />
-            <input type="hidden" value="addSubquestionResultCorrelationalData" name="action">
+            <div class="panel-content"><b>Přidat testovací data - data s kolerací</b></div>
+            <div class="panel-content">Počet testovacích dat (výsledky podotázek):</div>
+            <div class="panel-content"><input type="number" step="1" required name="amountOfSubquestionResults" /> <input type="submit" value="Přidat" /><input type="hidden" value="addSubquestionResultCorrelationalData" name="action"></div>
         </form>
         <form method="POST">
-            <input type="submit" value="Smazat testovací data" class="btn btn-primary" />
-            <input type="hidden" value="deleteSubquestionResultTestingData" name="action">
+            <div class="panel-content"><input type="submit" value="Smazat testovací data" /><input type="hidden" value="deleteSubquestionResultTestingData" name="action"></div>
         </form>
 
-        <table>
+        <table class="panel-table">
             <tr>
                 <th>Login</th>
                 <th>Přesnost - neuronová síť</th>
@@ -139,14 +138,10 @@
     </div>
 </div>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="/js/site.js"></script>
 <script>
     testt();
 </script>
 
-<div id="backBtn">
-    <a asp-action="MainAdminMenu">Zpět</a>
-</div>
+<a id="backBtn" class="button" asp-action="MainAdminMenu">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
