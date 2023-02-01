@@ -410,7 +410,7 @@ function editPossibleAnswers(action, subquestionType) {
                 sliderQuestion.min = min;
                 sliderQuestion.max = max;
                 sliderQuestion.value = Math.round((parseInt(min) + parseInt(max)) / 2);
-                sliderQuestion.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
+                sliderQuestion.parentNode.nextElementSibling.value = Math.round((parseInt(min) + parseInt(max)) / 2);
                 document.getElementById("possible-answer-save").disabled = true;
                 document.getElementById("possible-answer-edit").disabled = false;
                 document.getElementById("correct-answer-edit").disabled = false;
@@ -1269,7 +1269,7 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
         sliderQuestion.min = possibleAnswerList[0];
         sliderQuestion.max = possibleAnswerList[1];
         sliderQuestion.value = correctAnswerList[0];
-        sliderQuestion.nextElementSibling.value = correctAnswerList[0];
+        sliderQuestion.parentNode.nextElementSibling.value = correctAnswerList[0];
     }
     
     //set manual wrong choice points radio to checked in case it was checked before
@@ -1547,6 +1547,10 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
                     else if (studentAnswerList[i] == "0") {
                         table.rows[j].cells[2].getElementsByTagName("input")[0].checked = true;
                     }
+                    else if (studentAnswerList[i] == "X") {
+                        table.rows[j].cells[1].getElementsByTagName("input")[0].checked = false;
+                        table.rows[j].cells[2].getElementsByTagName("input")[0].checked = false;
+                    }
                 }
             }
         }
@@ -1630,21 +1634,18 @@ function addStudentAnswer(subquestionType) {
 
 //adds another gap (another question) to the subquestion text of subquestion of type 9 - used for SolveQuestion.cshtml
 function addStudentGap() {
-    var br = document.createElement("br");
     var additionalQuestions = document.getElementById("additional-questions");
-    additionalQuestions.appendChild(br);
+
+    var studentAnswerSelects = document.getElementsByClassName("student-answer-select");
+    var studentAnswerSelect = studentAnswerSelects[studentAnswerSelects.length - 1];
+    var clonedStudentAnswerSelect = studentAnswerSelect.cloneNode(true);
+    additionalQuestions.appendChild(clonedStudentAnswerSelect);
 
     var subquestionTexts = document.getElementsByClassName("subquestion-text");
     var subquestionText = subquestionTexts[subquestionTexts.length - 1];
     var clonedSubquestionText = subquestionText.cloneNode(true);
     clonedSubquestionText.value = "";
     additionalQuestions.appendChild(clonedSubquestionText);
-
-    var studentAnswerSelects = document.getElementsByClassName("student-answer-select");
-    var studentAnswerSelect = studentAnswerSelects[studentAnswerSelects.length - 1];
-    var clonedStudentAnswerSelect = studentAnswerSelect.cloneNode(true);
-    additionalQuestions.appendChild(clonedStudentAnswerSelect);
-    additionalQuestions.appendChild(br);
 }
 
 function shuffleArray(array) {
@@ -1791,7 +1792,7 @@ function resetStudentAnswers(subquestionType) {
 }
 
 function changeSliderOutputs(value) {
-    document.getElementById("slider-question").nextElementSibling.value = value;
+    document.getElementById("slider-question").parentNode.nextElementSibling.value = value;
     document.getElementById("student-answer-hidden").value = value;
 }
 
@@ -1823,9 +1824,9 @@ function addTestNavigationTableElements(answerCompletenessString, subquestionNum
         }
         navigation.appendChild(clonedNavigationElement);
         //different cases required because one navigation element is added by default
-        if ((i + 1) % 5 == 0) {
+        /*if ((i + 1) % 5 == 0) {
             navigation.appendChild(document.createElement("br"));
-        }
+        }*/
     }
 
     if (subquestionNumber == 0) {

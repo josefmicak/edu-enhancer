@@ -346,7 +346,7 @@ namespace BusinessLayer
         public async Task<string> CreateResultTestingData(string action, string amountOfSubquestionResults)
         {
             string message;
-            await TestingUsersCheck();
+            //await TestingUsersCheck();
             var existingTestTemplates = await GetTestingDataTestTemplates();
             if(existingTestTemplates.Count == 0)
             {
@@ -997,6 +997,10 @@ namespace BusinessLayer
             bool subquestionFound = false;
             for(int i = 0; i < testResult.QuestionResults.Count; i++)
             {
+                if (subquestionFound)
+                {
+                    break;
+                }
                 QuestionResult questionResult = testResult.QuestionResults.ElementAt(i);
 
                 for(int j = 0; j < questionResult.SubquestionResults.Count; j++)

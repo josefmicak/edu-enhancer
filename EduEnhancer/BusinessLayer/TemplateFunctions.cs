@@ -1117,12 +1117,13 @@ namespace BusinessLayer
         /// <param name="owner">Owner - testing data teacher</param>
         public async Task CreateSubjectTestingData(User owner)
         {
+            Student student = await dataFunctions.GetStudentByLogin("testingstudent");
             Subject[] testingDataSubjects = new Subject[] { 
-                new Subject("Ch", "Chemie", owner, owner.Login, new List<Student>(), true),
-                new Subject("Z", "Zeměpis", owner, owner.Login, new List<Student>(), true),
-                new Subject("M", "Matematika", owner, owner.Login, new List<Student>(), true),
-                new Subject("D", "Dějepis", owner, owner.Login, new List<Student>(), true),
-                new Subject("I", "Informatika", owner, owner.Login, new List<Student>(), true) };
+                new Subject("Ch", "Chemie", owner, owner.Login, new List<Student> { student }, true),
+                new Subject("Z", "Zeměpis", owner, owner.Login, new List<Student> { student }, true),
+                new Subject("M", "Matematika", owner, owner.Login, new List<Student> { student }, true),
+                new Subject("D", "Dějepis", owner, owner.Login, new List<Student> { student }, true),
+                new Subject("I", "Informatika", owner, owner.Login, new List<Student> { student }, true) };
             for(int i = 0; i < testingDataSubjects.Length; i++)
             {
                 await dataFunctions.AddSubject(testingDataSubjects[i]);
@@ -1130,7 +1131,7 @@ namespace BusinessLayer
         }
 
         /// <summary>
-        /// Checks whether user marked as testing data exists, and creates him if he doesn't
+        /// Checks whether users marked as testing data exist, and creates then if they don't
         /// </summary>
         public async Task TestingUsersCheck()
         {
@@ -1139,6 +1140,13 @@ namespace BusinessLayer
             {
                 owner = new User() { Login = "login", Email = "adminemail", FirstName = "name", LastName = "surname", Role = (EnumTypes.Role)3, IsTestingData = true };
                 await dataFunctions.AddUser(owner);
+            }
+
+            Student? student = await dataFunctions.GetStudentByLoginNullable("testingstudent");
+            if (student == null)
+            {
+                student = new Student() { Login = "testingstudent", Email = "studentemail", FirstName = "name", LastName = "surname", IsTestingData = true };
+                await dataFunctions.AddStudent(student);
             }
         }
 

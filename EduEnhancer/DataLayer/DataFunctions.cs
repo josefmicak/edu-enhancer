@@ -40,6 +40,11 @@ namespace DataLayer
             return _context.SubquestionTemplateStatistics;
         }
 
+        public async Task<SubquestionTemplateStatistics?> GetSubquestionTemplateStatisticsNullable(string login)
+        {
+            return await GetSubquestionTemplateStatisticsDbSet().FirstOrDefaultAsync(s => s.UserLogin == login);
+        }
+
         public DbSet<Subject> GetSubjectDbSet()
         {
             return _context.Subjects;
@@ -173,8 +178,6 @@ namespace DataLayer
                 oldTestTemplate.Subject = testTemplate.Subject;
                 oldTestTemplate.MinimumPoints = testTemplate.MinimumPoints;
                 oldTestTemplate.NegativePoints = testTemplate.NegativePoints;
-                oldTestTemplate.StartDate = testTemplate.StartDate;
-                oldTestTemplate.EndDate = testTemplate.EndDate;
                 await _context.SaveChangesAsync();
                 message = "Zadání testu bylo úspěšně upraveno.";
             }
@@ -742,6 +745,27 @@ namespace DataLayer
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            if (user.IsTestingData)
+            {
+                SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
+                subquestionTemplateStatistics.User = user;
+                subquestionTemplateStatistics.UserLogin = user.Login;
+                subquestionTemplateStatistics.SubquestionTemplatesAddedCount = 0;
+                subquestionTemplateStatistics.MachineLearningAccuracy = 0;
+                subquestionTemplateStatistics.NeuralNetworkAccuracy = 0;
+                subquestionTemplateStatistics.UsedModel = EnumTypes.Model.NeuralNetwork;
+                await AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
+
+                SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
+                subquestionResultStatistics.User = user;
+                subquestionResultStatistics.UserLogin = user.Login;
+                subquestionResultStatistics.SubquestionResultsAddedCount = 0;
+                subquestionResultStatistics.MachineLearningAccuracy = 0;
+                subquestionResultStatistics.NeuralNetworkAccuracy = 0;
+                subquestionResultStatistics.UsedModel = EnumTypes.Model.NeuralNetwork;
+                await AddSubquestionResultStatistics(subquestionResultStatistics);
+            }
         }
 
         public async Task AddUserRegistration(UserRegistration userRegistration)

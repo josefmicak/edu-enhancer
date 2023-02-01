@@ -65,10 +65,10 @@
 </div>
 
 <div id="main">
-    <div id="number-list-navigation" class="panel panel-medium">
+    <div class="panel panel-medium">
         <div class="panel-content">Tento test bude automaticky odevzdán @subquestionTemplate.QuestionTemplate.TestTemplate.EndDate</div>
         <div class="panel-title panel-content">@(subquestionResultIdIndex + 1) / @subquestionsCount</div>
-        <div class="panel-content"><button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button></div>
+        <div id="number-list-navigation" class="panel-content"><button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button></div>
     </div>
 
     <div id="subquestion-details" class="panel panel-medium">
@@ -197,16 +197,23 @@
                                 <input type="hidden" class="student-answer-hidden" name="StudentsAnswers[]">
                                 break;
                             case 7:
-                                <div id="subquestion-text-1" class="panel-content"></div>
-                                <div class="panel-content"><select id="student-answer-select" name="StudentsAnswers[]"></select></div>
-                                <div id="subquestion-text-2" class="panel-content"></div>
+                                <p class="panel-content">Vyberte z možností správnou odpověď patřící do textu:</p>
+                                <div class="panel-content">
+                                    <span id="subquestion-text-1"></span>
+                                    <select id="student-answer-select" name="StudentsAnswers[]"></select>
+                                    <span id="subquestion-text-2"></span>
+                                </div>
                                 break;
                             case 8:
-                                <div id="subquestion-text-1" class="panel-content"></div>
-                                <div class="panel-content"><input type="text" id="gap-text" name="StudentsAnswers[]" placeholder="(DOPLŇTE)"></div>
-                                <div id="subquestion-text-2" class="panel-content"></div>
+                                <p class="panel-content">Doplňte do textu správnou odpověď:</p>
+                                <div class="panel-content">
+                                    <span id="subquestion-text-1"></span>
+                                    <input type="text" id="gap-text" name="StudentsAnswers[]" placeholder="(DOPLŇTE)">
+                                    <span id="subquestion-text-2"></span>
+                                </div>
                                 break;
                             case 9:
+                                <p class="panel-content">Vyberte z možností správné odpovědi patřící do textu:</p>
                                 <table id="possible-answers-table" class="panel-table">
                                     <tr>
                                         <th>Možné odpovědi</th>
@@ -216,12 +223,14 @@
                                     </tr>
                                 </table>
 
-                                <div id="subquestion-text-1" class="panel-content subquestion-text"></div>
-                                <div class="panel-content"><select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></div>
-                                <div id="subquestion-text-2" class="panel-content subquestion-text"></div>
-                                <div class="panel-content"><select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></div>
-                                <div id="subquestion-text-3" class="panel-content subquestion-text"></div>
-                                <div id="additional-questions" class="panel-content"></div>
+                                <div class="panel-content">
+                                    <span id="subquestion-text-1" class="subquestion-text"></span>
+                                    <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                    <span id="subquestion-text-2" class="subquestion-text"></span>
+                                    <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                    <span id="subquestion-text-3" class="subquestion-text"></span>
+                                    <span id="additional-questions"></span>
+                                </div>
                                 break;
                             case 10:
                                 <div class="panel-content">
