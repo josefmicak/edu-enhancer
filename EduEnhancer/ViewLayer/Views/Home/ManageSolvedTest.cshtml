@@ -13,12 +13,14 @@
     ViewData["Title"] = "Správa vyřešeného testu";
 }
 
-<div class="text-center">
-    <h1>Správa vyřešeného testu</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+</div>
 
-    <div id="test-result">
-        <h2>Parametry pokusu</h2>
-        <table>
+<div id="main">
+    <div id="test-result" class="panel panel-medium">
+        <div class="panel-title panel-content">Parametry pokusu</div>
+        <table class="panel-table">
             <tr>
                 <th>Datum vyplnění testu</th>
                 <td>@Model.First().TestResult.TimeStamp</td>
@@ -34,9 +36,9 @@
         </table>
     </div>
 
-    <div id="question-result-list">
-        <h2>Seznam otázek</h2>
-        <table>
+    <div id="question-result-list" class="panel panel-medium">
+        <div class="panel-title panel-content">Seznam otázek</div>
+        <table class="panel-table">
             <tr>
                <th>Nadpis</th>
                <th>Počet bodů</th>
@@ -47,7 +49,7 @@
                 foreach (var item in Model)
                 {
                     double studentsQuestionPoints = 0;
-                    foreach(SubquestionResult subquestionResult in item.SubquestionResults)
+                    foreach (SubquestionResult subquestionResult in item.SubquestionResults)
                     {
                         if (subquestionResult.StudentsPoints < 0 && negativePoints == EnumTypes.NegativePoints.Disabled)
                         {
@@ -71,7 +73,7 @@
                     }
 
                     double questionPoints = 0;
-                    foreach(SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplates)
+                    foreach (SubquestionTemplate subquestionTemplate in item.QuestionTemplate.SubquestionTemplates)
                     {
                         questionPoints += subquestionTemplate.SubquestionPoints;
                     }
@@ -124,10 +126,9 @@
         studentsMinimumPointsString += "(" + studentsTestPoints.ToString() + " / " + minimumPoints.ToString() + ")";
     }
 
-
-    <div id="test-template">
-        <h2>Parametry testu</h2>
-        <table>
+    <div id="test-template" class="panel panel-medium">
+        <div class="panel-title panel-content">Parametry testu</div>
+        <table class="panel-table">
             <tr>
                 <th>Nadpis</th>
                 <td>@Model.First().QuestionTemplate.TestTemplate.Title</td>
@@ -148,6 +149,6 @@
     </div>
 </div>
 
-<div id="backBtn"><a asp-action="ManageSolvedTestList">Zpět</a></div>
+<a id="backBtn" class="button" asp-action="ManageSolvedTestList">Zpět</a>
 
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>

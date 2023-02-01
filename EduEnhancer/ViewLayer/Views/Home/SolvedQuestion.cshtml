@@ -58,12 +58,15 @@
     ViewData["Title"] = "Prohlížení vyřešeného testu";
 }
 
-<div class="text-center">
-    <h1>Prohlížení vyřešeného testu</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <div id="solved-test-result">
-        <h2>Parametry vyřešeného testu</h2>
-        <table>
+<div id="main">
+    <div id="solved-test-result" class="panel panel-medium">
+        <div class="panel-title panel-content">Parametry vyřešeného testu</div>
+        <table class="panel-table">
             <tr>
                 <th>Jméno vyučujícího</th>
                 <td>@subquestionResult.QuestionResult.TestResult.TestTemplate.Owner.FullName()</td>
@@ -87,26 +90,25 @@
         </table>
     </div>
 
-    <div id="solved-question-navigation">
-        <h2>Navigace</h2>
-        <h2>@(subquestionResultIndex + 1) / @subquestionsCount</h2>
-        <br>
-        <p>@ViewBag.Message</p>
+    <div id="solved-question-navigation" class="panel panel-medium">
+        <div class="panel-title panel-content">Navigace</div>
+        <div class="panel-title panel-content">@(subquestionResultIndex + 1) / @subquestionsCount</div>
         <form method="POST">
-            <input type="hidden" value="@subquestionResult.QuestionResult.TestResult.TestResultId" name="testResultId">
-            <input type="hidden" value="@subquestionResultIndex" id="subquestionResultIndex" name="subquestionResultIndex">
-            <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
-            <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+            <div class="panel-content">
+                <input type="hidden" value="@subquestionResult.QuestionResult.TestResult.TestResultId" name="testResultId">
+                <input type="hidden" value="@subquestionResultIndex" id="subquestionResultIndex" name="subquestionResultIndex">
+                <button type="submit" id="previousSubquestion" value="previousSubquestion" name="action">Předchozí</button>
+                <button type="submit" id="nextSubquestion" value="nextSubquestion" name="action">Následující</button>
+            </div>
         </form>
-        <br>
-    </div>
-    <div id="solved-number-list-navigation">
-        <button class="navigation-element" value="1" onclick="navigateToSolvedSubquestion(this.value)">1</button>
+        <div id="solved-number-list-navigation">
+            <div class="panel-content"><button class="navigation-element" value="1" onclick="navigateToSolvedSubquestion(this.value)">1</button></div>
+        </div>
     </div>
 
-    <div id="solved-subquestion-template">
-        <h2>Parametry podotázky</h2>
-        <table>
+    <div id="solved-subquestion-template" class="panel panel-medium">
+        <div class="panel-title panel-content">Parametry podotázky</div>
+        <table class="panel-table">
             <tr>
                 <th>Typ podotázky</th>
                 <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
@@ -131,7 +133,7 @@
             </tr>
             @{
                 if (@subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswer ||
-                        @subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
+                    @subquestionTemplate.SubquestionType == EnumTypes.SubquestionType.FreeAnswerWithDeterminedCorrectAnswer)
                 {
                     <tr><td colspan="2">Otázka neobsahuje výběr z možností.</td></tr>
                 }
@@ -158,28 +160,25 @@
             }
         </table>
     </div>
+
+    <div id="solved-subquestion-result" class="panel panel-medium">
+        <div class="panel-title panel-content">Vaše odpověď</div>
+        <table class="panel-table">
+            @{
+                foreach (var answer in subquestionResult.StudentsAnswers)
+                {
+                    <tr><td>@answer</td></tr>
+                }
+            }
+        </table>
+        <div class="panel-content">@answerCorrectString</div>
+    </div>
 </div>
 
-<div id="solved-subquestion-result">
-    <h2>Vaše odpověď</h2>
-    <table>
-    @{
-        foreach (var answer in subquestionResult.StudentsAnswers)
-        {
-            <tr><td>@answer</td></tr>
-        }
-    }
-    </table>
-    <p>@answerCorrectString</p>
-</div>
+<a id="backBtn" class="button" asp-action="BrowseSolvedTestList">Zpět</a>
 
-<script src="/js/site.js"></script>
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
+
 <script>
     solvedQuestionPagePostProcessing('@subquestionResultIndex', '@subquestionsCount', '@answerStatusString');
 </script>
-
-<div id="backBtn">
-    <a asp-action="BrowseSolvedTestList">Zpět</a>
-</div>
-
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>

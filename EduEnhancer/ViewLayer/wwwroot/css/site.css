@@ -2,20 +2,20 @@
 ----------------------------------------------------
  1 AddQuestionTemplate                  DONE
  2 AddSubject                           DONE
- 3 AddSubquestionTemplate               PLANNED - 3
+ 3 AddSubquestionTemplate               DONE
  4 AddTestTemplate                      DONE
  5 AdminMenu                            DONE
  6 BrowseSolvedTestList                 DONE
  7 EditQuestionTemplate                 DONE
  8 EditSubject                          DONE
- 9 EditSubquestionTemplate              PLANNED - 3
+ 9 EditSubquestionTemplate              DONE
 10 EditTestTemplate                     DONE
 11 GlobalSettings                       DONE
 12 Index                                DONE
 13 MainAdminMenu                        DONE
 14 ManageArtificialIntelligence         DONE
-15 ManageSolvedQuestion                 PLANNED - 2
-16 ManageSolvedTest                     PLANNED - 3
+15 ManageSolvedQuestion                 DONE
+16 ManageSolvedTest                     DONE
 17 ManageSolvedTestList                 DONE
 18 ManageSubjects                       DONE
 19 ManageUserList                       DONE
@@ -23,8 +23,8 @@
 21 ManageUserRegistrationList           DONE
 22 ManageUserRegistrationListForAdmin   DONE
 23 QuestionTemplate                     DONE
-24 SolvedQuestion                       PLANNED - 2
-25 SolveQuestion                        PLANNED - 2
+24 SolvedQuestion                       DONE
+25 SolveQuestion                        DONE
 26 StudentAvailableTest                 DONE
 27 StudentAvailableTestList             DONE
 28 StudentMenu                          DONE
@@ -32,9 +32,9 @@
 30 TestTemplate                         DONE
 31 TestTemplateList                     DONE
 32 UserRegistration                     DONE
-33 site.js (dynamic content)            PLANNED - 4
+33 site.js (dynamic content)            PLANNED
 ----------------------------------------------------
-                                        26 / 33 DONE
+                                        32 / 33 DONE
 */
 
 :root {
@@ -161,7 +161,16 @@ body {
     padding-right: 1rem;
 }
 
-label, input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, button, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], .button {
+label,
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+textarea,
+select,
+button,
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="button"],
+.button {
     font-size: 0.8rem;
     border-radius: 0.25rem;
     line-height: 2.5rem;
@@ -171,7 +180,13 @@ label, input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not
     box-sizing: border-box;
 }
 
-label, button, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], .button {
+label,
+button,
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="button"],
+.button {
     line-height: 1.5rem;
     min-height: 1.5rem;
     padding: 0.5rem;
@@ -181,12 +196,23 @@ label {
     padding-block: 0.25rem;
 }
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select {
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
     color: var(--input-fg-color);
     background: var(--input-bg-color);
     border: 1px solid var(--input-border-color);
-    height: 2.5rem;
     padding: 0 0.25rem;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+select {
+    height: 2.5rem;
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
 }
 
 .panel-medium input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
@@ -204,14 +230,22 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type=
     min-width: 64ch;
 }
 
-button, input[type="submit"], input[type="button"], .button {
+button,
+input[type="submit"],
+input[type="button"],
+.button {
     color: var(--button-fg-color);
     background: var(--button-bg-color);
     border: 1px solid var(--button-border-color);
     text-decoration: none;
 }
 
-button:hover, input[type="checkbox"]:hover, input[type="radio"]:hover, input[type="submit"]:hover, input[type="button"]:hover, .button:hover {
+button:hover,
+input[type="checkbox"]:hover,
+input[type="radio"]:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.button:hover {
     color: var(--button-hover-fg-color);
     background: var(--button-hover-bg-color);
     border: 1px solid var(--button-hover-border-color);
@@ -279,7 +313,7 @@ footer {
     border: 1px solid;
 }*/
 
-select {
+/*select {
     max-width: 100%;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -289,11 +323,11 @@ select option {
     max-width: 100%;
     text-overflow: ellipsis;
     overflow: hidden;
-}
+}*/
 
 img {
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 40ch;
+    max-height: 20rem;
 }
 
 /*#backBtn {
@@ -440,7 +474,7 @@ img {
 
 /*ManageSolvedTest.cshtml*/
 
-#test-result {
+/*#test-result {
     position: absolute;
     left: 50%;
     top: 20%;
@@ -450,11 +484,11 @@ img {
     position: absolute;
     left: 20%;
     top: 40%;
-}
+}*/
 
 /*ManageSolvedQuestion.cshtml*/
 
-#subquestion-result {
+/*#subquestion-result {
     position: absolute;
     left: 20%;
     top: 35%;
@@ -468,7 +502,7 @@ img {
     top: 65%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*BrowseSolvedTestList.cshtml*/
 
@@ -580,26 +614,26 @@ img {
 
 /*AddSubquestionTemplate.cshtml*/
 
-#subquestion-type {
+/*#subquestion-type {
     position: absolute;
     left: 35%;
     top: 10%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
-#subquestion-details {
+/*#subquestion-details {
     position: absolute;
     left: 40%;
     top: 20%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
-input[type=file] {
+/*input[type=file] {
     width: 150px;
     color: transparent;
-}
+}*/
 
 /*ManageSubjects.cshtml*/
 
@@ -621,7 +655,7 @@ input[type=file] {
 
 /*SolveQuestion.cshtml*/
 
-#number-list-navigation {
+/*#number-list-navigation {
     position: absolute;
     left: 10%;
     top: 50%;
@@ -634,11 +668,11 @@ input[type=file] {
     border-style: solid;
     font-weight: bold;
     font-size: 30px;
-}
+}*/
 
 /*SolvedQuestion.cshtml*/
 
-#solved-test-result {
+/*#solved-test-result {
     position: absolute;
     left: 10%;
     top: 10%;
@@ -676,7 +710,7 @@ input[type=file] {
     top: 30%;
     border: 1px;
     border-style: solid;
-}
+}*/
 
 /*GlobalSettings.cshtml*/
 

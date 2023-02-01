@@ -59,40 +59,43 @@
     ViewData["Title"] = "Řešení testové otázky";
 }
 
-<div class="text-center">
-    <h1>Řešení testové otázky</h1>
+<div id="header">
+    <div id="header-title">@ViewData["Title"]</div>
+    <div id="header-notice">@ViewBag.Message</div>
+</div>
 
-    <div id="number-list-navigation">
-        <p>Tento test bude automaticky odevzdán @subquestionTemplate.QuestionTemplate.TestTemplate.EndDate</p>
-        <h2>@(subquestionResultIdIndex + 1) / @subquestionsCount</h2>
-        <p>@ViewBag.Message</p>
-        <button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button>
+<div id="main">
+    <div id="number-list-navigation" class="panel panel-medium">
+        <div class="panel-content">Tento test bude automaticky odevzdán @subquestionTemplate.QuestionTemplate.TestTemplate.EndDate</div>
+        <div class="panel-title panel-content">@(subquestionResultIdIndex + 1) / @subquestionsCount</div>
+        <div class="panel-content"><button class="navigation-element" value="1" onclick="navigateToSubquestion(this.value)">1</button></div>
     </div>
 
-    <div id="subquestion-details">
-        <h2>Otázka č. @(subquestionResultIdIndex + 1)</h2>
+    <div id="subquestion-details" class="panel panel-medium">
+        <div class="panel-title panel-content">Otázka č. @(subquestionResultIdIndex + 1)</div>
         @{
             if (subquestionTemplate == null)
             {
-                <p>Chyba: otázku nelze zobrazit.</p>
+                <div class="panel-content">Chyba: otázku nelze zobrazit.</div>
             }
             else
             {
                 <form method="POST" id="solve-question-form" onsubmit="onSolveQuestionFormSubmission(@subquestionType)">
-                    <input type="hidden" name="subquestionResultIndex" value="@subquestionResultIdIndex">
-                    <input type="hidden" name="action" id="action">
-                    <button type="submit" id="previousSubquestion" value="@(subquestionResultIdIndex - 1)" name="newSubquestionResultIndex">Předchozí</button>
-                    <button type="submit" id="nextSubquestion" value="@(subquestionResultIdIndex + 1)" name="newSubquestionResultIndex">Následující</button>
-                    <br>
-                    <input type="button" onclick="resetStudentAnswers(@subquestionType)" value="Vymazat odpovědi">
-                    <br>
-                    <p>Maximální počet bodů: @subquestionTemplate.SubquestionPoints</p>
+                    <div class="panel-content">
+                        <input type="hidden" name="subquestionResultIndex" value="@subquestionResultIdIndex">
+                        <input type="hidden" name="action" id="action">
+                        <button type="submit" id="previousSubquestion" value="@(subquestionResultIdIndex - 1)" name="newSubquestionResultIndex">Předchozí</button>
+                        <button type="submit" id="nextSubquestion" value="@(subquestionResultIdIndex + 1)" name="newSubquestionResultIndex">Následující</button>
+                    </div>
+                    <div class="panel-content"><input type="button" onclick="resetStudentAnswers(@subquestionType)" value="Vymazat odpovědi"></div>
+                    
+                    <div class="panel-content">Maximální počet bodů: @subquestionTemplate.SubquestionPoints</div>
                     @{
-                        if((subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints == Common.EnumTypes.NegativePoints.Enabled ||
+                        if ((subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints == Common.EnumTypes.NegativePoints.Enabled ||
                             subquestionTemplate.QuestionTemplate.TestTemplate.NegativePoints == Common.EnumTypes.NegativePoints.EnabledForQuestion) &&
                             subquestionType != 5)
                         {
-                            <p>Varování: U této otázky jsou za špatné odpovědi udělovány záporné body.</p>
+                            <div class="panel-content">Varování: U této otázky jsou za špatné odpovědi udělovány záporné body.</div>
                         }
                     }
                     @{
@@ -102,13 +105,12 @@
                             <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
                         }
                     }
-                    <div id="SubquestionText">@subquestionTemplate.SubquestionText</div>
-                    <br>
+                    <div id="SubquestionText" class="panel-content">@subquestionTemplate.SubquestionText</div>
                     @{
-                        switch(subquestionType)
+                        switch (subquestionType)
                         {
                             case 1:
-                                <table id="possible-answers-table">
+                                <table id="possible-answers-table" class="panel-table">
                                     <tr>
                                         <th>Možné odpovědi</th>
                                     </tr>
@@ -116,19 +118,17 @@
                                         <td><div class="possible-answer-text"></div></td>
                                     </tr>
                                 </table>
-                                <table id="student-answers-table">
+                                <table id="student-answers-table" class="panel-table">
                                     <tr>
                                         <th>Odpověď</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><select class="student-answer-select" name="StudentsAnswers[]"
-                                        onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
-                                        </td>
+                                        <td><select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></td>
                                     </tr>
                                 </table>
                                 break;
                             case 2:
-                                <table id="student-answers-table">
+                                <table id="student-answers-table" class="panel-table">
                                     <tr>
                                         <th>Označit</th>
                                         <th>Odpověď</th>
@@ -141,7 +141,7 @@
                                 </table>
                                 break;
                             case 3:
-                                <table id="possible-answers-table">
+                                <table id="possible-answers-table" class="panel-table">
                                     <tr>
                                         <th>Možné odpovědi</th>
                                     </tr>
@@ -149,22 +149,20 @@
                                         <td><div class="possible-answer-text"></div></td>
                                     </tr>
                                 </table>
-                                <table id="student-answers-table">
+                                <table id="student-answers-table" class="panel-table">
                                     <tr>
                                         <th>Odpověď</th>
                                     </tr>
                                     <tr id="student-answer-1">
                                         <td>
-                                            <select class="student-answer-select" name="StudentsAnswers[]"
-                                                onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select> -
-                                            <select class="student-answer-select" name="StudentsAnswers[]"
-                                                onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select> -
+                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
                                         </td>
                                     </tr>
                                 </table>
                                 break;
                             case 4:
-                                <table id="student-answers-table">
+                                <table id="student-answers-table" class="panel-table">
                                     <tr>
                                         <th>Otázka</th>
                                         <th>Ano (platí)</th>
@@ -186,7 +184,7 @@
                                 <textarea id="student-answer" name="StudentsAnswers[]" rows="4" cols="50" placeholder="Vaše odpověď"></textarea>
                                 break;
                             case 6:
-                                <table id="student-answers-table">
+                                <table id="student-answers-table" class="panel-table">
                                     <tr>
                                         <th>Označit</th>
                                         <th>Odpověď</th>
@@ -199,17 +197,17 @@
                                 <input type="hidden" class="student-answer-hidden" name="StudentsAnswers[]">
                                 break;
                             case 7:
-                                <div id="subquestion-text-1"></div>
-                                <select id="student-answer-select" name="StudentsAnswers[]"></select>
-                                <div id="subquestion-text-2"></div>
+                                <div id="subquestion-text-1" class="panel-content"></div>
+                                <div class="panel-content"><select id="student-answer-select" name="StudentsAnswers[]"></select></div>
+                                <div id="subquestion-text-2" class="panel-content"></div>
                                 break;
                             case 8:
-                                <div id="subquestion-text-1"></div>
-                                <input type="text" id="gap-text" name="StudentsAnswers[]" placeholder="(DOPLŇTE)">
-                                <div id="subquestion-text-2"></div>
+                                <div id="subquestion-text-1" class="panel-content"></div>
+                                <div class="panel-content"><input type="text" id="gap-text" name="StudentsAnswers[]" placeholder="(DOPLŇTE)"></div>
+                                <div id="subquestion-text-2" class="panel-content"></div>
                                 break;
                             case 9:
-                                <table id="possible-answers-table">
+                                <table id="possible-answers-table" class="panel-table">
                                     <tr>
                                         <th>Možné odpovědi</th>
                                     </tr>
@@ -218,42 +216,39 @@
                                     </tr>
                                 </table>
 
-                                <div id="subquestion-text-1" class="subquestion-text"></div>
-                                <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]"
-                                    onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
-                                <div id="subquestion-text-2" class="subquestion-text"></div>
-                                <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]"
-                                    onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
-                                <div id="subquestion-text-3" class="subquestion-text"></div>
-                                <div id="additional-questions"></div>
+                                <div id="subquestion-text-1" class="panel-content subquestion-text"></div>
+                                <div class="panel-content"><select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></div>
+                                <div id="subquestion-text-2" class="panel-content subquestion-text"></div>
+                                <div class="panel-content"><select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></div>
+                                <div id="subquestion-text-3" class="panel-content subquestion-text"></div>
+                                <div id="additional-questions" class="panel-content"></div>
                                 break;
                             case 10:
-                                <input type="hidden" id="student-answer-hidden" name="StudentsAnswers[]" value="Nezodpovězeno">
-                                <input type="range" id="slider-question" value="50" min="1" max="100"
-                                    oninput="changeSliderOutputs(this.value)">
-                                <output>Nezodpovězeno</output>
+                                <div class="panel-content">
+                                    <input type="hidden" id="student-answer-hidden" name="StudentsAnswers[]" value="Nezodpovězeno">
+                                    <input type="range" id="slider-question" value="50" min="1" max="100" oninput="changeSliderOutputs(this.value)">
+                                </div>
+                                <output class="panel-content">Nezodpovězeno</output>
                                 break;
                         }
                     }
                     @{
                         if ((subquestionResultIdIndex + 1) == subquestionsCount)
                         {
-                            <br>
-                            <button onclick="turnTestIn()">Odevzdat a ukončit test</button>
+                            <div class="panel-content"><button onclick="turnTestIn()">Odevzdat a ukončit test</button></div>
                         }
                     }
                 </form>
             }
         }
-        
     </div>
 </div>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="/js/site.js"></script>
+<!--<a id="backBtn" class="button" asp-action="">Zpět</a>-->
+
+<a id="signOutBtn" class="button" asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a>
+
 <script>
     solveQuestionPagePostProcessing('@subquestionsCount', '@subquestionResultIdIndex', '@subquestionType', '@Html.Raw(possibleAnswerListString)',
         '@Html.Raw(correctAnswerListString)', '@Html.Raw(subquestionText)', '@Html.Raw(studentAnswerListString)', '@Html.Raw(answerCompletenessString)');
 </script>
-
-<div id="signOutBtn"><a asp-controller="Account" asp-action="GoogleSignOut">Odhlásit se</a></div>
