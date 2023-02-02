@@ -26,12 +26,19 @@
         </div>
     </form>
 
-    <form method="POST" class="panel panel-medium">
+    <div class="panel panel-medium">
         <div class="panel-content">
-            <input type="hidden" value="addNUnitData" name="action">
-            <input type="submit" value="Přidat NUnit data">
+            <form method="POST">
+                <input type="hidden" value="addNUnitData" name="action">
+                <input type="submit" value="Přidat NUnit data">
+            </form>
+            <br>
+            <form method="POST">
+                <input type="hidden" value="deleteNUnitData" name="action">
+                <input type="submit" value="Odebrat NUnit data">
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 <a id="backBtn" class="button" asp-action="MainAdminMenu">Zpět</a>

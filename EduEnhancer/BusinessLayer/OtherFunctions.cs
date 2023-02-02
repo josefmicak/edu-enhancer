@@ -139,5 +139,10 @@ namespace BusinessLayer
         {
             Config.Application["subquestionResultId"] = subquestionResultId;
         }
+
+        public async Task DeleteTestingData()
+        {
+            await dataFunctions.DeleteTestingData();
+        }
     }
 }

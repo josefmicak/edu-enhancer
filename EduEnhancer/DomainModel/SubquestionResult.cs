@@ -10,7 +10,6 @@ namespace DomainModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int SubquestionResultId { get; set; }
         public int TestResultId { get; set; } = default!;
-        public int QuestionTemplateId { get; set; } = default!;
         public int QuestionResultId { get; set; } = default!;
         public int SubquestionTemplateId { get; set; } = default!;
         public string OwnerLogin { get; set; } = default!;

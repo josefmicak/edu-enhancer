@@ -44,16 +44,7 @@
                                 <tr>
                                     <td>@Html.DisplayFor(modelItem => fullName)</td>
                                     <td>@Html.DisplayFor(modelItem => item.Login)</td>
-                                    @{
-                                        if (item.Email == null)
-                                        {
-                                            <td><button type="button" id="addEmailToStudent_@i" onclick="addStudentDetails(this.id)">Přiřadit email</button></td>
-                                        }
-                                        else
-                                        {
-                                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                                        }
-                                    }
+                                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                     <td><button type="button" onclick="showEditStudentLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit studenta</button></td>
                                     <td><button type="button" id="delete-@item.Login" onclick="showConfirmActionForm('deleteStudent', null, null, '@item.Login', null, null, null)">Smazat studenta</button></td>
                                 </tr>

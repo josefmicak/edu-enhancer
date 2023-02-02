@@ -56,6 +56,10 @@ namespace DataLayer
             try
             {
                 _context.Users.Attach(subject.Guarantor);
+                for(int i = 0; i < subject.Students.Count; i++)
+                {
+                    _context.Students.Attach(subject.Students[i]);
+                }
                 _context.Subjects.Add(subject);
                 await _context.SaveChangesAsync();
                 message = "Předmět byl úspěšně přidán.";
@@ -558,7 +562,7 @@ namespace DataLayer
                 .Include(t => t.TestTemplate)
                 .ThenInclude(q => q.QuestionTemplates)
                 .ThenInclude(q => q.SubquestionTemplates)
-                .OrderByDescending(t => t.TimeStamp)
+                .OrderByDescending(t => t.TestResultId)
                 .FirstAsync(t => t.StudentLogin == student.Login);
         }
 
@@ -828,6 +832,35 @@ namespace DataLayer
             {
                 throw Exceptions.GlobalSettingsNotFound;
             }
+        }
+
+        public async Task DeleteTestingData()
+        {
+            //delete template testing data
+            ExecuteSqlRaw("delete from TestTemplate where IsTestingData = 1");
+            ExecuteSqlRaw("delete from Subject where IsTestingData = 1");
+
+            //delete testing user and student
+            ExecuteSqlRaw("delete from [user] where IsTestingData = 1");
+            ExecuteSqlRaw("delete from student where IsTestingData = 1");
+
+            //delete all models (if they exist)
+            string[] testingDataModels = new string[] {
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\templates\\login_NN.pt",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\templates\\login_LR.sav",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_NN.pt",
+                Path.GetDirectoryName(Environment.CurrentDirectory) + "\\ArtificialIntelligenceTools\\PythonScripts\\model\\results\\login_LR.sav"};
+            for (int i = 0; i < testingDataModels.Length; i++)
+            {
+                if (File.Exists(testingDataModels[i]))
+                {
+                    File.Delete(testingDataModels[i]);
+                }
+            }
+
+
+
+            await SaveChangesAsync();
         }
 
         //General functions

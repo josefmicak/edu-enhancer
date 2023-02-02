@@ -23,14 +23,20 @@ function optGroupUpdate(login, email, role, mainAdminCount, adminCount, teacherC
 function registrationsTableUpdate(accepted, rejected, text) {
     if (accepted == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[7].textContent === "Schválena") {
+            if (tr.children[7].textContent == "Schválena") {
+                tr.style.display = 'none';
+            }
+            if (tr.children[8] != null && tr.children[8].textContent == "Schválena") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[7].textContent === "Schválena") {
+            if (tr.children[7].textContent == "Schválena") {
+                tr.style.display = '';
+            }
+            if (tr.children[8] != null && tr.children[8].textContent == "Schválena") {
                 tr.style.display = '';
             }
         });
@@ -38,14 +44,20 @@ function registrationsTableUpdate(accepted, rejected, text) {
 
     if (rejected == false) {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8] != null && tr.children[8].textContent === "Zamítnuta") {
+            if (tr.children[7].textContent == "Zamítnuta") {
+                tr.style.display = 'none';
+            }
+            if (tr.children[8] != null && tr.children[8].textContent == "Zamítnuta") {
                 tr.style.display = 'none';
             }
         });
     }
     else {
         document.querySelectorAll('tr').forEach(tr => {
-            if (tr.children[8] != null && tr.children[8].textContent === "Zamítnuta") {
+            if (tr.children[7].textContent == "Zamítnuta") {
+                tr.style.display = '';
+            }
+            if (tr.children[8] != null && tr.children[8].textContent == "Zamítnuta") {
                 tr.style.display = '';
             }
         });
@@ -1547,7 +1559,7 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
                     else if (studentAnswerList[i] == "0") {
                         table.rows[j].cells[2].getElementsByTagName("input")[0].checked = true;
                     }
-                    else if (studentAnswerList[i] == "X") {
+                    else if (studentAnswerList[i] != "1" && studentAnswerList[i] != "0") {
                         table.rows[j].cells[1].getElementsByTagName("input")[0].checked = false;
                         table.rows[j].cells[2].getElementsByTagName("input")[0].checked = false;
                     }

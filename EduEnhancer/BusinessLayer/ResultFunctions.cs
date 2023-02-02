@@ -230,20 +230,6 @@ namespace BusinessLayer
         }
 
         /// <summary>
-        /// Updates test result's timestamp to current date
-        /// This is done after student logs out and then later returns to finish the test
-        /// </summary>
-        /// <param name="login">Student's login</param>
-        /// <param name="testTemplateId">Id of the test template</param>
-        public async Task UpdateTestResultTimeStamp(string login, int testTemplateId)
-        {
-            TestResult testResult = await GetTestResultDbSet().FirstAsync(t => t.StudentLogin == login
-                && t.TestTemplateId == testTemplateId);
-            testResult.TimeStamp = DateTime.Now;
-            await dataFunctions.SaveChangesAsync();
-        }
-
-        /// <summary>
         /// Updates subquestion result's student's points
         /// </summary>
         /// <param name="subquestionPoints">Subquestion template's points</param>
@@ -605,7 +591,7 @@ namespace BusinessLayer
             testResult.Student = student;
             testResult.StudentLogin = student.Login;
             testResult.OwnerLogin = testTemplate.OwnerLogin;
-            testResult.IsTestingData = false;
+            testResult.IsTestingData = student.IsTestingData;
             testResult.QuestionResults = new List<QuestionResult>();
 
             for(int i = 0; i < testTemplate.QuestionTemplates.Count; i++)
@@ -624,7 +610,6 @@ namespace BusinessLayer
                     SubquestionTemplate subquestionTemplate = questionTemplate.SubquestionTemplates.ElementAt(j);
                     SubquestionResult subquestionResult = new SubquestionResult();
                     subquestionResult.TestResultId = questionResult.TestResultId;
-                    subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
                     subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                     subquestionResult.OwnerLogin = testResult.OwnerLogin;
                     subquestionResult.StudentsAnswers = new string[0];

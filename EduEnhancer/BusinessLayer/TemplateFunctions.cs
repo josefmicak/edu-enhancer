@@ -1396,22 +1396,6 @@ namespace BusinessLayer
             teacher.IsTestingData = true;
             await dataFunctions.AddUser(teacher);
 
-            SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
-            subquestionTemplateStatistics.User = await dataFunctions.GetUserByLogin("nunittestingadmin");
-            subquestionTemplateStatistics.UserLogin = "nunittestingadmin";
-            subquestionTemplateStatistics.MachineLearningAccuracy = 0;
-            subquestionTemplateStatistics.NeuralNetworkAccuracy = 0;
-            subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = false;
-            await dataFunctions.AddSubquestionTemplateStatistics(subquestionTemplateStatistics);
-
-            SubquestionResultStatistics subquestionResultStatistics = new SubquestionResultStatistics();
-            subquestionResultStatistics.User = await dataFunctions.GetUserByLogin("nunittestingadmin");
-            subquestionResultStatistics.UserLogin = "nunittestingadmin";
-            subquestionResultStatistics.MachineLearningAccuracy = 0;
-            subquestionResultStatistics.NeuralNetworkAccuracy = 0;
-            subquestionResultStatistics.EnoughSubquestionResultsAdded = false;
-            await dataFunctions.AddSubquestionResultStatistics(subquestionResultStatistics);
-
             Student student = new Student();
             student.Login = "nunittestingstudent";
             student.Email = "EmailStudent";
@@ -1484,7 +1468,6 @@ namespace BusinessLayer
 
             SubquestionResult subquestionResult = new SubquestionResult();
             subquestionResult.QuestionResult = questionResult;
-            subquestionResult.QuestionTemplateId = subquestionResult.QuestionResult.QuestionTemplateId;
             subquestionResult.SubquestionTemplate = await GetSubquestionTemplateDbSet().FirstAsync(t => t.OwnerLogin == "nunittestingadmin");
             subquestionResult.SubquestionTemplateId = subquestionResult.SubquestionTemplate.SubquestionTemplateId;
             subquestionResult.OwnerLogin = subquestionResult.QuestionResult.OwnerLogin;
@@ -1507,7 +1490,7 @@ namespace BusinessLayer
         /// <summary>
         /// Deletes data that is used during NUnit tests - users, students, templates, results, statistics..
         /// </summary>
-        public async Task DeleteNUnitData()
+        public async Task<string> DeleteNUnitData()
         {
             Subject? subject = await GetSubjectDbSet().FirstOrDefaultAsync(s => s.Abbreviation == "POS" && s.IsTestingData == true);
             if(subject != null)
@@ -1538,6 +1521,8 @@ namespace BusinessLayer
             {
                 await dataFunctions.DeleteStudent(student);
             }
+
+            return "NUnit data byla úspěšně odebrána.";
         }
     }
 }

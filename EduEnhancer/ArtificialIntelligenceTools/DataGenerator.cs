@@ -510,7 +510,6 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
                         subquestionResult.TestResultId = questionResult.TestResultId;
-                        subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
                         subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
                         subquestionResult.StudentsAnswers = CreateStudentsAnswers(subquestionTemplate, random);
@@ -615,8 +614,6 @@ namespace ArtificialIntelligenceTools
                         subquestionResult.SubquestionTemplate = subquestionTemplate;
                         subquestionResult.QuestionResult = questionResult;
                         subquestionResult.TestResultId = questionResult.TestResultId;
-                        subquestionResult.QuestionTemplateId = questionResult.QuestionTemplateId;
-                        subquestionResult.SubquestionTemplateId = subquestionTemplate.SubquestionTemplateId;
                         subquestionResult.OwnerLogin = questionResult.OwnerLogin;
                         subquestionResult.StudentsAnswers = CreateStudentsAnswers(subquestionTemplate, random);
                         (double defaultStudentsPoints, double answerCorrectness, EnumTypes.AnswerStatus answerCorrect) = CommonFunctions.CalculateStudentsAnswerAttributes(

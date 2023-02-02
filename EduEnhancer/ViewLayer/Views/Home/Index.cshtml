@@ -54,16 +54,7 @@
                     @{
                         foreach(Student item in Model.Students)
                         {
-                            string email = "";
-                            if(item.Email != null)
-                            {
-                                email = item.Email;
-                            }
-                            else
-                            {
-                                email = "<nevyplněno>";
-                            }
-                            <option value="@item.Login">Email: @email, Login: @item.Login</option>
+                            <option value="@item.Login">Email: @item.Email, Login: @item.Login</option>
                         }
                     }
                     </optgroup>

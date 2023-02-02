@@ -292,6 +292,11 @@ namespace BusinessLayer
             return await templateFunctions.CreateNUnitData();
         }
 
+        public async Task<string> DeleteNUnitData()
+        {
+            return await templateFunctions.DeleteNUnitData();
+        }
+
         //ResultFunctions.cs
 
         public DbSet<TestResult> GetTestResultDbSet()
@@ -447,12 +452,6 @@ namespace BusinessLayer
         {
             TestResult testResult = await GetTestResult(testResultId);
             return resultFunctions.GetTestResultPointsSum(testResult);
-        }
-
-        public async Task UpdateTestResultTimeStamp(int testTemplateId)
-        {
-            string login = GetCurrentUserLogin();
-            await resultFunctions.UpdateTestResultTimeStamp(login, testTemplateId);
         }
 
         public async Task GenerateResultsFile()
@@ -672,6 +671,11 @@ namespace BusinessLayer
         public void SetStudentSubquestionResultId(int subquestionResultId)
         {
             otherFunctions.SetStudentSubquestionResultId(subquestionResultId.ToString());
+        }
+
+        public async Task DeleteTestingData()
+        {
+            await otherFunctions.DeleteTestingData();
         }
     }
 }

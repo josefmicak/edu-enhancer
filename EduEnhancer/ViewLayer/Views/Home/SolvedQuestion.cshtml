@@ -105,14 +105,14 @@
     </div>
 
     <div id="solved-subquestion-template" class="panel panel-medium">
-        <div class="panel-title panel-content">Parametry podotázky</div>
+        <div class="panel-title panel-content">Parametry otázky</div>
         <table class="panel-table">
             <tr>
-                <th>Typ podotázky</th>
+                <th>Typ otázky</th>
                 <td>@ViewBag.SubquestionTypeTextArray[@Convert.ToInt32(subquestionTemplate.SubquestionType)]</td>
             </tr>
             <tr>
-                <th>Počet bodů za podotázku</th>
+                <th>Počet bodů za otázku</th>
                 <td>@studentsSubquestionPoints</td>
             </tr>
             @{
@@ -123,7 +123,7 @@
                 }
             }
             <tr>
-                <th>Text podotázky</th>
+                <th>Text otázky</th>
                 <td>@subquestionTemplate.SubquestionText</td>
             </tr>
             <tr>

@@ -1305,6 +1305,11 @@ namespace ViewLayer.Controllers
                 string message = await businessLayerFunctions.CreateNUnitData();
                 TempData["Message"] = message;
             }
+            else if (action == "deleteNUnitData")
+            {
+                string message = await businessLayerFunctions.DeleteNUnitData();
+                TempData["Message"] = message;
+            }
 
             return RedirectToAction(nameof(GlobalSettings));
         }
@@ -1347,7 +1352,7 @@ namespace ViewLayer.Controllers
             else if (action == "deleteSubquestionTemplateTestingData")
             {
                 await businessLayerFunctions.DeleteTemplateTestingData();
-                TempData["Message"] = "Testovací data úspěšně vymazány.";
+                TempData["Message"] = "Testovací data úspěšně vymazána.";
             }
             else if (action == "addSubquestionResultRandomData" || action == "addSubquestionResultCorrelationalData")
             {
@@ -1356,11 +1361,16 @@ namespace ViewLayer.Controllers
             else if (action == "deleteSubquestionResultTestingData")
             {
                 await businessLayerFunctions.DeleteResultTestingData();
-                TempData["Message"] = "Testovací data úspěšně vymazány.";
+                TempData["Message"] = "Testovací data úspěšně vymazána.";
             }
             else if (action == "getDeviceName")
             {
                 TempData["DeviceName"] = businessLayerFunctions.GetAIDeviceName();
+            }
+            else if (action == "deleteTestingData")
+            {
+                await businessLayerFunctions.DeleteTestingData();
+                TempData["Message"] = "Všechna testovací data úspěšně vymazána.";
             }
 
             return RedirectToAction(nameof(ManageArtificialIntelligence));
@@ -1833,7 +1843,6 @@ namespace ViewLayer.Controllers
                 errorMessage = await businessLayerFunctions.CanStudentAccessTest(int.Parse(testTemplateId));
                 if(errorMessage == "Pokus probíhá.")
                 {
-                    await businessLayerFunctions.UpdateTestResultTimeStamp(int.Parse(testTemplateId));
                     return RedirectToAction("SolveQuestion", "Home");
                 }
                 if(errorMessage == null)
