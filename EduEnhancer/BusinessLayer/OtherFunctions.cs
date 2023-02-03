@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using ArtificialIntelligenceTools;
 using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLayer
 {
@@ -102,42 +103,6 @@ namespace BusinessLayer
         public string GetGoogleClientId()
         {
             return _configuration["Authentication:Google:ClientId"];
-        }
-
-        /// <summary>
-        /// Returns login of currently logged in user
-        /// </summary>
-        public string GetCurrentUserLogin()
-        {
-            return Config.Application["login"];
-        }
-
-        /// <summary>
-        /// Sets user's login after he connects using OAuth 2.0 (in case he's previously made an account)
-        /// </summary>
-        public void SetCurrentUserLogin(string login)
-        {
-            Config.Application["login"] = login;
-        }
-
-        /// <summary>
-        /// Returns ID of subquestion result that the student is solving
-        /// </summary>
-        public string? GetStudentSubquestionResultId()
-        {
-            if (Config.Application.TryGetValue("subquestionResultId", out _))
-            {
-                return Config.Application["subquestionResultId"];
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Sets ID of subquestion result that the student is solving
-        /// </summary>
-        public void SetStudentSubquestionResultId(string subquestionResultId)
-        {
-            Config.Application["subquestionResultId"] = subquestionResultId;
         }
 
         public async Task DeleteTestingData()

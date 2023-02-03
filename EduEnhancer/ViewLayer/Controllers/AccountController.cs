@@ -94,16 +94,16 @@ namespace ViewLayer.Controllers
             {
                 string fullName = claimsIdentity.Claims.ToList()[1].Value;
                 string[] fullNameSplitBySpace = fullName.Split(" ");
-                Config.Application["firstName"] = fullNameSplitBySpace[0];
-                Config.Application["lastName"] = fullNameSplitBySpace[1];
-                Config.Application["email"] = claimsIdentity.Claims.ToList()[2].Value;
+                HttpContext.Session.SetString("firstName", fullNameSplitBySpace[0]);
+                HttpContext.Session.SetString("lastName", fullNameSplitBySpace[1]);
+                HttpContext.Session.SetString("email", claimsIdentity.Claims.ToList()[2].Value);
                 return RedirectToAction("UserRegistration", "Home");
             }
             else
             {
                 if(user != null)
                 {
-                    Config.Application["login"] = user.Login;
+                    HttpContext.Session.SetString("login", user.Login);
                     switch (user.Role)
                     {
                         case EnumTypes.Role.Teacher:
@@ -118,7 +118,7 @@ namespace ViewLayer.Controllers
                 }
                 else if(student != null)
                 {
-                    Config.Application["login"] = student.Login;
+                    HttpContext.Session.SetString("login", student.Login);
                     return RedirectToAction("StudentMenu", "Home");
                 }
                 //throw an exception in case no user or student with this email exists

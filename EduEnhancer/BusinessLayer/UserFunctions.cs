@@ -124,7 +124,6 @@ namespace BusinessLayer
             mainAdmin.Email = email;
             mainAdmin.Login = login;
             mainAdmin.Role = EnumTypes.Role.MainAdmin;
-            Config.Application["login"] = login;
             await dataFunctions.AddUser(mainAdmin);
 
             SubquestionTemplateStatistics subquestionTemplateStatistics = new SubquestionTemplateStatistics();
@@ -407,43 +406,6 @@ namespace BusinessLayer
         {
             dataFunctions.ExecuteSqlRaw("delete from UserRegistration");
             await dataFunctions.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Checks whether the user can access the page (each page has a minimum required role to be accessed)
-        /// </summary>
-        /// <param name="requiredRole">Minimum required role, users with a lower role cannot access the page</param>
-        public async Task<bool> CanUserAccessPage(EnumTypes.Role requiredRole)
-        {
-            if (Config.TestingMode)//in case the testing mode is on, no authentication is required at all
-            {
-                return true;
-            }
-
-            string login = Config.Application["login"];
-            var user = await GetUserByLoginNullable(login);
-            var student = await GetStudentByLoginNullable(login);
-
-            if (requiredRole > EnumTypes.Role.Student)//staff member
-            {
-                if (user == null)
-                {
-                    return false;
-                }
-                if (user.Role < requiredRole)
-                {
-                    return false;
-                }
-                return true;
-            }
-            else//student
-            {
-                if (student == null)
-                {
-                    return false;
-                }
-                return true;
-            }
         }
 
         /// <summary>

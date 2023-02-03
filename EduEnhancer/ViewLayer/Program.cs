@@ -36,6 +36,13 @@ services.AddServerSideBlazor();
 // Add services to the container.
 services.AddControllersWithViews();
 
+services.AddSession(options =>
+{
+    options.Cookie.Name = ".AdventureWorks.Session";
+    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 var supportedCultures = new[]
@@ -69,6 +76,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSession();
 
 app.UseEndpoints(endpoints => endpoints.MapBlazorHub());
 

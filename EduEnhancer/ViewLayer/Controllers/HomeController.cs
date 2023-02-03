@@ -75,7 +75,7 @@ namespace ViewLayer.Controllers
             User? user = await businessLayerFunctions.GetUserByLoginNullable(selectedUserLogin);
             Student? student = await businessLayerFunctions.GetStudentByLoginNullable(selectedUserLogin);
 
-            businessLayerFunctions.SetCurrentUserLogin(selectedUserLogin);
+            SetCurrentUserLogin(selectedUserLogin);
             if (user != null)
             {
                 return RedirectToAction("TestingModeLogin", "Account", new {name = user.FullName(), email = user.Email });
@@ -88,14 +88,67 @@ namespace ViewLayer.Controllers
             throw Exceptions.UserNotFoundException(selectedUserLogin);
         }
 
+        /// <summary>
+        /// Returns login of currently logged in user
+        /// </summary>
+        public string GetCurrentUserLogin()
+        {
+            return HttpContext.Session.GetString("login");
+        }
+
+        /// <summary>
+        /// Sets user's login after he connects using OAuth 2.0 (in case he's previously made an account)
+        /// </summary>
+        public void SetCurrentUserLogin(string login)
+        {
+            HttpContext.Session.SetString("login", login);
+        }
+
+        /// <summary>
+        /// Checks whether the user can access the page (each page has a minimum required role to be accessed)
+        /// </summary>
+        /// <param name="requiredRole">Minimum required role, users with a lower role cannot access the page</param>
+        public async Task<bool> CanUserAccessPage(EnumTypes.Role requiredRole)
+        {
+            if (Config.TestingMode)//in case the testing mode is on, no authentication is required at all
+            {
+                return true;
+            }
+
+            string login = GetCurrentUserLogin();
+            var user = await businessLayerFunctions.GetUserByLoginNullable(login);
+            var student = await businessLayerFunctions.GetStudentByLoginNullable(login);
+
+            if (requiredRole > EnumTypes.Role.Student)//staff member
+            {
+                if (user == null)
+                {
+                    return false;
+                }
+                if (user.Role < requiredRole)
+                {
+                    return false;
+                }
+                return true;
+            }
+            else//student
+            {
+                if (student == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
         public async Task<IActionResult> TestTemplateList()
         {
-            if (! await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user.Role == EnumTypes.Role.Teacher)
             {
@@ -124,21 +177,20 @@ namespace ViewLayer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TestTemplateList(string action, string testTemplateId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             if(action == "deleteAllTemplates")
             {
-                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplates();
+                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplates(GetCurrentUserLogin());
             }
             else if(action == "deleteTemplate")
             {
-                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplate(int.Parse(testTemplateId), _environment.WebRootPath);
+                TempData["Message"] = await businessLayerFunctions.DeleteTestTemplate(int.Parse(testTemplateId), _environment.WebRootPath, GetCurrentUserLogin());
             }
             return RedirectToAction(nameof(TestTemplateList));
         }
 
         public async Task<IActionResult> TestTemplate(string testTemplateId)
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -172,24 +224,23 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> TestTemplate(string action, string testTemplateId, string questionTemplateId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             string? testDifficultyMessage = null;
             string? message = null;
 
             TestTemplate testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
             if (action == "getDifficultyPrediction")
             {
-                testDifficultyMessage = await businessLayerFunctions.GetTestDifficultyPrediction(login, int.Parse(testTemplateId));
+                testDifficultyMessage = await businessLayerFunctions.GetTestDifficultyPrediction(GetCurrentUserLogin(), int.Parse(testTemplateId));
             }
             else if (action == "deleteQuestionTemplate")
             {
-                if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
+                if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate, GetCurrentUserLogin()))
                 {
                     message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
                 }
                 else
                 {
-                    message = await businessLayerFunctions.DeleteQuestionTemplate(int.Parse(questionTemplateId), _environment.WebRootPath);
+                    message = await businessLayerFunctions.DeleteQuestionTemplate(int.Parse(questionTemplateId), _environment.WebRootPath, GetCurrentUserLogin());
                 }
             }
 
@@ -200,7 +251,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> QuestionTemplate(string questionTemplateId, string subquestionTemplateId)
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -283,12 +334,12 @@ namespace ViewLayer.Controllers
             {
                 SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
                 subquestionTemplate.SubquestionTemplateId = int.Parse(subquestionTemplateId);
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, true);
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, true, GetCurrentUserLogin());
             }
             else if (action == "editSubquestionTemplate")
             {
                 QuestionTemplate questionTemplate = await businessLayerFunctions.GetQuestionTemplate(int.Parse(questionTemplateId));
-                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate, GetCurrentUserLogin()))
                 {
                     message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
                 }
@@ -300,13 +351,13 @@ namespace ViewLayer.Controllers
             else if (action == "deleteSubquestionTemplate")
             {
                 QuestionTemplate questionTemplate = await businessLayerFunctions.GetQuestionTemplate(int.Parse(questionTemplateId));
-                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate, GetCurrentUserLogin()))
                 {
                     message = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
                 }
                 else
                 {
-                    message = await businessLayerFunctions.DeleteSubquestionTemplate(int.Parse(subquestionTemplateId), _environment.WebRootPath);
+                    message = await businessLayerFunctions.DeleteSubquestionTemplate(int.Parse(subquestionTemplateId), _environment.WebRootPath, GetCurrentUserLogin());
                 }
             }
             else if(action == "previousSubquestion" || action == "nextSubquestion")
@@ -321,12 +372,12 @@ namespace ViewLayer.Controllers
         
         public async Task<IActionResult> ManageSolvedTestList()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user.Role == EnumTypes.Role.Teacher)
             {
@@ -355,21 +406,20 @@ namespace ViewLayer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManageSolvedTestList(string action, string testResultId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             if(action == "deleteAllResults")
             {
-                TempData["Message"] = await businessLayerFunctions.DeleteTestResults();
+                TempData["Message"] = await businessLayerFunctions.DeleteTestResults(GetCurrentUserLogin());
             }
             else if(action == "deleteResult")
             {
-                TempData["Message"] = await businessLayerFunctions.DeleteTestResult(int.Parse(testResultId));
+                TempData["Message"] = await businessLayerFunctions.DeleteTestResult(int.Parse(testResultId), GetCurrentUserLogin());
             }
             return RedirectToAction(nameof(ManageSolvedTestList));
         }
 
         public async Task<IActionResult> ManageSolvedTest(string testResultId)
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -380,7 +430,7 @@ namespace ViewLayer.Controllers
                 return RedirectToAction(nameof(ManageSolvedTestList));
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
 
             List<QuestionResult> questionResults = await businessLayerFunctions.GetQuestionResults(int.Parse(testResultId));
 
@@ -396,7 +446,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSolvedQuestion(string questionResultId, string subquestionResultId)
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
@@ -465,7 +515,6 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> ManageSolvedQuestion(string action, string questionResultId, string subquestionResultId,
             string studentsPoints, string subquestionPoints, string negativePoints, string subquestionType, string currentSubquestionResultId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             string? message = null;
             if (action == "setPoints") 
             { 
@@ -476,7 +525,7 @@ namespace ViewLayer.Controllers
 
                     if (subquestionResult != null)
                     {
-                        message = await businessLayerFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult);
+                        message = await businessLayerFunctions.SetSubquestionResultPoints(subquestionPoints, studentsPoints, negativePoints, subquestionResult, GetCurrentUserLogin());
                     }
                 }
             }
@@ -498,7 +547,7 @@ namespace ViewLayer.Controllers
                     }
                     else
                     {
-                        TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(login, int.Parse(subquestionResultId));
+                        TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(GetCurrentUserLogin(), int.Parse(subquestionResultId));
                     }
                 }
             }
@@ -514,7 +563,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> BrowseSolvedTestList()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Student))
+            if (!await CanUserAccessPage(EnumTypes.Role.Student))
             {
                 return AccessDeniedAction();
             }
@@ -524,7 +573,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             dynamic model = new ExpandoObject();
             model.TestResults = await businessLayerFunctions.GetFinishedTestResultsByStudentLogin(login);
             model.Student = await businessLayerFunctions.GetStudentByLogin(login);
@@ -535,7 +584,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> SolvedQuestion(string testResultId, int questionNr)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             TestResult testResult = await businessLayerFunctions.GetTestResult(int.Parse(testResultId));
             List<(int, AnswerStatus)> subquestionResultsPropertiesFinished = businessLayerFunctions.GetSubquestionResultsPropertiesFinished(testResult);
             SubquestionResult subquestionResult = new SubquestionResult();
@@ -614,9 +663,9 @@ namespace ViewLayer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> UserRegistration()
         {
-            ViewBag.firstName = Config.Application["firstName"];
-            ViewBag.lastName = Config.Application["lastName"];
-            ViewBag.email = Config.Application["email"];
+            ViewBag.firstName = HttpContext.Session.GetString("firstName");
+            ViewBag.lastName = HttpContext.Session.GetString("lastName");
+            ViewBag.email = HttpContext.Session.GetString("email");
             ViewBag.message = TempData["message"];
 
             if(businessLayerFunctions.GetUserDbSet().Count() == 0)
@@ -624,7 +673,7 @@ namespace ViewLayer.Controllers
                 ViewBag.firstRegistrationMessage = "Po zaregistrování vám bude automaticky vytvořen účet hlavního administrátora.";
             }
 
-            List<UserRegistration> userRegistrations = await businessLayerFunctions.GetUserRegistrations(Config.Application["email"]);
+            List<UserRegistration> userRegistrations = await businessLayerFunctions.GetUserRegistrations(HttpContext.Session.GetString("email"));
             return businessLayerFunctions.GetUserRegistrationDbSet() != null ?
             View(userRegistrations) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
@@ -633,7 +682,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> UserRegistration(string firstName, string lastName, string login, string role)
         {
-            string email = Config.Application["email"];
+            string email = HttpContext.Session.GetString("email");
             if(businessLayerFunctions.GetUserDbSet().Count() == 0)
             {
                 if (firstName == null || lastName == null || login == null || email == null)
@@ -644,6 +693,7 @@ namespace ViewLayer.Controllers
                 else
                 {
                     await businessLayerFunctions.RegisterMainAdmin(firstName, lastName, email, login);
+                    SetCurrentUserLogin(login);
                     return RedirectToAction(nameof(MainAdminMenu));
                 }
             }
@@ -656,7 +706,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserList()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            if (!await CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -950,7 +1000,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserListForAdmin()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Admin))
+            if (!await CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1127,7 +1177,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationList()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            if (!await CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1186,7 +1236,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageUserRegistrationListForAdmin()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Admin))
+            if (!await CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
@@ -1240,12 +1290,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> TeacherMenu()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Teacher))
+            if (!await CanUserAccessPage(EnumTypes.Role.Teacher))
             {
                 return AccessDeniedAction();
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             return businessLayerFunctions.GetUserDbSet() != null ?
                 View(await businessLayerFunctions.GetUserDbSet().FirstOrDefaultAsync(u => u.Login == login)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
@@ -1253,12 +1303,12 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> AdminMenu()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.Admin))
+            if (!await CanUserAccessPage(EnumTypes.Role.Admin))
             {
                 return AccessDeniedAction();
             }
 
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             return businessLayerFunctions.GetUserDbSet() != null ?
                 View(await businessLayerFunctions.GetUserDbSet().FirstOrDefaultAsync(u => u.Login == login)) :
                 Problem("Entity set 'CourseContext.Users'  is null.");
@@ -1266,7 +1316,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> MainAdminMenu()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            if (!await CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1278,7 +1328,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> GlobalSettings()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            if (!await CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1316,7 +1366,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageArtificialIntelligence()
         {
-            if (!await businessLayerFunctions.CanUserAccessPage(EnumTypes.Role.MainAdmin))
+            if (!await CanUserAccessPage(EnumTypes.Role.MainAdmin))
             {
                 return AccessDeniedAction();
             }
@@ -1392,7 +1442,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> AddTestTemplate(TestTemplate testTemplate, string subjectId, string _)
         {
-            string message = await businessLayerFunctions.AddTestTemplate(testTemplate, subjectId);
+            string message = await businessLayerFunctions.AddTestTemplate(testTemplate, subjectId, GetCurrentUserLogin());
             TempData["Message"] = message;
             if(message == "Zadání testu bylo úspěšně přidáno.")
             {
@@ -1412,7 +1462,7 @@ namespace ViewLayer.Controllers
             }
 
             TestTemplate testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
-            if (businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
+            if (businessLayerFunctions.CanUserEditTestTemplate(testTemplate, GetCurrentUserLogin()))
             {
                 dynamic model = new ExpandoObject();
                 model.TestTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
@@ -1429,7 +1479,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> EditTestTemplate(TestTemplate testTemplate, string subjectId)
         {
-            string message = await businessLayerFunctions.EditTestTemplate(testTemplate, subjectId);
+            string message = await businessLayerFunctions.EditTestTemplate(testTemplate, subjectId, GetCurrentUserLogin());
             TempData["Message"] = message;
             if (message == "Zadání testu bylo úspěšně upraveno.")
             {
@@ -1444,7 +1494,7 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> AddQuestionTemplate(string testTemplateId)
         {
             TestTemplate testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
-            if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate))
+            if (!businessLayerFunctions.CanUserEditTestTemplate(testTemplate, GetCurrentUserLogin()))
             {
                 TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
                 return RedirectToAction("TestTemplate", "Home", new { testTemplateId = testTemplateId });
@@ -1463,7 +1513,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> AddQuestionTemplate(QuestionTemplate questionTemplate, string testTemplateId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             questionTemplate.OwnerLogin = login;
             questionTemplate.TestTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
             string message = await businessLayerFunctions.AddQuestionTemplate(questionTemplate);
@@ -1485,7 +1535,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
             QuestionTemplate questionTemplate = await businessLayerFunctions.GetQuestionTemplate(int.Parse(questionTemplateId));
-            if (businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+            if (businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate, GetCurrentUserLogin()))
             {
                 return View(questionTemplate);
             }
@@ -1499,10 +1549,10 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> EditQuestionTemplate(QuestionTemplate questionTemplate, string testTemplateId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             questionTemplate.OwnerLogin = login;
             questionTemplate.TestTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
-            string message = await businessLayerFunctions.EditQuestionTemplate(questionTemplate);
+            string message = await businessLayerFunctions.EditQuestionTemplate(questionTemplate, GetCurrentUserLogin());
             TempData["Message"] = message;
             if(message == "Zadání otázky bylo úspěšně upraveno.")
             {
@@ -1519,7 +1569,7 @@ namespace ViewLayer.Controllers
             if(questionTemplateId != null)
             {
                 QuestionTemplate questionTemplate = await businessLayerFunctions.GetQuestionTemplate(int.Parse(questionTemplateId));
-                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate))
+                if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate, GetCurrentUserLogin()))
                 {
                     TempData["Message"] = "Chyba: tento test nemůžete upravovat (nemáte oprávnění nebo již test začal).";
                     return RedirectToAction("QuestionTemplate", "Home", new { questionTemplateId = questionTemplateId });
@@ -1554,7 +1604,7 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> AddSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate,
             IFormFile image, string[] subquestionTextArray, string sliderValues)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             string message = string.Empty;
 
             if (action == "selectType")
@@ -1580,7 +1630,7 @@ namespace ViewLayer.Controllers
             {
                 subquestionTemplate.OwnerLogin = login;
                 subquestionTemplate.QuestionTemplate = await businessLayerFunctions.GetQuestionTemplate(subquestionTemplate.QuestionTemplateId);
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false);
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false, GetCurrentUserLogin());
             }
 
             TempData["Message"] = message;
@@ -1621,7 +1671,7 @@ namespace ViewLayer.Controllers
             {
                 ViewBag.SuggestedSubquestionPoints = TempData["SuggestedSubquestionPoints"]!.ToString();
             }
-            if (businessLayerFunctions.CanUserEditTestTemplate(subquestionTemplate.QuestionTemplate.TestTemplate))
+            if (businessLayerFunctions.CanUserEditTestTemplate(subquestionTemplate.QuestionTemplate.TestTemplate, GetCurrentUserLogin()))
             {
                 return View(subquestionTemplate);
             }
@@ -1636,12 +1686,11 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> EditSubquestionTemplate(string action, SubquestionTemplate subquestionTemplate,
             IFormFile image, string[] subquestionTextArray, string sliderValues)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             string message = string.Empty;
 
             if (action == "editSubquestion")
             {
-                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.OwnerLogin = GetCurrentUserLogin();
                 subquestionTemplate.QuestionTemplate = await businessLayerFunctions.GetQuestionTemplate(subquestionTemplate.QuestionTemplateId);
 
                 (subquestionTemplate, string? errorMessage) = businessLayerFunctions.ValidateSubquestionTemplate(subquestionTemplate, subquestionTextArray, sliderValues, image);
@@ -1651,14 +1700,14 @@ namespace ViewLayer.Controllers
                 }
                 else
                 {
-                    message = await businessLayerFunctions.EditSubquestionTemplate(subquestionTemplate, image, _environment.WebRootPath);
+                    message = await businessLayerFunctions.EditSubquestionTemplate(subquestionTemplate, image, _environment.WebRootPath, GetCurrentUserLogin());
                 }
             }
             else if (action == "getPointsSuggestion")
             {
-                subquestionTemplate.OwnerLogin = login;
+                subquestionTemplate.OwnerLogin = GetCurrentUserLogin();
                 subquestionTemplate.QuestionTemplate = await businessLayerFunctions.GetQuestionTemplate(subquestionTemplate.QuestionTemplateId);
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false);
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false, GetCurrentUserLogin());
             }
 
             TempData["Message"] = message;
@@ -1682,7 +1731,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> ManageSubjects()
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             ViewBag.login = login;
             User user = await businessLayerFunctions.GetUserByLogin(login);
             if (user != null)
@@ -1717,7 +1766,7 @@ namespace ViewLayer.Controllers
         {
             if(action == "deleteSubject")
             {
-                string message = await businessLayerFunctions.DeleteSubject(int.Parse(subjectId));
+                string message = await businessLayerFunctions.DeleteSubject(int.Parse(subjectId), GetCurrentUserLogin());
                 TempData["Message"] = message;
                 return RedirectToAction(nameof(ManageSubjects));
             }
@@ -1740,7 +1789,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> AddSubject(Subject subject, string[] enrolledStudentLogin)
         {
-            string message = await businessLayerFunctions.AddSubject(subject, enrolledStudentLogin);
+            string message = await businessLayerFunctions.AddSubject(subject, enrolledStudentLogin, GetCurrentUserLogin());
             TempData["Message"] = message;
             return RedirectToAction(nameof(ManageSubjects));
         }
@@ -1765,7 +1814,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> EditSubject(Subject subject, string[] enrolledStudentLogin)
         {
-            string message = await businessLayerFunctions.EditSubject(subject, enrolledStudentLogin);
+            string message = await businessLayerFunctions.EditSubject(subject, enrolledStudentLogin, GetCurrentUserLogin());
             TempData["Message"] = message;
             if(message == "Předmět byl úspěšně upraven.")
             {
@@ -1779,7 +1828,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> StudentMenu()
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
 
             if (TempData["Message"] != null)
             {
@@ -1793,7 +1842,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> StudentAvailableTestList()
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             return businessLayerFunctions.GetTestTemplateDbSet() != null ?
                 View(await businessLayerFunctions.GetStudentAvailableTestList(login)) :
                 Problem("Entity set 'CourseContext.TestTemplates'  is null.");
@@ -1801,7 +1850,7 @@ namespace ViewLayer.Controllers
         
         public async Task<IActionResult> StudentAvailableTest(string testTemplateId)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
+            string login = GetCurrentUserLogin();
             TestTemplate testTemplate = new TestTemplate();
             string? errorMessage;
 
@@ -1810,7 +1859,7 @@ namespace ViewLayer.Controllers
                 ViewBag.Message = TempData["Message"]!.ToString();
             }
 
-            errorMessage = await businessLayerFunctions.CanStudentAccessTest(int.Parse(testTemplateId));
+            errorMessage = await businessLayerFunctions.CanStudentAccessTest(int.Parse(testTemplateId), GetCurrentUserLogin());
             if (errorMessage == null || errorMessage == "Pokus probíhá.")
             {
                 testTemplate = await businessLayerFunctions.GetTestTemplate(int.Parse(testTemplateId));
@@ -1840,14 +1889,14 @@ namespace ViewLayer.Controllers
             string? errorMessage;
             if (action == "beginAttempt")
             {
-                errorMessage = await businessLayerFunctions.CanStudentAccessTest(int.Parse(testTemplateId));
+                errorMessage = await businessLayerFunctions.CanStudentAccessTest(int.Parse(testTemplateId), GetCurrentUserLogin());
                 if(errorMessage == "Pokus probíhá.")
                 {
                     return RedirectToAction("SolveQuestion", "Home");
                 }
                 if(errorMessage == null)
                 {
-                    errorMessage = await businessLayerFunctions.BeginStudentAttempt(int.Parse(testTemplateId));
+                    errorMessage = await businessLayerFunctions.BeginStudentAttempt(int.Parse(testTemplateId), GetCurrentUserLogin());
                 }
             }
             else
@@ -1867,8 +1916,7 @@ namespace ViewLayer.Controllers
 
         public async Task<IActionResult> SolveQuestion(int questionNr)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
-            TestResult testResult = await businessLayerFunctions.LoadLastStudentAttempt();
+            TestResult testResult = await businessLayerFunctions.LoadLastStudentAttempt(GetCurrentUserLogin());
             List<(int, AnswerCompleteness)> subquestionResultsProperties = businessLayerFunctions.GetSubquestionResultsProperties(testResult);
             SubquestionResult subquestionResult = new SubquestionResult();
 
@@ -1878,8 +1926,8 @@ namespace ViewLayer.Controllers
             }
 
             //the user has just started the attempt - the very first subquestion is shown to him then
-            if (businessLayerFunctions.GetStudentSubquestionResultId() == null 
-                || !subquestionResultsProperties.Any(s => s.Item1 == int.Parse(businessLayerFunctions.GetStudentSubquestionResultId())))
+            if (GetStudentSubquestionResultId() == null 
+                || !subquestionResultsProperties.Any(s => s.Item1 == GetStudentSubquestionResultId()))
             {
                 for (int i = 0; i < testResult.QuestionResults.Count; i++)
                 {
@@ -1892,7 +1940,7 @@ namespace ViewLayer.Controllers
                         break;
                     }
                 }
-                businessLayerFunctions.SetStudentSubquestionResultId(subquestionResult.SubquestionResultId);
+                SetStudentSubquestionResultId(subquestionResult.SubquestionResultId);
 
                 ViewBag.SubquestionsCount = subquestionResultsProperties.Count;
                 ViewBag.SubquestionResultIdIndex = 0;
@@ -1909,7 +1957,7 @@ namespace ViewLayer.Controllers
                 {
                     newSubquestionResultId = subquestionResultsProperties[questionNr].Item1;
                 }
-                businessLayerFunctions.SetStudentSubquestionResultId(newSubquestionResultId);
+                SetStudentSubquestionResultId(newSubquestionResultId);
 
                 for (int i = 0; i < testResult.QuestionResults.Count; i++)
                 {
@@ -1942,15 +1990,14 @@ namespace ViewLayer.Controllers
         public async Task<IActionResult> SolveQuestion(SubquestionResult subquestionResult, string newSubquestionResultIndex, int subquestionResultIndex, 
             string[] possibleAnswers, string action)
         {
-            string login = businessLayerFunctions.GetCurrentUserLogin();
             string? errorMessage;
-            (subquestionResult, errorMessage) = await businessLayerFunctions.ValidateSubquestionResult(subquestionResult, subquestionResultIndex, possibleAnswers);
+            (subquestionResult, errorMessage) = await businessLayerFunctions.ValidateSubquestionResult(subquestionResult, subquestionResultIndex, possibleAnswers, GetCurrentUserLogin());
             if(errorMessage != null)
             {
                 if(errorMessage == "Čas na odevdzání testu již vypršel. Test byl automaticky odevzdán.")
                 {
                     TempData["Message"] = errorMessage;
-                    await businessLayerFunctions.FinishStudentAttempt();
+                    await businessLayerFunctions.FinishStudentAttempt(GetCurrentUserLogin());
                     return RedirectToAction(nameof(BrowseSolvedTestList));
                 }
                 else
@@ -1961,10 +2008,10 @@ namespace ViewLayer.Controllers
             }
             else
             {
-                await businessLayerFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex);
+                await businessLayerFunctions.UpdateSubquestionResultStudentsAnswers(subquestionResult, subquestionResultIndex, GetCurrentUserLogin());
                 if(action == "turnTestIn")
                 {
-                    await businessLayerFunctions.FinishStudentAttempt();
+                    await businessLayerFunctions.FinishStudentAttempt(GetCurrentUserLogin());
                     TempData["Message"] = "Test byl odevdzán.";
                     return RedirectToAction("StudentMenu", "Home", new { questionNr = newSubquestionResultIndex });
                 }
@@ -1973,6 +2020,22 @@ namespace ViewLayer.Controllers
                     return RedirectToAction("SolveQuestion", "Home", new { questionNr = newSubquestionResultIndex });
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns ID of subquestion result that the student is solving
+        /// </summary>
+        public int? GetStudentSubquestionResultId()
+        {
+            return HttpContext.Session.GetInt32("subquestionResultId");
+        }
+
+        /// <summary>
+        /// Sets ID of subquestion result that the student is solving
+        /// </summary>
+        public void SetStudentSubquestionResultId(int subquestionResultId)
+        {
+            HttpContext.Session.SetInt32("subquestionResultId", subquestionResultId);
         }
 
         public IActionResult AccessDeniedAction()
