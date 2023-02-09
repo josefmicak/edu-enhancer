@@ -170,7 +170,7 @@ namespace ArtificialIntelligenceTools
                     break;
                 }
             }
-            subquestionTemplateRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == null) ? false : true);
+            subquestionTemplateRecord.WrongChoicePointsShare = Math.Round((double)(subquestionTemplate.WrongChoicePoints / subquestionTemplate.DefaultWrongChoicePoints), 2);
             subquestionTemplateRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionTemplateRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionTemplateRecord.SubquestionPoints = Math.Round(subquestionTemplate.SubquestionPoints, 2);
@@ -280,8 +280,9 @@ namespace ArtificialIntelligenceTools
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
                             Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
-                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
-                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        double defaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        subquestionTemplate.DefaultWrongChoicePoints = defaultWrongChoicePoints;
+                        subquestionTemplate.WrongChoicePoints = Math.Round(random.NextDouble() * defaultWrongChoicePoints, 2);
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
 
@@ -413,7 +414,7 @@ namespace ArtificialIntelligenceTools
                         subquestionPoints += subquestionPointsByTypeArray[subquestionType];
                         subquestionPoints += correctAnswersShare * (-2);//correctAnswersShare modifier
                         subquestionPoints += subquestionPointsBySubjectArray[subject];//subjectAveragePoints modifier
-                        //containsImage variable is not correlational
+                        //wrongChoicePoints variable is not correlational
                         subquestionPoints += negativePointsArray[negativePoints - 1];//negativePoints modifier
                         subquestionPoints += ((double)minimumPointsShare / 100) * 4;//minimumPointsShare modifier
 
@@ -425,8 +426,9 @@ namespace ArtificialIntelligenceTools
                         subquestionTemplate.QuestionTemplate = questionTemplate;
                         subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
                             Math.Round(Convert.ToDouble(subquestionPoints), 2), subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
-                        subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
-                        subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        double defaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+                        subquestionTemplate.DefaultWrongChoicePoints = defaultWrongChoicePoints;
+                        subquestionTemplate.WrongChoicePoints = Math.Round(random.NextDouble() * defaultWrongChoicePoints, 2);
                         subquestionTemplates.Add(subquestionTemplate);
                         subquestionCount++;
 
@@ -625,7 +627,7 @@ namespace ArtificialIntelligenceTools
                         studentsPoints += subquestionPointsByTypeArray[(int)subquestionTemplate.SubquestionType];//subquestionTypeAveragePoints modifier
                         int subjectIndex = subjectList.FindIndex(s => s.SubjectId == testTemplate.Subject.SubjectId);//subjectAveragePoints modifier
                         studentsPoints += subquestionPointsBySubjectArray[subjectIndex];//subjectAveragePoints modifier
-                        //containsImage variable is not correlational
+                        //wrongChoicePointsShare variable is not correlational
                         studentsPoints += negativePointsArray[((int)testTemplate.NegativePoints) - 1];//negativePoints modifier
                         studentsPoints += ((double)testTemplate.MinimumPoints / 100) * 4;//minimumPointsShare modifier
 
@@ -737,7 +739,7 @@ namespace ArtificialIntelligenceTools
                     break;
                 }
             }
-            subquestionResultRecord.ContainsImage = Convert.ToInt32((subquestionTemplate.ImageSource == null) ? false : true);
+            subquestionResultRecord.WrongChoicePointsShare = Math.Round((double)(subquestionTemplate.WrongChoicePoints / subquestionTemplate.DefaultWrongChoicePoints), 2);
             subquestionResultRecord.NegativePoints = Convert.ToInt32(testTemplate.NegativePoints);
             subquestionResultRecord.MinimumPointsShare = Math.Round(minimumPointsShare, 2);
             subquestionResultRecord.AnswerCorrectness = subquestionResult.AnswerCorrectness;

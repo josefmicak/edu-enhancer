@@ -117,7 +117,7 @@
                                     <td>@Html.DisplayFor(modelItem => item.Login)</td>
                                     <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                     <td><button type="button" onclick="showEditTeacherLabel('@item.Login', '@item.Email', '@item.FirstName', '@item.LastName')">Upravit učitele</button></td>
-                                    <td><button type="button" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
+                                    <td><button type="button" id="delete-@item.Login" onclick="showConfirmActionForm('deleteTeacher', null, null, '@item.Login', null, null, null)">Smazat učitele</button></td>
                                 </tr>
                             }
                         }

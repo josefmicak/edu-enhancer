@@ -11,6 +11,10 @@ namespace Common
         public static Exception SubquestionTemplateNotFoundException { get { return new Exception("Chyba: šablona podotázky nebyla nalezena."); } }
         public static Exception SubquestionResultNotFoundException { get { return new Exception("Chyba: výsledek podotázky nebyl nalezen."); } }
         public static Exception InvalidSubquestionResultIndexException { get { return new Exception("Chyba: neplatný index podotázky."); } }
+        public static Exception UserLoggedOutException()
+        {
+            return new Exception("Chyba: byl jste odhlášen (po 20 minutách neaktivity dojde k odhlášení).");
+        }
         public static Exception UserNotFoundException(string login)
         {
             return new Exception("Chyba: uživatel s loginem " + login + " nebyl nalezen.");

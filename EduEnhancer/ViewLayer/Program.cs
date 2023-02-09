@@ -39,7 +39,7 @@ services.AddControllersWithViews();
 services.AddSession(options =>
 {
     options.Cookie.Name = ".AdventureWorks.Session";
-    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
     options.Cookie.IsEssential = true;
 });
 

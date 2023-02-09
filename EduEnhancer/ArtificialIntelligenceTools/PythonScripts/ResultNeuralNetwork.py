@@ -44,7 +44,7 @@ def get_accuracy(y_test, y_test_pred):
     print(R2)
 
 
-def predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, contains_image,
+def predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, wrong_choice_points_share,
                 negative_points, minimum_points_share, df, model, duplicate_columns):
     final_tensor_values = list() #values from non-duplicate columns
 
@@ -74,12 +74,12 @@ def predict_new(subquestion_type_average_points, answer_correctness, subject_ave
         final_tensor_values.append(subject_average_points)
 
     if duplicate_columns[3] != 1:
-        contains_image_mean = df["ContainsImage"].mean()
-        contains_image_std = df["ContainsImage"].std()
-        if contains_image_std == 0:
-            contains_image_std = 0.01
-        contains_image = (contains_image - contains_image_mean) / contains_image_std
-        final_tensor_values.append(contains_image)
+        wrong_choice_points_share_mean = df["WrongChoicePointsShare"].mean()
+        wrong_choice_points_share_std = df["WrongChoicePointsShare"].std()
+        if wrong_choice_points_share_std == 0:
+            wrong_choice_points_share_std = 0.01
+        wrong_choice_points_share = (wrong_choice_points_share - wrong_choice_points_share_mean) / wrong_choice_points_share_std
+        final_tensor_values.append(wrong_choice_points_share)
 
     if duplicate_columns[4] != 1:
         negative_points_mean = df["NegativePoints"].mean()
@@ -206,10 +206,10 @@ def main(arguments):
             subquestion_type_average_points = locale.atof(arguments[5])
             answer_correctness = locale.atof(arguments[6])
             subject_average_points = locale.atof(arguments[7])
-            contains_image = locale.atof(arguments[8])
+            wrong_choice_points_share = locale.atof(arguments[8])
             negative_points = locale.atof(arguments[9])
             minimum_points_share = locale.atof(arguments[10])
-            predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, contains_image,
+            predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, wrong_choice_points_share,
                         negative_points, minimum_points_share, df, model, duplicate_columns)
 
 

@@ -277,7 +277,7 @@ namespace NUnitTests
                 "Předmět byl úspěšně upraven."
             },
 
-            //main editing a subject - subject successfully edited
+            //main admin editing a subject - subject successfully edited
             new object[] {
                 new Subject
                 {
@@ -442,7 +442,7 @@ namespace NUnitTests
             }
         };
 
-       /* [Test]
+        [Test]
         [TestCaseSource(nameof(_subjects))]
         public async Task EditSubjectTest(Subject subject, User user, string expectedResult)
         {
@@ -459,7 +459,7 @@ namespace NUnitTests
                 var result = await templateFunctions.EditSubject(subject, user);
                 Assert.That(result, Is.EqualTo(expectedResult));
             }
-        }*/
+        }
 
         private static readonly object[] _subquestionTemplates =
         {
@@ -523,7 +523,7 @@ namespace NUnitTests
             }
         };
 
-       /* [Test]
+        [Test]
         [TestCaseSource(nameof(_subquestionTemplates))]
         public async Task SubquestionTemplateSuggestionTest(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists, string expectedResult)
         {
@@ -545,7 +545,7 @@ namespace NUnitTests
                 var result = await templateFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, subquestionTemplateExists, true);
                 Assert.That(result, Is.EqualTo(expectedResult));
             }
-        }*/
+        }
 
         private static readonly object[] _subquestionResults =
         {
@@ -640,7 +640,7 @@ namespace NUnitTests
             }
         };
 
-       /* [Test]
+        [Test]
         [TestCaseSource(nameof(_subquestionResults))]
         public async Task UpdateStudentsAnswersTest(SubquestionResult subquestionResult, int subquestionResultIndex, Student student, string testTemplateTitle)
         {
@@ -685,6 +685,6 @@ namespace NUnitTests
                     Assert.That(subquestionResult_.StudentsAnswers, Is.EqualTo(subquestionResult.StudentsAnswers));
                 }
             }
-        }*/
+        }
     }
 }

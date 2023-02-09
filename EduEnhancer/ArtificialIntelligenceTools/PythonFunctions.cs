@@ -18,7 +18,7 @@ namespace ArtificialIntelligenceTools
         {
             string function = "predict_new";
             string[] arguments = new string[] { subquestionTemplateRecord.SubquestionTypeAveragePoints.ToString(), subquestionTemplateRecord.CorrectAnswersShare.ToString(),
-            subquestionTemplateRecord.SubjectAveragePoints.ToString(), subquestionTemplateRecord.ContainsImage.ToString(), subquestionTemplateRecord.NegativePoints.ToString(), subquestionTemplateRecord.MinimumPointsShare.ToString()};
+            subquestionTemplateRecord.SubjectAveragePoints.ToString(), subquestionTemplateRecord.WrongChoicePointsShare.ToString(), subquestionTemplateRecord.NegativePoints.ToString(), subquestionTemplateRecord.MinimumPointsShare.ToString()};
             string fileName;
             if(usedModel == EnumTypes.Model.MachineLearning)
             {
@@ -72,7 +72,7 @@ namespace ArtificialIntelligenceTools
         {
             string function = "predict_new";
             string[] arguments = new string[] { subquestionResultRecord.SubquestionTypeAveragePoints.ToString(), subquestionResultRecord.AnswerCorrectness.ToString(),
-            subquestionResultRecord.SubjectAveragePoints.ToString(), subquestionResultRecord.ContainsImage.ToString(), subquestionResultRecord.NegativePoints.ToString(), subquestionResultRecord.MinimumPointsShare.ToString()};
+            subquestionResultRecord.SubjectAveragePoints.ToString(), subquestionResultRecord.WrongChoicePointsShare.ToString(), subquestionResultRecord.NegativePoints.ToString(), subquestionResultRecord.MinimumPointsShare.ToString()};
             string fileName;
             if (usedModel == EnumTypes.Model.MachineLearning)
             {

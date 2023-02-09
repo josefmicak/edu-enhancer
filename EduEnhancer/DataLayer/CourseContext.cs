@@ -187,6 +187,7 @@ namespace DataLayer
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            //this option should only be enabled during development phase
             optionsBuilder.EnableSensitiveDataLogging();
         }
     }

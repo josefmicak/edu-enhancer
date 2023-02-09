@@ -942,7 +942,7 @@ namespace BusinessLayer
                 case SubquestionType.Slider:
                     if (subquestionResult.StudentsAnswers.Length > 1)
                     {
-                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1008";
+                        errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1006";
                     }
                     if (subquestionResult.StudentsAnswers[0] == "Nezodpovězeno")
                     {
@@ -953,7 +953,7 @@ namespace BusinessLayer
                         bool isNumber = int.TryParse(subquestionResult.StudentsAnswers[0], out _);
                         if (!isNumber)
                         {
-                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1009";
+                            errorMessage = "Při ukládání řešení otázky došlo k chybě. Řešení otázky nebylo uloženo. Kód chyby 1002";
                         }
                     }
                     break;

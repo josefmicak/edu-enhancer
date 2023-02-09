@@ -93,7 +93,14 @@ namespace ViewLayer.Controllers
         /// </summary>
         public string GetCurrentUserLogin()
         {
-            return HttpContext.Session.GetString("login");
+            if (HttpContext.Session.GetString("login") == null)
+            {
+                throw Exceptions.UserLoggedOutException();
+            }
+            else
+            {
+                return HttpContext.Session.GetString("login")!;
+            }
         }
 
         /// <summary>
@@ -665,7 +672,9 @@ namespace ViewLayer.Controllers
         {
             ViewBag.firstName = HttpContext.Session.GetString("firstName");
             ViewBag.lastName = HttpContext.Session.GetString("lastName");
-            ViewBag.email = HttpContext.Session.GetString("email");
+            string email = HttpContext.Session.GetString("email");
+            ViewBag.email = email;
+            HttpContext.Session.SetString("emailNew", email);
             ViewBag.message = TempData["message"];
 
             if(businessLayerFunctions.GetUserDbSet().Count() == 0)
@@ -673,7 +682,7 @@ namespace ViewLayer.Controllers
                 ViewBag.firstRegistrationMessage = "Po zaregistrování vám bude automaticky vytvořen účet hlavního administrátora.";
             }
 
-            List<UserRegistration> userRegistrations = await businessLayerFunctions.GetUserRegistrations(HttpContext.Session.GetString("email"));
+            List<UserRegistration> userRegistrations = await businessLayerFunctions.GetUserRegistrations(email);
             return businessLayerFunctions.GetUserRegistrationDbSet() != null ?
             View(userRegistrations) :
             Problem("Entity set 'CourseContext.UserRegistrations'  is null.");
@@ -682,7 +691,7 @@ namespace ViewLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> UserRegistration(string firstName, string lastName, string login, string role)
         {
-            string email = HttpContext.Session.GetString("email");
+            string email = HttpContext.Session.GetString("emailNew");
             if(businessLayerFunctions.GetUserDbSet().Count() == 0)
             {
                 if (firstName == null || lastName == null || login == null || email == null)

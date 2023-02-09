@@ -38,10 +38,10 @@ namespace NUnitTests
 
         private static readonly object[] _subquestionResultPoints =
 {
-            new object[] { "10.01", false, "Chyba: příliš vysoký počet bodů. Nejvyšší počet bodů, které může za tuto podotázku student obdržet, je 10."},
+            new object[] { "10,01", false, "Chyba: příliš vysoký počet bodů. Nejvyšší počet bodů, které může za tuto podotázku student obdržet, je 10."},
             new object[] { "10", true, "Studentův počet bodů byl úspěšně změněn."},
             new object[] { "-10", true, "Studentův počet bodů byl úspěšně změněn."},
-            new object[] { "-10.01", false, "Chyba: příliš nízký počet bodů. Nejnížší počet bodů, které může za tuto podotázku student obdržet, je -10." }
+            new object[] { "-10,01", false, "Chyba: příliš nízký počet bodů. Nejnížší počet bodů, které může za tuto podotázku student obdržet, je -10." }
         };
 
         [Test]
@@ -68,7 +68,7 @@ namespace NUnitTests
             oldStudentsPointsInput.SendKeys(studentsPoints);
             driver.FindElement(By.Id("save-students-points")).Click();
 
-            var subquestionResultPointsMessage = driver.FindElement(By.Id("subquestion-result-points-message")).Text;
+            var subquestionResultPointsMessage = driver.FindElement(By.Id("header-notice")).Text;
             Assert.That(subquestionResultPointsMessage, Is.EqualTo(expectedOutcome));
 
             var newSubquestionPoints = driver.FindElement(By.Id("students-points")).GetAttribute("value");
@@ -125,7 +125,7 @@ namespace NUnitTests
 
         [Test]
         [TestCaseSource(nameof(_userParameters))]
-        public void RegistrationApprovalTest(string firstName, string lastName, string login, string email, string role, 
+        public void UserManagementTest(string firstName, string lastName, string login, string email, string role, 
             bool newUserExpected, string expectedOutcome)
         {
             driver.Navigate().GoToUrl(Config.GetURL());
@@ -227,7 +227,7 @@ namespace NUnitTests
                 Assert.That(questionPointsString, Is.EqualTo(subquestionPoints));
                 var subquestionPointsString = driver.FindElement(By.Id("subquestion-points-string")).Text;
                 Assert.That(subquestionPointsString, Is.EqualTo(subquestionPoints));
-                var questionTemplateMessage = driver.FindElement(By.Id("question-template-message")).Text;
+                var questionTemplateMessage = driver.FindElement(By.Id("header-notice")).Text;
                 Assert.That(questionTemplateMessage, Is.EqualTo(expectedOutcome));
             }
             else
@@ -236,7 +236,7 @@ namespace NUnitTests
                 Assert.That(newSubquestionPoints, Is.EqualTo(defaultSubquestionTemplatePoints.ToString()));
                 var newWrongChoicePoints = driver.FindElement(By.Id("wrongChoicePoints_manual")).GetAttribute("value");
                 Assert.That(newWrongChoicePoints, Is.Not.EqualTo(wrongChoicePoints.ToString()));
-                var editSubquestionTemplateMessage = driver.FindElement(By.Id("edit-subquestion-template-message")).Text;
+                var editSubquestionTemplateMessage = driver.FindElement(By.Id("header-notice")).Text;
                 Assert.That(editSubquestionTemplateMessage, Is.EqualTo(expectedOutcome));
             }
 
@@ -258,7 +258,7 @@ namespace NUnitTests
                 Assert.That(questionPointsStringNew, Is.EqualTo(defaultQuestionTemplatePoints.ToString()));
                 var subquestionPointsStringNew = driver.FindElement(By.Id("subquestion-points-string")).Text;
                 Assert.That(subquestionPointsStringNew, Is.EqualTo(defaultSubquestionTemplatePoints.ToString()));
-                var questionTemplateMessageNew = driver.FindElement(By.Id("question-template-message")).Text;
+                var questionTemplateMessageNew = driver.FindElement(By.Id("header-notice")).Text;
                 Assert.That(questionTemplateMessageNew, Is.EqualTo(expectedOutcome));
             }
         }
