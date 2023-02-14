@@ -245,7 +245,8 @@ def main(arguments):
     for i in range(subquestion_templates_df.shape[0]):
         subquestion_template = subquestion_templates_df.iloc[i]
         subquestion_points = subquestion_template["SubquestionPoints"]
-        wrong_choice_points_share = subquestion_template["WrongChoicePointsShare"]
+        wrong_choice_points_share = subquestion_template["WrongChoicePoints"] / \
+                            subquestion_template["DefaultWrongChoicePoints"]
 
         subquestion_type_average_points = locale.atof(
             subquestion_type_average_points_array[subquestion_template["SubquestionType"] - 1])

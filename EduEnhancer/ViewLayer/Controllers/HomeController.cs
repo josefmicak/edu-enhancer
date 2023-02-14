@@ -337,13 +337,7 @@ namespace ViewLayer.Controllers
         {
             string? message = null;
 
-            if(action == "getPointsSuggestion")
-            {
-                SubquestionTemplate subquestionTemplate = new SubquestionTemplate();
-                subquestionTemplate.SubquestionTemplateId = int.Parse(subquestionTemplateId);
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, true, GetCurrentUserLogin());
-            }
-            else if (action == "editSubquestionTemplate")
+            if (action == "editSubquestionTemplate")
             {
                 QuestionTemplate questionTemplate = await businessLayerFunctions.GetQuestionTemplate(int.Parse(questionTemplateId));
                 if (!businessLayerFunctions.CanUserEditTestTemplate(questionTemplate.TestTemplate, GetCurrentUserLogin()))
@@ -1716,7 +1710,7 @@ namespace ViewLayer.Controllers
             {
                 subquestionTemplate.OwnerLogin = GetCurrentUserLogin();
                 subquestionTemplate.QuestionTemplate = await businessLayerFunctions.GetQuestionTemplate(subquestionTemplate.QuestionTemplateId);
-                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, false, GetCurrentUserLogin());
+                TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionTemplatePointsSuggestion(subquestionTemplate, true, GetCurrentUserLogin());
             }
 
             TempData["Message"] = message;

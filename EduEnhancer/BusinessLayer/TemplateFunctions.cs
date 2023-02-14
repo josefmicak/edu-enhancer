@@ -905,11 +905,6 @@ namespace BusinessLayer
         /// <param name="isNUnitTest">Whether function is ran as a part of an NUnit test (false by default)</param>
         public async Task<string> GetSubquestionTemplatePointsSuggestion(SubquestionTemplate subquestionTemplate, bool subquestionTemplateExists, bool isNUnitTest = false)
         {
-            if (subquestionTemplateExists)
-            {
-                subquestionTemplate = await GetSubquestionTemplate(subquestionTemplate.SubquestionTemplateId);
-            }
-
             string login = subquestionTemplate.OwnerLogin;
             User owner = await dataFunctions.GetUserByLogin(login);
 
@@ -934,6 +929,16 @@ namespace BusinessLayer
             List<(Subject, double)> subjectAveragePointsTuple = DataGenerator.GetSubjectAverageTemplatePoints(testTemplates);
             TestTemplate testTemplate = subquestionTemplate.QuestionTemplate.TestTemplate;
             double minimumPointsShare = DataGenerator.GetMinimumPointsShare(testTemplate);
+
+            double subquestionPoints = subquestionTemplate.SubquestionPoints;
+            if (subquestionPoints == 0)//prevent division by 0
+            {
+                subquestionPoints = 10;
+            }
+            subquestionTemplate.CorrectChoicePoints = CommonFunctions.CalculateCorrectChoicePoints(
+                subquestionPoints, subquestionTemplate.CorrectAnswers, subquestionTemplate.SubquestionType);
+            subquestionTemplate.DefaultWrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
+            subquestionTemplate.WrongChoicePoints = subquestionTemplate.CorrectChoicePoints * (-1);
 
             SubquestionTemplateRecord currentSubquestionTemplateRecord = DataGenerator.CreateSubquestionTemplateRecord(subquestionTemplate, owner, subjectAveragePointsTuple,
                 subquestionTypeAveragePoints, minimumPointsShare);

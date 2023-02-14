@@ -1,4 +1,6 @@
-import sys
+﻿import sys
+
+from sklearn.ensemble import GradientBoostingRegressor
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
@@ -61,7 +63,7 @@ def predict_new(subquestion_type_average_points, correct_answers_share, subject_
         correct_answers_share_mean = df["CorrectAnswersShare"].mean()
         correct_answers_share_std = df["CorrectAnswersShare"].std()
         if correct_answers_share_std == 0:
-            correct_answers_share= 0.01
+            correct_answers_share = 0.01
         correct_answers_share = (correct_answers_share - correct_answers_share_mean) / correct_answers_share_std
         final_tensor_values.append(correct_answers_share)
 
@@ -132,10 +134,12 @@ def main(arguments):
         login = arguments[2]
         retrain_model = eval(arguments[3])
         function_name = arguments[4]
+        show_graphs = False
     else:
         platform = 'Windows'
         login = "login"
         retrain_model = False
+        show_graphs = True
 
     locale.setlocale(locale.LC_NUMERIC, 'cs_CZ.utf8')
 
@@ -198,6 +202,163 @@ def main(arguments):
 
     y_train_pred = y_train_pred.detach().numpy()
     y_test_pred = y_test_pred.detach().numpy()
+
+    if show_graphs:
+        import matplotlib.pylab as plt
+        import seaborn as sb
+
+        pd.set_option('display.max_columns', None)
+        # table of unstandardized data (Table 8.1)
+        print(df.head())
+
+        # table of standardized data (Table 8.2)
+        print(data.head())
+
+        data_correlation = data.corr(method='pearson')
+
+        # heatmap of correlation (Figure 8.6)
+        ax = sb.heatmap(data_correlation,
+                   xticklabels=data_correlation.columns,
+                   yticklabels=data_correlation.columns,
+                   cmap='coolwarm',
+                   annot=True,
+                   linewidth=0.5)
+        ax.figure.tight_layout()
+        plt.show()
+
+        # feature importance (Figure 8.7)
+        rc = {'axes.facecolor': 'white',
+              'axes.grid': False,
+              'font.family': 'Times New Roman',
+              'font.size': 12}
+        plt.rcParams.update(rc)
+        y = ['SubquestionTypeAveragePoints', 'CorrectAnswersShare',
+                                             'SubjectAveragePoints', 'WrongChoicePointsShare',
+                                             'NegativePoints', 'MinimumPointsShare']
+        gb = GradientBoostingRegressor(n_estimators=100)
+        gb.fit(X_train, y_train.ravel())
+        x = gb.feature_importances_
+        plt.barh(y, x)
+        plt.ylabel("vstupní proměnné")
+        plt.xlabel("relevance")
+        plt.tight_layout()
+        plt.show()
+
+        # training loss
+        model = NeuralNetwork(X.shape[1], 32, 16)
+        epochs = 500
+        lr = 0.05
+        loss_function = nn.MSELoss()
+        optimizer = optim.SGD(model.parameters(), lr=lr)
+        x = torch.tensor(np.array(X_train), dtype=torch.float)
+        y = torch.tensor(np.array(y_train).reshape(-1, 1), dtype=torch.float)
+        train_loss_vals = []
+        for i in range(epochs):
+            optimizer.zero_grad()
+            y_value = model(x)
+            loss_value = loss_function(y_value, y)
+            loss_value.backward()
+            train_loss_vals.append(loss_value.item())
+            optimizer.step()
+
+        # testing loss
+        model = NeuralNetwork(X.shape[1], 32, 16)
+        epochs = 500
+        lr = 0.05
+        loss_function = nn.MSELoss()
+        optimizer = optim.SGD(model.parameters(), lr=lr)
+        x = torch.tensor(np.array(X_test), dtype=torch.float)
+        y = torch.tensor(np.array(y_test).reshape(-1, 1), dtype=torch.float)
+        test_loss_vals = []
+        for i in range(epochs):
+            optimizer.zero_grad()
+            y_value = model(x)
+            loss_value = loss_function(y_value, y)
+            loss_value.backward()
+            test_loss_vals.append(loss_value.item())
+            optimizer.step()
+
+        # loss graph (Figure 8.8)
+        plt.plot(
+            np.array(train_loss_vals).reshape((epochs, -1)).mean(axis=1),
+            color="r",
+            label='trénovací chyba'
+        )
+        plt.plot(
+            np.array(test_loss_vals).reshape((epochs, -1)).mean(axis=1),
+            color="b",
+            label='testovací chyba'
+        )
+        plt.xlabel('epochy')
+        plt.ylabel('chyba')
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+        # R2 graph (Figure 8.9)
+        model = NeuralNetwork(X.shape[1], 32, 16)
+        loss_function = nn.MSELoss()
+        optimizer = optim.SGD(model.parameters(), lr=lr)
+        x = torch.tensor(np.array(X_test), dtype=torch.float)
+        y = torch.tensor(np.array(y_test).reshape(-1, 1), dtype=torch.float)
+        r2_train_vals = []
+        r2_test_vals = []
+        epochs = 500
+
+        for i in range(epochs):
+            optimizer.zero_grad()
+            y_value = model(x)
+            loss_value = loss_function(y_value, y)
+            loss_value.backward()
+            optimizer.step()
+            y_train_pred = model(torch.tensor(X_train, dtype=torch.float))
+            y_test_pred = model(torch.tensor(X_test, dtype=torch.float))
+
+            y_train_pred = y_train_pred.detach().numpy()
+            y_test_pred = y_test_pred.detach().numpy()
+            R2_train = r2_score(y_train, y_train_pred)
+            r2_train_vals.append(R2_train)
+            R2_test = r2_score(y_test, y_test_pred)
+            r2_test_vals.append(R2_test)
+
+        plt.plot(
+            np.array(r2_train_vals).reshape((epochs, -1)).mean(axis=1),
+            color="r",
+            label='trénovací skóre',
+            linewidth=0.5
+        )
+        plt.plot(
+            np.array(r2_test_vals).reshape((epochs, -1)).mean(axis=1),
+            color="b",
+            label='testovací skóre',
+            linewidth=0.5
+        )
+        ax = plt.gca()
+        ax.set_ylim([0, 1])
+        plt.xlabel('epochy')
+        plt.ylabel('skóre')
+        plt.tight_layout()
+        plt.legend()
+        plt.show()
+
+        # graph of actual subquestionPoints and predicted subquestionPoints (Figure 8.10)
+        rc = {'axes.facecolor': 'white',
+              'axes.grid': True,
+              'grid.color': 'silver',
+              'font.family': 'Times New Roman',
+              'font.size': 12}
+        plt.rcParams.update(rc)
+
+        plt.figure(figsize=(5, 5), dpi=100)
+        plt.xlim(0, 25)
+        plt.ylim(0, 25)
+        plt.scatter(y_train, y_train_pred, lw=1, color="r", label="trénovací data")
+        plt.scatter(y_test, y_test_pred, lw=1, color="b", label="testovací data")
+        plt.xlabel("SubquestionPoints")
+        plt.ylabel("predikované SubquestionPoints")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
 
     if len(arguments) > 1:
         if function_name == 'get_accuracy':
