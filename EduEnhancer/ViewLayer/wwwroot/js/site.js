@@ -1928,6 +1928,23 @@ function hideConfirmActionForm() {
     document.getElementById("confirm-action").style.display = "none";
 }
 
+function addModalImage() {
+    var modal = document.getElementById("myModal");
+
+    var img = document.getElementById("image");
+    var modalImg = document.getElementById("modalimage");
+    img.onclick = function () {
+        modal.style.display = "block";
+        modalImg.src = document.getElementById("hiddenimage").src;
+    }
+
+    var span = document.getElementsByClassName("close")[0];
+
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+}
+
 //cs-CZ culture is used in the application - it's necessary to replace all dots with commas
 function modifyInputNumbers() {
     var inputs = document.getElementsByClassName("input-number");

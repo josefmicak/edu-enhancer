@@ -5,6 +5,8 @@ from sqlalchemy.engine import URL
 import pandas as pd
 import torch
 import locale
+import os
+import json
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
@@ -98,6 +100,18 @@ def save_model(model, login):
     pickle.dump(model, open(file_path, 'wb'))
 
 
+def read_secrets() -> dict:
+    base_path = Path(__file__)
+    file_path_string = "../secrets/secrets.json"
+    file_path = (base_path / file_path_string).resolve()
+    try:
+        with open(file_path, mode='r') as f:
+            return json.loads(f.read())
+    except FileNotFoundError:
+        print("notfound")
+        return {}
+
+
 def main(arguments):
     if len(arguments) > 1:
         platform = arguments[1]
@@ -110,23 +124,13 @@ def main(arguments):
         retrain_model = False
 
     locale.setlocale(locale.LC_NUMERIC, 'cs_CZ.utf8')
+    secrets = read_secrets()
 
     conn_str = ""
     if platform == 'Windows':
-        conn_str = (
-            r"Driver={ODBC Driver 17 for SQL Server};"
-            r"Server=(localdb)\mssqllocaldb;"
-            r"Database=EduEnhancerDB;"
-            r"Trusted_Connection=yes;"
-        )
+        conn_str = secrets["WINDOWS_CONNECTION_STRING"]
     elif platform == 'Linux':
-        conn_str = (
-            r"Driver={ODBC Driver 17 for SQL Server};"
-            r"Server=127.0.0.1;"
-            r"Database=EduEnhancerDB;"
-            r"Uid=MyUser;"
-            r"Pwd=Userpassword1;"
-        )
+        conn_str = secrets["LINUX_CONNECTION_STRING"]
 
     connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn_str})
     engine = create_engine(connection_url)
@@ -147,15 +151,15 @@ def main(arguments):
             duplicate_columns.append(0)
 
     # necessary preprocessing
-    data = df[df.columns[:-1]]
-    data = data.apply(
+    standardized_df = df[df.columns[:-1]]
+    standardized_df = standardized_df.apply(
         lambda x: (x - x.mean()) / x.std()
     )
 
-    data['StudentsPoints'] = df.StudentsPoints
+    standardized_df['StudentsPoints'] = df.StudentsPoints
 
-    X = data.drop('StudentsPoints', axis=1).to_numpy()
-    y = data['StudentsPoints'].to_numpy()
+    X = standardized_df.drop('StudentsPoints', axis=1).to_numpy()
+    y = standardized_df['StudentsPoints'].to_numpy()
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 

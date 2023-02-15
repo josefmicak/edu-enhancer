@@ -321,7 +321,10 @@ namespace BusinessLayer
         /// <param name="webRootPath">Web root path - used to locate images belonging to test template that are deleted together with the test template</param>
         public async Task<string> DeleteTestTemplate(string login, int testTemplateId, string webRootPath)
         {
-            TestTemplate testTemplate = GetTestTemplateDbSet().First(t => t.OwnerLogin == login && t.TestTemplateId == testTemplateId);
+            TestTemplate testTemplate = GetTestTemplateDbSet()
+                .Include(t => t.QuestionTemplates)
+                .ThenInclude(q => q.SubquestionTemplates)
+                .First(t => t.OwnerLogin == login && t.TestTemplateId == testTemplateId);
             if (!CanUserModifyTemplate(login, testTemplate.OwnerLogin))
             {
                 return "K této akci nemáte oprávnění.";

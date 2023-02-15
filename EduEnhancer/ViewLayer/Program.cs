@@ -45,6 +45,16 @@ services.AddSession(options =>
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == 404)
+    {
+        context.Request.Path = "/Home/Error";
+        await next();
+    }
+});
+
 var supportedCultures = new[]
 {
  new CultureInfo("cs-CZ"),

@@ -54,6 +54,7 @@
         studentsMinimumPointsString += " - pokus úspěšný ";
     }
     studentsMinimumPointsString += "(" + testResultPointsSum.ToString() + " / " + minimumPoints.ToString() + ")";
+    string imageSource = "";
 
     ViewData["Title"] = "Prohlížení vyřešeného testu";
 }
@@ -118,8 +119,8 @@
             @{
                 if (subquestionTemplate.ImageSource != null)
                 {
-                    string imageSource = "Uploads/" + subquestionTemplate.ImageSource;
-                    <tr><td colspan="2"><img class="image" src="@imageSource"></td></tr>
+                    imageSource = "Uploads/" + subquestionTemplate.ImageSource;
+                    <tr><td colspan="2"><img class="image" id="image" src="@imageSource"></td></tr>
                 }
             }
             <tr>
@@ -159,6 +160,12 @@
         </table>
     </div>
 
+    <img style="display:none" id="hiddenimage" class="hiddenimage" src="@imageSource">
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalimage">
+    </div>
+
     <div id="solved-subquestion-result" class="panel panel-medium">
         <div class="panel-title panel-content">Vaše odpověď</div>
         <table class="panel-table">
@@ -179,4 +186,8 @@
 
 <script>
     solvedQuestionPagePostProcessing('@subquestionResultIndex', '@subquestionsCount', '@answerStatusString');
+    if (@imageSource.Length > 0) 
+    {
+        addModalImage();
+    }
 </script>
