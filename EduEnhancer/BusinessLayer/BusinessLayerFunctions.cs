@@ -57,6 +57,7 @@ namespace BusinessLayer
             TestTemplate oldTestTemplate = await GetTestTemplate(testTemplate.TestTemplateId);
             testTemplate.Owner = oldTestTemplate.Owner;
             testTemplate.OwnerLogin = oldTestTemplate.OwnerLogin;
+            testTemplate.QuestionTemplates = oldTestTemplate.QuestionTemplates;
             return await templateFunctions.EditTestTemplate(login, testTemplate, subjectId);
         }
 

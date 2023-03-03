@@ -24,6 +24,8 @@
         <div class="panel-content"><input class="radio input" title="Vypnuto (nejmenší možný počet bodů je vždy 0)" type="radio" id="Disabled" value="1" name="negativePoints"><label class="radio-label" title="Vypnuto (nejmenší možný počet bodů je 0)" for="negativePointsDisabled">Vypnuto (nejmenší možný počet bodů je 0)</label></div>
         <div class="panel-content"><input class="radio input" title="Zapnuto pouze v rámci otázky" type="radio" id="EnabledForQuestion" value="2" name="negativePoints"><label class="radio-label" title="Zapnuto pouze v rámci otázky" for="negativePointsEnabledForQuestion">Zapnuto pouze v rámci otázky</label></div>
         <div class="panel-content"><input class="radio input" title="Zapnuto" type="radio" id="Enabled" value="3" name="negativePoints"><label class="radio-label" title="Zapnuto" for="negativePointsEnabled">Zapnuto</label></div>
+        <div class="panel-content">Minimální počet bodů:</div>
+        <div class="panel-content"><input type="number" min="0" step=".01" required name="MinimumPoints" value="@testTemplate.MinimumPoints"></div>
         <div class="panel-content">Čas začátku testu:</div>
         <div class="panel-content"><input type="datetime-local" required id="StartDate" name="StartDate" value="@startDate"></div>
         <div class="panel-content">Čas konce testu:</div>
