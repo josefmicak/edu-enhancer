@@ -54,8 +54,8 @@
                                 </tr>
                                 <tr id="possible-answer-1">
                                     <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
-                                    <td><button type="button" disabled class="possible-answer-move" onclick="movePossibleAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
-                                    <td><button type="button" disabled class="possible-answer-move" onclick="movePossibleAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
+                                    <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('up', this.parentNode.parentNode.id, '1')">∧</button></td>
+                                    <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('down', this.parentNode.parentNode.id, '1')">∨</button></td>
                                     <td>
                                         <button disabled type="button" class="possible-answer-delete"
                                         onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">
@@ -280,7 +280,6 @@
                             </div>
                             <div class="panel-content"><button type="button" disabled onclick="editPossibleAnswers('disable', @selectedSubquestionType)" id="possible-answer-save">Uložit</button></div>
                             <div class="panel-content"><input type="number" disabled class="slider-input" id="slider-min" placeholder="Minimální hodnota"></div>
-                            <div class="panel-content"><input type="range" disabled value="50" min="1" max="100"></div>
                             <div class="panel-content"><input type="number" disabled class="slider-input" id="slider-max" placeholder="Maximální hodnota"></div>
                             <div class="panel-content"><input type="range" disabled id="slider-question" value="50" min="1" max="100" oninput="this.parentNode.nextElementSibling.value = this.value"></div>
                             <output class="panel-content">50</output>

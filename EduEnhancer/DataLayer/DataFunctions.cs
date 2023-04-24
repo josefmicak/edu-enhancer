@@ -92,24 +92,6 @@ namespace DataLayer
             return message;
         }
 
-        /*public async Task DeleteSubjects(List<string> adminLogins)
-        {
-            string message;
-            try
-            {
-                _context.Subjects.Remove(subject);
-                await _context.SaveChangesAsync();
-                message = "Předmět byl úspěšně smazán.";
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                message = "Při mazání předmětu nastala neočekávaná chyba.";
-
-            }
-            return message;
-        }*/
-
         public async Task<List<Subject>> GetTestingDataSubjects()
         {
             return await GetSubjectDbSet().AsNoTracking().Where(s => s.IsTestingData == true).ToListAsync();

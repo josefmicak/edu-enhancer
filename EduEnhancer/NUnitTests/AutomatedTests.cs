@@ -44,7 +44,7 @@ namespace NUnitTests
             new object[] { "-10,01", false, "Chyba: příliš nízký počet bodů. Nejnížší počet bodů, které může za tuto podotázku student obdržet, je -10." }
         };
 
-        [Test]
+        //[Test]
         [TestCaseSource(nameof(_subquestionResultPoints))]
         public void SubquestionResultPointsTest(string studentsPoints, bool pointsChangeExpected, string expectedOutcome)
         {
@@ -123,7 +123,7 @@ namespace NUnitTests
                 "Chyba: uživatel s emailem \"EmailStudent\" již existuje." }
         };
 
-        [Test]
+        //[Test]
         [TestCaseSource(nameof(_userParameters))]
         public void UserManagementTest(string firstName, string lastName, string login, string email, string role, 
             bool newUserExpected, string expectedOutcome)
@@ -191,7 +191,7 @@ namespace NUnitTests
         };
 
 
-        [Test]
+       // [Test]
         [TestCaseSource(nameof(_subquestionTemplatePoints))]
         public void SubquestionTemplatePointsTest(string subquestionPoints, string wrongChoicePoints, bool pointsChangeExpected, string expectedOutcome)
         {

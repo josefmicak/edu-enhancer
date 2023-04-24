@@ -25,7 +25,6 @@
         /// <summary>
         /// Returns server URL for every platform
         /// </summary>
-        /// <returns>server URL for every platform</returns>
         public static string GetURL()
         {
             return URL[(int)SelectedPlatform];
@@ -34,7 +33,6 @@
         /// <summary>
         /// Returns URL containing the page used for the Google sign in feature
         /// </summary>
-        /// <returns>URL containing the page used for the Google sign in feature</returns>
         public static string GetSignInURL()
         {
             return GetURL() + "/Account/SignIn";
@@ -43,7 +41,6 @@
         /// <summary>
         /// Returns Python path for every platform
         /// </summary>
-        /// <returns>Python path for every platform</returns>
         public static string GetPythonPath()
         {
             return PythonPath[(int)SelectedPlatform];
@@ -88,7 +85,6 @@
         /// <summary>
         /// Returns the correct path separator according to currently used platform
         /// </summary>
-        /// <returns>the correct path separator according to currently used platform</returns>
         public static string GetPathSeparator()
         {
             return PathSeparator[(int)SelectedPlatform];

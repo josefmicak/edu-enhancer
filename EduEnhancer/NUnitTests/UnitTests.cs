@@ -480,7 +480,7 @@ namespace NUnitTests
             new object[] {
                 new SubquestionTemplate
                 {
-                    SubquestionTemplateId = 10
+                    OwnerLogin = "login"
                 },
                 true,
                 "0"
@@ -503,7 +503,7 @@ namespace NUnitTests
             new object[] {
                 new SubquestionTemplate
                 {
-                    SubquestionTemplateId = 1
+                    OwnerLogin = "nunittestingteacher"
                 },
                 true,
                 "Pro použití této funkce je nutné přidat alespoň 100 zadání podotázek."
@@ -529,6 +529,10 @@ namespace NUnitTests
         {
             CourseContext _context = await GetCourseContext();
             TemplateFunctions templateFunctions = new TemplateFunctions(_context);
+            if (subquestionTemplateExists)
+            {
+                subquestionTemplate = await _context.SubquestionTemplates.FirstAsync(s => s.OwnerLogin == subquestionTemplate.OwnerLogin);
+            }
             subquestionTemplate.QuestionTemplate = await _context.QuestionTemplates.FirstAsync(q => q.QuestionTemplateId == 1);
             subquestionTemplate.QuestionTemplate.TestTemplate = await _context.TestTemplates.FirstAsync(t => t.TestTemplateId == 1);
 
@@ -558,7 +562,7 @@ namespace NUnitTests
                 1,
                 new Student
                 {
-                    Login = "nonexistentttudent",
+                    Login = "nonexistentstudent",
                     Email = "Email",
                     FirstName = "Name",
                     LastName = "Surname",

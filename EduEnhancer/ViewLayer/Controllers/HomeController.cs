@@ -546,6 +546,10 @@ namespace ViewLayer.Controllers
                     {
                         TempData["SuggestedSubquestionPoints"] = subquestionPoints;
                     }
+                    else if(answerCorrectness == -1 || subquestionResult.AnswerStatus == AnswerStatus.NotAnswered)//in case student's answer is entirely incorrect, lowest amount of points possible gets recommended
+                    {
+                        TempData["SuggestedSubquestionPoints"] = "-" + subquestionPoints;
+                    }
                     else
                     {
                         TempData["SuggestedSubquestionPoints"] = await businessLayerFunctions.GetSubquestionResultPointsSuggestion(GetCurrentUserLogin(), int.Parse(subquestionResultId));
@@ -1018,7 +1022,7 @@ namespace ViewLayer.Controllers
             }
             if (TempData["AdminMessage"] != null)
             {
-                ViewBag.TeacherMessage = TempData["AdminMessage"]!.ToString();
+                ViewBag.AdminMessage = TempData["AdminMessage"]!.ToString();
             }
             dynamic model = new ExpandoObject();
             model.Users = await businessLayerFunctions.GetUserDbSet().ToListAsync();
