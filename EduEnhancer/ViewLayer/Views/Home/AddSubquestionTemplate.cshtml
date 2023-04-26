@@ -97,8 +97,8 @@
                                     </tr>
                                     <tr id="possible-answer-1">
                                         <td><input readonly class="possible-answer-input" type="text" name="PossibleAnswers[]"></td>
-                                        <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('up', this.parentNode.parentNode.id, '1')">∧</button></td>
-                                        <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('down', this.parentNode.parentNode.id, '1')">∨</button></td>
+                                        <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('up', this.parentNode.parentNode.id)">∧</button></td>
+                                        <td><button type="button" disabled class="possible-answer-move" onclick="moveAnswer('down', this.parentNode.parentNode.id)">∨</button></td>
                                         <td><button disabled type="button" class="possible-answer-delete" onclick="deletePossibleAnswer(this.parentNode.parentNode.id, @selectedSubquestionType)">Smazat</button></td>
                                     </tr>
                                 </table>

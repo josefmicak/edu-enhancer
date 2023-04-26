@@ -1,5 +1,14 @@
 //Index.cshtml
 
+/**
+ * Loads option groups and their members on home screen in case testing mode is turned on
+ * @param {string} login User login
+ * @param {string} email User email
+ * @param {string} role User role
+ * @param {string} mainAdminCount Amount of main admins
+ * @param {string} adminCount Amount of admins
+ * @param {string} teacherCount Amount of teachers
+ */
 function optGroupUpdate(login, email, role, mainAdminCount, adminCount, teacherCount) {
     let opt = document.createElement('OPTION');
     opt.textContent = "Email: " + email + ", login: " + login;
@@ -20,6 +29,12 @@ function optGroupUpdate(login, email, role, mainAdminCount, adminCount, teacherC
 
 //ManageUserRegistrationList.cshtml
 
+/**
+ * Updates registration tables according to user's settings - can hide accepted/rejected registrations
+ * @param {boolean} accepted Whether user wants to see accepted registrations
+ * @param {boolean} rejected Whether user wants to see rejected registrations
+ * @param {boolean} text Whether user has just changed his settings
+ */
 function registrationsTableUpdate(accepted, rejected, text) {
     if (accepted == false) {
         document.querySelectorAll('tr').forEach(tr => {
@@ -70,23 +85,13 @@ function registrationsTableUpdate(accepted, rejected, text) {
 
 //ManageUserList.cshtml / ManageUserListForAdmin.cshtml
 
-function addStudentDetails(clicked_id) {
-    hideEditStudentLabel();
-    const idArray = clicked_id.split("_");
-    let table = document.getElementById("student-table");
-
-    let fullName = table.rows[idArray[1]].cells[0].innerHTML;
-    const nameArray = fullName.split(" ");
-    document.getElementById("studentFirstName").value = nameArray[0];
-    document.getElementById('studentFirstName').readOnly = true;
-    document.getElementById("studentLastName").value = nameArray[1];
-    document.getElementById('studentLastName').readOnly = true;
-
-    let login = table.rows[idArray[1]].cells[1].innerHTML;
-    document.getElementById("studentLogin").value = login;
-    document.getElementById('studentLogin').readOnly = true;
-}
-
+/**
+ * Shown after user chooses to edit student's details
+ * @param {string} oldLogin Student's login
+ * @param {string} email Student's email
+ * @param {string} firstName Student's first name
+ * @param {string} lastName Student's last name
+ */
 function showEditStudentLabel(oldLogin, email, firstName, lastName) {
     document.getElementById("student-action").value = 'editStudent';
     document.getElementById("added-student").style.display = 'none';
@@ -101,6 +106,9 @@ function showEditStudentLabel(oldLogin, email, firstName, lastName) {
     document.getElementById("studentEmail").value = email;
 }
 
+/**
+ * Shown after user chooses to not edit student's details (after previous choosing to edit them)
+ */
 function hideEditStudentLabel() {
     document.getElementById("student-action").value = 'addStudent';
     document.getElementById("added-student").style.display = 'block';
@@ -112,6 +120,14 @@ function hideEditStudentLabel() {
     document.getElementById("studentEmail").value = "";
 }
 
+/**
+ * Shown after user chooses to edit teacher's details
+ * @param {string} oldLogin Teacher's login
+ * @param {string} email Teacher's email
+ * @param {string} firstName Teacher's first name
+ * @param {string} lastName Teacher's last name
+ * @param {boolean} makeVisible Whether option to change teacher's role is shown (it's not possible for admins to change a teacher's role)
+ */
 function showEditTeacherLabel(oldLogin, email, firstName, lastName, makeVisible) {
     document.getElementById("teacher-action").value = 'editTeacher';
     document.getElementById("added-teacher").style.display = 'none';
@@ -128,6 +144,9 @@ function showEditTeacherLabel(oldLogin, email, firstName, lastName, makeVisible)
     }
 }
 
+/**
+ * Shown after user chooses to not edit teacher's details (after previously choosing to edit them)
+ */
 function hideEditTeacherLabel() {
     document.getElementById("teacher-action").value = 'addTeacher';
     document.getElementById("added-teacher").style.display = 'block';
@@ -140,6 +159,14 @@ function hideEditTeacherLabel() {
     document.getElementById("teacherEmail").value = "";
 }
 
+/**
+ *  Shown after user chooses to edit admin's details
+ * @param {string} oldLogin Admin's login
+ * @param {string} email Admin's email
+ * @param {string} firstName Admin's first name
+ * @param {string} lastName Admin's last name
+ * @param {string} role Admin's role (admin/mail admin)
+ */
 function showEditAdminLabel(oldLogin, email, firstName, lastName, role) {
     document.getElementById("admin-action").value = 'editAdmin';
     document.getElementById("added-admin").style.display = 'none';
@@ -160,6 +187,9 @@ function showEditAdminLabel(oldLogin, email, firstName, lastName, role) {
     }
 }
 
+/**
+ * Shown after user chooses to not edit admin's details (after previously choosing to edit them)
+ */
 function hideEditAdminLabel() {
     document.getElementById("admin-action").value = 'addAdmin';
     document.getElementById("added-admin").style.display = 'block';
@@ -172,6 +202,10 @@ function hideEditAdminLabel() {
     document.getElementById("adminEmail").value = "";
 }
 
+/**
+ * Disables or enables dropdown with available roles
+ * @param {object} checkbox Checkbox where main admin selects whether he wants to change admin's role or not
+ */
 function changeAdminRole(checkbox) {
     const checked = checkbox.checked;
     if (checked) {
@@ -182,6 +216,10 @@ function changeAdminRole(checkbox) {
     }
 }
 
+/**
+ * Triggered after main admin chooses to select other user as main admin (he's asked for confirmation)
+ * @param {object} event Event that gets triggered after form submission
+ */
 function adminFormSubmit(event) {
     let isMainAdmin = document.getElementById("isMainAdmin").value;
     let role = document.getElementById("change-admin-role").value;
@@ -210,6 +248,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 //QuestionTemplate.cshtml
 
+/**
+ * Disables and enables input fields concerned with wrong choice points after user clicks a radiobutton connected with wrong choice points
+ * @param {object} el Clicked wrong choice points radiobutton
+ */
 function setWrongChoicePointsInputs(el) {
     if (el.value == "wrongChoicePoints_automatic_radio") {
         document.getElementById("wrongChoicePoints_automatic").disabled = false;
@@ -221,7 +263,12 @@ function setWrongChoicePointsInputs(el) {
     }
 }
 
-//function that is called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
+/**
+ * Called after the QuestionTemplate page is loaded - edits certain fields, changes selects..
+ * @param {number} subquestionNumber Subquestion index
+ * @param {number} subquestionsCount Amount of subquestions within a question
+ * @param {string} subquestionElementName Subquestion result ID
+ */
 function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount, subquestionElementName) {
     document.getElementById(subquestionElementName).selectedIndex = subquestionNumber;
     if (subquestionNumber == 0 || subquestionsCount == 1) {
@@ -234,8 +281,16 @@ function questionTemplatePagePostProcessing(subquestionNumber, subquestionsCount
     modifyInputNumbers();
 }
 
-//show form which prompts user to confirm the action
-
+/**
+ * Shown to user after the user tries to perform a potentially dangerous action - user has to confirm action
+ * @param {string} action Action to be performed
+ * @param {string} identifier Identifier of the modified entity
+ * @param {string} email User email
+ * @param {string} login User login
+ * @param {string} firstName User first name
+ * @param {string} lastName User last name
+ * @param {string} role User role 
+ */
 function showConfirmActionForm(action, identifier, email, login, firstName, lastName, role) {
     document.getElementById("confirm-action").style.display = "block";
     document.getElementById("action").value = action;
@@ -312,11 +367,16 @@ function showConfirmActionForm(action, identifier, email, login, firstName, last
 
 //AddSubquestionTemplate.cshtml
 
-
+/**
+ * Placeholder text for options - has to be uniform within the application
+ */
 function getOptionPlaceholderText() {
     return '-ZVOLTE MOŽNOST-';
 }
 
+/**
+ * Adds possible answer (can be done only with certain subquestion types)
+ */
 function addPossibleAnswer() {
     let table = document.getElementById('possible-answers-table');
     let rowCount = table.rows.length;
@@ -329,6 +389,11 @@ function addPossibleAnswer() {
     row.id = "possible-answer-" + lastRowId;
 }
 
+/**
+ * Called after user either chooses to edit possible answers or after he is finished editing possible answers
+ * @param {string} action Action to be performed (enable - start editing, disable - stop editing)
+ * @param {number} subquestionType Type of the subqestion
+ */
 function editPossibleAnswers(action, subquestionType) {
     //users wants to edit possible answers
     if (action == "enable") {
@@ -435,6 +500,11 @@ function editPossibleAnswers(action, subquestionType) {
     }
 }
 
+/**
+ * Deletes possible answer (can be done only with certain subquestion types)
+ * @param {number} clicked_id ID of the deleted possible answer
+ * @param {number} subquestionType Type of the subqestion
+ */
 function deletePossibleAnswer(clicked_id, subquestionType) {
     let minPossibleAnswers = [0, 2, 2, 4, 0, 0, 2, 2, 0, 2, 0];
     let table = document.getElementById('possible-answers-table');
@@ -448,15 +518,13 @@ function deletePossibleAnswer(clicked_id, subquestionType) {
     }
 }
 
-//enables the user to move answers (upwards or downwards)
-function moveAnswer(direction, clicked_id, tableType) {
-    let table = null;
-    if (tableType == 1) {
-        table = document.getElementById('possible-answers-table');
-    }
-    else if (tableType == 2) {
-        table = document.getElementById('student-answers-table');
-    }
+/**
+ * Moves possible answer (upwards or downwards)
+ * @param {string} direction Direction (upwards or downwards)
+ * @param {number} clicked_id ID of the selected answer
+ */
+function moveAnswer(direction, clicked_id) {
+    let table = document.getElementById('possible-answers-table');
     let rowIndex = 0;
     for (let i = 0, row; row = table.rows[i]; i++) {
         if (clicked_id == row.id) {
@@ -481,6 +549,11 @@ function moveAnswer(direction, clicked_id, tableType) {
     }
 }
 
+/**
+ * Adds correct answer (can be done only with certain subquestion types)
+ * @param {number} subquestionType Type of the subquestion
+ * @param {boolean} isProgramatical Whether user himself initiated this action or whether it's been initiated automatically (e.g. after page load)
+ */
 function addCorrectAnswer(subquestionType, isProgramatical) {
     let addAnswer = true;
     let correctAnswersTable = document.getElementById('correct-answers-table');
@@ -546,8 +619,9 @@ function addCorrectAnswer(subquestionType, isProgramatical) {
     }
 }
 
-//after the user updates possible answers, correct answers must be automatically updated as well
-//subquestion types - 1
+/**
+ * Updates correct answers after user changes possible answers (only subquestion type 1)
+ */
 function updateCorrectAnswersInput() {
     let possibleAnswerArray = [];
     possibleAnswerArray.push(getOptionPlaceholderText());
@@ -580,8 +654,10 @@ function updateCorrectAnswersInput() {
     }
 }
 
-//after the user updates subquestion text, an appropriate number of correct ansers is added to the correct answers table
-//subquestion types - 9
+/**
+ * Updates correct answers after user changes possible answers (only subquestion type 1)
+ * Adds an appropriate number of correct answers
+ */
 function updateCorrectAnswersInputFreeAnswer() {
     let additionalQuestions = document.getElementById("additional-questions");
     let table = document.getElementById('correct-answers-table');
@@ -611,8 +687,12 @@ function updateCorrectAnswersInputFreeAnswer() {
     }
 }
 
-//automatic update of correct answers when dropdown menus are used after possible answers are modified
-//subquestion types - 2, 3, 6
+/**
+ * Updates correct answers after user changes possible answers (subquestion types 2, 3, 6)
+ * Dropdown menus are updated
+ * @param {string} performedAction possibleAnswersModified / correctAnswerChosen
+ * @param {number} subquestionType Type of the subquestion
+ */
 function updateCorrectAnswersSelect(performedAction, subquestionType) {
     //user modified possible answers - all correct answers are deleted and replaced by new possible answers
     if (performedAction == "possibleAnswersModified") {
@@ -693,15 +773,20 @@ function updateCorrectAnswersSelect(performedAction, subquestionType) {
 
             //add remaining available options to each element
             for (let j = 0; j < availableCorrectAnswerArray.length; j++) {
-                let opt = document.createElement('option');
-                opt.value = availableCorrectAnswerArray[j];
-                opt.innerHTML = availableCorrectAnswerArray[j];
-                correctAnswerSelect.item(i).appendChild(opt);
+                let optRemaining = document.createElement('option');
+                optRemaining.value = availableCorrectAnswerArray[j];
+                optRemaining.innerHTML = availableCorrectAnswerArray[j];
+                correctAnswerSelect.item(i).appendChild(optRemaining);
             }
         }
     }
 }
 
+/**
+ * Called after user either chooses to edit correct answers or after he is finished editing correct answers
+ * @param {string} action Action to be performed (enable - start editing, disable - stop editing)
+ * @param {number} subquestionType Type of the subqestion
+ */
 function editCorrectAnswers(action, subquestionType) {
     //users wants to edit correct answers
     if (action == "enable") {
@@ -838,7 +923,11 @@ function editCorrectAnswers(action, subquestionType) {
     }
 }
 
-//enables the user to move correct answers (upwards or downwards)
+/**
+ * Moves correct answer (upwards or downwards)
+ * @param {string} direction Direction (upwards or downwards)
+ * @param {number} clicked_id ID of the selected answer
+ */
 function moveCorrectAnswer(direction, clicked_id) {
     let table = document.getElementById('correct-answers-table');
     let rowIndex = 0;
@@ -865,6 +954,11 @@ function moveCorrectAnswer(direction, clicked_id) {
     }
 }
 
+/**
+ * Deletes correct answer (can be done only with certain subquestion types)
+ * @param {number} clicked_id ID of the deleted possible answer
+ * @param {number} subquestionType Type of the subqestion
+ */
 function deleteCorrectAnswer(clicked_id, subquestionType) {
     let table = document.getElementById('correct-answers-table');
     let rowCount = table.rows.length;
@@ -885,7 +979,10 @@ function deleteCorrectAnswer(clicked_id, subquestionType) {
     }
 }
 
-//just before form submission, certain fields have to be modified so that they get properly binded to the SubquestionTemplate
+/**
+ * After user chooses to add subquestion, certain fields are modified just before form submission in order to get properly binded to the SubquestionTemplate
+ * @param {number} subquestionType Type of the subquestion
+ */
 function onAddSubquestionFormSubmission(subquestionType) {
     let suggestedPointsLabel = document.getElementById("suggested-points-label");
     suggestedPointsLabel.innerHTML = "Doporučený počet bodů za otázku: probíhá výpočet..";
@@ -941,7 +1038,11 @@ function onAddSubquestionFormSubmission(subquestionType) {
     }
 }
 
-//after the user changes subquestion points, correct and wrong choice points are updated automatically
+/**
+ * After the user changes subquestion points, correct and wrong choice points are updated automatically
+ * @param {object} subquestionPoints New value of subquestion points
+ * @param {number} subquestionType Type of the subquestion
+ */
 function updateChoicePoints(subquestionPoints, subquestionType) {
     subquestionPoints = subquestionPoints.value;
     let possibleChoiceArrayLength = 0;
@@ -984,6 +1085,10 @@ function updateChoicePoints(subquestionPoints, subquestionType) {
     }
 }
 
+/**
+ * Changes value of the label that describes the purpose of the selected subquestion type
+ * @param {number} subquestionType Type of the subquestion
+ */
 function setSubquestionTypeDetails(subquestionType) {
     let subquestionTypeDetailsArray = [
         "Neznámý nebo nepodporovaný typ otázky!",
@@ -1003,17 +1108,26 @@ function setSubquestionTypeDetails(subquestionType) {
     }
 }
 
+/**
+ * Removes image when the user is adding or editing subquestion
+ */
 function removeImage() {
     document.getElementById("imagePath").value = "";
     document.getElementById("ImageSource").value = "";
     fileLabel.innerHTML = "Obrázek nebyl vybrán.";
 }
 
+/**
+ * Fills gap between first and second part of the question sentence with correct answer after user changes the answer
+ * @param {object} correctAnswerInput Input field of the correct answer
+ */
 function fillGapText(correctAnswerInput) {
     document.getElementById("gap-text").value = correctAnswerInput.value;
 }
 
-//adds another gap (another question) to the subquestion text of subquestion of type 9
+/**
+ * Adds another gap (another question) to the subquestion text of subquestion of type 9
+ */
 function addGap() {
     let br = document.createElement("br");
     let additionalQuestions = document.getElementById("additional-questions");
@@ -1034,6 +1148,9 @@ function addGap() {
     additionalQuestions.appendChild(br);
 }
 
+/**
+ * Removes gap from the subquestion text of subquestion of type 9
+ */
 function removeGap() {
     let additionalQuestions = document.getElementById("additional-questions");
     let gapTexts = additionalQuestions.getElementsByClassName("gap-text");
@@ -1050,6 +1167,10 @@ function removeGap() {
     }
 }
 
+/**
+ * Called after user either chooses to edit subquestion text or after he is finished editing subquestion text
+ * @param {string} action Action to be performed (enable - start editing, disable - stop editing)
+ */
 function editSubquestionText(action) {
     //users wants to edit subquestion text
     if (action == "enable") {
@@ -1085,7 +1206,11 @@ function editSubquestionText(action) {
     }
 }
 
-//function that is called after the AddSubquestionTemplate page is loaded - disables or enables certain fields, adds possible answer rows..
+/**
+ * Called after the AddSubquestionTemplate/EditSubquestionTemplate page is loaded - disables or enables certain fields, adds possible answer rows..
+ * @param {number} subquestionType Type of the subquestion that is being added
+ * @param {boolean} changeIndex Whether index should be changed - true if AddSubquestionTemplate, false if EditSubquestionTemplate
+ */
 function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) {
     if (subquestionType != 0 && changeIndex) {
         if (document.getElementById("subquestionType") != null) {
@@ -1129,6 +1254,10 @@ function addSubquestionTemplatePagePostProcessing(subquestionType, changeIndex) 
     modifyInputNumbers();
 }
 
+/**
+ * Called after user adds or removes image on the AddSubquestionTemplate/EditSubquestionTemplate page
+ * @param {string} imageSource Source of the image
+ */
 function changeImagePath(imageSource) {
     let imagePath = document.getElementById('imagePath');
     if (imageSource != null) {
@@ -1146,7 +1275,15 @@ function changeImagePath(imageSource) {
     }
 }
 
-//function that is called after the user requests points recommendation in the AddSubquestionTemplate page or if he visits the EditSubquestionTemplate page
+/**
+ * Called after the user requests points recommendation in the AddSubquestionTemplate page or if he visits the EditSubquestionTemplate page
+ * @param {number} subquestionType Type of the subquestion
+ * @param {string} possibleAnswerListString List of possible answers, separated by ";"
+ * @param {string} correctAnswerListString List of correct answers, separated by ";"
+ * @param {string} subquestionText Text of the subquestion
+ * @param {number} defaultWrongChoicePoints Default wrong choice points of the subquestion
+ * @param {number} wrongChoicePoints Wrong choice points of the subquestion
+ */
 function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListString, correctAnswerListString, subquestionText,
     defaultWrongChoicePoints, wrongChoicePoints) {
     let possibleAnswerTable = null;
@@ -1297,6 +1434,9 @@ function pointsRecommendationPostProcessing(subquestionType, possibleAnswerListS
 
 //AddSubject.cshtml
 
+/**
+ * User adds selected students to the subject
+ */
 function addStudentsToSubject() {
     let unenrolledStudentsTable = document.getElementById("unenrolled-students-table");
     let enrolledStudentsTable = document.getElementById("enrolled-students-table");
@@ -1314,6 +1454,9 @@ function addStudentsToSubject() {
     }
 }
 
+/**
+ * User removes selected students from the subject
+ */
 function removeStudentsFromSubject() {
     let unenrolledStudentsTable = document.getElementById("unenrolled-students-table");
     let enrolledStudentsTable = document.getElementById("enrolled-students-table");
@@ -1333,6 +1476,17 @@ function removeStudentsFromSubject() {
 
 //SolveQuestion.cshtml
 
+/**
+ * Called after the SolveQuestion page is loaded
+ * @param {number} subquestionsCount Amount of subquestions in the test
+ * @param {number} subquestionResultIdIndex Index of current subquestion within the text
+ * @param {number} subquestionType Type of the current subquestion
+ * @param {string} possibleAnswerListString List of possible answers, separated by ";"
+ * @param {string} correctAnswerListString List of correct answers, separated by ";"
+ * @param {string} subquestionText Text of the current subquestion
+ * @param {string} studentAnswerListString List of student's answers, separated by ";"
+ * @param {string} answerCompletenessString List of completeness of all student's answers (whether the student has answered the subquestions or not), separated by ";"
+ */
 function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdIndex, subquestionType, possibleAnswerListString,
     correctAnswerListString, subquestionText, studentAnswerListString, answerCompletenessString) {
     let studentAnswerTable = null;
@@ -1440,7 +1594,6 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
 
         if (subquestionType == 7) {
             //add possible answers to select
-            let possibleAnswerList = [];
             possibleAnswerList.push(getOptionPlaceholderText());
             let possibleAnswerListStringSplit = possibleAnswerListString.split(";");
             for (let i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
@@ -1458,7 +1611,6 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
         }
     }
     else if (subquestionType == 9) {
-        let possibleAnswerList = [];
         let possibleAnswerListStringSplit = correctAnswerListString.split(";");
         for (let i = 0; i < possibleAnswerListStringSplit.length - 1; i++) {
             possibleAnswerList.push(possibleAnswerListStringSplit[i]);
@@ -1622,6 +1774,10 @@ function solveQuestionPagePostProcessing(subquestionsCount, subquestionResultIdI
     addTestNavigationTableElements(answerCompletenessString, subquestionResultIdIndex);
 }
 
+/**
+ * Adds another field (answer) for the student to fill after the SolveQuestion page is loaded
+ * @param {string} subquestionType Type of the subquestion
+ */
 function addStudentAnswer(subquestionType) {
     let table = document.getElementById('student-answers-table');
     let rowCount = table.rows.length;
@@ -1651,7 +1807,10 @@ function addStudentAnswer(subquestionType) {
     }
 }
 
-//adds another gap (another question) to the subquestion text of subquestion of type 9 - used for SolveQuestion.cshtml
+/**
+ * Adds another gap (answer) for the student to fill after the SolveQuestion page is loaded
+ * Used only for subquestion of type 9
+ */
 function addStudentGap() {
     let additionalQuestions = document.getElementById("additional-questions");
 
@@ -1667,23 +1826,27 @@ function addStudentGap() {
     additionalQuestions.appendChild(clonedSubquestionText);
 }
 
+/**
+ * Shuffles array
+ * Used to randomize the order of possible answers presented to the user (they may be ordered the same as correct answers)
+ * @param {object} array Array to be shuffled
+ */
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
-
         // Generate random number
         let j = Math.floor(Math.random() * (i + 1));
-
         let temp = array[i];
         array[i] = array[j];
         array[j] = temp;
     }
-
     return array;
 }
 
-//automatic update of student's available answers when dropdown menus are used after student selects an answer
-//subquestion types - 1, 3, 9
-function updateStudentsAnswersSelect(parentNodeId, subquestionType) {
+/**
+ * Automatic update of student's available answers when dropdown menus are used after student selects an answer
+ * Subquestion types - 1, 3, 9
+ */
+function updateStudentsAnswersSelect() {
     let possibleAnswerArray = [];
     $('.possible-answer-text').each(function () {
         let answer = $(this).text();
@@ -1717,6 +1880,11 @@ function updateStudentsAnswersSelect(parentNodeId, subquestionType) {
     }
 }
 
+/**
+ * Called after student's answer is submitted on the SolveQuestion page
+ * Modifies certain fields so that they are properly bounded to the SubquestionResult
+ * @param {number} subquestionType Type of the subquestion
+ */
 function onSolveQuestionFormSubmission(subquestionType) {
     let table = document.getElementById("student-answers-table");
     let studentHiddenAnswers = document.getElementsByClassName("student-answer-hidden");
@@ -1756,6 +1924,11 @@ function onSolveQuestionFormSubmission(subquestionType) {
     }
 }
 
+/**
+ * Used to reset student's answer to the subquestion
+ * Useful in case student wants to change his answer
+ * @param {number} subquestionType Type of the subquestion
+ */
 function resetStudentAnswers(subquestionType) {
     let studentAnswerTable = document.getElementById("student-answers-table");
     switch (subquestionType) {
@@ -1810,11 +1983,22 @@ function resetStudentAnswers(subquestionType) {
     }
 }
 
+/**
+ * Called after student moves the slider (or removes his previous answer)
+ * Used to change the value of the label that indicates the current value of the slider
+ * @param {string} value New value of the slider
+ */
 function changeSliderOutputs(value) {
     document.getElementById("slider-question").parentNode.nextElementSibling.value = value;
     document.getElementById("student-answer-hidden").value = value;
 }
 
+/**
+ * Called after SolveQuestion page is loaded
+ * Used to add navigation table elements that the user can use to navigate throughout the test
+ * @param {string} answerCompletenessString List of completeness of all student's answers (whether the student has answered the subquestions or not), separated by ";"
+ * @param {number} subquestionNumber Index of current subquestion
+ */
 function addTestNavigationTableElements(answerCompletenessString, subquestionNumber) {
     let navigation = null;
     if (document.getElementById("number-list-navigation") == null) {
@@ -1850,6 +2034,10 @@ function addTestNavigationTableElements(answerCompletenessString, subquestionNum
     }
 }
 
+/**
+ * Used by student to navigate throughout the test attempt
+ * @param {number} subquestionIndex Index of the subquestion to navigate onto
+ */
 function navigateToSubquestion(subquestionIndex) {
     subquestionIndex -= 1;
     let nextSubquestionButton = document.getElementById("nextSubquestion");
@@ -1858,6 +2046,9 @@ function navigateToSubquestion(subquestionIndex) {
     nextSubquestionButton.click();
 }
 
+/**
+ * Used by student to turn test in
+ */
 function turnTestIn() {
     if (confirm('Chystáte se odevzdat test. V testu již nebude možné provádět žádné změny. Chcete pokračovat?')) {
         let action = document.getElementById("action");
@@ -1869,11 +2060,21 @@ function turnTestIn() {
 
 //AddTestTemplate.cshtml / EditTestTemplate.cshtml
 
+/**
+ * Called after the AddTestTemplate/EditTestTemplate page is loaded
+ * Used to change certain fields (negative points radiobutton and subject dropdown)
+ * @param {number} negativePoints Negative points settings (1/2/3)
+ * @param {number} subjectId ID of the test template subject
+ */
 function editTestTemplatePostProcessing(negativePoints, subjectId) {
     document.getElementById(negativePoints).checked = true;
     document.getElementById("subject").value = subjectId;
 }
 
+/**
+ * Called after lecturer requests test difficulty comparison
+ * Hides button used to request comparison and lets the lecturer know that the calculation is being performed
+ */
 function onTestDifficultyFormSubmission() {
     let suggestedPointsLabel = document.getElementById("suggested-points-label");
     suggestedPointsLabel.innerHTML = "Předpokládaný průměrný počet bodů: probíhá výpočet..";
@@ -1884,6 +2085,13 @@ function onTestDifficultyFormSubmission() {
 
 //SolvedQuestion.cshtml
 
+/**
+ * Called after the SolvedQuestion page is loaded
+ * Disables certain fields and adds navigation elements
+ * @param {number} subquestionNumber Index of current subquestion
+ * @param {number} subquestionsCount Amount of subquestion in the test
+ * @param {string} answerStatusString List of correctness of all student's answers (whether the student has answered the subquestions correctly or not), separated by ";"
+ */
 function solvedQuestionPagePostProcessing(subquestionNumber, subquestionsCount, answerStatusString) {
     if (subquestionNumber == 0 || subquestionsCount == 1) {
         document.getElementById("previousSubquestion").disabled = true;
@@ -1894,6 +2102,10 @@ function solvedQuestionPagePostProcessing(subquestionNumber, subquestionsCount, 
     addTestNavigationTableElements(answerStatusString, subquestionNumber);
 }
 
+/**
+ * Used by student to navigate throughout the test result
+ * @param {number} subquestionIndex Index of the subquestion to navigate onto
+ */
 function navigateToSolvedSubquestion(subquestionIndex) {
     subquestionIndex -= 2;
     let subquestionResultIndex = document.getElementById("subquestionResultIndex");
@@ -1905,6 +2117,10 @@ function navigateToSolvedSubquestion(subquestionIndex) {
 
 //ManageSolvedQuestion.cshtml
 
+/**
+ * Called after lecturer requests subquestion result suggestion
+ * Hides button used to request suggestion and lets the lecturer know that the calculation is being performed
+ */
 function onSubquestionResultPointsFormSubmission() {
     let suggestedPointsLabel = document.getElementById("suggested-points-label");
     suggestedPointsLabel.innerHTML = "Doporučený počet bodů za otázku: probíhá výpočet..";
@@ -1914,11 +2130,17 @@ function onSubquestionResultPointsFormSubmission() {
 
 //ManageArtificialIntelligence.cshtml
 
+/**
+ * Lets the lecturer know that testing subquestion templates are being added
+ */
 function onAddTestingSubquestionTemplatesFormSubmission() {
     let templatesAddedLabel = document.getElementById("templates-added-label");
     templatesAddedLabel.style.display = "inline";
 }
 
+/**
+ * Lets the lecturer know that testing subquestion results are being added
+ */
 function onAddTestingSubquestionResultsFormSubmission() {
     let templatesAddedLabel = document.getElementById("results-added-label");
     templatesAddedLabel.style.display = "inline";
@@ -1926,10 +2148,16 @@ function onAddTestingSubquestionResultsFormSubmission() {
 
 //General
 
+/**
+ * Used by the lecturer to hide confirm action form (lecturer has chosen not to perform a potentially dangerous action)
+ */
 function hideConfirmActionForm() {
     document.getElementById("confirm-action").style.display = "none";
 }
 
+/**
+ * Loads modal image that is shown to the user in case he clicks on the default image
+ */
 function addModalImage() {
     let modal = document.getElementById("myModal");
 
@@ -1947,7 +2175,9 @@ function addModalImage() {
     }
 }
 
-//cs-CZ culture is used in the application - it's necessary to replace all dots with commas
+/**
+ * cs-CZ culture is used in the application - it's necessary to replace all dots with commas
+ */
 function modifyInputNumbers() {
     let inputs = document.getElementsByClassName("input-number");
     for (let i = 0; i < inputs.length; i++) {

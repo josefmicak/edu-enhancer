@@ -124,7 +124,7 @@
                                         <th>Odpověď</th>
                                     </tr>
                                     <tr id="student-answer-1">
-                                        <td><select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select></td>
+                                        <td><select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect()"></select></td>
                                     </tr>
                                 </table>
                                 break;
@@ -156,8 +156,8 @@
                                     </tr>
                                     <tr id="student-answer-1">
                                         <td>
-                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select> -
-                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect()"></select> -
+                                            <select class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect()"></select>
                                         </td>
                                     </tr>
                                 </table>
@@ -226,9 +226,9 @@
 
                                 <div class="panel-content">
                                     <span id="subquestion-text-1" class="subquestion-text"></span>
-                                    <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                    <select id="student-answer-select-1" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect()"></select>
                                     <span id="subquestion-text-2" class="subquestion-text"></span>
-                                    <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect(this.parentNode.parentNode.id, '@subquestionType')"></select>
+                                    <select id="student-answer-select-2" class="student-answer-select" name="StudentsAnswers[]" onchange="updateStudentsAnswersSelect()"></select>
                                     <span id="subquestion-text-3" class="subquestion-text"></span>
                                     <span id="additional-questions"></span>
                                 </div>

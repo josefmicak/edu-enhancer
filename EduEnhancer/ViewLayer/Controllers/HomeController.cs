@@ -955,7 +955,7 @@ namespace ViewLayer.Controllers
                     {
                         if(action == "editAdmin")
                         {
-                            if(Convert.ToInt32(role) == 2 || Convert.ToInt32(role) == 3)
+                            if(Convert.ToInt32(role) == 4)
                             {
                                 TempData["AdminMessage"] = "Chyba: hlavnímu administrátorovi nelze změnit roli.";
                             }
