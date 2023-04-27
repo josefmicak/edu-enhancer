@@ -332,7 +332,6 @@ namespace BusinessLayer
         public async Task<string> CreateResultTestingData(string action, string amountOfSubquestionResults)
         {
             string message;
-            //await TestingUsersCheck();
             var existingTestTemplates = await GetTestingDataTestTemplates();
             if(existingTestTemplates.Count == 0)
             {
@@ -373,7 +372,11 @@ namespace BusinessLayer
                 subquestionResultStatistics = new SubquestionResultStatistics();
                 subquestionResultStatistics.User = owner;
                 subquestionResultStatistics.UserLogin = owner.Login;
-                subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
+                int amountOfExistingUserResults = dataFunctions.GetSubquestionResultDbSet().Where(s => s.OwnerLogin == login).Count();
+                if ((amountOfExistingUserResults + int.Parse(amountOfSubquestionResults)) > 100)
+                {
+                    subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
+                }
                 subquestionResultStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultNeuralNetwork.py");
                 subquestionResultStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "ResultMachineLearning.py");
                 if (subquestionResultStatistics.NeuralNetworkAccuracy >= subquestionResultStatistics.MachineLearningAccuracy)
@@ -400,6 +403,11 @@ namespace BusinessLayer
                 else
                 {
                     subquestionResultStatistics.UsedModel = Model.MachineLearning;
+                }
+                int amountOfExistingUserResults = dataFunctions.GetSubquestionResultDbSet().Where(s => s.OwnerLogin == login).Count();
+                if ((amountOfExistingUserResults + int.Parse(amountOfSubquestionResults)) > 100)
+                {
+                    subquestionResultStatistics.EnoughSubquestionResultsAdded = true;
                 }
 
                 await dataFunctions.SaveChangesAsync();

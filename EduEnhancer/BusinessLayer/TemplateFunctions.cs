@@ -1086,7 +1086,11 @@ namespace BusinessLayer
                 subquestionTemplateStatistics = new SubquestionTemplateStatistics();
                 subquestionTemplateStatistics.User = owner;
                 subquestionTemplateStatistics.UserLogin = owner.Login;
-                subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
+                int amountOfExistingUserTemplates = dataFunctions.GetSubquestionTemplateDbSet().Where(s => s.OwnerLogin == login).Count();
+                if ((amountOfExistingUserTemplates + int.Parse(amountOfSubquestionTemplates)) > 100)
+                {
+                    subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
+                }
                 subquestionTemplateStatistics.NeuralNetworkAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateNeuralNetwork.py");
                 subquestionTemplateStatistics.MachineLearningAccuracy = PythonFunctions.GetNeuralNetworkAccuracy(true, login, "TemplateMachineLearning.py");
                 if (subquestionTemplateStatistics.NeuralNetworkAccuracy >= subquestionTemplateStatistics.MachineLearningAccuracy)
@@ -1112,6 +1116,11 @@ namespace BusinessLayer
                 else
                 {
                     subquestionTemplateStatistics.UsedModel = Model.MachineLearning;
+                }
+                int amountOfExistingUserTemplates = dataFunctions.GetSubquestionTemplateDbSet().Where(s => s.OwnerLogin == login).Count();
+                if ((amountOfExistingUserTemplates + int.Parse(amountOfSubquestionTemplates)) > 100)
+                {
+                    subquestionTemplateStatistics.EnoughSubquestionTemplatesAdded = true;
                 }
                 await dataFunctions.SaveChangesAsync();
             }
