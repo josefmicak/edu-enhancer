@@ -4,37 +4,31 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import pandas as pd
 import torch
-import torch.nn as nn
-import torch.optim as optim
 import locale
-import os
 import json
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
 from pathlib import Path
-
-
-def train(model, lr, epochs, x, y):
-    loss_function = nn.MSELoss()
-
-    optimizer = optim.SGD(model.parameters(), lr=lr)
-
-    for i in range(epochs):
-        optimizer.zero_grad()
-        y_value = model(x)
-        loss_value = loss_function(y_value, y)
-        loss_value.backward()
-        optimizer.step()
-
-
-def get_accuracy(y_test, y_test_pred):
-    R2 = r2_score(y_test, y_test_pred)
-    print(R2)
 
 
 def predict_new(subquestion_type_average_points, answer_correctness, subject_average_points, wrong_choice_points_share,
                 negative_points, minimum_points_share, subquestion_points, df, model, duplicate_columns):
+    """
+    Returns the predicted amount of points that the student should get for the subquestion
+
+    Parameters:
+    subquestion_type_average_points (float): Average subquestion points awarded for this subquestion type
+    answer_correctness (float): Answer correctness (-1 to 1)
+    subject_average_points (float): Answer correctness (-1 to 1)
+    wrong_choice_points_share (float): Share of wrong choice points to maximum possible wrong choice points
+    negative_points (int): Negative points settings (1/2/3)
+    minimum_points_share (float): Share of minimum test points to total test points
+    subquestion_points (float): Amount of points awarded for the subquestion
+    df (DataFrame): Dataset from SubquestionResultRecord table
+    model (LinearRegression): Linear regression model used to perform computations
+    duplicate_columns (list): List of integers (0/1) indicate which column's values are identical within the column
+
+    """
     final_tensor_values = list() #values from non-duplicate columns
 
     if duplicate_columns[0] != 1:
@@ -95,6 +89,17 @@ def predict_new(subquestion_type_average_points, answer_correctness, subject_ave
 
 
 def load_model(model, login, X_train, y_train, retrain_model):
+    """
+    Loads model (loads from appropriate path or trains and saves a new model)
+
+    Parameters:
+    model (LinearRegression): Linear regression model used to perform computations
+    login (str): User login
+    X_train (DataFrame): Training input data
+    y_train (DataFrame): Training output data
+    retrain_model (bool): Indicates whether model should be retrained or not
+
+    """
     base_path = Path(__file__)
     file_path_string = "../model/results/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
@@ -112,6 +117,14 @@ def load_model(model, login, X_train, y_train, retrain_model):
 
 
 def save_model(model, login):
+    """
+    Saves trained model to appropriate path
+
+    Parameters:
+    model (LinearRegression): Linear regression model used to perform computations
+    login (str): User login
+
+    """
     base_path = Path(__file__)
     file_path_string = "../model/results/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
@@ -119,6 +132,10 @@ def save_model(model, login):
 
 
 def read_secrets() -> dict:
+    """
+    Loads Windows and Ubuntu connection strings
+
+    """
     base_path = Path(__file__)
     file_path_string = "../secrets/secrets.json"
     file_path = (base_path / file_path_string).resolve()

@@ -199,6 +199,9 @@ namespace ArtificialIntelligenceTools
             }
         }
 
+        /// <summary>
+        /// Returns the information on which device is used to perform computations (GPU/CPU)
+        /// </summary>
         public static string GetDevice()
         {
             string function = "device_name";

@@ -14,12 +14,35 @@ from pathlib import Path
 
 
 def get_accuracy(y_test, y_test_pred):
+    """
+    Returns accuracy (R-squared score) of the model
+
+    Parameters:
+    y_test (DataFrame): Testing output data
+    y_test_pred (DataFrame): Predicted results that are compared to the actual data
+
+    """
     R2 = r2_score(y_test, y_test_pred)
     print(R2)
 
 
-def predict_new(subquestion_type_average_points, correct_answers_share, subject_average_points, wrong_choice_points_share,
-                negative_points, minimum_points_share, df, model, duplicate_columns):
+def predict_new(subquestion_type_average_points, correct_answers_share, subject_average_points,
+                wrong_choice_points_share, negative_points, minimum_points_share, df, model, duplicate_columns):
+    """
+    Returns the predicted amount of points that the subquestion template should get
+
+    Parameters:
+    subquestion_type_average_points (float): Average subquestion points awarded for this subquestion type
+    correct_answers_share (int): Amount of correct answers compared to total amount of answers (0 to 1)
+    subject_average_points (float): Answer correctness (-1 to 1)
+    wrong_choice_points_share (float): Share of wrong choice points to maximum possible wrong choice points
+    negative_points (int): Negative points settings (1/2/3)
+    minimum_points_share (float): Share of minimum test points to total test points
+    df (DataFrame): Dataset from SubquestionTemplateRecord table
+    model (LinearRegression): Linear regression model used to perform computations
+    duplicate_columns (list): List of integers (0/1) indicate which column's values are identical within the column
+
+    """
     final_tensor_values = list() #values from non-duplicate columns
 
     if duplicate_columns[0] != 1:
@@ -77,6 +100,17 @@ def predict_new(subquestion_type_average_points, correct_answers_share, subject_
 
 
 def load_model(model, login, X_train, y_train, retrain_model):
+    """
+    Loads model (loads from appropriate path or trains and saves a new model)
+
+    Parameters:
+    model (LinearRegression): Linear regression model used to perform computations
+    login (str): User login
+    X_train (DataFrame): Training input data
+    y_train (DataFrame): Training output data
+    retrain_model (bool): Indicates whether model should be retrained or not
+
+    """
     base_path = Path(__file__)
     file_path_string = "../model/templates/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
@@ -94,6 +128,14 @@ def load_model(model, login, X_train, y_train, retrain_model):
 
 
 def save_model(model, login):
+    """
+    Saves trained model to appropriate path
+
+    Parameters:
+    model (LinearRegression): Linear regression model used to perform computations
+    login (str): User login
+
+    """
     base_path = Path(__file__)
     file_path_string = "../model/templates/" + login + "_LR.sav"
     file_path = (base_path / file_path_string).resolve()
@@ -101,6 +143,10 @@ def save_model(model, login):
 
 
 def read_secrets() -> dict:
+    """
+    Loads Windows and Ubuntu connection strings
+
+    """
     base_path = Path(__file__)
     file_path_string = "../secrets/secrets.json"
     file_path = (base_path / file_path_string).resolve()

@@ -105,6 +105,9 @@ namespace BusinessLayer
             return _configuration["Authentication:Google:ClientId"];
         }
 
+        /// <summary>
+        /// Deletes testing data (data used to test artificial intelligence capabilities)
+        /// </summary>
         public async Task DeleteTestingData()
         {
             await dataFunctions.DeleteTestingData();

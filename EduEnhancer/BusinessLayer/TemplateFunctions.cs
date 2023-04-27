@@ -1358,17 +1358,17 @@ namespace BusinessLayer
         /// Array containing descriptions of subquestion types
         /// </summary>
         public string[] SubquestionTypeTextArray = {
-        "Neznámý nebo nepodporovaný typ otázky!",
-        "Seřazení pojmů",
-        "Výběr z více možností; více možných správných odpovědí",
-        "Spojování pojmů",
-        "Více otázek k jednomu pojmu; více možných správných odpovědí",
-        "Volná odpověď, správná odpověď není automaticky určena",
-        "Výběr z více možností; jedna správná odpověd",
-        "Výběr z více možností (doplnění textu); jedna správná odpověď",
-        "Volná odpověď, správná odpověď je automaticky určena",
-        "Dosazování pojmů do mezer",
-        "Posuvník; jedna správná odpověď (číslo)"};
+            "Neznámý nebo nepodporovaný typ otázky!",
+            "Seřazení pojmů",
+            "Výběr z více možností; více možných správných odpovědí",
+            "Spojování pojmů",
+            "Více otázek k jednomu pojmu; více možných správných odpovědí",
+            "Volná odpověď, správná odpověď není automaticky určena",
+            "Výběr z více možností; jedna správná odpověd",
+            "Výběr z více možností (doplnění textu); jedna správná odpověď",
+            "Volná odpověď, správná odpověď je automaticky určena",
+            "Dosazování pojmů do mezer",
+            "Posuvník; jedna správná odpověď (číslo)"};
 
         /// <summary>
         /// Returns the description of subquestion type based on its identifying number

@@ -3,6 +3,10 @@ import sys
 
 
 def device_name():
+    """
+    Returns the information on which device is used to perform computations (GPU/CPU)
+
+    """
     if torch.cuda.is_available() is True:
         print("GPU")
     else:
